@@ -5,12 +5,13 @@ const crypto=require('node:crypto');
 
 const ownerPath='.zero-web/owner.json';
 const kitPaths=['.zero-web/run.cjs','.zero-web/web-publish-bundle.js','.zero-web/README.md','.github/workflows/zero-web.yml',ownerPath];
-// Canonical publishingFiles at 44e50e44 (before f719d184's README-only identity
-// wording change), and f719d184 through 84c56394 (before the README's device
-// administrator wording). This allowlist is independent of the owner marker.
+// Exact historical kits at 44e50e44 (README identity wording), f719d184 through
+// 84c56394 (README device wording), and 2a91927c (SHA-only workflow run name).
+// This allowlist is independent of the owner marker.
 const legacyHashes=new Set([
   '56217bc19e0f9009202e3096274d035810b3ecb46c33d862d52a63ae76d3fd92',
-  '292808492ceceb80fefcc6ac8f0e756275cc357aee6bd2d22f3d0f2195631805'
+  '292808492ceceb80fefcc6ac8f0e756275cc357aee6bd2d22f3d0f2195631805',
+  'e89fe6b48b56c56b8f5bed8fa3940c5b8466beaeae87a74d756bde1382bf0e8c'
 ]);
 const limit=256*1024;
 function conflict(name) {return Error(`Publishing file ${name} has different content. Preserve it and resolve the conflict before publishing; Zero will not replace an edited or unknown kit.`);}

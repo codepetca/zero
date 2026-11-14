@@ -66,7 +66,7 @@ flow with a small experiment you can discard before committing.
 
 ## Publish your playable app
 
-Run and test your app first. To share it, choose **Publish & open app** from the arrow beside **Run** and follow the prompts. The published app and its included assets are public. Wait for the browser to open, then test the published version.
+Run and test your app first. Check that the tested version is on GitHub **main**. If you edited on **main**, choose **Commit**, then **Sync**. Choose **Publish & open app** from the arrow beside **Run** and follow the prompts. The published app and its included assets are public. Wait for the browser to open, then test the published version.
 
 ## Troubleshooting
 

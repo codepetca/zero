@@ -72,7 +72,7 @@ async function harness(t,{missing=false,choice=true,dirty=false,dirtyBuffer=dirt
     if(id==='./repository-reminder-storage'&&noLedger==='enumerable')return {...load.call(this,id,...args),createRepositoryReminderStorage:()=>undefined};
     if(id==='./project-restore-plan'&&correctionReceipt)return {...load.call(this,id,...args),validatedCompletedProjectRestore:async()=>correctionReceipt};
     if(id==='./start-page'&&mockStart)return {createStartPage:()=>({show:async()=>onStart(),refresh(){},isOpen:()=>false,owns:()=>false,dispose(){}})};
-    if(id==='./web-publish-ui'&&mockPublish)return {createWebPublishCommands:(_v,options)=>({commands:{'zero.testPublishUpload':()=>options.uploadChanges(options.authentication,{forPublish:true,expectedRoot:root})},disposables:[],hasPublishedApp:()=>false,publish:async()=>undefined,verifiedPublication:async()=>undefined})};
+    if(id==='./web-publish-ui'&&mockPublish)return {createWebPublishCommands:(_v,options)=>({commands:{'zero.testPublishUpload':async override=>options.uploadChanges(options.authentication,{forPublish:true,expectedRoot:root,expectedAccount:'1',expectedPlan:await github.prepareUpload(root),...override})},disposables:[],hasPublishedApp:()=>false,publish:async()=>undefined,verifiedPublication:async()=>undefined})};
     if(id==='./student-file-status')return {readStudentFileStatus:async()=>new Map()};
     if(id==='./main-update-status')return {checkMainUpdate:async()=>{mainChecks.push(branch);return {state:'current',localUpdate:false};}};
     if(id==='./workflow'&&refOnlyFixture)return {...load.call(this,id,...args),readRecovery:async()=>undefined,prepareSync:async()=>({root,branch,head,remote,page:core.parseRepositoryUrl(remote).page,refStorage:'reftable',reftableRefOnly:true,remoteMainHead:OTHER,remoteBranch:'main'}),syncPrepared:async()=>{const base={root,branch,head:OTHER,sourceHead:B,reviewedMainHead:A,reviewedRemoteHead:OTHER,remote,page:core.parseRepositoryUrl(remote).page,accountId:'1',sessionId:'session',type:'push',operation:'reftable-ref-only',committed:false,pushStarted:false},pending={...base,id:'ref-pending-id',kind:'ref-pending'},acknowledged={...base,id:'ref-ack-id',kind:'ref-acknowledged',intentId:pending.id};stored.set('zero.pendingSync.v1:'+pending.id,pending);stored.set('zero.pendingSync.v1:'+acknowledged.id,acknowledged);head=OTHER;return {updated:true,branch,head,remote,page:base.page,remoteBranch:'main',remoteHead:OTHER,refOnlyOutcome:{pending,acknowledged}};}};
@@ -132,6 +132,17 @@ test('Publish upload preserves a known missing main and stops before upload',asy
  const h=await harness(t,{missing:true,mockPublish:true});await h.commands.get('zero.testPublishUpload')();
  assert.equal(h.pushes.length,0);assert.equal(h.syncs,0);assert.match(h.errors.at(-1),/Review branch creation/);
  assert.ok(h.activeRecords().some(row=>row.kind==='remote-missing'&&row.branch==='main'&&row.head===B&&row.accountId==='1'));
+});
+test('Publish kit upload rejects a missing plan, changed GitHub account and changed plan before transfer',async t=>{
+ for(const [override,message] of [
+   [{expectedPlan:undefined},/publishing files or GitHub account changed/],
+   [{expectedAccount:'2'},/publishing files or GitHub account changed/],
+   [{expectedPlan:{fingerprint:'modified-files'}},/project changed before upload/]
+ ]) {
+   const h=await harness(t,{mockPublish:true});
+   await h.commands.get('zero.testPublishUpload')(override);
+   assert.equal(h.pushes.length,0);assert.equal(h.syncs,0);assert.match(h.errors.at(-1),message);
+ }
 });
 test('manual missing-branch review uses the real checkUpload contract',async t=>{
  for(const local of [false,true])await t.test(local?'local reminder':'saved commits',async t=>{

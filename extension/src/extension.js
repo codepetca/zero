@@ -1567,7 +1567,7 @@ function activate(context, services = {}) {
       if(native && await fs.realpath(native.rootUri.fsPath)===root)await native.status();
     } catch(error) {output.appendLine(`Source Control refresh: ${error.message}`);}
   }
-  async function uploadProject(uploadAuth = auth, {forPublish=false,expectedRoot,expectedPlan,assertPublishCurrent=async()=>{},assertPublishCurrentNow=()=>{}} = {}) {
+  async function uploadProject(uploadAuth = auth, {forPublish=false,expectedRoot,expectedPlan,expectedAccount,assertPublishCurrent=async()=>{},assertPublishCurrentNow=()=>{}} = {}) {
       if (isBusy()) return;
       await settleBranchCheck();if(isBusy())return;
       const missing=observedMissing(projectRoot);
@@ -1587,6 +1587,7 @@ function activate(context, services = {}) {
         const requireSavedUpload=async()=>{if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save or undo your project editor changes before uploading. Your edits are kept.');};
         if(!forPublish)await requireSavedUpload();
         const initialTicket = await uploadAuth.capture();
+        if(forPublish && (!expectedPlan || initialTicket.session.accountId!==expectedAccount))throw new Error('The publishing files or GitHub account changed. Choose Publish & open app again to review them.');
         if (forPublish && !(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the upload.');
         const assertCurrentProject=async()=>{
           await assertPublishCurrent();
@@ -1604,10 +1605,11 @@ function activate(context, services = {}) {
         }
         const reminderSnapshot=repositoryLedger?await allReminderRecords(root):compatibilityAll(root,plan.branch);
         if(forPublish && plan.branch!=='main')throw new Error('Finish your change with Merge to main before publishing the app.');
-        if(expectedPlan && ['root','remote','branch','head','status','fingerprint'].some(key=>plan[key]!==expectedPlan[key]))throw new Error('The project changed before upload. Choose Publish app again.');
+        if(expectedPlan && ['root','remote','branch','head','status','fingerprint','repositoryIdentity'].some(key=>plan[key]!==expectedPlan[key]))throw new Error('The project changed before upload. Review your changes, then choose Publish & open app again.');
         selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,repositories,repositoryUrl:plan.page,assertCurrentProject});
         const ticket=selectedAuth.ticket, activeAuth=selectedAuth.authentication;
         uploadAccount=ticket.session.accountId;
+        if(forPublish && uploadAccount!==expectedAccount)throw new Error('The GitHub account changed. Choose Publish & open app again to review it.');
         uploadProgress = ''; refresh();
         const message = !plan.changes.length ? (forPublish?'Publish app':'Push saved commits') : await vscode.window.showInputBox({title:'Commit Message', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
         if (!message) return;

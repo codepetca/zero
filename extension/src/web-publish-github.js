@@ -9,7 +9,14 @@ const {pagesFiles, pagesWorkflow} = require('./web-publishing');
 const migration = require('./web-publish-migration');
 
 const workflowPath = '.github/workflows/zero-web.yml';
+const workflowEndpoint = '/actions/workflows/zero-web.yml';
+const dispatchEndpoint = workflowEndpoint+'/dispatches';
+const runListing = /^\/actions\/workflows\/zero-web\.yml\/runs\?branch=main&event=workflow_dispatch&head_sha=[a-f0-9]{40}&per_page=100$/;
 const shaPattern = /^[a-f0-9]{40}$/;
+const digestPattern = /^[a-f0-9]{64}$/;
+const stageTagPattern = /^zero-web-stage-[a-f0-9]{32}$/;
+const positiveId = value => Number.isSafeInteger(value) && value>0;
+const runConclusions = new Set(['action_required','cancelled','failure','neutral','skipped','stale','startup_failure','success','timed_out']);
 // Official upload/retrieval uses release assets, not an undocumented artifact upload API.
 // https://docs.github.com/en/rest/releases/assets?apiVersion=2026-03-10
 // Dispatch 2026-03-10 returns the exact workflow_run_id.
@@ -18,6 +25,42 @@ const compiledWorkflow=pagesWorkflow;
 const {pack}=require('./web-publish-bundle');
 const {committedThumbnail,withThumbnail,thumbnailNote}=require('./web-publish-thumbnail');
 function action(message, url) { return {status:'action-required',action:{message,url}}; }
+function uncertainDispatch(repository,message='GitHub may have started publishing. Recheck this attempt before starting another publish.') {
+  return {status:'dispatch-uncertain',message,action:{message:'Open GitHub Actions',url:repository+'/actions'}};
+}
+function stageReceipt(state,staging,phase) {
+  return Object.freeze({
+    sha:state.plan.head,repository:state.plan.page,repositoryId:state.repositoryId,
+    installationId:state.installationId,account:state.ticket.session.accountId,
+    destination:Object.freeze({...state.approvedDestination}),phase,staging:Object.freeze({...staging})
+  });
+}
+function sameStage(left,right) {
+  return left?.sha===right.sha && left.repository===right.repository && left.staging.tag===right.staging.tag;
+}
+function assertStageReceipt(saved) {
+  if(!shaPattern.test(saved?.sha||'')||!stageTagPattern.test(saved?.staging?.tag||'')||
+     (saved.staging.sourceSha!==undefined&&saved.staging.sourceSha!==saved.sha)||
+     core.parseRepositoryUrl(saved.repository).page!==saved.repository)throw Error('Invalid temporary publishing receipt.');
+  // Released clients persisted no phase. Even a receipt with no asset ID can
+  // belong to an already dispatched run because they never saved that update.
+  if(saved.phase===undefined)return;
+  if(!['staging','dispatch-uncertain'].includes(saved.phase)||saved.staging.sourceSha!==saved.sha||
+     !positiveId(saved.repositoryId)||!positiveId(saved.installationId)||!/^\d{1,20}$/.test(saved.account||'')||
+     saved.destination?.buildType!=='workflow'||saved.destination?.public!==true||
+     (saved.destination.cname!==null&&typeof saved.destination.cname!=='string')||
+     typeof saved.destination.url!=='string'||
+     safeUrl(saved.destination.url,saved.destination.cname)!==saved.destination.url||
+     (saved.staging.releaseId!==undefined&&!positiveId(saved.staging.releaseId)))throw Error('Invalid temporary publishing receipt.');
+  if(saved.phase==='dispatch-uncertain'&&(!positiveId(saved.staging.releaseId)||
+     !positiveId(saved.staging.assetId)||!digestPattern.test(saved.staging.digest||'')))throw Error('Invalid publishing dispatch receipt.');
+}
+function resumeDispatch(saved,runId) {
+  return Object.freeze({
+    runId,sha:saved.sha,repository:saved.repository,repositoryId:saved.repositoryId,installationId:saved.installationId,
+    destination:Object.freeze({...saved.destination}),staging:Object.freeze({...saved.staging}),dispatchTag:saved.staging.tag
+  });
+}
 function pagesDestination(pages) {
   const url=pages && safeUrl(pages.html_url,pages.cname);
   if(!url||pages.build_type!=='workflow'||pages.public!==true)return null;
@@ -59,7 +102,7 @@ async function inspectFiles(root, files) {
   return missing;
 }
 function createGitHubPagesPublisher({authentication,repositories,fetch:request=globalThis.fetch,git=core.git,isSimulation=()=>true,engineRoot=path.join(__dirname,'web-export'),files:providedFiles,timeoutMs=15000,uploadTimeoutMs=180000,cacheRoot,localBuild=options=>require('./web-export/snapshot').ensureValidatedExport(options),validateExport=options=>require('./web-export/snapshot').validateExport(options),assertBuildInputsAtCommit=options=>require('./project-builder').createProjectBuilder().assertBuildInputsAtCommit(options)}={}) {
-  const reviews=new WeakMap(), resumptions=new WeakMap(), unresolvedStages=new Map();
+  const reviews=new WeakMap(), resumptions=new WeakMap(), unresolvedStages=new Map(), activePublishes=new Set();
   function simulation() {return {status:'simulated',message:'Simulation only — no publishing files, sign-in, upload or public website changed.'};}
   async function guard(review,signal,{tracking=false}={}) {
     if(signal?.aborted)throw new Error('Web publishing cancelled. An already dispatched GitHub run may continue.');
@@ -86,8 +129,9 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
   }
   async function api(review,method,suffix,body,{allow404=false,signal,uploadUrl,cleanup=false,onRequest,tracking=false}={}) {
     // Only these repository-scoped official REST endpoints can receive a token.
-    if(!/^(?:|\/pages|\/git\/ref\/heads\/main|\/actions\/workflows\/zero-web\.yml\/dispatches|\/actions\/runs\/\d+|\/releases(?:\?per_page=100)?|\/releases\/\d+|\/releases\/assets\/\d+)$/.test(suffix))throw new Error('Unsupported web publishing API request.');
-    if(tracking && (method!=='GET' || !/^(?:|\/pages|\/actions\/runs\/\d+)$/.test(suffix)))throw new Error('Unsupported publishing status request.');
+    const listing=runListing.test(suffix);
+    if(!listing&&!/^(?:|\/pages|\/git\/ref\/heads\/main|\/actions\/workflows\/zero-web\.yml\/dispatches|\/actions\/runs\/\d+|\/releases(?:\?per_page=100)?|\/releases\/\d+|\/releases\/assets\/\d+)$/.test(suffix))throw new Error('Unsupported web publishing API request.');
+    if((listing&&!tracking)||(tracking&&(method!=='GET'||(!listing&&!/^(?:|\/pages|\/actions\/runs\/\d+)$/.test(suffix)))))throw new Error('Unsupported publishing status request.');
     if(cleanup){await authentication.assertCurrent(review.ticket);const now=await prepareUpload(review.root,git);if(now.root!==review.plan.root||now.remote!==review.plan.remote)throw Error('The repository changed; temporary app cleanup needs its original repository.');}
     else await guard(review,signal,{tracking});
     if(suffix==='/pages' && !['GET','POST'].includes(method))throw Error('Unsupported Pages settings mutation.');
@@ -165,7 +209,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
       if(isSimulation())throw new Error('Live publishing was disabled. Review publishing again.');
       await fs.writeFile(path.join(state.root,name),state.files.get(name),{flag:'wx'});
     }
-    return {status:'upload-required',message:'Publishing setup is ready. Commit & push these source files on main, then publish the game.'};
+    return setupUpload(state,state.missing,'Publishing setup is ready. Commit and sync these source files on main, then publish the game.',signal);
   }
   async function update(reviewed,{signal}={}) {
     if(isSimulation())return simulation();
@@ -187,15 +231,41 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(isSimulation())throw Error('Live publishing is disabled. Review publishing again.');
     migration.apply(state.root,state.files,state.original);
     reviews.delete(reviewed);
-    return {status:'upload-required',message:'Publishing files updated. Commit & push on main, then publish to the same page. The previous files remain in Git history.'};
+    return setupUpload(state,reviewed.upgrade.files,'Publishing files updated. Commit and sync on main, then publish to the same page. The previous files remain in Git history.',signal);
   }
-  async function publish(reviewed,{signal,onProgress=()=>{},onStage=()=>{},onStaging=async()=>{},onPending=async()=>{}}={}) {
+  async function setupUpload(state,files,message,signal) {
+    const before=await prepareUpload(state.root,git);
+    const identity=['root','remote','branch','head','repositoryIdentity'];
+    const expected=new Set(files),changed=new Set(before.changes.map(change=>change.path));
+    const inspection=migration.inspect(state.root,state.files);
+    const after=await prepareUpload(state.root,git);
+    await authentication.assertCurrent(state.ticket);
+    if(signal?.aborted||isSimulation()||identity.some(key=>before[key]!==state.plan[key]||after[key]!==before[key])||
+       before.status!==after.status||before.fingerprint!==after.fingerprint||!changed.size||
+       changed.size!==expected.size||[...changed].some(name=>!expected.has(name))||
+       inspection.upgrade||inspection.missing.length)throw Error('The project changed while preparing publishing files. Review and sync your changes before publishing.');
+    return {status:'upload-required',message,files:[...files],uploadPlan:after};
+  }
+  async function publish(reviewed,options={}) {
     if(isSimulation())return simulation();
     const state=reviews.get(reviewed);if(!state)throw new Error('Review the public destination before publishing.');
+    if(activePublishes.has(state.root))throw Error('A publish is already in progress for this project.');
+    activePublishes.add(state.root);
+    try {return await publishReviewed(state,options);}
+    finally {activePublishes.delete(state.root);}
+  }
+  async function publishReviewed(state,{signal,onProgress=()=>{},onStage=()=>{},onStaging,onPending}) {
     if(state.upgrade)return action('Update the older publishing files and Commit & push on main, then publish.');
     if(state.missing.length)return action('Set up web publishing and upload the added source files on main, then publish.');
     await guard(state,signal);
-    if(unresolvedStages.has(state.root)) {await cleanupStaging(state,unresolvedStages.get(state.root));unresolvedStages.delete(state.root);await onStaging(undefined);}
+    const unresolved=unresolvedStages.get(state.root);
+    if(unresolved&&unresolved.phase!=='staging')return uncertainDispatch(unresolved.repository);
+    if(typeof onStaging!=='function'||typeof onPending!=='function')throw Error('Publishing needs local storage for its staging and run receipts.');
+    if(unresolved) {
+      const result=await cleanup(state.root,unresolved);
+      if(result.status!=='staging-cleared')return result;
+      await onStaging(undefined);
+    }
     const remote=await api(state,'GET','/git/ref/heads/main',null,{signal});
     if(remote.object?.sha!==state.plan.head)throw new Error('GitHub main changed after review. Commit & push or sync your project and review publishing again.');
     let pages=await api(state,'GET','/pages',null,{allow404:true,signal});
@@ -240,15 +310,20 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     const destination=await api(state,'GET','',null,{signal});
     if(destination.id!==state.repositoryId||String(destination.owner?.id)!==String(state.ticket.session.accountId)||destination.owner?.type!=='User'||destination.default_branch!=='main'||!destination.permissions?.push)throw Error('The repository or account permissions changed. Review publishing again.');
     const staging={tag:'zero-web-stage-'+crypto.randomBytes(16).toString('hex'),sourceSha:state.plan.head};
-    let creationSent=false;
+    let creationSent=false, dispatchSent=false, dispatchRejected=false, dispatch;
+    async function persistStaging(phase) {
+      const saved=stageReceipt(state,staging,phase);
+      unresolvedStages.set(state.root,saved);
+      await onStaging(saved);
+      return saved;
+    }
     try {
-      unresolvedStages.set(state.root,staging);
       // Persist the unique destination before the POST: its response can be lost.
-      await onStaging({sha:state.plan.head,repository:state.plan.page,staging});
+      await persistStaging('staging');
       const release=await api(state,'POST','/releases',{tag_name:staging.tag,target_commitish:state.plan.head,name:'Temporary Zero web deployment',draft:true,prerelease:true},{signal,onRequest:()=>{creationSent=true;}});
       if(Number.isSafeInteger(release?.id)&&release.id>0)staging.releaseId=release.id;
       if(!staging.releaseId||release.draft!==true||release.tag_name!==staging.tag)throw Error('GitHub did not identify the temporary app staging release. Check repository Releases before retrying.');
-      await onStaging({sha:state.plan.head,repository:state.plan.page,staging});
+      await persistStaging('staging');
       const expected='https://uploads.github.com/repos/'+state.slug+'/releases/'+release.id+'/assets';
       if(release.upload_url!==expected+'{?name,label}')throw Error('GitHub returned an unexpected app upload destination.');
       await validateExport({projectRoot:state.root,result:resultBuild,signal});
@@ -262,22 +337,48 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
       if(current.object?.sha!==state.plan.head)throw Error('GitHub main changed during app staging. Review publishing again.');
       onStage('deploying');
       onProgress('Deploying the validated local browser app on GitHub…');
+      dispatch=stageReceipt(state,staging,'dispatch-uncertain');
+      // After a crash, this write must be enough to recover the request. Keep
+      // destination/source guards after persistence and mark when it can be sent.
+      unresolvedStages.set(state.root,dispatch);
+      await onStaging(dispatch);
       const finalPages=await api(state,'GET','/pages',null,{signal});
-      const approvedDestination=assertDestination(finalPages,state.approvedDestination);
-      const result=await api(state,'POST','/actions/workflows/zero-web.yml/dispatches',{ref:'main',inputs:{source_sha:state.plan.head,release_id:String(staging.releaseId),stage_tag:staging.tag,asset_id:String(staging.assetId),bundle_sha256:staging.digest,profile_sha256:bundle.profileHash}},{signal});
-      if(!Number.isSafeInteger(result?.workflow_run_id) || result.workflow_run_id<1)throw new Error('GitHub did not identify the publishing run. Check Actions before starting another publish.');
-      const resume=Object.freeze({runId:result.workflow_run_id,sha:state.plan.head,repository:state.plan.page,repositoryId:state.repositoryId,installationId:state.installationId,destination:Object.freeze({...approvedDestination}),staging});
-      resumptions.set(resume,state);
+      assertDestination(finalPages,dispatch.destination);
+      let result;
+      try {
+        result=await api(state,'POST',dispatchEndpoint,{ref:'main',inputs:{source_sha:state.plan.head,release_id:String(staging.releaseId),stage_tag:staging.tag,asset_id:String(staging.assetId),bundle_sha256:staging.digest,profile_sha256:bundle.profileHash}},{signal,onRequest:()=>{dispatchSent=true;}});
+      } catch(error) {
+        // Only an explicit authentication, access, resource or validation
+        // rejection from this POST confirms that GitHub refused the request.
+        dispatchRejected=[401,403,404,422].includes(error.status);
+        throw error;
+      }
+      const runId=result?.workflow_run_id;
+      if(!positiveId(runId)||typeof result.run_url!=='string'||typeof result.html_url!=='string'||
+         result.run_url.toLowerCase()!==('https://api.github.com/repos/'+state.slug+'/actions/runs/'+runId).toLowerCase()||
+         result.html_url.toLowerCase()!==(state.plan.page+'/actions/runs/'+runId).toLowerCase())throw Error('GitHub did not identify the publishing run.');
+      const resume=resumeDispatch(dispatch,runId);
+      const run=await api(state,'GET','/actions/runs/'+runId,null,{signal,tracking:true});
+      assertRun(state,resume,run);
       await onPending(resume);
+      resumptions.set(resume,state);
       unresolvedStages.delete(state.root);
       return {status:'pending',resume,message:['GitHub is deploying your locally built app.',thumbnailNote(thumbnail)].filter(Boolean).join(' ')};
-    } catch(error) {try {
-      if(creationSent && (staging.releaseId || ![401,403,404,409,422].includes(error.status)))await cleanupStaging(state,staging);
-      unresolvedStages.delete(state.root);await onStaging(undefined);} catch(cleanupError) {error.message+=' Temporary app cleanup is incomplete; check repository draft Releases. '+cleanupError.message;}throw error;}
+    } catch(error) {
+      if(dispatchSent&&!dispatchRejected)return uncertainDispatch(dispatch.repository);
+      // This process knows the POST was not sent or was explicitly rejected.
+      // Record that fact before cleanup so an interrupted retry can finish it.
+      if(dispatch)try {await persistStaging('staging');} catch {}
+      try {
+        if(creationSent && (staging.releaseId || ![401,403,404,409,422].includes(error.status)))await cleanupStaging(state,staging);
+        unresolvedStages.delete(state.root);await onStaging(undefined);
+      } catch(cleanupError) {error.message+=' Temporary app cleanup is incomplete; check repository draft Releases. '+cleanupError.message;}
+      throw error;
+    }
   }
   async function cleanupStaging(state,staging) {
     if(!staging)return;
-    if(!/^zero-web-stage-[a-f0-9]{32}$/.test(staging.tag||''))throw Error('Invalid temporary staging receipt.');
+    if(!stageTagPattern.test(staging.tag||''))throw Error('Invalid temporary staging receipt.');
     if(staging.releaseId===undefined) {
       // GitHub's by-tag endpoint documents published releases only. List drafts
       // with this repository owner's push-capable token, never guess an ID.
@@ -299,8 +400,16 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(release.id!==staging.releaseId||release.draft!==true||release.tag_name!==staging.tag||String(release.author?.id)!==String(state.ticket.session.accountId)||release.target_commitish!==(state.cleanupSha || staging.sourceSha || state.plan.head))throw Error('The temporary staging release changed; preserve it for review.');
     await cleanupRequest('DELETE');
   }
+  function matchesRun(state,resume,run) {
+    return run?.id===resume.runId&&(!resume.repositoryId||run.repository?.id===resume.repositoryId)&&
+      run.head_sha===resume.sha&&[workflowPath,workflowPath+'@main'].includes(run.path)&&
+      run.event==='workflow_dispatch'&&run.head_branch==='main'&&
+      run.repository?.full_name?.toLowerCase()===state.slug.toLowerCase()&&
+      (resume.dispatchTag===undefined||(stageTagPattern.test(resume.dispatchTag)&&resume.dispatchTag===resume.staging?.tag&&
+        run.display_title==='Zero web '+resume.sha+' '+resume.dispatchTag));
+  }
   function assertRun(state,resume,run) {
-    if(run.id!==resume.runId || (resume.repositoryId && run.repository?.id!==resume.repositoryId) || run.head_sha!==resume.sha || run.path!==workflowPath || run.event!=='workflow_dispatch' || run.head_branch!=='main' || run.repository?.full_name?.toLowerCase()!==state.slug.toLowerCase())throw new Error('GitHub returned a different publishing run. Check repository Actions.');
+    if(!matchesRun(state,resume,run))throw Error('GitHub returned a different publishing run. Check repository Actions.');
   }
   async function publicVersion(resume,url,signal) {
     if(isSimulation())throw Error('Live publishing is disabled. Review again after choosing live uploads.');
@@ -316,7 +425,13 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     assertRun(state,resume,run);
     const pending=message=>({status:'pending',resume,message});
     if(run.status!=='completed')return pending('GitHub is deploying your locally built app.');
-    if(cleanup)await cleanupStaging({...state,cleanupSha:resume.sha},resume.staging);
+    if(resume.dispatchTag&&!runConclusions.has(run.conclusion))return pending('Waiting for GitHub to confirm the publishing result.');
+    if(cleanup) {
+      await cleanupStaging({...state,cleanupSha:resume.sha},resume.staging);
+      // A pending write completed but its staging removal may have failed.
+      // The durable pending receipt and exact run now settle the same attempt.
+      if(resume.dispatchTag&&sameStage(unresolvedStages.get(state.root),resume))unresolvedStages.delete(state.root);
+    }
     if(run.conclusion!=='success')return {status:'failed',resume,message:'The new game was not confirmed published. Open this GitHub run to fix its build or deployment error. Your previous game may still be live.',action:{url:state.plan.page+'/actions/runs/'+resume.runId,message:'Open publishing run'}};
     onStage('verifying');
     const pages=await api(state,'GET','/pages',null,{signal,tracking:true});
@@ -334,6 +449,67 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     // Following an already authorized run is read-only. Students may keep
     // editing locally while GitHub deploys the earlier reviewed source.
     return verifyLink(root,{sha:saved.sha,resume:saved},{signal,cleanup:true,onStage,onProgress});
+  }
+  async function restoreDispatch(root,saved,{signal,onStage=()=>{},onProgress=()=>{},onPending}={}) {
+    if(isSimulation())return simulation();
+    assertStageReceipt(saved);
+    // Hold an immutable copy of the persisted identity across GitHub awaits.
+    saved=Object.freeze({...saved,destination:Object.freeze({...saved.destination}),staging:Object.freeze({...saved.staging})});
+    let plan;
+    try {plan=await prepareUpload(root,git);}
+    catch(error) {
+      if(saved.phase==='staging')throw error;
+      return uncertainDispatch(saved.repository,'Reconnect the original repository to check this saved publishing attempt.');
+    }
+    if(plan.page!==saved.repository) {
+      if(saved.phase==='staging')throw Error('Reconnect the repository with the temporary app bundle before retrying.');
+      return uncertainDispatch(saved.repository,'This saved publishing attempt belongs to a different repository.');
+    }
+    if(activePublishes.has(plan.root))return uncertainDispatch(saved.repository);
+    const unresolved=unresolvedStages.get(plan.root);
+    if(unresolved&&!sameStage(unresolved,saved))throw Error('Another publishing attempt belongs to this project. Review GitHub Actions.');
+    if(saved.phase==='staging'&&unresolved?.phase==='dispatch-uncertain')return uncertainDispatch(saved.repository);
+    activePublishes.add(plan.root);
+    try {
+      if(saved.phase==='staging')return await cleanup(root,saved);
+      unresolvedStages.set(plan.root,saved);
+      if(saved.phase!=='dispatch-uncertain')return uncertainDispatch(saved.repository);
+      return await recoverDispatch(plan,saved,{signal,onStage,onProgress,onPending});
+    }
+    finally {activePublishes.delete(plan.root);}
+  }
+  async function recoverDispatch(plan,saved,{signal,onStage,onProgress,onPending}) {
+    let state,resume;
+    try {
+      const ticket=await authentication.capture();
+      if(String(ticket.session.accountId)!==String(saved.account))throw Error('Sign in to the GitHub account that owns this publishing attempt.');
+      state={root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),repositoryId:saved.repositoryId,installationId:saved.installationId};
+      const suffix=workflowEndpoint+'/runs?branch=main&event=workflow_dispatch&head_sha='+saved.sha+'&per_page=100';
+      const list=await api(state,'GET',suffix,null,{signal,tracking:true});
+      // A partial listing cannot rule out a second match. No match, including
+      // an unavailable or legacy listing, grants authority to delete or retry.
+      if(!Array.isArray(list?.workflow_runs)||list.workflow_runs.length>100||list.total_count!==list.workflow_runs.length)return uncertainDispatch(saved.repository);
+      const matches=list.workflow_runs.filter(run=>positiveId(run?.id)&&matchesRun(state,resumeDispatch(saved,run.id),run));
+      if(matches.length!==1||typeof onPending!=='function')return uncertainDispatch(saved.repository);
+      resume=resumeDispatch(saved,matches[0].id);
+      // Verify the exact run endpoint before saving it. Terminal processing
+      // and any cleanup run only after the pending write has succeeded.
+      assertRun(state,resume,await api(state,'GET','/actions/runs/'+resume.runId,null,{signal,tracking:true}));
+      await onPending(resume);
+    } catch {
+      return uncertainDispatch(saved.repository);
+    }
+    resumptions.set(resume,state);
+    unresolvedStages.delete(plan.root);
+    return check(resume,{signal,onStage,onProgress});
+  }
+  function forgetDispatch(root,saved) {
+    assertStageReceipt(saved);
+    if(saved.phase==='staging'||activePublishes.has(root))throw Error('This publishing attempt cannot be forgotten while staging.');
+    const unresolved=unresolvedStages.get(root);
+    if(unresolved&&(!sameStage(unresolved,saved)||unresolved.phase==='staging'))throw Error('The publishing attempt changed. Review it again.');
+    unresolvedStages.delete(root);
+    return {status:'dispatch-forgotten'};
   }
   async function verifyLink(root,saved,{signal,cleanup=false,onStage=()=>{},onProgress=()=>{}}={}) {
     if(isSimulation())return simulation();
@@ -369,7 +545,10 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     const state={root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),repositoryId:receipt.repositoryId,installationId:receipt.installationId};
     const files=providedFiles || await publishingFiles(engineRoot);
     const inspection=migration.inspect(plan.root,files);
-    if(inspection.missing.length || inspection.upgrade)return {status:'stale'};
+    if(inspection.missing.length)return {status:'stale'};
+    // A known older kit can prove an already-published version without writing
+    // files. Deploying a different version still requires the current kit.
+    if(inspection.upgrade)await migration.assertRecoverable(plan.root,plan.head,inspection.original,git);
     let proof;
     try {proof=await assertBuildInputsAtCommit({projectRoot:state.root,sourceSha:plan.head,git});}
     catch {await guard(state,signal);return {status:'stale'};}
@@ -432,13 +611,18 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
   }
   async function cleanup(root,saved) {
     if(isSimulation())return simulation();
-    if(!shaPattern.test(saved?.sha||''))throw Error('Invalid temporary staging receipt.');
+    assertStageReceipt(saved);
+    if(saved.phase!=='staging')return uncertainDispatch(saved.repository);
     const plan=await prepareUpload(root,git);
     if(plan.page!==saved.repository)throw Error('Reconnect the repository with the temporary app bundle before retrying.');
+    const unresolved=unresolvedStages.get(plan.root);
+    if(unresolved&&(!sameStage(unresolved,saved)||unresolved.phase!=='staging'))return uncertainDispatch(unresolved.repository);
     const ticket=await authentication.capture();
-    await cleanupStaging({root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),cleanupSha:saved.sha},saved.staging);
+    if(String(ticket.session.accountId)!==String(saved.account))throw Error('Sign in to the GitHub account that owns this publishing attempt.');
+    await cleanupStaging({root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),repositoryId:saved.repositoryId,installationId:saved.installationId,cleanupSha:saved.sha},{...saved.staging});
     unresolvedStages.delete(plan.root);
+    return {status:'staging-cleared'};
   }
-  return {review,setup,update,publish,check,restore,verifyLink,verifyCurrent,verifyUnchanged,cleanup};
+  return {review,setup,update,publish,check,restore,restoreDispatch,forgetDispatch,verifyLink,verifyCurrent,verifyUnchanged,cleanup};
 }
 module.exports={createGitHubPagesPublisher,publishingFiles,workflowPath,pagesPublishWorkflow:compiledWorkflow,publicAddress,_test:{publicReadiness,boundedText}};

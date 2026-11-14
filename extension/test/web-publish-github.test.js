@@ -19,7 +19,7 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
   let run={id:42,head_sha:head,path:'.github/workflows/zero-web.yml',event:'workflow_dispatch',head_branch:'main',repository:{id:12,full_name:'student/game'},status:'completed',conclusion:'success'};
   let marker=head+'\n42\n',publicStatus=200,dispatchStatus=200,createStatus=201,losePagesResponse=false,createdPages;
   let repo={id:12,full_name:'student/game',owner:{id:1,type:'User'},default_branch:'main',permissions:{push:true},private:false};
-  let release,asset,afterUpload=async()=>{},assetPatch={},loseCreationResponse=false,listError=false;const calls=[];const session={accountId:'1',label:'student',accessToken:'TEST_SECRET',scopes:[]};
+  let release,asset,afterUpload=async()=>{},assetPatch={},loseCreationResponse=false,listError=false,dispatchReply,runListing;const calls=[];const session={accountId:'1',label:'student',accessToken:'TEST_SECRET',scopes:[]};
   const ticket={session};
   const authentication={capture:async()=>ticket,assertCurrent:async value=>{if(!current || value!==ticket)throw Error('Account changed');return session;},assertCurrentNow:value=>{if(!current || value!==ticket)throw Error('Account changed');return session;}};
   let allowed=true,installationId=99,deniedPermission,afterAccess=async()=>{};
@@ -43,7 +43,17 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
       if(options.method==='POST'){assert.deepEqual(JSON.parse(options.body),{build_type:'workflow'});if(createStatus===201)pages=createdPages || {build_type:'workflow',public:true,html_url:'https://student.github.io/game/'};if(losePagesResponse)throw Error('Pages creation response lost');return response(pages,createStatus);}
       return response(pages,pages?200:404);
     }
-    if(suffix.endsWith('/dispatches'))return response({workflow_run_id:42},dispatchStatus);
+    if(suffix.endsWith('/dispatches')) {
+      const {inputs}=JSON.parse(options.body);
+      if(dispatchStatus>=200&&dispatchStatus<300)run.display_title='Zero web '+inputs.source_sha+' '+inputs.stage_tag;
+      const body={workflow_run_id:42,run_url:'https://api.github.com/repos/student/game/actions/runs/42',html_url:'https://github.com/student/game/actions/runs/42'};
+      if(dispatchReply)return dispatchReply(body,options);
+      return response(body,dispatchStatus);
+    }
+    if(suffix.startsWith('/actions/workflows/zero-web.yml/runs?')) {
+      assert.equal(suffix,'/actions/workflows/zero-web.yml/runs?branch=main&event=workflow_dispatch&head_sha='+run.head_sha+'&per_page=100');
+      return response(runListing??{total_count:1,workflow_runs:[run]});
+    }
     if(suffix==='/actions/runs/42')return response(run);
     if(suffix==='/releases?per_page=100'){if(listError)throw Error('network failed');return response(release?[release]:[]);}
     if(suffix==='/releases'){release={...JSON.parse(options.body),id:7,author:{id:1},upload_url:'https://uploads.github.com/repos/student/game/releases/7/assets{?name,label}'};if(loseCreationResponse){loseCreationResponse=false;throw Error('creation response lost');}return response(release,201);}
@@ -56,8 +66,15 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
   const result={manifestPath:path.join(root,'.zero/web-export/manifest.json'),sitePath:site,sourceHash:'b'.repeat(64),profileHash:'c'.repeat(64)};await fs.writeFile(result.manifestPath,JSON.stringify({files:outputFiles}));
   const localBuild=async()=>result;let validationError;const validateExport=async()=>{if(validationError)throw validationError;const siteFiles=[];for(const file of outputFiles)siteFiles.push({path:file.path,bytes:await fs.readFile(path.join(site,file.path))});if(siteFiles.some(file=>require('../src/web-publish-bundle').hash(file.bytes)!==outputFiles.find(output=>output.path===file.path).sha256))throw Error('browser output changed');return {...result,manifest:{files:outputFiles},siteFiles};};
   const gitReads=new Map();const guardedGit=memoizeGit?((cwd,args)=>{const key=JSON.stringify([cwd,args]);if(!gitReads.has(key))gitReads.set(key,core.git(cwd,args));return gitReads.get(key);}):core.git;
-  const publisher=createGitHubPagesPublisher({git:guardedGit,authentication,repositories,fetch,files,isSimulation:()=>simulation,localBuild,validateExport,assertBuildInputsAtCommit:validateExport,...publisherOptions});
-  return {root,git,head,files,publisher,calls,authentication,result,accessCalls,set afterAccess(v){afterAccess=v;},set allowed(v){allowed=v;},set installationId(v){installationId=v;},set deniedPermission(v){deniedPermission=v;},set validationError(value){validationError=value;},set afterUpload(value){afterUpload=value;},set loseCreationResponse(value){loseCreationResponse=value;},set listError(value){listError=value;},set assetPatch(value){assetPatch=value;},set losePagesResponse(v){losePagesResponse=v;},set createdPages(v){createdPages=v;},get pages(){return pages;},get release(){return release;},set release(v){release=v;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
+  const newPublisher=()=>createGitHubPagesPublisher({git:guardedGit,authentication,repositories,fetch,files,isSimulation:()=>simulation,localBuild,validateExport,assertBuildInputsAtCommit:validateExport,...publisherOptions});
+  const publisher=newPublisher(),publish=publisher.publish;
+  const storage=new Map();
+  publisher.publish=(review,options)=>publish(review,{
+    onStaging:async value=>storage.set('staging',structuredClone(value)),
+    onPending:async value=>storage.set('run',structuredClone(value)),
+    ...options
+  });
+  return {root,git,head,files,publisher,newPublisher,calls,authentication,result,accessCalls,set afterAccess(v){afterAccess=v;},set allowed(v){allowed=v;},set installationId(v){installationId=v;},set deniedPermission(v){deniedPermission=v;},set validationError(value){validationError=value;},set afterUpload(value){afterUpload=value;},set loseCreationResponse(value){loseCreationResponse=value;},set listError(value){listError=value;},set assetPatch(value){assetPatch=value;},set losePagesResponse(v){losePagesResponse=v;},set createdPages(v){createdPages=v;},get pages(){return pages;},get release(){return release;},set release(v){release=v;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set dispatchReply(v){dispatchReply=v;},set runListing(v){runListing=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
 }
 test('simulation never looks up auth, reads repository, creates files or requests network',async()=>{
   const no=()=>assert.fail('Unexpected side effect');const p=createGitHubPagesPublisher({authentication:{capture:no},fetch:no,git:no});
@@ -85,10 +102,35 @@ test('tracking a dispatched publication permits later edits while retaining repo
 });
 test('setup creates source-only files then requires normal Commit & push, never remote commits',async t=>{
   const h=await fixture(t,{installed:false});const review=await h.publisher.review(h.root);assert.equal(review.setup,true);
-  assert.equal((await h.publisher.setup(review)).status,'upload-required');
+  const setup=await h.publisher.setup(review);
+  assert.equal(setup.status,'upload-required');
+  assert.deepEqual(setup.files,[...h.files.keys()]);
+  assert.deepEqual(setup.uploadPlan.changes.map(change=>change.path).sort(),[...h.files.keys()].sort());
+  assert.equal(setup.uploadPlan.head,review.sha);
   assert.equal(await fs.readFile(path.join(h.root,'.zero-web/owner.json'),'utf8'),'owned');
   assert.equal(await h.git(['rev-parse','HEAD']),h.head);assert.ok(h.calls.every(c=>c.options.method==='GET'));
   await assert.rejects(h.publisher.review(h.root),/Commit & push your changes/);
+});
+test('publishing setup refuses an auto-upload plan for unrelated changes or edited kit bytes',async t=>{
+  for(const filename of ['Working.java','.github/workflows/zero-web.yml'])await t.test(filename,async t=>{
+    let inserted=false;
+    const git=async(root,args)=>{
+      if(!inserted&&args[0]==='status') {
+        const workflow=await fs.stat(path.join(root,'.github/workflows/zero-web.yml')).catch(()=>null);
+        if(workflow) {
+          inserted=true;
+          await fs.writeFile(path.join(root,filename),'Changed during setup');
+        }
+      }
+      return core.git(root,args);
+    };
+    const h=await fixture(t,{installed:false,publisherOptions:{git}});
+    const review=await h.publisher.review(h.root);
+    await assert.rejects(h.publisher.setup(review),/changed while preparing|different content/);
+    assert.equal(await fs.readFile(path.join(h.root,filename),'utf8'),'Changed during setup');
+    assert.equal(await h.git(['rev-parse','HEAD']),h.head);
+    assert.ok(h.calls.every(call=>call.options.method==='GET'));
+  });
 });
 test('dirty, unuploaded, unfinished and changed reviews fail before publication',async t=>{
   const h=await fixture(t);h.remoteHead='f'.repeat(40);await assert.rejects(h.publisher.review(h.root),/Commit & push your main/);h.remoteHead=h.head;
@@ -110,11 +152,162 @@ test('conflicting workflow or symlink is never overwritten',async t=>{
   const h=await fixture(t);await fs.writeFile(path.join(h.root,'.github/workflows/zero-web.yml'),'existing workflow');await h.git(['add','.']);await h.git(['commit','-m','edited']);h.remoteHead=await h.git(['rev-parse','HEAD']);
   await assert.rejects(h.publisher.review(h.root),/different content/);assert.equal(await fs.readFile(path.join(h.root,'.github/workflows/zero-web.yml'),'utf8'),'existing workflow');
 });
-test('unknown run IDs, unrelated runs, old public version and failed deployment never claim Live',async t=>{
-  const h=await fixture(t);let review=await h.publisher.review(h.root);h.dispatchStatus=204;await assert.rejects(h.publisher.publish(review),/did not identify/);h.dispatchStatus=200;
+test('unrelated runs, old public version and failed deployment never claim Live',async t=>{
+  const h=await fixture(t),review=await h.publisher.review(h.root);
   const pending=await h.publisher.publish(review);h.run.head_sha='a'.repeat(40);await assert.rejects(h.publisher.check(pending.resume),/different publishing run/);h.run.head_sha=h.head;
   h.marker=h.head+'\n41\n';assert.equal((await h.publisher.check(pending.resume)).status,'pending');h.marker=h.head+'\n42\n';h.publicStatus=404;assert.equal((await h.publisher.check(pending.resume)).status,'pending');
   h.run.conclusion='failure';assert.equal((await h.publisher.check(pending.resume)).status,'failed');
+});
+test('a lost dispatch response recovers the exact run on restart before terminal cleanup',async t=>{
+  const persisted=[];
+  const h=await fixture(t,{memoizeGit:true,onFetch:(url,options)=>{
+    if(!url.endsWith('/dispatches'))return;
+    const saved=persisted.at(-1),{inputs}=JSON.parse(options.body);
+    assert.equal(saved.phase,'dispatch-uncertain');
+    assert.deepEqual([saved.repositoryId,saved.installationId,saved.account],[12,99,'1']);
+    assert.equal(saved.destination.url,'https://student.github.io/game/');
+    assert.deepEqual(saved.staging,{tag:inputs.stage_tag,sourceSha:inputs.source_sha,releaseId:7,assetId:8,digest:inputs.bundle_sha256});
+  }});
+  const reviewed=await h.publisher.review(h.root);
+  h.dispatchReply=()=>{throw Error('accepted but response lost');};
+  assert.equal((await h.publisher.publish(reviewed,{onStaging:async value=>persisted.push(structuredClone(value))})).status,'dispatch-uncertain');
+  assert.ok(h.release);
+  assert.equal((await h.publisher.publish(reviewed)).status,'dispatch-uncertain');
+  assert.equal(h.calls.filter(call=>call.url.endsWith('/dispatches')).length,1);
+  const saved=persisted.at(-1);
+  h.run.path+='@main';
+  const restarted=h.newPublisher();
+  await fs.writeFile(path.join(h.root,'Working.java'),'class Working {}');
+  const restored=await restarted.restoreDispatch(h.root,saved,{onPending:async resume=>{
+    assert.equal(resume.runId,42);
+    assert.equal(resume.dispatchTag,saved.staging.tag);
+    assert.ok(h.release,'Pending write must precede cleanup');
+    assert.ok(!h.calls.some(call=>call.options.method==='DELETE'));
+  }});
+  assert.equal(restored.status,'live');
+  assert.equal(h.release,undefined);
+  assert.equal(h.calls.filter(call=>call.url.endsWith('/dispatches')).length,1);
+});
+test('empty, malformed, unrelated, aborted and unauthenticated dispatch results preserve staging',async t=>{
+  for(const kind of ['empty','bad JSON','wrong ID','wrong URL','wrong run','server error','abort','sign out'])await t.test(kind,async t=>{
+    const h=await fixture(t,{memoizeGit:true}),controller=new AbortController();
+    if(kind==='empty')h.dispatchStatus=204;
+    else h.dispatchReply=body=>{
+      if(kind==='bad JSON')return new Response('{',{status:200});
+      if(kind==='wrong ID')return Response.json({...body,workflow_run_id:-1});
+      if(kind==='wrong URL')return Response.json({...body,html_url:'https://github.com/other/game/actions/runs/42'});
+      if(kind==='wrong run')h.run.head_branch='other';
+      if(kind==='server error')return Response.json({}, {status:503});
+      if(kind==='abort')controller.abort();
+      if(kind==='sign out')h.current=false;
+      return Response.json(body);
+    };
+    let saved,pendingWrites=0;
+    const result=await h.publisher.publish(await h.publisher.review(h.root),{
+      signal:controller.signal,onStaging:async value=>{saved=structuredClone(value);},onPending:async()=>{pendingWrites++;}
+    });
+    assert.equal(result.status,'dispatch-uncertain');
+    assert.equal(result.action.url,'https://github.com/student/game/actions');
+    assert.equal(saved.phase,'dispatch-uncertain');
+    assert.equal(pendingWrites,0);
+    assert.ok(h.release);
+    assert.ok(!h.calls.some(call=>call.options.method==='DELETE'));
+  });
+});
+test('dispatch recovery preserves missing, inexact, duplicated, incomplete and legacy matches',async t=>{
+  const h=await fixture(t,{memoizeGit:true});
+  h.dispatchStatus=204;
+  let saved;
+  const result=await h.publisher.publish(await h.publisher.review(h.root),{onStaging:async value=>{saved=structuredClone(value);}});
+  assert.equal(result.status,'dispatch-uncertain');
+  let pendingWrites=0;
+  const restarted=h.newPublisher(),onPending=async()=>{pendingWrites++;};
+  const run=h.run;
+  for(const [total,rows] of [
+    [0,[]],[1,[{...run,display_title:'Zero web '+h.head}]],
+    [1,[{...run,head_sha:'a'.repeat(40)}]],[1,[{...run,head_branch:'other'}]],
+    [1,[{...run,path:'.github/workflows/other.yml'}]],[1,[{...run,event:'push'}]],
+    [1,[{...run,repository:{...run.repository,id:13}}]],
+    [2,[run,{...run,id:43}]],[2,[run]],[1,null]
+  ]) {
+    h.runListing={total_count:total,workflow_runs:rows};
+    assert.equal((await restarted.restoreDispatch(h.root,saved,{onPending})).status,'dispatch-uncertain');
+    assert.ok(h.release);
+  }
+  const calls=h.calls.length;
+  const legacy={sha:saved.sha,repository:saved.repository,staging:{tag:saved.staging.tag,releaseId:7}};
+  assert.equal((await restarted.restoreDispatch(h.root,legacy,{onPending})).status,'dispatch-uncertain');
+  assert.equal((await restarted.cleanup(h.root,legacy)).status,'dispatch-uncertain');
+  assert.equal(h.calls.length,calls,'Legacy recovery must not guess from a same-SHA run');
+  assert.throws(()=>restarted.forgetDispatch(h.root,{...saved,staging:{...saved.staging,tag:'zero-web-stage-'+'a'.repeat(32)}}),/attempt changed/);
+  assert.equal(restarted.forgetDispatch(h.root,saved).status,'dispatch-forgotten');
+  assert.equal(h.calls.length,calls,'Explicit forget is local');
+  assert.equal(pendingWrites,0);
+});
+test('a failed pending write preserves the draft during dispatch and subsequent recovery',async t=>{
+  const h=await fixture(t,{memoizeGit:true});let saved;
+  const fail=async()=>{throw Error('workspace storage offline');};
+  const result=await h.publisher.publish(await h.publisher.review(h.root),{onStaging:async value=>{saved=structuredClone(value);},onPending:fail});
+  assert.equal(result.status,'dispatch-uncertain');
+  assert.equal(saved.phase,'dispatch-uncertain');
+  const restarted=h.newPublisher();
+  assert.equal((await restarted.restoreDispatch(h.root,saved,{onPending:fail})).status,'dispatch-uncertain');
+  assert.ok(h.release);
+  assert.ok(!h.calls.some(call=>call.options.method==='DELETE'));
+  assert.equal((await restarted.restoreDispatch(h.root,saved,{onPending:async()=>{}})).status,'live');
+  assert.equal(h.release,undefined);
+  assert.equal(h.calls.filter(call=>call.url.endsWith('/dispatches')).length,1);
+});
+test('a durable pending run settles the same ambiguous stage after clearing staging failed',async t=>{
+  const h=await fixture(t,{memoizeGit:true});
+  const reviewed=await h.publisher.review(h.root);
+  let pending;
+  assert.equal((await h.publisher.publish(reviewed,{onPending:async resume=>{
+    pending=structuredClone(resume);
+    throw Error('Clearing the separate staging receipt failed');
+  }})).status,'dispatch-uncertain');
+  h.run.conclusion=null;
+  assert.equal((await h.publisher.restore(h.root,pending)).status,'pending');
+  assert.ok(h.release);
+  h.run.conclusion='success';
+  assert.equal((await h.publisher.restore(h.root,pending)).status,'live');
+  assert.equal(h.release,undefined);
+  assert.equal((await h.publisher.publish(reviewed)).status,'pending');
+});
+test('dispatch receipt failure or definitive validation rejection permits pre-dispatch cleanup',async t=>{
+  for(const kind of ['unsaved','rejected'])await t.test(kind,async t=>{
+    const h=await fixture(t,{memoizeGit:true});
+    if(kind==='rejected')h.dispatchStatus=422;
+    const stages=[];
+    await assert.rejects(h.publisher.publish(await h.publisher.review(h.root),{
+      onStaging:async value=>{
+        if(value?.phase==='dispatch-uncertain'&&kind==='unsaved')throw Error('workspace storage offline');
+        stages.push(value);
+      }
+    }),kind==='unsaved'?/workspace storage offline/:/422/);
+    assert.equal(h.calls.filter(call=>call.url.endsWith('/dispatches')).length,kind==='unsaved'?0:1);
+    assert.equal(stages.at(-1),undefined);
+    assert.equal(h.release,undefined);
+  });
+});
+test('a publisher cannot stage a draft without receipt callbacks',async t=>{
+  const h=await fixture(t,{memoizeGit:true}),publisher=h.newPublisher();
+  await assert.rejects(publisher.publish(await publisher.review(h.root)),/local storage/);
+  assert.ok(h.calls.every(call=>call.options.method==='GET'));
+});
+test('a changed repository can show and dismiss the original uncertain attempt without remote requests',async t=>{
+  const h=await fixture(t);
+  h.dispatchStatus=204;
+  let saved;
+  await h.publisher.publish(await h.publisher.review(h.root),{onStaging:async value=>{saved=structuredClone(value);}});
+  await h.git(['remote','set-url','origin','https://github.com/student/other.git']);
+  const before=h.calls.length;
+  const result=await h.publisher.restoreDispatch(h.root,saved);
+  assert.equal(result.status,'dispatch-uncertain');
+  assert.equal(result.action.url,'https://github.com/student/game/actions');
+  assert.equal(h.publisher.forgetDispatch(h.root,saved).status,'dispatch-forgotten');
+  assert.equal(before,h.calls.length);
+  assert.ok(h.release);
 });
 test('Pages creation denial provides one guided action and never changes repository visibility',async t=>{
   const h=await fixture(t);h.pages=null;h.createStatus=403;const result=await h.publisher.publish(await h.publisher.review(h.root));assert.equal(result.status,'action-required');
@@ -122,6 +315,7 @@ test('Pages creation denial provides one guided action and never changes reposit
 });
 test('generated workflow pins source, separates build and deployment privileges and leaves generated site out of Git',async()=>{
   assert.match(pagesPublishWorkflow,/ref: \$\{\{ inputs.source_sha \}\}/);assert.match(pagesPublishWorkflow,/inputs.source_sha == github.sha/);assert.match(pagesPublishWorkflow,/ZERO_BUNDLE_SHA256/);assert.doesNotMatch(pagesPublishWorkflow,/setup-java|mvn|exportForWeb|Build the browser/);assert.match(pagesPublishWorkflow,/if: always\(\)/);
+  assert.match(pagesPublishWorkflow,/run-name: Zero web .*inputs.stage_tag/);
   const files=await publishingFiles(path.join(__dirname,'../src/web-export'));
   assert.ok(files.has('.github/workflows/zero-web.yml'));assert.ok(files.has('.zero-web/owner.json'));assert.ok([...files.keys()].every(name=>! /\.(jar|zip|class)$/.test(name)));
 });
@@ -343,10 +537,13 @@ test('verified historical kit can update an existing Pages site without changing
   const {isManagedPublishingSetup}=require('../src/web-publish-upload-auth');
   assert.equal(await isManagedPublishingSetup(h.root),false);
   const reviewed=await h.publisher.review(h.root);
-  assert.equal(reviewed.setup,false);assert.deepEqual([...reviewed.upgrade.files].sort(),['.zero-web/README.md','.zero-web/owner.json']);
+  assert.equal(reviewed.setup,false);assert.deepEqual([...reviewed.upgrade.files].sort(),['.github/workflows/zero-web.yml','.zero-web/README.md','.zero-web/owner.json']);
   assert.equal(reviewed.upgrade.previousSha,h.head);assert.equal(reviewed.publicUrl,h.pages.html_url);
   assert.equal((await h.publisher.publish(reviewed)).status,'action-required');
-  assert.equal((await h.publisher.update(reviewed)).status,'upload-required');
+  const updated=await h.publisher.update(reviewed);
+  assert.equal(updated.status,'upload-required');
+  assert.deepEqual(updated.files,reviewed.upgrade.files);
+  assert.deepEqual(updated.uploadPlan.changes.map(change=>change.path).sort(),[...updated.files].sort());
   assert.equal(await isManagedPublishingSetup(h.root),true,'The normal uploader now sees the exact current workflow-capable kit');
   assert.equal(await h.git(['rev-parse','HEAD']),h.head);
   for(const [name,bytes]of current)assert.deepEqual(await fs.readFile(path.join(h.root,name)),bytes);
@@ -502,6 +699,17 @@ test('fast reuse checks access once per command and opens only the exact public 
   assert.equal(opened,2);
   h.allowed=false;await assert.rejects(h.publisher.verifyUnchanged(h.root,saved),/access was removed/);assert.equal(opened,2);
 });
+test('the exact previously published version opens read-only with the shipping legacy kit',async t=>{
+  const {current,shipping}=await require('./web-publish-legacy-fixture')();
+  const h=await fixture(t,{publisherOptions:{files:current},sourceFiles:shipping});
+  const saved=currentReceipt(h);
+  assert.equal((await h.publisher.verifyUnchanged(h.root,saved)).status,'live');
+  assert.ok(h.calls.every(call=>call.options.method==='GET'));
+  const reviewed=await h.publisher.review(h.root);
+  assert.ok(reviewed.upgrade);
+  assert.equal((await h.publisher.publish(reviewed)).status,'action-required');
+  assert.ok(!h.calls.some(call=>call.url.endsWith('/dispatches')));
+});
 test('fast reuse falls back for missing/older receipts, branch, edits, new commits and remote main drift',async t=>{
   const h=await fixture(t),saved=currentReceipt(h);
   for(const value of [undefined,{...saved,account:'2'},{...saved,root:'/other'},{...saved,resume:{...saved.resume,installationId:undefined}}])assert.equal((await h.publisher.verifyUnchanged(h.root,value)).status,'stale');
@@ -555,7 +763,7 @@ test('fast reuse executes real commit/input checks without any retained browser 
   assert.equal(opened,1);
 });
 
-test('real command/publisher integration reuses unchanged source, then uploads and publishes an edited commit',async t=>{
+test('real command/publisher integration reuses unchanged source and publishes edits only after explicit Commit and Sync',async t=>{
   const snapshot=require('../src/web-export/snapshot'),adapter=require('../src/project-builder').createProjectBuilder();let h,builds=0,uploads=0;
   h=await fixture(t,{publisherOptions:{assertBuildInputsAtCommit:options=>options.result?snapshot.assertBuildInputsAtCommit(options):adapter.assertBuildInputsAtCommit(options),localBuild:async()=>{builds++;h.result.sourceHash=(await snapshot.captureBuildInputs(h.root)).sourceHash;return h.result;}}});
   for(const [name,data] of [['src/main/java/Main.java','class Main {}'],['src/main/resources/sprite.png','PNG bytes'],['.mvn/wrapper/maven-wrapper.properties','pinned'],['pom.xml','<project/>']]){
@@ -572,7 +780,11 @@ test('real command/publisher integration reuses unchanged source, then uploads a
   const first=await api.publishAndOpen();assert.equal(first.status,'live');assert.equal(builds,1);assert.equal(uploads,0);const previous=first.sha;
   const unchanged=await api.publishAndOpen();assert.equal(unchanged.alreadyCurrent,true);assert.equal(builds,1);assert.equal(uploads,0);
   await fs.writeFile(path.join(h.root,'src/main/java/Main.java'),'class Main { int score=10; }');
-  const changed=await api.publishAndOpen();assert.equal(changed.status,'live');assert.notEqual(changed.sha,previous);assert.equal(builds,2);assert.equal(uploads,1);assert.equal(opened.length,3);assert.equal(stored.get('zero.webPublish.lastLive').sha,changed.sha);assert.equal(busy,false);
+  const dirty=await api.publishAndOpen();assert.equal(dirty.status,'upload-required');assert.match(dirty.message,/Sync/);assert.equal(uploads,0);assert.equal(builds,1);
+  await h.git(['add','.']);await h.git(['commit','-m','Student edit']);
+  assert.equal((await api.publishAndOpen()).status,'upload-required');
+  await remoteAtHead();
+  const changed=await api.publishAndOpen();assert.equal(changed.status,'live');assert.notEqual(changed.sha,previous);assert.equal(builds,2);assert.equal(uploads,0);assert.equal(opened.length,3);assert.equal(stored.get('zero.webPublish.lastLive').sha,changed.sha);assert.equal(busy,false);
   const dispatches=h.calls.filter(c=>c.url.endsWith('/dispatches')).map(c=>JSON.parse(c.options.body).inputs.source_sha);
   assert.deepEqual(dispatches,[previous,changed.sha]);
 });
