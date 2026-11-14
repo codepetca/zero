@@ -432,7 +432,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
       // The durable pending receipt and exact run now settle the same attempt.
       if(resume.dispatchTag&&sameStage(unresolvedStages.get(state.root),resume))unresolvedStages.delete(state.root);
     }
-    if(run.conclusion!=='success')return {status:'failed',resume,message:'The new game was not confirmed published. Open this GitHub run to fix its build or deployment error. Your previous game may still be live.',action:{url:state.plan.page+'/actions/runs/'+resume.runId,message:'Open publishing run'}};
+    if(run.conclusion!=='success')return {status:'failed',resume,message:'Publishing failed. Open the GitHub run for details, then choose Publish & open app to try again.',action:{url:state.plan.page+'/actions/runs/'+resume.runId,message:'Open publishing run'}};
     onStage('verifying');
     const pages=await api(state,'GET','/pages',null,{signal,tracking:true});
     const {url}=assertDestination(pages,resume.destination);
@@ -457,12 +457,10 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     saved=Object.freeze({...saved,destination:Object.freeze({...saved.destination}),staging:Object.freeze({...saved.staging})});
     let plan;
     try {plan=await prepareUpload(root,git);}
-    catch(error) {
-      if(saved.phase==='staging')throw error;
+    catch {
       return uncertainDispatch(saved.repository,'Reconnect the original repository to check this saved publishing attempt.');
     }
     if(plan.page!==saved.repository) {
-      if(saved.phase==='staging')throw Error('Reconnect the repository with the temporary app bundle before retrying.');
       return uncertainDispatch(saved.repository,'This saved publishing attempt belongs to a different repository.');
     }
     if(activePublishes.has(plan.root))return uncertainDispatch(saved.repository);
@@ -505,9 +503,9 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
   }
   function forgetDispatch(root,saved) {
     assertStageReceipt(saved);
-    if(saved.phase==='staging'||activePublishes.has(root))throw Error('This publishing attempt cannot be forgotten while staging.');
+    if(activePublishes.has(root))throw Error('This publishing attempt cannot be forgotten while it is active.');
     const unresolved=unresolvedStages.get(root);
-    if(unresolved&&(!sameStage(unresolved,saved)||unresolved.phase==='staging'))throw Error('The publishing attempt changed. Review it again.');
+    if(unresolved&&!sameStage(unresolved,saved))throw Error('The publishing attempt changed. Review it again.');
     unresolvedStages.delete(root);
     return {status:'dispatch-forgotten'};
   }
@@ -616,10 +614,12 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     const plan=await prepareUpload(root,git);
     if(plan.page!==saved.repository)throw Error('Reconnect the repository with the temporary app bundle before retrying.');
     const unresolved=unresolvedStages.get(plan.root);
-    if(unresolved&&(!sameStage(unresolved,saved)||unresolved.phase!=='staging'))return uncertainDispatch(unresolved.repository);
+    // Workspace state can acknowledge an update before flushing it to disk.
+    // After restart an earlier staging receipt might predate an accepted POST.
+    if(!unresolved||!sameStage(unresolved,saved)||unresolved.phase!=='staging')return uncertainDispatch(saved.repository,'Zero recovered an incomplete publishing receipt. Check GitHub Actions for the original run.');
     const ticket=await authentication.capture();
-    if(String(ticket.session.accountId)!==String(saved.account))throw Error('Sign in to the GitHub account that owns this publishing attempt.');
-    await cleanupStaging({root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),repositoryId:saved.repositoryId,installationId:saved.installationId,cleanupSha:saved.sha},{...saved.staging});
+    if(String(ticket.session.accountId)!==String(unresolved.account))throw Error('Sign in to the GitHub account that owns this publishing attempt.');
+    await cleanupStaging({root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),repositoryId:unresolved.repositoryId,installationId:unresolved.installationId,cleanupSha:unresolved.sha},{...unresolved.staging});
     unresolvedStages.delete(plan.root);
     return {status:'staging-cleared'};
   }

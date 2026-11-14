@@ -293,7 +293,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
           const updating=Boolean(review.upgrade);
           if(updating) {
             clearProgress();
-            const chosen=await vscode.window.showInformationMessage('Update publishing files?',{modal:true,detail:`Files:\n${review.upgrade.files.join('\n')}\nSource and destination stay the same. Git history is kept.\n${review.publicUrl || review.repository}`},'Update publishing files');
+            const chosen=await vscode.window.showInformationMessage('Update publishing files?',{modal:true,detail:`Zero will commit and sync these files to ${review.repository}.\n${review.upgrade.files.join('\n')}\nThe previous version stays in Git history.\n${review.publicUrl || review.repository}`},'Update publishing files');
             if(chosen!=='Update publishing files')return;
             await stillCurrent(expected);
             startProgress(['preparing','building','uploading','deploying','verifying']);
@@ -347,7 +347,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
       }
     } else if(result.status==='pending')progress('Publishing is still running. Choose Publish & open app again to recheck this run.');
     else if(result.status==='dispatch-uncertain')return await showDispatchAction(result,expected) || result;
-    else {resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);await showAction(result,{allowRecheck:!recovering});}
+    else {resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);await showAction(result,{allowRecheck:!recovering && result.status!=='failed'});}
     return result;
   }
   // Rendering reads only a previously verified receipt. It never infers a URL

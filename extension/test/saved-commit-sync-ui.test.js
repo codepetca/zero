@@ -134,15 +134,15 @@ test('Publish upload preserves a known missing main and stops before upload',asy
  assert.ok(h.activeRecords().some(row=>row.kind==='remote-missing'&&row.branch==='main'&&row.head===B&&row.accountId==='1'));
 });
 test('Publish kit upload rejects a missing plan, changed GitHub account and changed plan before transfer',async t=>{
- for(const [override,message] of [
-   [{expectedPlan:undefined},/publishing files or GitHub account changed/],
-   [{expectedAccount:'2'},/publishing files or GitHub account changed/],
-   [{expectedPlan:{fingerprint:'modified-files'}},/project changed before upload/]
- ]) {
+ for(const [cause,override,message] of [
+   ['missing plan',{expectedPlan:undefined},/publishing files or GitHub account changed/],
+   ['changed account',{expectedAccount:'2'},/publishing files or GitHub account changed/],
+   ['changed plan',{expectedPlan:{fingerprint:'modified-files'}},/project changed before upload/]
+ ])await t.test(cause,async t=>{
    const h=await harness(t,{mockPublish:true});
    await h.commands.get('zero.testPublishUpload')(override);
    assert.equal(h.pushes.length,0);assert.equal(h.syncs,0);assert.match(h.errors.at(-1),message);
- }
+ });
 });
 test('manual missing-branch review uses the real checkUpload contract',async t=>{
  for(const local of [false,true])await t.test(local?'local reminder':'saved commits',async t=>{

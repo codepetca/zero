@@ -92,6 +92,16 @@ test('transient pending-run errors preserve tracking for a later retry',async t=
   h.publisher.restore=async()=>{throw Error('Connection unavailable');};
   await assert.rejects(h.api.publish(),/Connection unavailable/);assert.deepEqual(h.stored.get('zero.webPublish.pending'),pending);assert.equal(h.busy,false);
 });
+test('a terminal saved run offers to open that run and requires a new Publish to retry',async t=>{
+  const h=fixture(t),url='https://github.com/student/game/actions/runs/42';
+  h.stored.set('zero.webPublish.pending',{root:'/student',value:{runId:42}});
+  h.publisher.restore=async()=>({status:'failed',message:'Publishing failed',action:{url,message:'Open publishing run'}});
+  h.choices.push('Open GitHub');
+  assert.equal((await h.api.publishAndOpen()).status,'failed');
+  assert.deepEqual(h.messages,[['Open publishing run','Open GitHub']]);
+  assert.deepEqual(h.opened,[url]);assert.deepEqual(h.calls,[]);
+  assert.equal(h.stored.has('zero.webPublish.pending'),false);
+});
 test('Publish, Copy and Open claim one operation before awaiting project resolution',async t=>{
   let release,gate=new Promise(resolve=>{release=resolve;});const h=fixture(t,{resolveProject:()=>gate});h.choices.push('Publish app');
   const first=h.api.publish();
@@ -304,7 +314,7 @@ test('upgrade asks for file-update consent then uploads and re-reviews the exact
   h.choices.push('Update publishing files');const result=await h.api.publish();
   assert.equal(result.status,'live');assert.equal(result.sha,'b'.repeat(40));assert.deepEqual(h.calls,['review','review','update','review','publish']);
   assert.equal(h.messages.length,1);assert.equal(h.messages[0][0],'Update publishing files?');
-  assert.match(h.messages[0][1].detail,/README.md[\s\S]*owner.json[\s\S]*destination stay the same[\s\S]*Git history/);
+  assert.match(h.messages[0][1].detail,/commit and sync these files to https:\/\/github\.com\/student\/game[\s\S]*README.md[\s\S]*owner.json[\s\S]*Git history/);
 });
 test('cancelled upgrade decision never authorizes workflows, updates files, uploads or publishes',async t=>{
   const h=fixture(t);h.upgrade=true;h.choices.push('Publish app');

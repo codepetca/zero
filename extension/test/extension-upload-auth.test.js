@@ -317,13 +317,13 @@ test('Publish syncs reviewed setup files through guarded native upload and retai
   const webview=await uploadSidebar(h);assert.doesNotMatch(webview.html,/published-app-link|Open published app/);assert.doesNotMatch(webview.html,/Copy playable link/);assert.match(webview.html,/data-command="zero.publishAndOpenWeb"/);
 });
 test('Publish leaves both saved commits and dirty changes for an explicit Sync',async t=>{
-  for(const dirty of [false,true]) {
+  for(const dirty of [false,true])await t.test(dirty?'dirty source':'saved commits',async t=>{
     const h=await harness(t,{publishing:true,dirty,sourceUnsynced:true});
     await h.commands.get('zero.publishWeb')();
     assert.deepEqual(h.errors,[]);assert.equal(h.inputs,0);assert.equal(h.pushes,0);assert.equal(h.deploys,0);
     assert.equal(h.transportDispatches,0);assert.match(h.results.at(-1),/choose Sync on main/);
     assert.ok(!h.notices.includes('Publish this app publicly?'));
-  }
+  });
 });
 test('Publish approval cancellation, setup upload cancellation or failure, and a change branch stop deployment',async t=>{
   for(const options of [{publishSetup:true},{publishSetup:true,publicChoice:'Publish app',cancelMessage:true},{publishSetup:true,publicChoice:'Publish app',failPush:true},{branch:'add-score'}])await t.test(JSON.stringify(options),async t=>{

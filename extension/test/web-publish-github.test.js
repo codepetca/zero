@@ -174,6 +174,14 @@ test('a lost dispatch response recovers the exact run on restart before terminal
   assert.ok(h.release);
   assert.equal((await h.publisher.publish(reviewed)).status,'dispatch-uncertain');
   assert.equal(h.calls.filter(call=>call.url.endsWith('/dispatches')).length,1);
+  // VS Code may restore an earlier receipt than the update it acknowledged.
+  const stale=persisted.findLast(receipt=>receipt?.phase==='staging');
+  const interrupted=h.newPublisher();
+  assert.equal((await interrupted.restoreDispatch(h.root,stale,{onPending:async()=>assert.fail('Incomplete recovery receipt')})).status,'dispatch-uncertain');
+  assert.equal((await interrupted.cleanup(h.root,stale)).status,'dispatch-uncertain');
+  assert.equal(interrupted.forgetDispatch(h.root,stale).status,'dispatch-forgotten');
+  assert.ok(h.release);
+  assert.ok(!h.calls.some(call=>call.options.method==='DELETE'));
   const saved=persisted.at(-1);
   h.run.path+='@main';
   const restarted=h.newPublisher();

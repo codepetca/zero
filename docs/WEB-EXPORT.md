@@ -312,8 +312,9 @@ A lost creation response retains its unique name and blocks further staging unti
 bounded recovery identifies it safely. Zero records the exact draft, asset,
 source and destination before sending the dispatch. After a lost dispatch response,
 Zero uses the draft's unique tag in the workflow run title to identify the attempt
-before following it. Older saved staging records may require checking Actions
-manually. Drafts have no automatic expiry and can require repository cleanup after
+before following it. If a restart restores an incomplete staging receipt, Zero
+keeps the bundle and directs the owner to check Actions manually. Drafts have no
+automatic expiry and can require repository cleanup after
 the owner confirms that no run needs them. Pages artifacts use
 one-day retention; the live site remains independently available. Normal GitHub
 run/deployment history and account limits still apply. Compiled app bytes never
