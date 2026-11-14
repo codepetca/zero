@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
+import {randomUUID} from 'node:crypto';
 import {cp, mkdtemp, realpath, rm} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {tmpdir} from 'node:os';
@@ -9,47 +10,56 @@ import {processSpecification} from './process-specification.mjs';
 const require = createRequire(import.meta.url);
 const {runSpecification} = require('../extension/src/core.js');
 const {createWebPreview} = require('../extension/src/web-preview.js');
+const {createRecordDecoder} = require('../extension/src/native-runtime-task.js');
 
 const names = ['Sam', 'Ada'];
 const greetings = names.map(name => `Hello, ${name}!`);
-const starterGreeting = 'Hello, world!';
+const starterReady = 'UI_READY';
 const nativeProbe = new URL('./ProjectNewGreetingCheck.java', import.meta.url);
 
 async function runNative(projectRoot, starter) {
   const run = runSpecification(projectRoot);
-  const args = ['-B', '--no-transfer-progress', '-Dapp.mainClass=ProjectNewGreetingCheck', ...run.args];
-  const spec = processSpecification(run.command, args);
+  const args = ['-B', '--no-transfer-progress'];
+  if (!starter) args.push('-Dapp.mainClass=ProjectNewGreetingCheck');
+  const spec = processSpecification(run.command, [...args, ...run.args]);
   const windows = process.platform === 'win32';
+  const runId = randomUUID(), buildId = 'project-new-starter';
   return new Promise((resolve, reject) => {
     const child = spawn(spec.command, spec.args, {
       cwd: run.cwd,
-      env: {...process.env, ZERO_PROJECT_NEW_GREETING_STAGE: starter ? 'starter' : 'tutorial'},
+      env: {...process.env, ZERO_RUNTIME_RUN_ID: runId, ZERO_RUNTIME_BUILD_ID: buildId},
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: !windows,
       windowsHide: true,
       windowsVerbatimArguments: spec.windowsVerbatimArguments
     });
-    let stdout = '', stderr = '', timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
+    let stdout = '', stderr = '', timedOut = false, started = false;
+    function stop() {
+      if (!child.pid) return;
       if (windows) {
         spawn('taskkill', ['/pid', String(child.pid), '/t', '/f'], {windowsHide: true, stdio: 'ignore'})
           .once('error', () => child.kill());
       } else {
         try { process.kill(-child.pid, 'SIGKILL'); } catch { child.kill('SIGKILL'); }
       }
-    }, 180000);
-    child.stdout.on('data', chunk => { stdout = (stdout + chunk).slice(-16000); });
+    }
+    const timer = setTimeout(() => { timedOut = true; stop(); }, 180000);
+    const decoder = createRecordDecoder({runId, buildId, write: () => {}, onEvent: event => {
+      if (starter && event.type === 'ui-ready' && !timedOut) {
+        started = true;
+        stop();
+      }
+    }});
+    child.stdout.on('data', chunk => { stdout = (stdout + chunk).slice(-16000); decoder.push(chunk); });
     child.stderr.on('data', chunk => { stderr = (stderr + chunk).slice(-16000); });
     child.once('error', error => { clearTimeout(timer); reject(error); });
     child.once('close', (code, signal) => {
       clearTimeout(timer);
-      const expected = starter ? starterGreeting : greetings.join(' | ');
-      const marker = stdout.split(/\r?\n/).includes('ZERO_PROJECT_NEW_NATIVE_GREETING_OK ' + expected);
-      if (!timedOut && code === 0 && marker) resolve();
+      const marker = stdout.split(/\r?\n/).includes('ZERO_PROJECT_NEW_NATIVE_GREETING_OK ' + greetings.join(' | '));
+      if (!timedOut && (starter ? started : code === 0 && marker)) resolve();
       else {
-        const detail = timedOut ? 'timed out' : code === 0 ? 'missing greeting confirmation' : `exit ${code ?? signal}`;
-        reject(new Error(`Project → New Greeting native Run failed (${detail}).\n${stdout}\n${stderr}`));
+        const detail = timedOut ? 'timed out' : code === 0 ? 'missing startup or greeting confirmation' : `exit ${code ?? signal}`;
+        reject(new Error(`Project → New native Run failed (${detail}).\n${stdout}\n${stderr}`));
       }
     });
   });
@@ -63,9 +73,9 @@ export async function verifyNativeGreeting(projectRoot, {starter = false} = {}) 
     for (const entry of [wrapper, 'pom.xml', '.mvn', 'src']) {
       await cp(path.join(projectRoot, entry), path.join(scratch, entry), {recursive: true});
     }
-    await cp(nativeProbe, path.join(scratch, 'src/main/java/ProjectNewGreetingCheck.java'));
+    if (!starter) await cp(nativeProbe, path.join(scratch, 'src/main/java/ProjectNewGreetingCheck.java'));
     await runNative(scratch, starter);
-    return {greetings: starter ? [starterGreeting] : [...greetings]};
+    return {greetings: starter ? [starterReady] : [...greetings]};
   } finally {
     await rm(scratch, {recursive: true, force: true});
   }

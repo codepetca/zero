@@ -141,7 +141,7 @@ async function fixture(t, changes = {}) {
             if (changes.missingProjectNew) throw new Error('Project → New artifact unavailable.');
             const greeting = {greetings:['Hello, Sam!', 'Hello, Ada!']};
             await writeFile(path.join(destination, 'PROJECT-NEW.json'), JSON.stringify({repository:'codepetca/zero-starter',
-              commit:sha, tree:head, vsixSha256:changes.projectNewVsix || receipt.assets.extension.sha256, native:{...greeting, starter:'Hello, world!'}, web:greeting}));
+              commit:sha, tree:head, vsixSha256:changes.projectNewVsix || receipt.assets.extension.sha256, native:{...greeting, starter:'UI_READY'}, web:greeting}));
             return output('');
           }
           for (let i = 0; i < 3; i++) await writeFile(path.join(destination, filenames[i]), changes.corruptReview === i ? Buffer.from('corrupt') : bytes[i]);

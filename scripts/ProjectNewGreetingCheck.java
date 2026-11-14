@@ -21,12 +21,6 @@ public final class ProjectNewGreetingCheck extends Application {
                 .filter(match).findFirst().orElseThrow(() -> new AssertionError("Missing Greeting control: " + selector));
     }
 
-    private static void verifyStarter(Parent root, StringJoiner observed) {
-        Label greeting = find(root, ".label", Label.class, label -> "Hello, world!".equals(label.getText()));
-        require(greeting.isVisible(), "Starter greeting was hidden.");
-        observed.add(greeting.getText());
-    }
-
     private static void verifyTutorial(Parent root, StringJoiner observed) {
         Label greeting = find(root, ".label", Label.class, label -> "Hello, Java!".equals(label.getText()));
         TextField field = find(root, ".text-field", TextField.class, text -> "Your name".equals(text.getPromptText()));
@@ -51,11 +45,7 @@ public final class ProjectNewGreetingCheck extends Application {
             Parent root = stage.getScene().getRoot();
             root.applyCss();
             root.layout();
-            if ("starter".equals(System.getenv("ZERO_PROJECT_NEW_GREETING_STAGE"))) {
-                verifyStarter(root, observed);
-            } else {
-                verifyTutorial(root, observed);
-            }
+            verifyTutorial(root, observed);
         } finally {
             stage.close();
             Platform.exit();

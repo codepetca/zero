@@ -13095,3 +13095,7 @@ JavaFX and the compiled WebFX app in Chrome. Publication rechecks the public
 template identity before making a kit draft public. Public checks establish
 template compatibility and app behavior. Authenticated Project → New writes,
 GitHub Pages publishing and physical Windows are separate acceptance checks.
+
+The anonymous public template replay and native default entry point passed on
+Mac. The native check also rejected a deliberately broken Maven entry point.
+The release check does not create a student repository or deploy a Pages site.

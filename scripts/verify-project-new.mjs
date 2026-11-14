@@ -101,7 +101,7 @@ export async function verifyStarterAtPublication(root, receipt, extension, reque
   assert.match(receipt.commit || '', gitHash);
   assert.match(receipt.tree || '', gitHash);
   assert.equal(receipt.vsixSha256, extension.sha256, 'Project → New check used a different VSIX.');
-  assert.equal(receipt.native?.starter, 'Hello, world!', 'Unedited starter Run was not verified.');
+  assert.equal(receipt.native?.starter, 'UI_READY', 'Unedited starter Run was not verified.');
   assert.deepEqual(receipt.native?.greetings, ['Hello, Sam!', 'Hello, Ada!'], 'Native greeting was not verified.');
   assert.deepEqual(receipt.web?.greetings, receipt.native.greetings, 'WebFX greeting was not verified.');
   const current = await readPublicStarter(root, request);

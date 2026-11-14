@@ -133,9 +133,10 @@ Before preparing a release, compare its generated `zero-starter` with the
 public template at [codepetca/zero-starter](https://github.com/codepetca/zero-starter).
 If they differ, prepare the template from the reviewed candidate source with
 `node scripts/prepare-project-templates.mjs` and update it through a reviewed
-template PR. Coordinate that change with release promotion when the builder
-profile changes. GitHub generates projects from the template's default branch,
-so the live check applies to that branch at release time.
+template PR. When the builder profile changes, review the template PR in
+advance and merge it immediately before manual release preparation. GitHub
+generates projects from the template's default branch. Older editors reject
+the new browser builder, so tell students which editor update they need.
 
 Manual kit preparation compares the public tree and executable bits with the
 generated starter. It checks the builder against the packaged VSIX, opens the unedited starter
