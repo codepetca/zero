@@ -13099,3 +13099,27 @@ GitHub Pages publishing and physical Windows are separate acceptance checks.
 The anonymous public template replay and native default entry point passed on
 Mac. The native check also rejected a deliberately broken Maven entry point.
 The release check does not create a student repository or deploy a Pages site.
+
+## GitHub Pages publishing and recovery — 2026-11-14
+
+Publish requires the tested source on GitHub `main`. First publication and
+managed kit upgrades ask for approval before Zero can sync the reviewed
+deployment files. The upload checks the exact Git plan and GitHub account.
+The migration recognizes the kit reconstructed from the released 0.5.73 VSIX.
+
+Zero records the temporary release, asset and destination before dispatch.
+When GitHub's response is uncertain, Recheck looks for the exact run using the
+unique stage tag plus the source, repository and workflow identity. A restart
+with an incomplete receipt keeps the bundle for the owner to check in Actions.
+A failed run offers its GitHub link. A fresh Publish action starts a new run.
+
+GPT-6.1 Sol/high and Terra/high independently reviewed `2586a5db6` for
+write authority, recovery and compatibility. The corrected `884c6b297` passed
+a targeted Sol/high review after preserving stale staging on restart, requiring
+a fresh Publish after terminal failure, and clarifying kit upload consent.
+The editor suite passed 350 checks with 11 skips. All 265 publishing-suite
+checks passed, including cases shared with the editor suite. The generated
+workflow passed `actionlint` and the repository and core version checks passed. Local
+verification used disposable Git repositories and controlled GitHub responses.
+It simulated interrupted workspace persistence. Live Pages, a physical crash
+and school Windows acceptance remain unverified.

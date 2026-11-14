@@ -145,12 +145,11 @@ and asks for a commit message to sync those files. Zero checks the uploaded
 version and continues publishing.
 When an unchanged publishing kit from a recognized earlier Zero version needs
 an update, **Publish & open app** offers **Update publishing files**. The review lists
-the affected deployment files; the app source and public destination stay the
-same. The old files remain recoverable in project
-history. Zero then uses ordinary **Commit & push** and checks the exact uploaded
-version again before publishing. Cancelling the update decision leaves the old
-kit and live site untouched. Cancelling Commit & push after accepting the update
-keeps the updated files locally; finish the upload before retrying Publish app.
+the deployment files and the repository Zero will sync them to. Git history
+keeps the previous version. Zero asks for a commit message and verifies the
+uploaded version before publishing. If you cancel the commit message after
+accepting the update, the updated files stay local. Commit and sync them on
+**main**, then choose **Publish & open app** again.
 Edited, incomplete, unknown or symbolic-link setups are preserved and
 need review; Zero does not treat an ownership marker alone as permission to
 overwrite files. Managed-kit updates currently need an ordinary Git clone; a
