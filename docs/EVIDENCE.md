@@ -13089,7 +13089,8 @@ Independent GPT-6.1 Sol/high and Terra/high starter reviews found no
 release blockers.
 
 Release preparation uses the public template tree and exact packaged VSIX,
-replays the three Greeting lessons, and checks two greetings through native
+opens the unedited starter, replays the three Greeting lessons, and checks two
+greetings through native
 JavaFX and the compiled WebFX app in Chrome. Publication rechecks the public
 template identity before making a kit draft public. Public checks establish
 template compatibility and app behavior. Authenticated Project → New writes,

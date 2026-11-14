@@ -138,12 +138,14 @@ profile changes. GitHub generates projects from the template's default branch,
 so the live check applies to that branch at release time.
 
 Manual kit preparation compares the public tree and executable bits with the
-generated starter. It checks the builder against the packaged VSIX and replays
-the Greeting lessons from their Markdown. It opens the result in JavaFX using
-the native Run Maven command and tests the exported WebFX app in Chrome.
+generated starter. It checks the builder against the packaged VSIX, opens the unedited starter
+in JavaFX, and replays the Greeting lessons from their Markdown. It runs the
+tutorial result using the native Run Maven command and tests the exported
+WebFX app in Chrome.
 The publisher checks the receipt against the release's VSIX and rechecks the
-template head immediately before making the draft public. If the template
-moves, prepare the release again. Ordinary source PRs can still package
+template tree immediately before making the draft public. A commit with the
+same tested tree can resume. If the tree differs, restore the reviewed tree
+before resuming with the same run ID, or review a new candidate and version. Ordinary source PRs can still package
 review artifacts while the public starter is being prepared.
 
 To run the same check locally with Node 22.23.4 or later in the Node 22 line,

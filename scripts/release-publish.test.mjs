@@ -141,7 +141,7 @@ async function fixture(t, changes = {}) {
             if (changes.missingProjectNew) throw new Error('Project → New artifact unavailable.');
             const greeting = {greetings:['Hello, Sam!', 'Hello, Ada!']};
             await writeFile(path.join(destination, 'PROJECT-NEW.json'), JSON.stringify({repository:'codepetca/zero-starter',
-              commit:sha, tree:head, vsixSha256:changes.projectNewVsix || receipt.assets.extension.sha256, native:greeting, web:greeting}));
+              commit:sha, tree:head, vsixSha256:changes.projectNewVsix || receipt.assets.extension.sha256, native:{...greeting, starter:'Hello, world!'}, web:greeting}));
             return output('');
           }
           for (let i = 0; i < 3; i++) await writeFile(path.join(destination, filenames[i]), changes.corruptReview === i ? Buffer.from('corrupt') : bytes[i]);
@@ -184,7 +184,7 @@ async function fixture(t, changes = {}) {
       if (url === starter) return Response.json({id:1418150992, full_name:'codepetca/zero-starter', private:false, is_template:true, default_branch:'main'});
       publicStarterReads++;
       return Response.json({name:'main', commit:{sha:changes.projectNewMoves && publicStarterReads > 1 ? mergedSha : sha,
-        commit:{tree:{sha:head}}}});
+        commit:{tree:{sha:changes.projectNewMoves === 'tree' && publicStarterReads > 1 ? mergedSha : head}}}});
     }
     if (url.startsWith('https://zero.codepet.ca/')) {
       return {status:changes.failedPage ? 503 : 200, url:changes.landingRedirect || url,
@@ -619,8 +619,14 @@ test('publication stops for missing or mismatched Project → New evidence', asy
 });
 
 test('publication rechecks public starter main after uploading draft assets', async t => {
-  const f = await fixture(t, {projectNewMoves:true});
-  await assert.rejects(publishZero({version, runId}, f.dependencies), /starter moved after the Project → New release check/);
+  const f = await fixture(t, {projectNewMoves:'tree'});
+  await assert.rejects(publishZero({version, runId}, f.dependencies), /starter content changed after the Project → New release check/);
   assert.ok(f.calls.some(call => call.args[0] === 'release' && call.args[1] === 'create'));
   assert.equal(f.calls.some(call => call.args.includes('draft=false')), false);
+});
+
+test('publication accepts a moved starter commit with the same tested tree', async t => {
+  const f = await fixture(t, {existing:true, projectNewMoves:'commit'});
+  assert.equal((await publishZero({version, runId}, f.dependencies)).phase, 'verified');
+  assert.ok(f.calls.some(call => call.args.includes('draft=false')));
 });

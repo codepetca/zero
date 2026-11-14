@@ -12,10 +12,10 @@ const {createWebPreview} = require('../extension/src/web-preview.js');
 
 const names = ['Sam', 'Ada'];
 const greetings = names.map(name => `Hello, ${name}!`);
-const nativeSuccess = 'ZERO_PROJECT_NEW_NATIVE_GREETING_OK ' + greetings.join(' | ');
+const starterGreeting = 'Hello, world!';
 const nativeProbe = new URL('./ProjectNewGreetingCheck.java', import.meta.url);
 
-async function runNative(projectRoot) {
+async function runNative(projectRoot, starter) {
   const run = runSpecification(projectRoot);
   const args = ['-B', '--no-transfer-progress', '-Dapp.mainClass=ProjectNewGreetingCheck', ...run.args];
   const spec = processSpecification(run.command, args);
@@ -23,6 +23,7 @@ async function runNative(projectRoot) {
   return new Promise((resolve, reject) => {
     const child = spawn(spec.command, spec.args, {
       cwd: run.cwd,
+      env: {...process.env, ZERO_PROJECT_NEW_GREETING_STAGE: starter ? 'starter' : 'tutorial'},
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: !windows,
       windowsHide: true,
@@ -43,7 +44,8 @@ async function runNative(projectRoot) {
     child.once('error', error => { clearTimeout(timer); reject(error); });
     child.once('close', (code, signal) => {
       clearTimeout(timer);
-      const marker = stdout.split(/\r?\n/).includes(nativeSuccess);
+      const expected = starter ? starterGreeting : greetings.join(' | ');
+      const marker = stdout.split(/\r?\n/).includes('ZERO_PROJECT_NEW_NATIVE_GREETING_OK ' + expected);
       if (!timedOut && code === 0 && marker) resolve();
       else {
         const detail = timedOut ? 'timed out' : code === 0 ? 'missing greeting confirmation' : `exit ${code ?? signal}`;
@@ -53,7 +55,7 @@ async function runNative(projectRoot) {
   });
 }
 
-export async function verifyNativeGreeting(projectRoot) {
+export async function verifyNativeGreeting(projectRoot, {starter = false} = {}) {
   // Keep the JavaFX verifier out of the student project and its browser export.
   const scratch = await mkdtemp(path.join(await realpath(tmpdir()), 'zero greeting native '));
   try {
@@ -62,8 +64,8 @@ export async function verifyNativeGreeting(projectRoot) {
       await cp(path.join(projectRoot, entry), path.join(scratch, entry), {recursive: true});
     }
     await cp(nativeProbe, path.join(scratch, 'src/main/java/ProjectNewGreetingCheck.java'));
-    await runNative(scratch);
-    return {greetings: [...greetings]};
+    await runNative(scratch, starter);
+    return {greetings: starter ? [starterGreeting] : [...greetings]};
   } finally {
     await rm(scratch, {recursive: true, force: true});
   }

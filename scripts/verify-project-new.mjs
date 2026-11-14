@@ -101,11 +101,13 @@ export async function verifyStarterAtPublication(root, receipt, extension, reque
   assert.match(receipt.commit || '', gitHash);
   assert.match(receipt.tree || '', gitHash);
   assert.equal(receipt.vsixSha256, extension.sha256, 'Project → New check used a different VSIX.');
+  assert.equal(receipt.native?.starter, 'Hello, world!', 'Unedited starter Run was not verified.');
   assert.deepEqual(receipt.native?.greetings, ['Hello, Sam!', 'Hello, Ada!'], 'Native greeting was not verified.');
   assert.deepEqual(receipt.web?.greetings, receipt.native.greetings, 'WebFX greeting was not verified.');
   const current = await readPublicStarter(root, request);
-  assert.deepEqual(current, {repository: receipt.repository, commit: receipt.commit, tree: receipt.tree},
-    'Public starter moved after the Project → New release check. Prepare the release again.');
+  assert.equal(current.tree, receipt.tree,
+    'Public starter content changed after the Project → New release check. Restore the reviewed tree before resuming this draft, or review a new candidate and version.');
+  return current;
 }
 
 export function replayGreeting(lessons) {
@@ -161,9 +163,10 @@ export async function checkProjectNew({root = sourceRoot, vsixPath, receiptPath,
     const framework = await readFile(path.join(project, 'zero-core.json'), 'utf8');
     const lessons = await Promise.all(['00-hello-world.md', '01-hello-button.md', '02-hello-name.md'].map(async name =>
       [name, await readFile(path.join(root, 'student-template/lessons', name), 'utf8')]));
+    const starter = (await verifyNativeGreeting(project, {starter: true})).greetings[0];
     await writeFile(path.join(project, 'src/main/java/Main.java'), replayGreeting(lessons));
     console.log(`Project → New: replaying Greeting from ${verified.repository}@${verified.commit} with VSIX ${editor}.`);
-    const native = await verifyNativeGreeting(project);
+    const native = {...await verifyNativeGreeting(project), starter};
     const builder = createProjectBuilder({extensionPath, isTrusted: () => true});
     // Keep the normal saved-builder compatibility and retained output checks.
     const exported = await builder.ensureValidatedExport({

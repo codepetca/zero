@@ -171,6 +171,8 @@ jobs:
           xvfb-run -a node scripts/verify-project-new.mjs "dist/$ZERO_CANDIDATE_VSIX" dist/PROJECT-NEW.json
       - name: Seal the reviewed artifacts
         if: steps.release.outputs.status == 'local'
+        env:
+          EXPECTED_VERSION: ${{ inputs.version }}
         run: node scripts/release-review.mjs seal
       - name: Upload the Project → New receipt for publication
         if: github.event_name == 'workflow_dispatch'

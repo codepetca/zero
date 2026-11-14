@@ -21,6 +21,27 @@ public final class ProjectNewGreetingCheck extends Application {
                 .filter(match).findFirst().orElseThrow(() -> new AssertionError("Missing Greeting control: " + selector));
     }
 
+    private static void verifyStarter(Parent root, StringJoiner observed) {
+        Label greeting = find(root, ".label", Label.class, label -> "Hello, world!".equals(label.getText()));
+        require(greeting.isVisible(), "Starter greeting was hidden.");
+        observed.add(greeting.getText());
+    }
+
+    private static void verifyTutorial(Parent root, StringJoiner observed) {
+        Label greeting = find(root, ".label", Label.class, label -> "Hello, Java!".equals(label.getText()));
+        TextField field = find(root, ".text-field", TextField.class, text -> "Your name".equals(text.getPromptText()));
+        Button button = find(root, ".button", Button.class, control -> "Say hello".equals(control.getText()));
+        require(greeting.isVisible() && field.isVisible() && button.isVisible(), "Greeting controls were hidden.");
+        require(field.getText().isEmpty(), "The Greeting name field should start empty.");
+        for (String name : new String[]{"Sam", "Ada"}) {
+            field.replaceText(0, field.getLength(), name);
+            button.fire();
+            String expected = "Hello, " + name + "!";
+            require(expected.equals(greeting.getText()), "Expected " + expected + " after activating Say hello.");
+            observed.add(greeting.getText());
+        }
+    }
+
     @Override public void start(Stage stage) {
         Main app = new Main();
         StringJoiner observed = new StringJoiner(" | ");
@@ -30,17 +51,10 @@ public final class ProjectNewGreetingCheck extends Application {
             Parent root = stage.getScene().getRoot();
             root.applyCss();
             root.layout();
-            Label greeting = find(root, ".label", Label.class, label -> "Hello, Java!".equals(label.getText()));
-            TextField field = find(root, ".text-field", TextField.class, text -> "Your name".equals(text.getPromptText()));
-            Button button = find(root, ".button", Button.class, control -> "Say hello".equals(control.getText()));
-            require(greeting.isVisible() && field.isVisible() && button.isVisible(), "Greeting controls were hidden.");
-            require(field.getText().isEmpty(), "The Greeting name field should start empty.");
-            for (String name : new String[]{"Sam", "Ada"}) {
-                field.replaceText(0, field.getLength(), name);
-                button.fire();
-                String expected = "Hello, " + name + "!";
-                require(expected.equals(greeting.getText()), "Expected " + expected + " after activating Say hello.");
-                observed.add(greeting.getText());
+            if ("starter".equals(System.getenv("ZERO_PROJECT_NEW_GREETING_STAGE"))) {
+                verifyStarter(root, observed);
+            } else {
+                verifyTutorial(root, observed);
             }
         } finally {
             stage.close();
