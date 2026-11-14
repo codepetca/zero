@@ -7,6 +7,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {publicKeys, reviewPlan, verifyReviewAssets} from './release-review.mjs';
+import {verifyStarterAtPublication} from './verify-project-new.mjs';
 import {downloadPage} from './release-download-page.mjs';
 import {validateInstallerManifest} from '../website/lib/installer.mjs';
 import {availableInstaller, validatePublishedInstaller} from '../website/lib/published-installer.mjs';
@@ -18,8 +19,12 @@ const workflow = 'release-review.yml';
 const shaPattern = /^[a-f0-9]{40}$/;
 const definitionFiles = ['extension/package.json', 'framework/pom.xml'];
 const promotionFiles = ['README.md', 'release/kit.json'];
+const projectNewGateSources = ['.github/workflows/release-review.yml', 'scripts/verify-project-new.mjs',
+  'scripts/project-new-playthrough.mjs', 'scripts/ProjectNewGreetingCheck.java',
+  'website/lib/example-projects.mjs', 'website/lib/project-templates.mjs',
+  'website/content/project-templates.json', 'website/lib/tutorial-after-code.mjs'];
 const packagedSources = ['extension', 'framework', 'student-template', 'profile', 'setup', 'LICENSE', 'release/START-HERE.md',
-  'sharing/harness/ZeroLibraryHarness.java', 'release/sharing.json', 'scripts/package.mjs', 'scripts/prepare-extension-assets.mjs', 'scripts/prepare-starter.mjs', 'scripts/kit.mjs', 'scripts/verify-kit.mjs', 'scripts/release-review.mjs'];
+  'sharing/harness/ZeroLibraryHarness.java', 'release/sharing.json', 'scripts/package.mjs', 'scripts/prepare-extension-assets.mjs', 'scripts/prepare-starter.mjs', 'scripts/kit.mjs', 'scripts/verify-kit.mjs', 'scripts/release-review.mjs', ...projectNewGateSources];
 const exec = promisify(execFile);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const json = bytes => JSON.parse(String(bytes));
@@ -290,7 +295,7 @@ export async function publishZero(options, dependencies = {}) {
     reviewPlan(definition, {manual: true, expectedVersion: options.version, repository});
     state.sourceSha = sourceSha;
     state.phase = 'CI preparation';
-    const preparationDeadline = now() + (dependencies.preparationTimeout ?? 20 * 60000);
+    const preparationDeadline = now() + (dependencies.preparationTimeout ?? 35 * 60000);
     while (now() < preparationDeadline) {
       if (!runId) {
         const runs = json(await gh(['run', 'list', '--workflow', workflow, '--event', 'workflow_dispatch', '--limit', '100', '--json', 'databaseId,workflowName,event,headSha,status,conclusion,displayTitle']));
@@ -328,6 +333,12 @@ export async function publishZero(options, dependencies = {}) {
     assert.equal(String(await command('git', ['diff', '--name-only', sourceSha, mainSha, '--', ...packagedSources])).trim(), '', 'Packaged source changed since preparation.');
     state.phase = 'release publication';
     let release = await findRelease(definition.publication.tag);
+    let projectNew;
+    if (!release || release.draft) {
+      await gh(['run', 'download', runId, '--name', `zero-${options.version}-project-new-${runId}`, '--dir', review]);
+      projectNew = json(await readFile(path.join(review, 'PROJECT-NEW.json')));
+      await verifyStarterAtPublication(candidate, projectNew, receipt.assets.extension, request);
+    }
     if (!release) {
       assert.ok(!await maybeApi(`git/ref/tags/${definition.publication.tag}`), 'Existing tag without matching release; publication stopped.');
       await gh(['release', 'create', definition.publication.tag, '--target', sourceSha, '--draft', '--title', `Zero ${options.version}`,
@@ -351,6 +362,7 @@ export async function publishZero(options, dependencies = {}) {
       // Check the complete draft again immediately before the deliberate transition.
       verifyRelease(await api(`releases/${release.id}`), receipt, sourceSha);
       await verifyTag(sourceSha, {allowAbsent: true});
+      await verifyStarterAtPublication(candidate, projectNew, receipt.assets.extension, request);
       await api(`releases/${release.id}`, ['--method', 'PATCH', '-F', 'draft=false']);
     }
     release = await api(`releases/${release.id}`);

@@ -127,6 +127,32 @@ final manually prepared run as the release candidate. Download that run's review
 artifact through GitHub Actions or `gh run download <run-id> --name
 zero-0.5.2-review-<run-id> --dir <review-directory>`.
 
+### Verify the public Project → New starter
+
+Before preparing a release, compare its generated `zero-starter` with the
+public template at [codepetca/zero-starter](https://github.com/codepetca/zero-starter).
+If they differ, prepare the template from the reviewed candidate source with
+`node scripts/prepare-project-templates.mjs` and update it through a reviewed
+template PR. Coordinate that change with release promotion when the builder
+profile changes. GitHub generates projects from the template's default branch,
+so the live check applies to that branch at release time.
+
+Manual kit preparation compares the public tree and executable bits with the
+generated starter. It checks the builder against the packaged VSIX and replays
+the Greeting lessons from their Markdown. It opens the result in JavaFX using
+the native Run Maven command and tests the exported WebFX app in Chrome.
+The publisher checks the receipt against the release's VSIX and rechecks the
+template head immediately before making the draft public. If the template
+moves, prepare the release again. Ordinary source PRs can still package
+review artifacts while the public starter is being prepared.
+
+To run the same check locally with Node 22.23.4 or later in the Node 22 line,
+JDK 21, Chrome and a display (Xvfb on headless Linux):
+
+```sh
+node scripts/verify-project-new.mjs dist/zero-X.Y.Z.vsix dist/PROJECT-NEW.json
+```
+
 ## Review and publish exact bytes
 
 Review `SOURCE.txt` against the reviewed commit and successful run. In the extracted

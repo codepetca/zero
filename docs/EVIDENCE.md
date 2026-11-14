@@ -13075,3 +13075,22 @@ the matching browser message. Repository checks, 105 focused extension tests,
 the local diff against `6bdcfa7cc` found no actionable issues. The requested
 reviewer was GPT-6.1 Terra at medium reasoning. Live Windows and GitHub sign-in
 were outside local verification.
+
+## Public Project → New starter — 2026-11-14
+
+[Starter PR #4](https://github.com/codepetca/zero-starter/pull/4) refreshed
+the public template at `7519d7c881722c12a35424119df931b81a5f22b7`, tree
+`13861f37d5afb4cec9c325b770dea35f6c06e801`. The prior template's saved
+builder differed from the one in the public 0.5.73 VSIX, blocking browser
+builds on fresh projects. The regenerated inventory matched all 97 tracked
+paths, file bytes and executable bits. The matched editor asset SHA-256 is
+`a30e5955c07261442b7f99be1359a2afb153613c5759678c6c6a8f8b8a929762`.
+Independent GPT-6.1 Sol/high and Terra/high starter reviews found no
+release blockers.
+
+Release preparation uses the public template tree and exact packaged VSIX,
+replays the three Greeting lessons, and checks two greetings through native
+JavaFX and the compiled WebFX app in Chrome. Publication rechecks the public
+template identity before making a kit draft public. Public checks establish
+template compatibility and app behavior. Authenticated Project → New writes,
+GitHub Pages publishing and physical Windows are separate acceptance checks.

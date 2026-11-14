@@ -168,4 +168,4 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
   }
   return {startTutorial,resumeCreated,newProject:()=>createAndClone('New project',ORIGINAL_TEMPLATE,'original','my-project'),createRepository,dispose(){disposed=true;progress.dispose();}};
 }
-module.exports={createGitHubProjectCommands,nameError};
+module.exports={createGitHubProjectCommands,nameError,ORIGINAL_TEMPLATE};
