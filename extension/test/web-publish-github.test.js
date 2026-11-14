@@ -6,7 +6,7 @@ const os=require('node:os');
 const path=require('node:path');
 const core=require('../src/core');
 const {createGitHubPagesPublisher,pagesPublishWorkflow,publishingFiles}=require('../src/web-publish-github');
-async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoizeGit=false,onFetch=()=>{}}={}) {
+async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoizeGit=false,onFetch=()=>{},runReply}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-pages-test-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   const git=args=>core.git(root,args);
   await git(['init','-b','main']);await git(['config','user.name','Test']);await git(['config','user.email','test@example.invalid']);await git(['remote','add','origin','https://github.com/student/game.git']);
@@ -54,7 +54,7 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
       assert.equal(suffix,'/actions/workflows/zero-web.yml/runs?branch=main&event=workflow_dispatch&head_sha='+run.head_sha+'&per_page=100');
       return response(runListing??{total_count:1,workflow_runs:[run]});
     }
-    if(suffix==='/actions/runs/42')return response(run);
+    if(suffix==='/actions/runs/42')return runReply?.(run)||response(run);
     if(suffix==='/releases?per_page=100'){if(listError)throw Error('network failed');return response(release?[release]:[]);}
     if(suffix==='/releases'){release={...JSON.parse(options.body),id:7,author:{id:1},upload_url:'https://uploads.github.com/repos/student/game/releases/7/assets{?name,label}'};if(loseCreationResponse){loseCreationResponse=false;throw Error('creation response lost');}return response(release,201);}
     if(suffix==='/releases/7'){if(options.method==='DELETE'){release=undefined;return response(null,204);}return response(release||{},release?200:404);}
@@ -157,6 +157,30 @@ test('unrelated runs, old public version and failed deployment never claim Live'
   const pending=await h.publisher.publish(review);h.run.head_sha='a'.repeat(40);await assert.rejects(h.publisher.check(pending.resume),/different publishing run/);h.run.head_sha=h.head;
   h.marker=h.head+'\n41\n';assert.equal((await h.publisher.check(pending.resume)).status,'pending');h.marker=h.head+'\n42\n';h.publicStatus=404;assert.equal((await h.publisher.check(pending.resume)).status,'pending');
   h.run.conclusion='failure';assert.equal((await h.publisher.check(pending.resume)).status,'failed');
+});
+test('an accepted dispatch waits for the exact Actions run without resending the POST',async t=>{
+  for(const kind of ['not yet visible','title delayed','temporary server error','never visible'])await t.test(kind,async t=>{
+    let reads=0,pending;
+    const h=await fixture(t,{memoizeGit:true,publisherOptions:{dispatchReviewDelayMs:0},runReply:run=>{
+      if(++reads>1&&kind!=='never visible')return;
+      if(kind==='title delayed')return Response.json({...run,display_title:'Publish Zero game'});
+      return Response.json({},{status:kind==='temporary server error'?503:404});
+    }});
+    const reviewed=await h.publisher.review(h.root);
+    const result=await h.publisher.publish(reviewed,{onPending:async value=>{pending=value;}});
+    assert.equal(h.calls.filter(call=>call.url.endsWith('/dispatches')).length,1);
+    assert.ok(h.release);
+    assert.ok(!h.calls.some(call=>call.options.method==='DELETE'));
+    if(kind==='never visible') {
+      assert.equal(reads,3);
+      assert.equal(result.status,'dispatch-uncertain');
+      assert.equal(pending,undefined);
+    } else {
+      assert.equal(reads,2);
+      assert.equal(result.status,'pending');
+      assert.equal(pending.runId,42);
+    }
+  });
 });
 test('a lost dispatch response recovers the exact run on restart before terminal cleanup',async t=>{
   const persisted=[];
