@@ -31,6 +31,14 @@ theme. The opt-in local HTTP download matched the exact ZIP checksum. A hosted
 configuration with copied local preview flags returned 404 for the ZIP, and
 none of the 71 production file traces included the pilot artifacts.
 
+The owner then authorized public distribution. The separate staging ZIP
+keeps the exact launcher and retrieves the five pinned tools from their
+vendors. Sol/high reviewed the delta through `2fa409afd`. PowerShell 7 on
+macOS staged the vendor archives and verified the MinGit file inventory.
+Windows PowerShell 5.1 and the actual student desktop remain untested.
+The [public prerelease](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74)
+ZIP and checksum matched unauthenticated downloads.
+
 ---
 
 # Automatic Git setup release review — 2026-11-13

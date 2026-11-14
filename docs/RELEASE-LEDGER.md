@@ -10,7 +10,7 @@ permission to publish from this ledger.
 | Website | The [homepage](https://zero.codepet.ca/) links to the 0.5.73 Mac DMG. The deployed [appcast](https://zero.codepet.ca/updates/macos/appcast.xml) matches the signed build 73 feed byte for byte. | Verify the live updater on an installed Mac. |
 | Mac installer | [0.5.73](https://github.com/codepetca/zero/releases/tag/setup-v0.5.73) is public. Its DMG and both corresponding Git source archives match the sealed candidate. | A fresh Mac and the live 0.5.72 → 0.5.73 update remain untested. |
 | Windows Store | Partner Center shows submission 9 live with [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.73.0, x64. | Verify installation or update on a physical Windows device. |
-| Windows portable school pilot | 0.5.74 unsigned x64 pilot built and verified locally. | Stage Microsoft’s VS Code ZIP and test on one school desktop under a student login. |
+| Windows portable school pilot | [0.5.74 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74) is public. | Stage the vendor tools and test on one school desktop under a student login. |
 | Windows standalone download | [0.5.73 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.73) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.73) are public. | The preview has updates disabled. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
@@ -34,10 +34,14 @@ folder to the pilot desktop.
 
 The ZIP, staging and automated launcher checks passed. On-device acceptance
 still needs first sign-in, JavaFX Run/Stop and reopening under a student login.
-The restored `/downloads` route in local source describes the private pilot.
-Local previews can download the exact ZIP with `ZERO_LOCAL_DOWNLOADS=1`.
-The public staging edition is prepared separately for GitHub Releases. It uses
-the same launcher and obtains all five vendor packages during IT staging.
+The [GitHub prerelease](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74)
+publishes the separate staging ZIP. It uses the same launcher and downloads
+five checksum-pinned tools from their vendors. The staging ZIP is 5,368,402
+bytes with SHA-256
+`f74e2f31b56d36ea335031e7a19dff601de8065f91ed29cc508c5fa61ea096dc`.
+The public ZIP and checksum matched the reviewed bytes in anonymous downloads.
+The website `/downloads` source links that release asset. The original ZIP
+remains in local pilot storage.
 See [pilot instructions](WINDOWS-PORTABLE.md) and
 [verification evidence](EVIDENCE.md#windows-portable-school-pilot--2026-11-14).
 
