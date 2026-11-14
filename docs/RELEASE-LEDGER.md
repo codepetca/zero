@@ -36,7 +36,8 @@ The ZIP, staging and automated launcher checks passed. On-device acceptance
 still needs first sign-in, JavaFX Run/Stop and reopening under a student login.
 The restored `/downloads` route in local source describes the private pilot.
 Local previews can download the exact ZIP with `ZERO_LOCAL_DOWNLOADS=1`.
-Hosted builds show the pilot entry and instructions without a binary link.
+The public staging edition is prepared separately for GitHub Releases. It uses
+the same launcher and obtains all five vendor packages during IT staging.
 See [pilot instructions](WINDOWS-PORTABLE.md) and
 [verification evidence](EVIDENCE.md#windows-portable-school-pilot--2026-11-14).
 

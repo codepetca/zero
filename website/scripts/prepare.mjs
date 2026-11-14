@@ -20,10 +20,12 @@ import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
 import { coreSources } from "../../scripts/prepare-starter.mjs";
 import { loadWindowsInstaller, loadWindowsUpdateFeed } from "../lib/windows-installer.mjs";
 import { loadWindowsPreview } from "../lib/windows-preview.mjs";
+import { windowsPortablePilotHref } from "../lib/windows-portable-pilot.mjs";
 import { loadUpdateFeed } from "../lib/update-feed.mjs";
 import { prepareBrandAssets } from "../lib/brand-assets.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
+windowsPortablePilotHref(JSON.parse(await readFile(resolve(root, "release/windows-portable-pilot.json"), "utf8")));
 const documentPaths = {
   teachers: "student-template/lessons/TEACHER.md",
   "lesson-guide": "student-template/lessons/README.md",

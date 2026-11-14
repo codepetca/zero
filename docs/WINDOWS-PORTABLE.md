@@ -6,7 +6,19 @@ Windows 11 with .NET Framework 4.8. A regular student can start it by opening
 can use the accompanying SHA-256 checksum and the application's normal approval
 process.
 
-## Prepare the folder
+## Prepare the public ZIP
+
+1. Extract the entire ZIP to a short path on an internet-connected staging PC.
+2. In the extracted **Zero Portable** folder, open Windows PowerShell and run
+   `.\Stage-Tools.ps1`. It downloads and verifies the pinned VS Code, Temurin JDK,
+   Node.js, MinGit, and universal Java extension from their vendors. If IT has
+   already downloaded the exact files listed in `BUILD.json` and the staging
+   script, use `.\Stage-Tools.ps1 -DownloadDirectory 'C:\Downloads\Zero tools'`.
+3. Have school IT approve the unsigned launcher and copy the complete staged
+   folder to the approved local path. Grant students read and execute access.
+   Allow about 2 GB for the staged folder and additional space during staging.
+
+## Prepare the private ZIP
 
 1. Extract the entire pilot ZIP to a short path on a staging Windows PC.
 2. In the extracted **Zero Portable** folder, run **Stage-VSCode.ps1** using

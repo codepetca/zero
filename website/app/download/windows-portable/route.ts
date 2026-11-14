@@ -11,7 +11,7 @@ export async function GET() {
   const headers = { 'Cache-Control': 'no-store' };
   if (!localDownloadsEnabled()) return new Response(null, { status: 404, headers });
 
-  const { filename, size, sha256 } = pilot.asset;
+  const { filename, size, sha256 } = pilot.localAsset;
   try {
     const folder = resolve(process.cwd(), '../dist/school-pilot');
     const file = await realpath(resolve(folder, filename));
