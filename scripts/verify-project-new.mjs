@@ -16,7 +16,7 @@ const require = createRequire(import.meta.url);
 const {validateBundle} = require('../extension/src/lesson-projects.js');
 const {createProjectBuilder, readSavedBuilder} = require('../extension/src/project-builder.js');
 const {planUpgrade} = require('../extension/src/project-builder-upgrade.js');
-const {ORIGINAL_TEMPLATE} = require('../extension/src/github-app/projects-ui.js');
+const {ORIGINAL_TEMPLATE, assertStarterIdentity, assertCompatibleStarter, installedStarterInventory} = require('../extension/src/github-app/starter-template.js');
 const template = templateDefinition('zero-starter');
 const targetRepository = `${ORIGINAL_TEMPLATE.owner}/${ORIGINAL_TEMPLATE.repo}`;
 assert.equal(template.repository, targetRepository, 'Review the release check when Project → New changes templates.');
@@ -85,12 +85,15 @@ async function readPublicStarter(root, request) {
   assert.equal(repo.private, false, 'Starter must be public.');
   assert.equal(repo.is_template, true, 'Starter must be a GitHub template.');
   assert.equal(repo.default_branch, 'main', 'Starter default branch changed.');
+  assertStarterIdentity(repo);
   return {repository: template.repository, ...branchIdentity(branch)};
 }
 
-export async function verifyPublicStarter(root, files, request = fetch) {
+export async function verifyPublicStarter(root, files, request = fetch, inventory) {
   const identity = await readPublicStarter(root, request);
-  assertStarterTree(await publicJson(request, `/git/trees/${identity.tree}?recursive=1`), identity.tree, files);
+  const tree = await publicJson(request, `/git/trees/${identity.tree}?recursive=1`);
+  assertStarterTree(tree, identity.tree, files);
+  if (inventory) assertCompatibleStarter(tree, identity.tree, inventory);
   assert.deepEqual(branchIdentity(await publicJson(request, '/branches/main')),
     {commit: identity.commit, tree: identity.tree}, 'Public starter changed during verification. Retry.');
   return identity;
@@ -153,6 +156,7 @@ export async function checkProjectNew({root = sourceRoot, vsixPath, receiptPath,
     validateBundle(JSON.parse(Buffer.from(bundle).toString('utf8')));
     await mkdir(path.join(extensionPath, 'media'), {recursive: true});
     await writeFile(path.join(extensionPath, bundlePath), bundle);
+    const inventory = await installedStarterInventory(extensionPath);
     for (const file of files) {
       const destination = path.join(project, file.path);
       await mkdir(path.dirname(destination), {recursive: true});
@@ -175,7 +179,7 @@ export async function checkProjectNew({root = sourceRoot, vsixPath, receiptPath,
       onProgress: console.log
     });
     const web = await verifyWebGreeting(exported.sitePath);
-    assert.deepEqual(await verifyPublicStarter(root, files, request), verified, 'Public starter changed during the tutorial replay. Retry.');
+    assert.deepEqual(await verifyPublicStarter(root, files, request, inventory), verified, 'Public starter changed during the tutorial replay. Retry.');
     const receipt = {...verified, editor, vsixSha256: createHash('sha256').update(vsixBytes).digest('hex'),
       builder: (await readSavedBuilder(project)).profileHash,
       core: JSON.parse(framework).sourceSha256, native, web};

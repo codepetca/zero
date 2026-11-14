@@ -1,6 +1,6 @@
 'use strict';
 const core = require('../core');
-const {ORIGINAL_TEMPLATE,installedStarterInventory,assertStarterIdentity,starterTreeId,assertCompatibleStarter,starterUnavailable}=require('./starter-template');
+const {ORIGINAL_TEMPLATE,installedStarterInventory,assertStarterIdentity,starterTreeId,assertCompatibleStarter,starterUnavailable,starterInstallInvalid}=require('./starter-template');
 
 const API = 'https://api.github.com';
 const API_VERSION = '2026-03-10';
@@ -244,9 +244,9 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
   function uncertainCreation(url) {
     return failure(`GitHub may have created this repository: ${url}. Check it and use Clone from GitHub to recover before creating another project.`, 'creation-uncertain',url);
   }
-  async function checkOriginalStarter(ticket,source,signal) {
-    assertStarterIdentity(source);
-    const inventory=await loadStarterInventory();
+  async function checkOriginalStarter(ticket,signal) {
+    let inventory;
+    try {inventory=await loadStarterInventory();}catch {throw starterInstallInvalid();}
     const prefix=`/repos/${ORIGINAL_TEMPLATE.owner}/${ORIGINAL_TEMPLATE.repo}`;
     async function get(suffix,maxBytes) {
       try {return await api(ticket,'GET',prefix+suffix,{signal,maxBytes});}
@@ -256,8 +256,11 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
       }
     }
     const branch='/branches/main';
+    assertStarterIdentity(await get('',64*1024));
     const sha=starterTreeId(await get(branch,64*1024));
     assertCompatibleStarter(await get(`/git/trees/${sha}?recursive=1`,512*1024),sha,inventory);
+    // Generate always uses the template's default branch, so confirm it still uses main.
+    assertStarterIdentity(await get('',64*1024));
     if(starterTreeId(await get(branch,64*1024))!==sha)throw starterUnavailable();
   }
   async function create({name,private:privacy,template}={}, {ticket:reviewedTicket,onProgress=()=>{},signal,beforeCreate}={}) {
@@ -275,18 +278,18 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     try {
       await installation(ticket,{repository_creation:'write',contents:template?'read':'write'},signal);
       if (await api(ticket,'GET',`/repos/${user.login}/${name}`,{allow404:true,signal})) throw failure(`This repository already exists: ${url}. Use Clone from GitHub to open it.`, 'repository-exists',url);
-      let source;
-      const original=template?.owner===ORIGINAL_TEMPLATE.owner && template.repo===ORIGINAL_TEMPLATE.repo;
-      if (template) {
-        source=await api(ticket,'GET',`/repos/${template.owner}/${template.repo}`,{signal,maxBytes:64*1024});
-        if (source?.is_template!==true || source.private!==false || source.full_name?.toLowerCase()!==`${template.owner}/${template.repo}`.toLowerCase()) throw failure('The verified Zero template is not publicly available. No repository was created.', 'invalid-template');
+      const original=template?.owner===ORIGINAL_TEMPLATE.owner && template.repo.toLowerCase()===ORIGINAL_TEMPLATE.repo;
+      if (template&&!original) {
+        const source=await api(ticket,'GET',`/repos/${template.owner}/${template.repo}`,{signal,maxBytes:64*1024});
+        if (source?.is_template!==true || source.private!==false || typeof source.full_name!=='string'||source.full_name.toLowerCase()!==`${template.owner}/${template.repo}`.toLowerCase()) throw failure('The verified Zero template is not publicly available. No repository was created.', 'invalid-template');
       }
-      const result=await api(ticket,'POST',template?`/repos/${template.owner}/${template.repo}/generate`:'/user/repos',{
+      const selectedTemplate=original?ORIGINAL_TEMPLATE:template;
+      const result=await api(ticket,'POST',selectedTemplate?`/repos/${selectedTemplate.owner}/${selectedTemplate.repo}/generate`:'/user/repos',{
         body:{name,private:privacy,...(template?{owner:user.login,include_all_branches:false}:{auto_init:false})},signal,
         beforeSend:async()=>{
           if(original) {
             onProgress('Checking the GitHub starter…');
-            await checkOriginalStarter(ticket,source,signal);
+            await checkOriginalStarter(ticket,signal);
           }
           await beforeCreate?.();
           onProgress('Creating your GitHub repository…');

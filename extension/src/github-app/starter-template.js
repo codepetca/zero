@@ -6,7 +6,7 @@ const {loadBundle}=require('../lesson-projects');
 
 const ORIGINAL_TEMPLATE=Object.freeze({owner:'codepetca',repo:'zero-starter'});
 const originalRepositoryId=1418150992;
-const starterPaths=new Set(['zero-core.json',...coreSourcePaths]);
+const starterPaths=new Set(['zero-core.json','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties',...coreSourcePaths]);
 const builderPath=name=>name==='.zero-build'||name.startsWith('.zero-build/');
 const compatibilityPath=name=>starterPaths.has(name)||builderPath(name)||name==='src/main/java/zero'||name.startsWith('src/main/java/zero/');
 
@@ -19,6 +19,9 @@ function starterMismatch() {
 function starterUnavailable() {
   return starterError('Zero could not check the GitHub starter. Check your connection and try Project → New again. No repository was created.','ZERO_STARTER_UNAVAILABLE');
 }
+function starterInstallInvalid() {
+  return starterError('Zero’s starter compatibility files are missing or damaged. Reinstall Zero, then try Project → New again. No repository was created.','ZERO_STARTER_INSTALL_INVALID');
+}
 async function installedStarterInventory(extensionPath=path.resolve(__dirname,'../..')) {
   const projects=await loadBundle(extensionPath);
   const files=projects.find(project=>project.id==='greeting')?.files;
@@ -26,7 +29,7 @@ async function installedStarterInventory(extensionPath=path.resolve(__dirname,'.
     sha:createHash('sha1').update(`blob ${file.content.length}\0`).update(file.content).digest('hex'),
     mode:file.mode&0o111?'100755':'100644'
   }]));
-  if(!inventory.has('.zero-build/builder.json')||[...starterPaths].some(name=>!inventory.has(name)))throw Error('Zero’s starter compatibility files are missing. Reinstall Zero, then try Project → New again.');
+  if(!inventory.has('.zero-build/builder.json')||[...starterPaths].some(name=>!inventory.has(name)))throw starterInstallInvalid();
   return inventory;
 }
 function assertStarterIdentity(source) {
@@ -60,4 +63,4 @@ function assertCompatibleStarter(tree,sha,inventory) {
   }
   if(remaining.size)throw starterMismatch();
 }
-module.exports={ORIGINAL_TEMPLATE,installedStarterInventory,assertStarterIdentity,starterTreeId,assertCompatibleStarter,starterUnavailable};
+module.exports={ORIGINAL_TEMPLATE,installedStarterInventory,assertStarterIdentity,starterTreeId,assertCompatibleStarter,starterUnavailable,starterInstallInvalid};
