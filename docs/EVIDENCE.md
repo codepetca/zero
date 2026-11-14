@@ -13123,3 +13123,41 @@ workflow passed `actionlint` and the repository and core version checks passed. 
 verification used disposable Git repositories and controlled GitHub responses.
 It simulated interrupted workspace persistence. Live Pages, a physical crash
 and school Windows acceptance remain unverified.
+
+## Project → New preflight and live Pages — 2026-11-14
+
+Zero checks the installed builder, framework and Maven files against 88
+paths in the public starter before asking GitHub to create a project. A
+different builder or framework gets update guidance. The editor rechecks
+the template identity and default branch after reading the tree. GitHub's
+Generate request uses the current default branch. The kit release gate also
+checks the inventory derived from the exact VSIX and replays the Greeting
+tutorial through native Run and WebFX.
+
+Project → New in the macOS source-based 0.5.74 candidate created and cloned
+the [scratch repository](https://github.com/armorup/zero-pages-publish-check-20261114)
+through the real GitHub App. Its initial tree matched the reviewed public
+starter. The first Publish cancellation kept the synced source commit,
+left Pages disabled, and created no staging release. After approval, Zero
+synced the publishing files, enabled Pages and built the app. The first run
+completed after Zero showed uncertain status. **Recheck** found the same run
+without sending another dispatch. A diagnostic repeat returned HTTP 200
+with the exact run ID and URLs and succeeded with the initial lookup. The
+reason for the first uncertain response was not captured.
+
+The final [live Actions run](https://github.com/armorup/zero-pages-publish-check-20261114/actions/runs/43651392133)
+received one dispatch. The scratch observer delivered a one-time 404 on the
+first run lookup. Zero retried the same run ID, verified the completed run,
+and cleared staging. The [public app](https://armorup.github.io/zero-pages-publish-check-20261114/)
+served the matching source/run marker and greeted Sam and Ada. The scratch
+host disabled automatic ZeroHub listing and limited diagnostics to the
+scratch repository. The local kit, native replay and WebFX checks used an
+unmodified candidate package. Physical Windows and installer acceptance
+are separate.
+
+GPT-6.1 Sol/high independently reviewed the preflight at `42c864707`, its
+corrections through `62d215710`, and the dispatch retry at `7ddd0ed32`.
+The editor and release-focused suites passed 112 and 91 tests. Nineteen
+targeted publisher tests passed, with additional independent abort and
+identity checks. The public starter comparison, package verification,
+native and WebFX replay, and configuration checks passed.

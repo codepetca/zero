@@ -184,6 +184,50 @@ test('lost creation response gives a redacted recovery URL and never retries its
  assert.equal(f.calls.filter(call=>call.options.method==='POST').length,1);
  f.postFailure=false;f.created=true;const recovered=await f.api.access(f.repo.html_url);assert.equal(recovered.repository.id,32);
 });
+test('Project → New validates the public starter immediately before creating a repository',async t=>{
+ const {ORIGINAL_TEMPLATE}=require('../src/github-app/starter-template');
+ const prefix='/repos/codepetca/zero-starter',sha='a'.repeat(40),blob='b'.repeat(40);
+ for(const scenario of ['compatible','builder changed','core changed','Maven wrapper mode changed','missing','unexpected','symlink','truncated','branch moved','default branch changed','identity changed','invalid installed inventory'])await t.test(scenario,async()=>{
+  const f=fixture();let branches=0,metadata=0;
+  const source={full_name:'codepetca/zero-starter',id:1418150992,private:false,is_template:true,default_branch:'main'};
+  const paths=['.zero-build/builder.json','src/main/java/zero/App.java','zero-core.json','mvnw'];
+  const inventory=new Map(paths.map(name=>[name,{mode:name==='mvnw'?'100755':'100644',sha:blob}]));
+  const tree={sha,truncated:scenario==='truncated',tree:[...paths.map(path=>({path,type:'blob',...inventory.get(path)})),{path:'README.md',type:'blob',mode:'100644',sha:'d'.repeat(40)}]};
+  if(scenario==='builder changed')tree.tree[0].sha='d'.repeat(40);
+  if(scenario==='core changed')tree.tree[1].sha='d'.repeat(40);
+  if(scenario==='Maven wrapper mode changed')tree.tree[3].mode='100644';
+  if(scenario==='missing')tree.tree.splice(0,1);
+  if(scenario==='unexpected')tree.tree.push({path:'.zero-build/unreviewed.cjs',type:'blob',mode:'100644',sha:blob});
+  if(scenario==='symlink')tree.tree[0].mode='120000';
+  if(scenario==='identity changed')source.id++;
+  const api=createGitHubAppRepositories({configuration,authentication:f.authentication,loadStarterInventory:async()=>{
+   if(scenario==='invalid installed inventory')throw SyntaxError('Broken bundle');
+   return inventory;
+  },fetchImpl:async(url,options)=>{
+   const route=url.slice('https://api.github.com'.length);
+   if(options.method!=='GET'||!route.startsWith(prefix))return f.fetchImpl(url,options);
+   f.calls.push({url,options});
+   if(route===prefix)return Response.json({...source,default_branch:++metadata===2&&scenario==='default branch changed'?'preview':source.default_branch});
+   if(route===`${prefix}/branches/main`)return Response.json({name:'main',commit:{commit:{tree:{sha:++branches===2&&scenario==='branch moved'?'c'.repeat(40):sha}}}});
+   assert.equal(route,`${prefix}/git/trees/${sha}?recursive=1`);
+   return Response.json(tree);
+  }});
+  const create=()=>api.create({name:'project',private:false,template:{...ORIGINAL_TEMPLATE,repo:'Zero-Starter'}},{ticket:f.ticket});
+  if(scenario==='compatible') {
+   assert.equal((await create()).created,true);
+   assert.deepEqual(f.calls.filter(call=>call.url.includes(prefix)).map(call=>[call.options.method,new URL(call.url).pathname]),[
+    ['GET',prefix],['GET',`${prefix}/branches/main`],['GET',`${prefix}/git/trees/${sha}`],['GET',prefix],['GET',`${prefix}/branches/main`],['POST',`${prefix}/generate`]
+   ]);
+  } else if(scenario==='invalid installed inventory') {
+   await assert.rejects(create(),error=>error.code==='ZERO_STARTER_INSTALL_INVALID'&&/Reinstall Zero/.test(error.message));
+   assert.ok(f.calls.every(call=>call.options.method==='GET'));
+  } else {
+   const unavailable=['truncated','branch moved','default branch changed','identity changed'].includes(scenario);
+   await assert.rejects(create(),error=>error.code===(unavailable?'ZERO_STARTER_UNAVAILABLE':'ZERO_STARTER_INCOMPATIBLE')&&/No repository was created/.test(error.message)&&(unavailable||/Check for a Zero update/.test(error.message)));
+   assert.ok(f.calls.every(call=>call.options.method==='GET'));
+  }
+ });
+});
 test('post-create membership failure, wrong visibility and identity drift preserve uncertainty',async()=>{
  for(const change of [f=>{f.members=[];},f=>{f.visibility=true;},f=>{f.postHook=async()=>{f.active=false;};}]) {
   const f=fixture();change(f);await assert.rejects(f.api.create({name:'project',private:false}),error=>error.code==='creation-uncertain');assert.equal(f.calls.filter(call=>call.options.method==='POST').length,1);

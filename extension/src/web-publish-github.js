@@ -2,6 +2,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const {setTimeout: wait} = require('node:timers/promises');
 const {safePagesUrl:safeUrl,publicAddress,publicReadiness,boundedText}=require('./web-pages-verification');
 const core = require('./core');
 const {prepareUpload} = require('./github');
@@ -101,7 +102,7 @@ async function inspectFiles(root, files) {
   }
   return missing;
 }
-function createGitHubPagesPublisher({authentication,repositories,fetch:request=globalThis.fetch,git=core.git,isSimulation=()=>true,engineRoot=path.join(__dirname,'web-export'),files:providedFiles,timeoutMs=15000,uploadTimeoutMs=180000,cacheRoot,localBuild=options=>require('./web-export/snapshot').ensureValidatedExport(options),validateExport=options=>require('./web-export/snapshot').validateExport(options),assertBuildInputsAtCommit=options=>require('./project-builder').createProjectBuilder().assertBuildInputsAtCommit(options)}={}) {
+function createGitHubPagesPublisher({authentication,repositories,fetch:request=globalThis.fetch,git=core.git,isSimulation=()=>true,engineRoot=path.join(__dirname,'web-export'),files:providedFiles,timeoutMs=15000,uploadTimeoutMs=180000,cacheRoot,localBuild=options=>require('./web-export/snapshot').ensureValidatedExport(options),validateExport=options=>require('./web-export/snapshot').validateExport(options),assertBuildInputsAtCommit=options=>require('./project-builder').createProjectBuilder().assertBuildInputsAtCommit(options),dispatchReviewDelayMs=750}={}) {
   const reviews=new WeakMap(), resumptions=new WeakMap(), unresolvedStages=new Map(), activePublishes=new Set();
   function simulation() {return {status:'simulated',message:'Simulation only — no publishing files, sign-in, upload or public website changed.'};}
   async function guard(review,signal,{tracking=false}={}) {
@@ -358,8 +359,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
          result.run_url.toLowerCase()!==('https://api.github.com/repos/'+state.slug+'/actions/runs/'+runId).toLowerCase()||
          result.html_url.toLowerCase()!==(state.plan.page+'/actions/runs/'+runId).toLowerCase())throw Error('GitHub did not identify the publishing run.');
       const resume=resumeDispatch(dispatch,runId);
-      const run=await api(state,'GET','/actions/runs/'+runId,null,{signal,tracking:true});
-      assertRun(state,resume,run);
+      await confirmNewRun(state,resume,signal,onProgress);
       await onPending(resume);
       resumptions.set(resume,state);
       unresolvedStages.delete(state.root);
@@ -400,16 +400,39 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(release.id!==staging.releaseId||release.draft!==true||release.tag_name!==staging.tag||String(release.author?.id)!==String(state.ticket.session.accountId)||release.target_commitish!==(state.cleanupSha || staging.sourceSha || state.plan.head))throw Error('The temporary staging release changed; preserve it for review.');
     await cleanupRequest('DELETE');
   }
-  function matchesRun(state,resume,run) {
+  function matchesRunIdentity(state,resume,run) {
     return run?.id===resume.runId&&(!resume.repositoryId||run.repository?.id===resume.repositoryId)&&
       run.head_sha===resume.sha&&[workflowPath,workflowPath+'@main'].includes(run.path)&&
       run.event==='workflow_dispatch'&&run.head_branch==='main'&&
-      run.repository?.full_name?.toLowerCase()===state.slug.toLowerCase()&&
+      run.repository?.full_name?.toLowerCase()===state.slug.toLowerCase();
+  }
+  function matchesRun(state,resume,run) {
+    return matchesRunIdentity(state,resume,run)&&
       (resume.dispatchTag===undefined||(stageTagPattern.test(resume.dispatchTag)&&resume.dispatchTag===resume.staging?.tag&&
         run.display_title==='Zero web '+resume.sha+' '+resume.dispatchTag));
   }
   function assertRun(state,resume,run) {
     if(!matchesRun(state,resume,run))throw Error('GitHub returned a different publishing run. Check repository Actions.');
+  }
+  async function confirmNewRun(state,resume,signal,onProgress) {
+    // The dispatch response identifies the accepted run. Its record or title can
+    // take another read to appear. Keep the staged bundle and recheck only this ID.
+    for(let attempt=0;attempt<3;attempt++) {
+      if(attempt) {
+        onProgress('Waiting for GitHub to confirm the publishing run…');
+        await wait(dispatchReviewDelayMs*attempt,undefined,{signal});
+      }
+      let run;
+      try {run=await api(state,'GET','/actions/runs/'+resume.runId,null,{signal,tracking:true,allow404:true});}
+      catch(error) {
+        if(signal?.aborted||(![500,502,503,504].includes(error.status)&&!error.message.startsWith('GitHub could not be reached')))throw error;
+        continue;
+      }
+      if(run===null)continue;
+      if(!matchesRunIdentity(state,resume,run))assertRun(state,resume,run);
+      if(matchesRun(state,resume,run))return;
+    }
+    throw Error('GitHub has not confirmed the publishing run yet.');
   }
   async function publicVersion(resume,url,signal) {
     if(isSimulation())throw Error('Live publishing is disabled. Review again after choosing live uploads.');

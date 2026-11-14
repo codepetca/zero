@@ -137,6 +137,9 @@ template PR. When the builder profile changes, review the template PR in
 advance and merge it immediately before manual release preparation. GitHub
 generates projects from the template's default branch. Older editors reject
 the new browser builder, so tell students which editor update they need.
+Editors with the Project → New preflight compare the public starter's builder
+and framework with their own package before creating a repository. They direct
+students to check for a Zero update if the files differ.
 
 Manual kit preparation compares the public tree and executable bits with the
 generated starter. It checks the builder against the packaged VSIX, opens the unedited starter
