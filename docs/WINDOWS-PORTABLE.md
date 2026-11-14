@@ -35,19 +35,21 @@ universal Java editor extension. Obtain VS Code from Microsoft.
 ## Test with a student login
 
 1. Sign in to Windows as a regular student. Open **Zero.exe**. Wait for the
-   Zero start page in the editor.
+   editor. On the first launch, complete **Sign in to Zero** in the browser
+   using a school-approved test GitHub account. The pilot keeps the regular
+   Zero sign-in requirement for running projects.
 2. Use **Zero: Troubleshooting → Test installation** from the Command Palette.
-   If asked, trust only the Zero starter project you recognize. Choose **Run
-   App** and confirm the JavaFX window opens. Choose **Stop App** and run it a
+   If asked, trust only the Zero starter project you recognize. Choose **Run test**
+   and confirm the JavaFX window opens. Choose **Stop** and run it a
    second time. The first build needs access to Maven Central for Maven and
    JavaFX.
 3. Close the editor and open **Zero.exe** again. Confirm the isolated editor
    reopens and can run the starter again. If a second test account is
    available, confirm it opens without the first user's saved projects or
    GitHub session.
-4. To test the full classroom flow, use a school-approved test GitHub account.
-   Sign in through Zero, create a project, run it, and test uploading and
-   publishing to GitHub Pages with a disposable repository.
+4. To test the full classroom flow, finish connecting GitHub if Zero asks.
+   Create a project, run it, and test uploading and publishing to GitHub Pages
+   with a disposable repository.
 
 Student settings and extensions live in `%LOCALAPPDATA%\ZeroPortableData`.
 The installation test uses the writable starter in
