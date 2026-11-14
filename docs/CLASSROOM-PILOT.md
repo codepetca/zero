@@ -22,6 +22,8 @@ On a staging PC, extract the public pilot ZIP and run `Stage-Tools.ps1`
 to download and verify the five vendor packages. For the original private
 pilot ZIP, use its `Stage-VSCode.ps1` instead. Have school IT approve the
 launcher and copy the complete staged folder to the approved local path.
+Give students read and execute access and keep the folder writable only by
+the people who manage the deployment.
 
 Under a regular student login, open `Zero.exe` and complete **Sign in to
 Zero** with a school-approved test account. Open **Zero: Troubleshooting**

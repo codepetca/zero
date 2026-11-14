@@ -9,13 +9,15 @@ process.
 ## Prepare the public ZIP
 
 1. Extract the entire ZIP to a short path on an internet-connected staging PC.
+   Use a staging folder writable only by IT.
 2. In the extracted **Zero Portable** folder, open Windows PowerShell and run
    `.\Stage-Tools.ps1`. It downloads and verifies the pinned VS Code, Temurin JDK,
    Node.js, MinGit, and universal Java extension from their vendors. If IT has
    already downloaded the exact files listed in `BUILD.json` and the staging
    script, use `.\Stage-Tools.ps1 -DownloadDirectory 'C:\Downloads\Zero tools'`.
 3. Have school IT approve the unsigned launcher and copy the complete staged
-   folder to the approved local path. Grant students read and execute access.
+   folder to the approved local path. Give students read and execute access
+   and keep the folder writable only by the people who manage the deployment.
    Allow about 2 GB for the staged folder and additional space during staging.
 
 ## Prepare the private ZIP

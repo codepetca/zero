@@ -18,10 +18,20 @@ $pins = @'
 function Get-VerifiedArchive($asset) {
     $file = Join-Path $work $asset.filename
     if ($DownloadDirectory) {
-        $file = Join-Path $DownloadDirectory $asset.filename
+        $source = Join-Path $DownloadDirectory $asset.filename
+        Copy-Item -LiteralPath $source -Destination $file
     } else {
         Write-Host "Downloading $($asset.name)..."
-        Invoke-WebRequest -UseBasicParsing -Uri $asset.url -OutFile $file
+        $previousProtocol = [Net.ServicePointManager]::SecurityProtocol
+        try {
+            # Windows PowerShell 5.1 may still default to TLS 1.0.
+            if ($PSVersionTable.PSVersion.Major -eq 5 -and [int] $previousProtocol -ne 0) {
+                [Net.ServicePointManager]::SecurityProtocol = $previousProtocol -bor [Net.SecurityProtocolType]::Tls12
+            }
+            Invoke-WebRequest -UseBasicParsing -Uri $asset.url -OutFile $file
+        } finally {
+            [Net.ServicePointManager]::SecurityProtocol = $previousProtocol
+        }
     }
     $archive = Get-Item -LiteralPath $file
     if ($archive.PSIsContainer -or $archive.Length -ne $asset.size -or
