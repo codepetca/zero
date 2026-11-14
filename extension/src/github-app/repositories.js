@@ -1,5 +1,6 @@
 'use strict';
 const core = require('../core');
+const {ORIGINAL_TEMPLATE,installedStarterInventory,assertStarterIdentity,starterTreeId,assertCompatibleStarter,starterUnavailable}=require('./starter-template');
 
 const API = 'https://api.github.com';
 const API_VERSION = '2026-03-10';
@@ -27,7 +28,7 @@ function assertRepositoryIdentity(expected,access) {
   const current=repositoryIdentity(access);
   if(current.repositoryId!==expected.repositoryId||current.installationId!==expected.installationId)throw failure('The GitHub repository or Zero installation changed. Review the operation again.', 'repository-access-changed');
 }
-function createGitHubAppRepositories({authentication,configuration,fetchImpl=globalThis.fetch,now=Date.now}={}) {
+function createGitHubAppRepositories({authentication,configuration,fetchImpl=globalThis.fetch,now=Date.now,loadStarterInventory=installedStarterInventory}={}) {
   // An uncertain POST is never repeated by this instance. Recovery is read-only
   // access(repositoryUrl); the caller must retain/display that URL across restarts.
   const uncertain = new Set(), creating = new Set();
@@ -243,6 +244,22 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
   function uncertainCreation(url) {
     return failure(`GitHub may have created this repository: ${url}. Check it and use Clone from GitHub to recover before creating another project.`, 'creation-uncertain',url);
   }
+  async function checkOriginalStarter(ticket,source,signal) {
+    assertStarterIdentity(source);
+    const inventory=await loadStarterInventory();
+    const prefix=`/repos/${ORIGINAL_TEMPLATE.owner}/${ORIGINAL_TEMPLATE.repo}`;
+    async function get(suffix,maxBytes) {
+      try {return await api(ticket,'GET',prefix+suffix,{signal,maxBytes});}
+      catch(error) {
+        if(['network-error','invalid-response'].includes(error.code)||error.status===404)throw starterUnavailable();
+        throw error;
+      }
+    }
+    const branch='/branches/main';
+    const sha=starterTreeId(await get(branch,64*1024));
+    assertCompatibleStarter(await get(`/git/trees/${sha}?recursive=1`,512*1024),sha,inventory);
+    if(starterTreeId(await get(branch,64*1024))!==sha)throw starterUnavailable();
+  }
   async function create({name,private:privacy,template}={}, {ticket:reviewedTicket,onProgress=()=>{},signal,beforeCreate}={}) {
     configured();cancelled(signal);
     if (!safeName(name) || privacy!==false) throw failure('Choose a repository name. Zero creates public repositories.', 'invalid-project');
@@ -258,12 +275,23 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     try {
       await installation(ticket,{repository_creation:'write',contents:template?'read':'write'},signal);
       if (await api(ticket,'GET',`/repos/${user.login}/${name}`,{allow404:true,signal})) throw failure(`This repository already exists: ${url}. Use Clone from GitHub to open it.`, 'repository-exists',url);
+      let source;
+      const original=template?.owner===ORIGINAL_TEMPLATE.owner && template.repo===ORIGINAL_TEMPLATE.repo;
       if (template) {
-        const source=await api(ticket,'GET',`/repos/${template.owner}/${template.repo}`,{signal});
+        source=await api(ticket,'GET',`/repos/${template.owner}/${template.repo}`,{signal,maxBytes:64*1024});
         if (source?.is_template!==true || source.private!==false || source.full_name?.toLowerCase()!==`${template.owner}/${template.repo}`.toLowerCase()) throw failure('The verified Zero template is not publicly available. No repository was created.', 'invalid-template');
       }
-      onProgress('Creating your GitHub repository…');
-      const result=await api(ticket,'POST',template?`/repos/${template.owner}/${template.repo}/generate`:'/user/repos',{body:{name,private:privacy,...(template?{owner:user.login,include_all_branches:false}:{auto_init:false})},signal,beforeSend:beforeCreate,onSend:()=>{sent=true;}});
+      const result=await api(ticket,'POST',template?`/repos/${template.owner}/${template.repo}/generate`:'/user/repos',{
+        body:{name,private:privacy,...(template?{owner:user.login,include_all_branches:false}:{auto_init:false})},signal,
+        beforeSend:async()=>{
+          if(original) {
+            onProgress('Checking the GitHub starter…');
+            await checkOriginalStarter(ticket,source,signal);
+          }
+          await beforeCreate?.();
+          onProgress('Creating your GitHub repository…');
+        },onSend:()=>{sent=true;}
+      });
       accepted=true;
       const created=repository(result,core.parseRepositoryUrl(url),user.id);
       if (created.private!==privacy) throw failure('GitHub returned a different repository visibility.', 'repository-mismatch');
