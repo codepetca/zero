@@ -1,3 +1,46 @@
+# Windows portable school pilot — 2026-11-14
+
+Local pilot source `6adc8a88721d26fcbfabfb4b3e4272b65300a227`. The
+350,212,127-byte ZIP in `dist/school-pilot` has SHA-256
+`a120169366500104d530488e14ce66ba3a0bc10a362505fc1cc3d1a81add41ea`.
+The x64 launcher embeds the verified 0.5.74 kit and runs the staged Java,
+Git, Node and VS Code from the approved folder with a separate student profile.
+[Staging and trial instructions](WINDOWS-PORTABLE.md) cover the official VS Code
+ZIP and standard-user sign-in, run and reopen.
+
+`npm run check`, the core version check, kit verification including a local
+Java build, Windows Mono fixtures (4,582 direct, 4,331 Store feasibility and
+4,387 Store production checks plus updater fixtures), and focused extension
+checks (28 passed, two Windows-only skips) passed. The broader suite also
+passed, with 2,426 passed and 154 skipped. PowerShell 7 on macOS staged
+the exact Microsoft archive. Mac VS Code CLI accepted both VSIX files in a
+disposable profile. The rebuilt ZIP passed full archive and checksum verification.
+
+Terra/medium traced process and policy boundaries. Sol/high reviewed
+`8b5b558c6..4f82adf69` and the fixes through `f8b59b56b`. The fixes isolated
+inherited and shared VS Code data, routed the installation test to a writable
+starter, and rebuilt from clean source. No remaining functional blocker in the
+reviewed code. The last change updated sign-in instructions and preserved
+launcher and staging-script bytes. Reviewer token usage unavailable. No Windows
+launch, school policy, JavaFX or GitHub flow has been verified on device.
+
+The release ledger and restored website `/downloads` page record the private
+pilot. Website typecheck, production build and 844 website tests passed.
+Chromium showed the page at 320px in light theme and at desktop width in dark
+theme. The opt-in local HTTP download matched the exact ZIP checksum. A hosted
+configuration with copied local preview flags returned 404 for the ZIP, and
+none of the 71 production file traces included the pilot artifacts.
+
+The owner then authorized public distribution. The separate staging ZIP
+keeps the exact launcher and retrieves the five pinned tools from their
+vendors. Sol/high reviewed the delta through `2fa409afd`. PowerShell 7 on
+macOS staged the vendor archives and verified the MinGit file inventory.
+Windows PowerShell 5.1 and the actual student desktop remain untested.
+The [public prerelease](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74)
+ZIP and checksum matched unauthenticated downloads.
+
+---
+
 # Automatic Git setup release review — 2026-11-13
 
 [PR #345](https://github.com/codepetca/zero/pull/345) merged at

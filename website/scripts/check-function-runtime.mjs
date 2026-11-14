@@ -16,7 +16,7 @@ async function checkFeed(response,expected,kind){
 await checkFeed(publishedFeedResponse(null),null,'mac');
 await checkFeed(publishedWindowsFeedResponse(null),null,'windows');
 const site=resolve(dirname(fileURLToPath(import.meta.url)),'..');const repo=resolve(site,'..');
-const routes=['download/[asset]','updates/macos/appcast.xml','updates/windows/stable.json','api/jams/template','api/jams/template/preview'];
+const routes=['download/[asset]','download/windows-portable','updates/macos/appcast.xml','updates/windows/stable.json','api/jams/template','api/jams/template/preview'];
 const files=new Set();
 for(const route of routes){
  const entry=resolve(site,`.next/server/app/${route}/route.js`);files.add(entry);
@@ -40,6 +40,7 @@ Module._resolveFilename=function(...args){const file=originalResolve.apply(this,
 const expected=JSON.parse(fs.readFileSync(0,'utf8'));const load=route=>require('./.next/server/app/'+route+'/route.js').routeModule.userland;
 (async()=>{
  const download=load('download/[asset]');
+ const portable=await load('download/windows-portable').GET();assert.equal(portable.status,404);assert.equal(portable.headers.get('cache-control'),'no-store');
  const redirect=await download.GET(new Request('https://zero.codepet.ca/download/kit'),{params:Promise.resolve({asset:'kit'})});assert.equal(redirect.status,303);assert.equal(redirect.headers.get('Location'),'/');
  const unknown=await download.GET(new Request('https://zero.codepet.ca/download/nope'),{params:Promise.resolve({asset:'nope'})});assert.equal(unknown.status,404);
  await checkFeed(await load('updates/macos/appcast.xml').GET(),expected.updateFeed,'mac');
@@ -62,7 +63,7 @@ const expected=JSON.parse(fs.readFileSync(0,'utf8'));const load=route=>require('
  fs.writeFileSync(path.join(root,'dist/release.json'),JSON.stringify(receipt));
  for(const key of ['kit','starter','extension']){const response=await download.GET(new Request('http://127.0.0.1/download/'+key),{params:Promise.resolve({asset:key})});assert.equal(response.status,200);assert.equal(await response.text(),'receipted local '+key);}
  const missingInstaller=await download.GET(new Request('http://127.0.0.1/download/installer'),{params:Promise.resolve({asset:'installer'})});assert.equal(missingInstaller.status,503);
- console.log(JSON.stringify({tracedHandlers:5,vercelLocalDownloadBlocked:true,unknownDownload404:true,feedsByteIdentical:true,unavailableMac404:true,unavailableWindows503:true,productionTemplatesHiddenByDefault:true,pilotTemplatesGone:true,previewTemplatesHidden:true,productionHoldRestored:true,localKitDownloadsVerified:3,unverifiedInstallerRefused:true}));
+ console.log(JSON.stringify({tracedHandlers:6,vercelLocalDownloadBlocked:true,vercelPortableDownloadBlocked:true,unknownDownload404:true,feedsByteIdentical:true,unavailableMac404:true,unavailableWindows503:true,productionTemplatesHiddenByDefault:true,pilotTemplatesGone:true,previewTemplatesHidden:true,productionHoldRestored:true,localKitDownloadsVerified:3,unverifiedInstallerRefused:true}));
 })().catch(error=>{console.error(error);process.exitCode=1;});`;
  const result=spawnSync(process.execPath,['-e',source],{cwd:website,input:JSON.stringify({...JSON.parse(await readFile(resolve(site,'.generated/release.json'),'utf8'))}),encoding:'utf8',env:{...process.env,NODE_PATH:'',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'0',ZERO_LOCAL_DOWNLOADS:'1'},timeout:60000,maxBuffer:1024*1024});
  assert.equal(result.status,0,result.stderr||result.stdout||String(result.error));const report=JSON.parse(result.stdout);

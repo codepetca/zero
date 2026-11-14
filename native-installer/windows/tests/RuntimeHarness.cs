@@ -75,7 +75,8 @@ internal static class RuntimeHarness
             Runs++; Commands.Add(info);
             Assert(!info.WorkingDirectory.Contains(Path.DirectorySeparatorChar + "kit"), "child working folder outside temporary bundled kit");
             Assert(!info.UseShellExecute && info.RedirectStandardError && info.RedirectStandardOutput && info.RedirectStandardInput, "bounded native commands avoid shells");
-            Assert(info.EnvironmentVariables["JAVA_HOME"].Contains("jdk-") && info.EnvironmentVariables["ZERO_JAVA_HOME"] == info.EnvironmentVariables["JAVA_HOME"], "private Java and managed runtime hint propagated to every command");
+            Assert((info.EnvironmentVariables["JAVA_HOME"].Contains("jdk-") ||
+                info.EnvironmentVariables["JAVA_HOME"] == Path.Combine(info.EnvironmentVariables["ZERO_PORTABLE_TOOLS"] ?? "", "jdk")) && info.EnvironmentVariables["ZERO_JAVA_HOME"] == info.EnvironmentVariables["JAVA_HOME"], "private Java and managed runtime hint propagated to every command");
             Assert(info.EnvironmentVariables["PATH"].StartsWith(Path.Combine(info.EnvironmentVariables["JAVA_HOME"], "bin") + ";", StringComparison.Ordinal), "private Java first in child PATH");
 #if ZERO_STORE_PRODUCTION
             Assert(info.EnvironmentVariables[Distribution.Marker] == "store", "Store marker propagated to every child");
@@ -162,10 +163,66 @@ internal static class RuntimeHarness
         Environment.SetEnvironmentVariable(Distribution.Marker, "msix-feasibility");
         try
         {
-            TestGit(parent); TestRetainedKitIntegration(parent); TestLifecycle(parent); TestRecovery(parent); TestNodeRecovery(parent); TestFailures(parent); TestArchives(parent);
+            TestGit(parent); TestRetainedKitIntegration(parent); TestLifecycle(parent); TestRecovery(parent); TestNodeRecovery(parent); TestFailures(parent); TestArchives(parent); TestPortable(parent);
         }
         finally { Environment.SetEnvironmentVariable("PATH", inheritedPath); Environment.SetEnvironmentVariable(Distribution.Marker, inheritedDistribution); WindowsRuntimeArchive.DeleteStaging(parent); }
         return checks;
+    }
+    private static void TestPortable(string parent)
+    {
+        using (var f = new Fixture(parent))
+        {
+            string tools = Path.Combine(f.Root, "approved", "tools");
+            Directory.CreateDirectory(tools);
+            var archives = new Dictionary<string, (byte[] Bytes, string Prefix)> {
+                ["jdk"] = (f.Host.Jdk, "jdk-21"), ["node"] = (f.Host.Node, "node-v22.23.4-win-x64"),
+                ["git"] = (f.Host.Git, null), ["vscode"] = (f.Host.Editor, null)
+            };
+            foreach (var asset in archives)
+            {
+                string archive = Path.Combine(f.Root, asset.Key + ".zip");
+                string expanded = Path.Combine(f.Root, "extracted-" + asset.Key);
+                string destination = Path.Combine(tools, asset.Key);
+                File.WriteAllBytes(archive, asset.Value.Bytes);
+                WindowsRuntimeArchive.Extract(archive, expanded, CancellationToken.None);
+                Directory.Move(asset.Value.Prefix == null ? expanded : Path.Combine(expanded, asset.Value.Prefix), destination);
+                File.WriteAllText(Path.Combine(destination, ".zero-asset.sha256"), WindowsRuntimeArchive.Hash(archive, CancellationToken.None));
+            }
+            string extensions = Path.Combine(f.Data, "editor", "extensions", "redhat.java-1.57.0");
+            Directory.CreateDirectory(extensions);
+            File.WriteAllText(Path.Combine(extensions, "package.json"), "{}");
+            f.Host.RedhatVersion = "1.57.0";
+            var runtime = new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, portableTools: tools);
+            string inheritedAppData = Environment.GetEnvironmentVariable("VSCODE_APPDATA");
+            try
+            {
+                Environment.SetEnvironmentVariable("VSCODE_APPDATA", Path.Combine(f.Root, "another-profile"));
+                runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult();
+                runtime.Open(false, CancellationToken.None).GetAwaiter().GetResult();
+            }
+            finally { Environment.SetEnvironmentVariable("VSCODE_APPDATA", inheritedAppData); }
+            Assert(f.Host.Commands.Concat(new[] { f.Host.Launched }).All(command => command.EnvironmentVariables["VSCODE_APPDATA"] == null),
+                "portable children ignore an inherited editor profile override");
+            Assert(f.Host.Downloads == 0 && !Directory.Exists(Path.Combine(f.Data, "runtime")), "portable tools never download into the profile");
+            Assert(f.Host.Commands.All(command => command.FileName.StartsWith(tools + Path.DirectorySeparatorChar, StringComparison.Ordinal)),
+                "portable launcher starts approved tools only");
+            Assert(f.Host.Launched.FileName == Path.Combine(tools, "vscode", "Code.exe") &&
+                f.Host.Launched.EnvironmentVariables["ZERO_PORTABLE_TOOLS"] == tools &&
+                f.Host.Launched.EnvironmentVariables["ZERO_PORTABLE_STARTER"] == f.Project &&
+                f.Host.Launched.Arguments.Contains(Processes.QuoteArgument(Path.Combine(f.Data, "editor", "shared-data"))),
+                "portable handoff selects the approved editor and private student data");
+            string settingsFile = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json");
+            var settings = JObject.Parse(File.ReadAllText(settingsFile));
+            Assert((string)settings["java.jdt.ls.java.home"] == Path.Combine(tools, "jdk") &&
+                (string)settings["update.mode"] == "none" && (bool?)settings["extensions.autoUpdate"] == false, "portable editor pins Java and disables updates");
+            Directory.CreateDirectory(Path.Combine(tools, "vscode", "data"));
+            Reject(() => runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(), "shared editor profile rejected");
+            Directory.Delete(Path.Combine(tools, "vscode", "data"));
+            string git = Path.Combine(tools, "git", "cmd", "git.exe");
+            File.Delete(git);
+            Reject(() => runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(), "missing approved Git stops without installing it elsewhere");
+            Assert(f.Host.Downloads == 0 && !File.Exists(git), "portable setup leaves approved tools untouched");
+        }
     }
     private static void TestGit(string parent)
     {

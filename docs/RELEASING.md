@@ -320,3 +320,16 @@ published kit manifest in `release/published-kit.json` while the current kit is
 local; its three links retain their own version labels. Publishing Mac setup
 does not publish its bundled kit separately. Keep README's verified previous kit link
 until that kit's independent publication is complete.
+
+
+## Windows portable school pilot
+
+The school pilot has its own `windows-portable-pilot-v<version>` prerelease.
+Use `node scripts/package-windows-portable-public.mjs PRIVATE_ZIP NEW_OUTPUT_DIRECTORY`
+with the verified private ZIP recorded in `release/windows-portable-pilot.json`.
+It reuses the measured launcher and adds the pinned vendor staging script.
+Keep the vendor-binary ZIP in local pilot storage. Publish the staging ZIP and
+its checksum, then verify the public asset anonymously before recording its
+URL, size and SHA-256 in the pilot manifest. The public `/downloads` page
+reads that independent manifest. The trial remains unsigned and requires
+the on-device student workflow in [the pilot guide](WINDOWS-PORTABLE.md).

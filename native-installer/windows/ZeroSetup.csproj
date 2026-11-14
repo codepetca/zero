@@ -20,15 +20,19 @@
     <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ZeroDistribution)' == 'StoreFeasibility' or '$(ZeroDistribution)' == 'Store'">
-    <DefineConstants>$(DefineConstants);ZERO_STORE</DefineConstants>
+    <DefineConstants>$(DefineConstants);ZERO_STORE;ZERO_NO_UPDATER</DefineConstants>
     <NuGetLockFilePath>packages.store.lock.json</NuGetLockFilePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ZeroDistribution)' == 'Store'">
     <DefineConstants>$(DefineConstants);ZERO_STORE_PRODUCTION</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(ZeroDistribution)' == 'Portable'">
+    <DefineConstants>$(DefineConstants);ZERO_PORTABLE;ZERO_NO_UPDATER</DefineConstants>
+    <NuGetLockFilePath>packages.store.lock.json</NuGetLockFilePath>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs;MainForm.cs;KitFiles.cs;Processes.cs;AutomaticSetupController.cs;NativeSetupBackend.cs;InstanceBroker.cs;WindowsRuntime.cs;WindowsRuntimeFiles.cs;WindowsRuntimeHost.cs;Distribution.cs" />
-    <Compile Include="TrustedUpdateSource.cs;UpdateCoordinator.cs" Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store'" />
+    <Compile Include="TrustedUpdateSource.cs;UpdateCoordinator.cs" Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store' and '$(ZeroDistribution)' != 'Portable'" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
@@ -37,14 +41,14 @@
     <Reference Include="System.Web.Extensions" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
-    <PackageReference Include="Velopack" Version="1.2.161" Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store'" />
+    <PackageReference Include="Velopack" Version="1.2.161" Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store' and '$(ZeroDistribution)' != 'Portable'" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <EmbeddedResource Include="$(ZeroKitZip)" LogicalName="ZeroKit.zip" Condition="Exists('$(ZeroKitZip)')" />
-    <EmbeddedResource Include="$(ZeroUpdaterConfig)" LogicalName="WindowsUpdater.json" Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store' and Exists('$(ZeroUpdaterConfig)')" />
+    <EmbeddedResource Include="$(ZeroUpdaterConfig)" LogicalName="WindowsUpdater.json" Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store' and '$(ZeroDistribution)' != 'Portable' and Exists('$(ZeroUpdaterConfig)')" />
   </ItemGroup>
   <Target Name="RequireKit" BeforeTargets="PrepareForBuild">
     <Error Condition="!Exists('$(ZeroIcon)')" Text="Pass /p:ZeroIcon=/absolute/path/to/generated/Zero.ico" />
     <Error Condition="!Exists('$(ZeroKitZip)')" Text="Pass /p:ZeroKitZip=/absolute/path/to/zero-bootstrap.zip" />
-    <Error Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store' and !Exists('$(ZeroUpdaterConfig)')" Text="Pass /p:ZeroUpdaterConfig=/absolute/path/to/verified-windows-updater.json" />
+    <Error Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store' and '$(ZeroDistribution)' != 'Portable' and !Exists('$(ZeroUpdaterConfig)')" Text="Pass /p:ZeroUpdaterConfig=/absolute/path/to/verified-windows-updater.json" />
   </Target>
 </Project>

@@ -1,3 +1,16 @@
+# Windows portable school pilot — 2026-11-14
+
+Pilot ZIP and SHA-256 are in `dist/school-pilot` on
+`codex/windows-portable`. See [staging and test steps](../docs/WINDOWS-PORTABLE.md)
+and [verification](../docs/EVIDENCE.md#windows-portable-school-pilot--2026-11-14).
+The [release ledger](../docs/RELEASE-LEDGER.md#zero-portable-0574-school-pilot--2026-11-14)
+records the public [staging prerelease](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74).
+The restored `/downloads` route links the verified staging ZIP and setup guide.
+Next: IT stages the official VS Code ZIP and copies the folder to the approved
+location. Test first sign-in, JavaFX Run/Stop and reopen under a student login.
+
+---
+
 # Zero 0.5.73 release — 2026-11-13
 
 [PR #345](https://github.com/codepetca/zero/pull/345) merged automatic Git

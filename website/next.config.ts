@@ -8,11 +8,15 @@ const config: NextConfig = {
   outputFileTracingIncludes: {'/api/jams/template':['../jam-template/**/*'],'/api/jams/template/preview':['../jam-template/**/*']},
   // These routes read release/template files, never authored UI/build sources, static assets or test metadata.
   // Exclusions remove function copies only; public files remain in the static output.
-  outputFileTracingExcludes: Object.fromEntries([
-    '/download/*', '/updates/macos/appcast.xml', '/updates/windows/stable.json',
-    '/api/jams/template', '/api/jams/template/preview',
-  ].map(route => [route, ['./tests/**/*', './tsconfig.tsbuildinfo', './public/**/*',
-    './app/**/*', './components/**/*', './docs/**/*', './scripts/**/*', './README.md', './package-lock.json']])),
+  outputFileTracingExcludes: {
+    ...Object.fromEntries([
+      '/download/*', '/updates/macos/appcast.xml', '/updates/windows/stable.json',
+      '/api/jams/template', '/api/jams/template/preview',
+    ].map(route => [route, ['./tests/**/*', './tsconfig.tsbuildinfo', './public/**/*',
+      './app/**/*', './components/**/*', './docs/**/*', './scripts/**/*', './README.md', './package-lock.json']])),
+    // The unsigned school pilot is available only from an explicit local preview.
+    '/*': ['../dist/school-pilot/**/*', '../dist/portable*/**/*', '../.verification/portable/**/*'],
+  },
   async headers() {
     // Authenticated confirmations are top-level. The separate public panel route
     // supplies its accepted creator-origin frame policy dynamically.
@@ -20,10 +24,6 @@ const config: NextConfig = {
       headers:[{key:'X-Frame-Options',value:'DENY'},
         {key:'Content-Security-Policy',value:"frame-ancestors 'none'"},
         {key:'Referrer-Policy',value:'strict-origin-when-cross-origin'}]}));
-  },
-  async redirects() {
-    // The homepage carries the platform download choices; keep old links working.
-    return [{source:'/downloads', destination:'/', permanent:true}];
   },
 };
 export default config;

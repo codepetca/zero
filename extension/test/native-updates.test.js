@@ -199,3 +199,16 @@ test('production Store marker routes update commands to the Store', async () => 
   await commands['zero.updateSettings']();
   assert.deepEqual(opened, ['ms-windows-store://downloadsandupdates','ms-windows-store://downloadsandupdates']);
 });
+
+test('portable Windows update commands defer to school IT without launching another installer', async () => {
+  const messages = [];
+  const commands = createNativeUpdateCommands({
+    window:{showInformationMessage:message => messages.push(message)},
+    env:{openExternal:() => assert.fail('unexpected Store launch')}
+  }, {
+    platform:'win32', environment:{ZERO_WINDOWS_DISTRIBUTION:'portable'},
+    spawnProcess:() => assert.fail('unexpected updater launch')
+  });
+  for (const action of Object.values(commands)) await action();
+  assert.deepEqual(messages, Array(2).fill('School IT manages updates for this copy of Zero.'));
+});

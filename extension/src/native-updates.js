@@ -46,6 +46,10 @@ function createNativeUpdateCommands(vscode, {
       await vscode.window.showErrorMessage('Zero: Native update controls are available only on macOS and Windows.');
       return;
     }
+    if (platform === 'win32' && environment.ZERO_WINDOWS_DISTRIBUTION === 'portable') {
+      await vscode.window.showInformationMessage('School IT manages updates for this copy of Zero.');
+      return;
+    }
     try {
       if (platform === 'win32' && ['store', 'msix-feasibility'].includes(environment.ZERO_WINDOWS_DISTRIBUTION)) {
         const opened = await vscode.env.openExternal(vscode.Uri.parse('ms-windows-store://downloadsandupdates'));
