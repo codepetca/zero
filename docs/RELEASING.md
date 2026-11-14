@@ -118,7 +118,7 @@ failure tests, extension/starter tests, finite JavaFX examples under Xvfb, websi
 checks and, for a new local version, packaging/archive integrity verification.
 Published manifests skip rebuilding immutable downloads. Only an explicit publish
 command carries out publication; a push, tag or ordinary PR never publishes.
-Manual workflow dispatch and deliberate CLI publication remain a fallback below.
+Manual workflow dispatch and resuming its successful run through the publisher remain a fallback below.
 
 Use the selected ref deliberately: `gh workflow run release-review.yml --ref
 <reviewed-ref> -f version=0.5.2`. The workflow file must exist on the default
@@ -126,6 +126,35 @@ branch before GitHub can dispatch it. PR artifacts are useful previews; use the
 final manually prepared run as the release candidate. Download that run's review
 artifact through GitHub Actions or `gh run download <run-id> --name
 zero-0.5.2-review-<run-id> --dir <review-directory>`.
+
+### Verify the public Project → New starter
+
+Before preparing a release, compare its generated `zero-starter` with the
+public template at [codepetca/zero-starter](https://github.com/codepetca/zero-starter).
+If they differ, prepare the template from the reviewed candidate source with
+`node scripts/prepare-project-templates.mjs` and update it through a reviewed
+template PR. When the builder profile changes, review the template PR in
+advance and merge it immediately before manual release preparation. GitHub
+generates projects from the template's default branch. Older editors reject
+the new browser builder, so tell students which editor update they need.
+
+Manual kit preparation compares the public tree and executable bits with the
+generated starter. It checks the builder against the packaged VSIX, opens the unedited starter
+in JavaFX, and replays the Greeting lessons from their Markdown. It runs the
+tutorial result using the native Run Maven command and tests the exported
+WebFX app in Chrome.
+The publisher checks the receipt against the release's VSIX and rechecks the
+template tree immediately before making the draft public. A commit with the
+same tested tree can resume. If the tree differs, restore the reviewed tree
+before resuming with the same run ID, or review a new candidate and version. Ordinary source PRs can still package
+review artifacts while the public starter is being prepared.
+
+To run the same check locally with Node 22.23.4 or later in the Node 22 line,
+JDK 21, Chrome and a display (Xvfb on headless Linux):
+
+```sh
+node scripts/verify-project-new.mjs dist/zero-X.Y.Z.vsix dist/PROJECT-NEW.json
+```
 
 ## Review and publish exact bytes
 
@@ -138,23 +167,16 @@ a real GitHub student upload. Artifacts expire after 14 days; if expired, prepar
 and review a new candidate, retaining that run's exact bytes and receipts.
 
 Publication requires intentional owner authorization, separate from preparation.
-Confirm the version's tag/release remains absent immediately before creating it.
-An owner can create a draft with the existing GitHub CLI, targeting the exact
-reviewed source commit from `SOURCE.txt`:
+Resume a successful manual run through the kit publisher so the exact artifact
+bytes and Project → New receipt are checked before the draft becomes public:
 
 ```sh
-gh release create v0.5.2 --repo codepetca/zero --target <reviewed-commit> \
-  --draft --title 'Zero 0.5.2' --notes-file <reviewed-release-notes> \
-  zero-bootstrap.zip zero-starter.zip zero-0.5.2.vsix
+npm run release:publish -- --version X.Y.Z --run-id RUN_ID
 ```
 
-Run this in the extracted review directory. Upload exactly those three files;
-do not use a wildcard, `dist/`, a component archive or `--clobber`. Check the draft
-target and three asset names/sizes/hashes. Publish deliberately through GitHub's
-release UI or `gh release edit v0.5.2 --repo codepetca/zero --draft=false` after
-owner approval. Do not rebuild between review and publication. An existing tag or
-release is a stop condition: investigate it and choose a new version as needed,
-never delete or overwrite an immutable release to make preparation succeed.
+The publisher uploads the three reviewed assets and verifies their hashes and
+the exact commit. Use the same run to resume an interrupted draft. Published
+versions are immutable.
 
 ## Verify public downloads and update the website
 

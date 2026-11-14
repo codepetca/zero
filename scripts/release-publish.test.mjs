@@ -41,12 +41,14 @@ async function fixture(t, changes = {}) {
   await mkdir(path.join(template, 'extension/src'), {recursive: true});
   await mkdir(path.join(template, 'framework'), {recursive: true});
   await mkdir(path.join(template, 'sharing/harness'), {recursive: true});
+  await mkdir(path.join(template, 'website/content'), {recursive: true});
   const definition = {schema: 1, kitVersion: version, coreVersion: '0.1.1', publication: {status: 'local', repository: 'codepetca/zero', tag: `v${version}`},
     assets: {kit: {filename: filenames[0], label: 'Kit'}, starter: {filename: filenames[1], label: 'Starter'},
       extension: {filename: filenames[2], label: 'Extension'}, components: {filename: 'zero-components.zip', label: 'Components', publicationStatus: 'local'}}};
   const manifest = JSON.stringify({version, license: 'MIT'}), license = 'MIT License\nfixture notice\n', js = 'module.exports = 42;\n';
   await Promise.all(Object.entries({'release/published-installer.json':JSON.stringify(publicMac), 'release/kit.json': JSON.stringify(definition, null, 2) + '\n', 'extension/package.json': manifest,
     'extension/src/extension.js': js, [harnessSource]: harness, [sharingSource]: sharing, LICENSE: license, 'framework/pom.xml': '<artifactId>zero-core</artifactId>\n  <version>0.1.1</version>',
+    'website/content/project-templates.json': JSON.stringify({templates:[{id:'zero-starter', repository:'codepetca/zero-starter', repositoryId: 1418150992}]}),
     'README.md': changes.readme || '# Zero\n[Manual setup — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)\nUnrelated source and learning changes stay.\n'})
     .map(([name, body]) => writeFile(path.join(template, name), body)));
   const bytes = [Buffer.from('reviewed kit bytes'), Buffer.from('reviewed starter bytes'), Buffer.from(zipSync({
@@ -135,6 +137,13 @@ async function fixture(t, changes = {}) {
         if (args[1] === 'list') return output(args.includes('pull_request') ? [{...prepared, event: 'pull_request', headSha: head}] : [prepared]);
         if (args[1] === 'download') {
           const destination = args[args.indexOf('--dir') + 1];
+          if (args[args.indexOf('--name') + 1] === `zero-${version}-project-new-${runId}`) {
+            if (changes.missingProjectNew) throw new Error('Project → New artifact unavailable.');
+            const greeting = {greetings:['Hello, Sam!', 'Hello, Ada!']};
+            await writeFile(path.join(destination, 'PROJECT-NEW.json'), JSON.stringify({repository:'codepetca/zero-starter',
+              commit:sha, tree:head, vsixSha256:changes.projectNewVsix || receipt.assets.extension.sha256, native:{...greeting, starter:'UI_READY'}, web:greeting}));
+            return output('');
+          }
           for (let i = 0; i < 3; i++) await writeFile(path.join(destination, filenames[i]), changes.corruptReview === i ? Buffer.from('corrupt') : bytes[i]);
           await writeFile(path.join(destination, 'release.json'), JSON.stringify(receipt));
           await writeFile(path.join(destination, 'SOURCE.txt'), changes.sourceReceipt || `Repository: codepetca/zero\nCommit: ${sourceSha}\nVersion: ${version}\nRun: ${runId}\n`);
@@ -165,8 +174,18 @@ async function fixture(t, changes = {}) {
     }
     throw new Error(`Unexpected mocked transport: ${command} ${args.join(' ')}`);
   };
-  const request = async url => {
+  let publicStarterReads = 0;
+  const request = async (url, options) => {
     requests.push(url);
+    const starter = 'https://api.github.com/repos/codepetca/zero-starter';
+    if (url === starter || url === starter + '/branches/main') {
+      assert.equal(options.redirect, 'error');
+      assert.equal(new Headers(options.headers).has('authorization'), false);
+      if (url === starter) return Response.json({id:1418150992, full_name:'codepetca/zero-starter', private:false, is_template:true, default_branch:'main'});
+      publicStarterReads++;
+      return Response.json({name:'main', commit:{sha:changes.projectNewMoves && publicStarterReads > 1 ? mergedSha : sha,
+        commit:{tree:{sha:changes.projectNewMoves === 'tree' && publicStarterReads > 1 ? mergedSha : head}}}});
+    }
     if (url.startsWith('https://zero.codepet.ca/')) {
       return {status:changes.failedPage ? 503 : 200, url:changes.landingRedirect || url,
         text:async () => changes.choices ? changes.choices(macURL, windowsStoreURL) : changes.staleSite ?
@@ -589,4 +608,25 @@ test('scoped skips require the matching successful scope and aggregate from the 
     assert.throws(()=>verifyChecks(pr([scope,skipped,item(workflow,gate,'FAILURE')]),[run],head),/did not succeed/);
     assert.throws(()=>verifyChecks(pr([scope,item(workflow,'other','SKIPPED'),aggregate]),[run],head),/did not succeed/);
   }
+});
+
+test('publication stops for missing or mismatched Project → New evidence', async t => {
+  for (const changes of [{missingProjectNew:true}, {projectNewVsix:'f'.repeat(64)}]) {
+    const f = await fixture(t, changes);
+    await assert.rejects(publishZero({version, runId}, f.dependencies), /Project → New artifact unavailable|different VSIX/);
+    assert.equal(f.calls.some(call => call.args.includes('draft=false') || call.args[0] === 'release'), false);
+  }
+});
+
+test('publication rechecks public starter main after uploading draft assets', async t => {
+  const f = await fixture(t, {projectNewMoves:'tree'});
+  await assert.rejects(publishZero({version, runId}, f.dependencies), /starter content changed after the Project → New release check/);
+  assert.ok(f.calls.some(call => call.args[0] === 'release' && call.args[1] === 'create'));
+  assert.equal(f.calls.some(call => call.args.includes('draft=false')), false);
+});
+
+test('publication accepts a moved starter commit with the same tested tree', async t => {
+  const f = await fixture(t, {existing:true, projectNewMoves:'commit'});
+  assert.equal((await publishZero({version, runId}, f.dependencies)).phase, 'verified');
+  assert.ok(f.calls.some(call => call.args.includes('draft=false')));
 });
