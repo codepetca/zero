@@ -7,12 +7,12 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.74](https://github.com/codepetca/zero/releases/tag/v0.5.74) is public. All three anonymous downloads match the release preparation receipts. | The native distributions have their own verification and publication records. |
-| Website | [PR #355](https://github.com/codepetca/zero/pull/355) promotes the 0.5.74 Mac DMG and signed appcast. | Verify the deployed homepage link and appcast bytes after promotion. |
-| Mac installer | [0.5.74](https://github.com/codepetca/zero/releases/tag/setup-v0.5.74) is public. Its DMG and both corresponding Git source archives match the sealed candidate. | Fresh-home setup and the staged 0.5.73 → 0.5.74 Sparkle update passed on the maintainer Mac. |
+| GitHub manual kit | [Zero 0.5.75](https://github.com/codepetca/zero/releases/tag/v0.5.75) is public. All three anonymous downloads match the release preparation receipts. | Native distributions have their own publication records. |
+| Website | The 0.5.75 Mac installer and signed appcast are promoted in source. | Verify the deployed homepage link and appcast bytes. |
+| Mac installer | [0.5.75](https://github.com/codepetca/zero/releases/tag/setup-v0.5.75) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup passed. The interactive Sparkle upgrade for 0.5.75 remains untested. |
 | Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 10, package 1.5.74.0 x64, passed certification and began publishing on November 15. | Verify the Store-delivered upgrade on a Windows x64 PC. |
 | Windows portable school pilot | [0.5.74 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74) is public. | Stage the vendor tools and test on one school desktop under a student login. |
-| Windows standalone download | [0.5.74 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.74) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.74) are public. | The preview has updates disabled. Physical and school-managed Windows devices remain untested. |
+| Windows standalone download | [0.5.75 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.75) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.75) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
 updates, recent tutorial changes, and Store Java/VS Code startup fixes. Its exact
@@ -22,6 +22,36 @@ blocked-executables finding, disclosed with the submission. See the
 The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
+
+## Zero 0.5.75 — 2026-11-15
+
+[PR #358](https://github.com/codepetca/zero/pull/358) refined the editor Start
+Page and merged at `9e3f70abd23c09d2b63d669f640632ec1b7abc01` after all 11
+checks passed. [Preparation run 43759994081](https://github.com/codepetca/zero/actions/runs/43759994081),
+attempt 2, verified the public starter tree and replayed Greeting in JavaFX and
+Chrome with the packaged extension. The first attempt hit an HTTP 403 during
+the starter lookup. The [kit release](https://github.com/codepetca/zero/releases/tag/v0.5.75)
+uses the checked source, and the three anonymous asset hashes matched.
+[PR #359](https://github.com/codepetca/zero/pull/359) records the kit metadata.
+
+The [Mac installer](https://github.com/codepetca/zero/releases/tag/setup-v0.5.75)
+uses the same source and preparation commit `219bc1e32bda70a5153709150724bbc5ffda99ef`.
+Apple accepted submission `cef8a20d-0f01-4cae-83f5-64924c7156e9`. The downloaded
+DMG SHA-256 is `fdcd3b3b3c4fc7e8bc2c7ae31921624ca6551f9cd45c6f658851bb23b38038b9`.
+Developer ID, the Apple staple, Gatekeeper and a fresh isolated-home setup
+passed. Independent GPT-6.1 Terra review at medium reasoning verified the
+sealed checksums and signed appcast. The bundled kit and the public kit contain
+identical files and permissions, with different ZIP serialization.
+
+[Windows run 43739536593](https://github.com/codepetca/zero/actions/runs/43739536593)
+passed standalone setup, private JavaFX and Store first run with a test-signed
+copy. Its synthetic PR commit `94e1a4dff942045ddb22c8e5e3874bff5126eac0`
+has the reviewed source tree. The anonymous standalone installer and manual
+ZIP matched the measured preview assets. [WACK run 43760227788](https://github.com/codepetca/zero/actions/runs/43760227788)
+reported a required DPI analysis warning and an optional blocked-executables
+failure, matching the 0.5.74 findings. The exact 1.5.75.0 x64 Store MSIX has
+SHA-256 `becf510c053bceb5f9555c3b799f6d93eb844df4ea080da1fdd786913ce91cf7`.
+Store submission and certification for 0.5.75 are pending.
 
 ## Zero 0.5.74 GitHub kit — 2026-11-14
 
