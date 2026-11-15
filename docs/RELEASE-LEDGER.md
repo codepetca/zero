@@ -8,9 +8,9 @@ permission to publish from this ledger.
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
 | GitHub manual kit | [Zero 0.5.75](https://github.com/codepetca/zero/releases/tag/v0.5.75) is public. All three anonymous downloads match the release preparation receipts. | Native distributions have their own publication records. |
-| Website | The 0.5.75 Mac installer and signed appcast are promoted in source. | Verify the deployed homepage link and appcast bytes. |
+| Website | The homepage links to the verified 0.5.75 Mac DMG. The live signed appcast matches the sealed bytes. | The Windows button opens Zero Studio in the Store. |
 | Mac installer | [0.5.75](https://github.com/codepetca/zero/releases/tag/setup-v0.5.75) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup passed. The interactive Sparkle upgrade for 0.5.75 remains untested. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 10, package 1.5.74.0 x64, passed certification and began publishing on November 15. | Verify the Store-delivered upgrade on a Windows x64 PC. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 11, package 1.5.75.0 x64, is in certification. Submission 10 (1.5.74.0) is live. | Submission 11 is set to publish after it passes certification. |
 | Windows portable school pilot | [0.5.74 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74) is public. | Stage the vendor tools and test on one school desktop under a student login. |
 | Windows standalone download | [0.5.75 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.75) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.75) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
@@ -32,7 +32,7 @@ attempt 2, verified the public starter tree and replayed Greeting in JavaFX and
 Chrome with the packaged extension. The first attempt hit an HTTP 403 during
 the starter lookup. The [kit release](https://github.com/codepetca/zero/releases/tag/v0.5.75)
 uses the checked source, and the three anonymous asset hashes matched.
-[PR #359](https://github.com/codepetca/zero/pull/359) records the kit metadata.
+[PR #359](https://github.com/codepetca/zero/pull/359) merged the kit metadata and README download link.
 
 The [Mac installer](https://github.com/codepetca/zero/releases/tag/setup-v0.5.75)
 uses the same source and preparation commit `219bc1e32bda70a5153709150724bbc5ffda99ef`.
@@ -42,16 +42,22 @@ Developer ID, the Apple staple, Gatekeeper and a fresh isolated-home setup
 passed. Independent GPT-6.1 Terra review at medium reasoning verified the
 sealed checksums and signed appcast. The bundled kit and the public kit contain
 identical files and permissions, with different ZIP serialization.
+[PR #361](https://github.com/codepetca/zero/pull/361) promoted the Mac installer
+and appcast. The live homepage download and exact signed feed bytes passed
+verification.
 
 [Windows run 43739536593](https://github.com/codepetca/zero/actions/runs/43739536593)
 passed standalone setup, private JavaFX and Store first run with a test-signed
 copy. Its synthetic PR commit `94e1a4dff942045ddb22c8e5e3874bff5126eac0`
 has the reviewed source tree. The anonymous standalone installer and manual
-ZIP matched the measured preview assets. [WACK run 43760227788](https://github.com/codepetca/zero/actions/runs/43760227788)
+ZIP matched the measured preview assets. [PR #360](https://github.com/codepetca/zero/pull/360) merged the preview metadata. [WACK run 43760227788](https://github.com/codepetca/zero/actions/runs/43760227788)
 reported a required DPI analysis warning and an optional blocked-executables
 failure, matching the 0.5.74 findings. The exact 1.5.75.0 x64 Store MSIX has
 SHA-256 `becf510c053bceb5f9555c3b799f6d93eb844df4ea080da1fdd786913ce91cf7`.
-Store submission and certification for 0.5.75 are pending.
+Partner Center validated the uploaded package and accepted submission 11 for
+certification. The submission notes disclose the WACK findings. Publishing is
+set to begin automatically after certification, with the release schedule set
+to as soon as possible. A Store-delivered 0.5.75 upgrade remains unverified.
 
 ## Zero 0.5.74 GitHub kit — 2026-11-14
 
