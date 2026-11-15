@@ -30,10 +30,10 @@ The Codepet Zero GitHub App is registered under `codepetca`, with public IDs
 pinned in source. Students approve access on GitHub. See
 [the identity plan](ZERO-IDENTITY-PLAN.md) for account and permission details.
 
-The Project dropdown offers New, Clone, and Open. In current local source, the
-Start Page’s **Zero Docs** button opens the latest lessons without creating a
-project or signing in. **Project → New** begins project setup. Published downloads
-retain their bundled controls.
+In current local source, connect GitHub to enable the Start Page’s **Zero Docs**
+button and **Project** dropdown. **Zero Docs** opens the latest lessons and
+**Project → New** begins project setup. Published downloads retain their bundled
+controls.
 
 Opening a project keeps the Zero Start Page tab available in the same window.
 Return to that tab to choose another project or tutorial.

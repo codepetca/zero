@@ -320,11 +320,11 @@ acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
 Current local source opens a native **Zero Start Page** for onboarding and project
-selection. **Zero Docs** opens the latest lessons without sign-in. Separate GitHub
-sign-in and **Project ▾ → New / Clone / Open** support project work. Students start
+selection. Connect GitHub to enable **Zero Docs** and **Project ▾ → New / Clone /
+Open**. Students start
 a tutorial project with **Project → New** and follow the lesson’s starting code;
-there is no tutorial scaffold button. Opening local work remains available without
-sign-in. Published downloads retain their bundled controls. An empty Zero window
+there is no tutorial scaffold button. Published downloads retain their bundled
+controls. An empty Zero window
 opens the Start Page automatically; existing editors stay untouched. **Zero: Start
 Page** and **⋯ → Start Page** reopen it.
 The approved November 7 milestone governs the current local student Git workflow.
@@ -379,8 +379,10 @@ The Start Page provides separate **Sign in to Zero** and **Zero Docs** actions.
 GitHub setup may also require **Install Zero for GitHub** before project creation.
 The student uses a GitHub account to sign in to Zero. **Sign in to Zero** opens
 WorkOS in the default browser. The local managed editor uses the GitHub grant
-from that browser trip and shows **Signed in as
-@username** after verification. Zero Docs remains available while signed out.
+from that browser trip. If Zero has a saved sign-in without a GitHub session,
+the Start Page shows **Connect to GitHub**. After connecting, it shows a
+profile icon and GitHub handle above **Zero Docs** and **Project**. The public
+documentation remains available in a browser without signing in.
 GitHub may still require account selection, passkey or two-factor authentication.
 Expiring GitHub credentials are kept in VS Code SecretStorage. Zero has no
 separate password. Published downloads retain their bundled flow, and existing

@@ -149,15 +149,21 @@ when adding features; a new feature does not reset the agreed interaction style.
   instead of copying its styles. Record repeated patterns in
   [editor components](design/EDITOR-COMPONENTS.md) and compare actual renderer
   states in the local `/components` prototype before introducing a new variant.
-- The **Zero Start Page** owns onboarding: a direct **Zero Docs** button opens
-  the latest lessons without sign-in. **Sign in to Zero** and
+- The **Zero Start Page** owns onboarding. **Zero Docs** opens the latest
+  lessons after connecting GitHub. **Sign in to Zero** and
   **Project ▾ → New / Clone / Open** support project work. Students use Project
   → New and follow the lesson’s starting code; there is no tutorial scaffold button.
   Show the page automatically in an empty Zero window; preserve existing editors
   and restore its native editor tab. Reopen it through **Zero: Start Page** or the
-  sidebar’s **⋯ → Start Page**. Keep local opening available without GitHub.
-- On the Start Page, show **Sign in to Zero** with **Use your GitHub account**
-  when signed out. After the browser return, show **Signed in as @username**.
+  sidebar’s **⋯ → Start Page**.
+- Start Page direction, 2026-11-15. The intro shows **Learn to Build** and
+  **Starting from zero**. When signed out, put **Sign in to Zero** above
+  **Zero Docs** and give them the same size. Use the Zero mark inside
+  **Zero Docs** and the profile icon inside **Sign in to Zero** and
+  **Connect to GitHub**. Show **Connect to GitHub** in the top slot when Zero
+  has saved sign-in and GitHub is disconnected. Disable **Zero Docs** and
+  **Project** until GitHub is connected. Then show the profile icon beside
+  the GitHub username without an `@` prefix in the top slot.
   Keep **Install Zero for GitHub** and permission recovery contextual to
   repository access. Keep checking and errors visible when action is needed.
   Omit the routine Ready to start line.

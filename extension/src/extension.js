@@ -416,7 +416,19 @@ function activate(context, services = {}) {
     void nativeGitAuthentication?.refresh();
   }, undefined, undefined, undefined, firstUse.enabled?firstUse:undefined);
   context.subscriptions.push(auth);
-  if(firstUse.enabled && context.secrets?.onDidChange) context.subscriptions.push(context.secrets.onDidChange(event=>{if(event.key===WORKOS_RECEIPT_KEY)auth.invalidate();}));
+  let hasLocalZeroAccount = false, localZeroAccountRead = 0;
+  async function refreshLocalZeroAccount() {
+    const revision = ++localZeroAccountRead;
+    const connection = await firstUse.localConnection().catch(() => undefined);
+    if (disposed || revision !== localZeroAccountRead) return;
+    hasLocalZeroAccount = Boolean(connection);
+    startPage?.refresh();
+  }
+  if(firstUse.enabled && context.secrets?.onDidChange) context.subscriptions.push(context.secrets.onDidChange(event=>{
+    if (event.key !== WORKOS_RECEIPT_KEY) return;
+    auth.invalidate();
+    if (sharedGitHubGrant) void refreshLocalZeroAccount();
+  }));
   if (appProvider) {
     context.subscriptions.push(appProvider);
     context.subscriptions.push(vscode.authentication.registerAuthenticationProvider('zero-github','Zero GitHub',appProvider,{supportsMultipleAccounts:false}));
@@ -457,7 +469,7 @@ function activate(context, services = {}) {
   context.subscriptions.push(projectFolders,githubProjects,projectPicker);
   startPage=createStartPage(vscode,{
     onDidChangeOpen:refreshSidebarShortcut,
-    getState:()=>({phase:githubReady()?'ready':auth.signedIn?githubReadiness.phase:'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
+    getState:()=>({phase:auth.signedIn ? githubReadiness.phase : hasLocalZeroAccount ? 'connect' : 'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
     listRecent:accountId=>recentProjects.list(accountId),
     openRecent:async(item,accountId)=>{
       const generation=runGeneration;
@@ -3459,7 +3471,7 @@ function activate(context, services = {}) {
   context.subscriptions.push({dispose(){clearInterval(mainUpdateTimer);mainUpdateGeneration++;}});
   if(vscode.window.onDidChangeWindowState)context.subscriptions.push(vscode.window.onDidChangeWindowState(event=>{if(event.focused)void refreshBackgroundStatus(true);}));
   // The Start Page owns onboarding; authentication remains explicit and local work stays available.
-  const startup = auth.refresh().catch(error => {
+  const startup = Promise.all([auth.refresh(), sharedGitHubGrant && refreshLocalZeroAccount()]).catch(error => {
     if (!disposed) output.appendLine(`Getting started: ${error.message}`);
   });
   if (!firstUse.enabled && !(vscode.workspace.workspaceFolders || []).length) void introduceProject().catch(error=>output.appendLine(`Start Page: ${error.message}`));
