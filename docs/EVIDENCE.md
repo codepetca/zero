@@ -14,6 +14,10 @@ Independent review on main by GPT-6.1 Terra at medium reasoning found one
 guidance issue. Instructions now also work with the current published installer.
 Native editor interaction and live GitHub sign-in were outside this check.
 
+The Windows CI test installer needs a buildable local kit. The branch advances
+that kit to 0.5.75 and carries the published 0.5.74 metadata forward as the
+download fallback. Published releases and the update feed retain their bytes.
+
 # Windows portable school pilot — 2026-11-14
 
 Local pilot source `6adc8a88721d26fcbfabfb4b3e4272b65300a227`. The
