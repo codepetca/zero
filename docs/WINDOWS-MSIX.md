@@ -139,6 +139,14 @@ Certification Kit validation remain separate acceptance steps.
    projects; current external tooling cleanup has not been accepted. Test school
    restrictions separately; Store signing cannot bypass their device policies.
 
+## Publishing after certification
+
+For each Zero Studio Store submission, select **Publish this submission as soon
+as it passes certification** in **Submission options → Publishing hold options**.
+Set the release schedule to **As soon as possible** under **Pricing and
+availability**. Verify both settings before submitting the update to Microsoft.
+See [Microsoft’s submission options](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/manage-submission-options).
+
 ## Store listing copy
 
 Prepared for the English **Zero Studio** listing. Use the existing Store product

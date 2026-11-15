@@ -1,6 +1,6 @@
 # Zero release ledger
 
-Last reconciled: 2026-11-14 (America/Toronto). This is a dated working record,
+Last reconciled: 2026-11-15 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
@@ -10,7 +10,7 @@ permission to publish from this ledger.
 | GitHub manual kit | [Zero 0.5.74](https://github.com/codepetca/zero/releases/tag/v0.5.74) is public. All three anonymous downloads match the release preparation receipts. | The native distributions have their own verification and publication records. |
 | Website | [PR #355](https://github.com/codepetca/zero/pull/355) promotes the 0.5.74 Mac DMG and signed appcast. | Verify the deployed homepage link and appcast bytes after promotion. |
 | Mac installer | [0.5.74](https://github.com/codepetca/zero/releases/tag/setup-v0.5.74) is public. Its DMG and both corresponding Git source archives match the sealed candidate. | Fresh-home setup and the staged 0.5.73 → 0.5.74 Sparkle update passed on the maintainer Mac. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 10, package 1.5.74.0 x64, entered certification with a manual publishing hold. | Verify certification and the Store-delivered upgrade on a Windows x64 PC. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 10, package 1.5.74.0 x64, passed certification and began publishing on November 15. | Verify the Store-delivered upgrade on a Windows x64 PC. |
 | Windows portable school pilot | [0.5.74 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74) is public. | Stage the vendor tools and test on one school desktop under a student login. |
 | Windows standalone download | [0.5.74 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.74) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.74) are public. | The preview has updates disabled. Physical and school-managed Windows devices remain untested. |
 
@@ -64,7 +64,9 @@ The Store MSIX SHA-256 is
 [Certification kit run 43672375962](https://github.com/codepetca/zero/actions/runs/43672375962)
 passed first launch on a test-signed copy. The required DPI test reported an
 analysis warning and the optional blocked-executables test failed. Store
-certification and the Store-delivered upgrade are separate.
+certification passed, and Partner Center confirmed that submission 10 entered
+publishing after **Publish now** on November 15. The Store-delivered upgrade on
+a Windows x64 PC remains unverified.
 
 ## Zero Portable 0.5.74 school pilot — 2026-11-14
 
