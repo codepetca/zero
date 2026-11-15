@@ -4,6 +4,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
 import {validateInstallerManifest} from '../website/lib/installer.mjs';
+import {validateWindowsPreview} from '../website/lib/windows-preview.mjs';
 import {validateMacUpdateFeed} from './mac-update-feed.mjs';
 
 export const groups=['source','native','browser','windows','website','sharing','lessons'];
@@ -16,11 +17,12 @@ const websiteConfig=new Set(['website/package.json','website/package-lock.json',
 const scopeTools=new Set(['scripts/ci-scope.mjs','scripts/ci-scope.test.mjs']);
 const publicationMetadata=new Set(['release/kit.json','release/published-kit.json','release/installer.json',
   'release/published-installer.json','release/mac-appcast.xml','release/mac-update-feed.json']);
+const windowsPreviewManifest='release/windows-preview.json';
 
 // Deliberately a small allowlist. Unknown/shared executable inputs retain every
 // existing lane. Renames are read as a deletion plus addition, so the old scope
 // cannot disappear when a file moves into a narrower category.
-export function classify(files, {kitPublicationPromotion = false} = {}) {
+export function classify(files, {kitPublicationPromotion = false, windowsPreviewPromotion = false} = {}) {
   if(!Array.isArray(files)||!files.length)return full();
   const selected=Object.fromEntries(groups.map(name=>[name,false]));
   const add=(...names)=>names.forEach(name=>selected[name]=true);
@@ -32,10 +34,11 @@ export function classify(files, {kitPublicationPromotion = false} = {}) {
     // Source release guards and website validation still run; no immutable kit
     // is rebuilt. Any other changed shared/runtime input retains full coverage.
     if(kitPublicationPromotion&&publicationMetadata.has(file)){add('source','website');continue;}
+    if(windowsPreviewPromotion&&file===windowsPreviewManifest){add('source','website');continue;}
     // A verified publication promotion may carry its classifier correction;
     // selection/gate contracts still run. Standalone CI edits, caller workflows,
     // gates and all other CI tooling retain the existing full matrix.
-    if(kitPublicationPromotion&&scopeTools.has(file)){add('source','website');continue;}
+    if((kitPublicationPromotion||windowsPreviewPromotion)&&scopeTools.has(file)){add('source','website');continue;}
     if(dev.has(file))continue; // Always-run Dev contracts cover these inputs.
     if(file==='scripts/zero-dev.mjs'||file.startsWith('scripts/dev/')){add('native');continue;}
     if(ui.has(file)||file.startsWith('design/playground/')){add('source');continue;}
@@ -70,6 +73,27 @@ export function isKitPublicationPromotion(before, after) {
   }
   return isDeepStrictEqual(before,stripped);
 }
+function isPublishedKit(kit) {
+  const local=structuredClone(kit);
+  local.publication.status='local';
+  for(const asset of Object.values(local.assets)) {
+    delete asset.size;delete asset.sha256;delete asset.url;
+  }
+  return isKitPublicationPromotion(local,kit);
+}
+function committedWindowsPreviewPromotion(base,head,cwd) {
+  const read=(ref,file)=>{
+    const result=spawnSync('git',['show',`${ref}:${file}`],{cwd,encoding:'utf8',maxBuffer:128*1024});
+    if(result.status!==0||result.error)throw new Error('Unavailable Windows preview metadata');
+    return JSON.parse(result.stdout);
+  };
+  const kit=read(head,'release/kit.json');
+  if(!isDeepStrictEqual(read(base,'release/kit.json'),kit)||!isPublishedKit(kit))return false;
+  const before=validateWindowsPreview(read(base,windowsPreviewManifest),kit);
+  const after=validateWindowsPreview(read(head,windowsPreviewManifest),kit);
+  return before?.kitVersion!==kit.kitVersion && after?.kitVersion===kit.kitVersion
+    && !!before && !!after.manualSetup;
+}
 function committedKitPromotion(base,head,cwd,files,{installerOnly=false}={}) {
   const read=ref=>{
     const result=spawnSync('git',['show',`${ref}:release/kit.json`],{cwd,encoding:'utf8',maxBuffer:128*1024});
@@ -81,13 +105,7 @@ function committedKitPromotion(base,head,cwd,files,{installerOnly=false}={}) {
     if(installerOnly) {
       // A native publication can follow an already published kit. Apply the
       // same strict kit validation and require it to be unchanged by this PR.
-      if(!isDeepStrictEqual(before,after))return false;
-      const local=structuredClone(after);
-      local.publication.status='local';
-      for(const asset of Object.values(local.assets)) {
-        delete asset.size;delete asset.sha256;delete asset.url;
-      }
-      if(!isKitPublicationPromotion(local,after))return false;
+      if(!isDeepStrictEqual(before,after)||!isPublishedKit(after))return false;
     } else if(!isKitPublicationPromotion(before,after))return false;
     const ancillary=files.some(file=>publicationMetadata.has(file)&&file!=='release/kit.json');
     if(!ancillary)return !installerOnly;
@@ -127,17 +145,19 @@ export function scopeForEvent(event,cwd=process.cwd()) {
     const result=spawnSync('git',['diff','--name-only','--no-renames','-z',`${base}...${head}`],{cwd,encoding:'utf8',maxBuffer:8*1024*1024});
     if(result.status!==0||result.error)return full();
     const files=result.stdout.split('\0').filter(Boolean);
-    let kitPublicationPromotion=false;
-    if(files.includes('release/kit.json')) {
+    const kit=files.includes('release/kit.json');
+    const installer=files.includes('release/installer.json');
+    const preview=files.includes(windowsPreviewManifest);
+    if(kit||installer||preview) {
       const ancestor=spawnSync('git',['merge-base',base,head],{cwd,encoding:'utf8',maxBuffer:1024});
       if(ancestor.status!==0||ancestor.error||!/^[a-f0-9]{40}$/.test(ancestor.stdout.trim()))return full();
-      kitPublicationPromotion=committedKitPromotion(ancestor.stdout.trim(),head,cwd,files);
-    } else if(files.includes('release/installer.json')) {
-      const ancestor=spawnSync('git',['merge-base',base,head],{cwd,encoding:'utf8',maxBuffer:1024});
-      if(ancestor.status!==0||ancestor.error||!/^[a-f0-9]{40}$/.test(ancestor.stdout.trim()))return full();
-      kitPublicationPromotion=committedKitPromotion(ancestor.stdout.trim(),head,cwd,files,{installerOnly:true});
+      const mergeBase=ancestor.stdout.trim();
+      if(kit||installer)return classify(files,{
+        kitPublicationPromotion:committedKitPromotion(mergeBase,head,cwd,files,{installerOnly:!kit})
+      });
+      return classify(files,{windowsPreviewPromotion:committedWindowsPreviewPromotion(mergeBase,head,cwd)});
     }
-    return classify(files,{kitPublicationPromotion});
+    return classify(files);
   } catch {return full();}
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) {

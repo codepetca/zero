@@ -7,12 +7,12 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.74](https://github.com/codepetca/zero/releases/tag/v0.5.74) is public. All three anonymous downloads match the release preparation receipts. | Mac and Microsoft Store installers remain on their separate 0.5.73 releases. |
-| Website | The [homepage](https://zero.codepet.ca/) links to the 0.5.73 Mac DMG. The deployed [appcast](https://zero.codepet.ca/updates/macos/appcast.xml) matches the signed build 73 feed byte for byte. | Verify the live updater on an installed Mac. |
-| Mac installer | [0.5.73](https://github.com/codepetca/zero/releases/tag/setup-v0.5.73) is public. Its DMG and both corresponding Git source archives match the sealed candidate. | A fresh Mac and the live 0.5.72 → 0.5.73 update remain untested. |
-| Windows Store | Partner Center shows submission 9 live with [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.73.0, x64. | Verify installation or update on a physical Windows device. |
+| GitHub manual kit | [Zero 0.5.74](https://github.com/codepetca/zero/releases/tag/v0.5.74) is public. All three anonymous downloads match the release preparation receipts. | The native distributions have their own verification and publication records. |
+| Website | [PR #355](https://github.com/codepetca/zero/pull/355) promotes the 0.5.74 Mac DMG and signed appcast. | Verify the deployed homepage link and appcast bytes after promotion. |
+| Mac installer | [0.5.74](https://github.com/codepetca/zero/releases/tag/setup-v0.5.74) is public. Its DMG and both corresponding Git source archives match the sealed candidate. | Fresh-home setup and the staged 0.5.73 → 0.5.74 Sparkle update passed on the maintainer Mac. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 10, package 1.5.74.0 x64, entered certification with a manual publishing hold. | Verify certification and the Store-delivered upgrade on a Windows x64 PC. |
 | Windows portable school pilot | [0.5.74 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74) is public. | Stage the vendor tools and test on one school desktop under a student login. |
-| Windows standalone download | [0.5.73 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.73) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.73) are public. | The preview has updates disabled. Physical and school-managed Windows devices remain untested. |
+| Windows standalone download | [0.5.74 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.74) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.74) are public. | The preview has updates disabled. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
 updates, recent tutorial changes, and Store Java/VS Code startup fixes. Its exact
@@ -42,7 +42,29 @@ offers update guidance if the editor and starter do not match.
 used the GitHub App and published the expected source in one dispatch, despite
 a simulated failure on the first run lookup. The public page greeted Sam and
 Ada. This was a Mac source test with ZeroHub listing omitted. The separate
-Mac and Windows installers were not rebuilt or promoted for this kit.
+Mac and Windows installers were prepared and tested separately.
+
+The [Mac installer release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.74)
+uses source `bd68da42e7c3737a46d1ff4e8510bab86e32fcd7` and
+preparation commit `6a8bd3866eed562bfe16bd737340428f286e142a`. Apple accepted
+submission `b676c666-1bf1-412c-a6c2-cd407645bc2e`. The final notarized DMG
+SHA-256 is `4b73e991d65eeaeb84ce6d26804945a296efb47232e7c25123c02ddb05b69a8e`.
+Clean-home setup and editor launch passed. A copied 0.5.73 app fetched the
+production-signed appcast through a process-local staging URL, installed the
+public 0.5.74 DMG through Sparkle, and preserved a test project. The updated
+editor passed setup and opened from the same test home. The production site
+and feed are promoted separately in [PR #355](https://github.com/codepetca/zero/pull/355).
+
+[Windows CI run 43651552124](https://github.com/codepetca/zero/actions/runs/43651552124)
+built the standalone and Store packages from `68ccb79503cfcd0d61eb2ad253f08cc4353f4a30`,
+whose tree matches the 0.5.74 tag. The unsigned standalone passed hosted
+setup, Git and JavaFX checks, and its public downloads match those bytes.
+The Store MSIX SHA-256 is
+`508460506e8d9db5b4cbe847c7b7ec7f38c2377bf76a67d8930029d13042e03e`.
+[Certification kit run 43672375962](https://github.com/codepetca/zero/actions/runs/43672375962)
+passed first launch on a test-signed copy. The required DPI test reported an
+analysis warning and the optional blocked-executables test failed. Store
+certification and the Store-delivered upgrade are separate.
 
 ## Zero Portable 0.5.74 school pilot — 2026-11-14
 

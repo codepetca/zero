@@ -31,6 +31,7 @@ scope job fails the final gate. Mixed changes select the union.
 | Shared control CSS and design tokens/adapters/preparation | Source contract suite and website |
 | Website app/components/styles/tests/public/content and explicit package/build configuration | Website |
 | Strict local-to-published kit metadata promotion with unchanged version and asset identity | Source release guards and website |
+| A Windows preview and matching manual ZIP promoted to the unchanged, already-published kit version | Source release guards and website |
 | The exact CI scope implementation/test files accompanying a strict verified kit publication promotion | Source suite, including always-running real-Git selection/gate contracts, and website |
 | Website libraries/scripts, shared curriculum metadata, framework, starter, teaching, export/Publish/auth, installer/profile/release, manifests, workflow changes and any unknown input | Full existing matrix |
 
