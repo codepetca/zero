@@ -54,12 +54,13 @@ test('one reusable native start tab, stable document, explicit focus and lifecyc
   assert.equal(f.serializers.size, 0);assert.deepEqual(f.openChanges,[true,false,true,false]);
 });
 
-test('cloud choices require verified ready access; local is available through setup states', async () => {
-  for (const phase of ['signed-out','checking','install','unavailable','ready']) {
-    const f = fake({phase, accountId:phase === 'signed-out' ? undefined : '42'}), {page, panel} = await open(f);
-    for (const action of ['tutorial','tutorials','new','clone','local','signIn','signInCode','setup']) await f.message(panel, {type:'action', action});
+test('Start Page docs and project choices require a GitHub connection; cloud choices require ready access', async () => {
+  for (const phase of ['signed-out','connect','checking','install','unavailable','ready']) {
+    const disconnected = ['signed-out','connect'].includes(phase);
+    const f = fake({phase, accountId:disconnected ? undefined : '42'}), {page, panel} = await open(f);
+    for (const action of ['tutorial','tutorials','new','clone','local','signIn','connect','signInCode','setup']) await f.message(panel, {type:'action', action});
     const expected = phase === 'ready' ? ['zero.openDocs','zero.newProject','zero.cloneRepository','zero.openLocalProject']
-      : ['zero.openDocs','zero.openLocalProject', ...(phase === 'signed-out' ? ['zero.signInToGitHub'] : ['install','unavailable'].includes(phase) ? ['zero.setupGitHub'] : [])];
+      : disconnected ? ['zero.signInToGitHub'] : ['zero.openDocs','zero.openLocalProject', ...(['install','unavailable'].includes(phase) ? ['zero.setupGitHub'] : [])];
     assert.deepEqual(f.commands, expected, phase);page.dispose();
   }
 });
@@ -164,7 +165,7 @@ test('strict nonce CSP and text-only rendering keep account, status and path mar
   assert.doesNotMatch(html, /(?:src|href)=["']https?:\/\/|innerHTML|onclick=|eval\(/);
   assert.equal(payload(panel).accountLabel, attack);
   const browser = domHarness(html);browser.update(panel.messages.at(-1));
-  assert.equal(browser.elements.get('account').textContent, '@' + attack);
+  assert.equal(browser.elements.get('account').textContent, attack);
   assert.equal(browser.elements.get('status').textContent, attack);
   const recentButton = browser.elements.get('recent-list').children[0].children[0];
   assert.equal(recentButton.children[1].textContent, `/Projects/${attack}`);
@@ -175,7 +176,7 @@ test('strict nonce CSP and text-only rendering keep account, status and path mar
   assert.equal(browser.elements.get('recent-list').children[0].children[0], oldButton);
   assert.equal(oldButton.disabled, true);assert.equal(local.disabled, true);
   f.setState({phase:'signed-out'});await page.refresh();browser.update(panel.messages.at(-1));
-  assert.equal(local.disabled, false);assert.equal(browser.buttons.find(button=>button.dataset.action==='signIn').disabled, false);
+  assert.equal(local.disabled, true);assert.equal(browser.buttons.find(button=>button.dataset.action==='signIn').disabled, false);
   assert.equal(browser.elements.get('recent-section').hidden, true);page.dispose();
 });
 
@@ -184,10 +185,10 @@ test('GitHub account stays compact while signed-out and setup states keep their 
   const {page,panel} = await open(f), b = domHarness(panel.webview.html);
   const action = name => b.buttons.find(button => button.dataset.action === name);
   b.update(panel.messages.at(-1));
-  assert.match(panel.webview.html, /<span id="account-group" hidden>Signed in as <span id="account"/);
-  assert.equal(b.elements.get('account').textContent, '@armorup');
-  assert.equal(b.elements.get('account-group').hidden, false);
-  assert.equal(b.elements.get('github-heading').hidden, false);
+  assert.match(panel.webview.html, /id="github-profile"[^>]*hidden><svg[^>]*aria-hidden="true"[^>]*>/);
+  assert.equal(b.elements.get('account').textContent, 'armorup');
+  assert.equal(b.elements.get('github-profile').hidden, false);
+  assert.equal(b.elements.get('github-section').hidden, true);
   assert.equal(b.elements.get('guidance').hidden, true);
   assert.equal(b.elements.get('github-progress').hidden, true);
   assert.equal(action('tutorials').disabled, false);
@@ -196,38 +197,49 @@ test('GitHub account stays compact while signed-out and setup states keep their 
   for (const phase of ['checking','install','unavailable']) {
     f.setState({phase, accountId:'42', accountLabel:'armorup'});
     await page.refresh();b.update(panel.messages.at(-1));
+    assert.equal(b.elements.get('github-profile').hidden, false);
+    assert.equal(b.elements.get('github-section').hidden, false);
     assert.equal(b.elements.get('guidance').hidden, false);
     assert.ok(b.elements.get('guidance').textContent);
     assert.equal(b.elements.get('github-progress').hidden, phase !== 'checking');
     assert.equal(action('setup').hidden, phase === 'checking');
   }
   f.setState({phase:'signed-out'});await page.refresh();b.update(panel.messages.at(-1));
-  assert.equal(b.elements.get('account-group').hidden, true);
-  assert.equal(b.elements.get('github-heading').hidden, false);
-  assert.equal(b.elements.get('guidance').hidden, false);
+  assert.equal(b.elements.get('github-profile').hidden, true);
+  assert.equal(b.elements.get('account').textContent, '');
+  assert.equal(b.elements.get('guidance').hidden, true);
   assert.equal(b.elements.get('github-progress').hidden, true);
-  assert.equal(b.elements.get('guidance').textContent, 'Use your GitHub account.');
+  assert.equal(b.elements.get('guidance').textContent, '');
   assert.equal(action('signIn').hidden, false);
   assert.equal(action('signIn').disabled, false);
   assert.equal(action('signInCode'), undefined);
-  assert.equal(b.elements.get('github-section').hidden, false);
-  assert.match(panel.webview.html, /data-action="signIn" hidden>Sign in to Zero/);
+  assert.equal(b.elements.get('github-section').hidden, true);
+  assert.match(panel.webview.html, /data-action="signIn" hidden><svg[^>]*lucide-circle-user-round[^>]*aria-hidden="true"[^>]*>.*<\/svg><span>Sign in to Zero<\/span><\/button>/);
+  assert.match(panel.webview.html, /data-action="connect" hidden><svg[^>]*lucide-circle-user-round[^>]*aria-hidden="true"[^>]*>.*<\/svg><span>Connect to GitHub<\/span><\/button>/);
+  assert.doesNotMatch(panel.webview.html, />Account<|Use your GitHub account|Build Java apps and games/);
   page.dispose();
 });
 
-test('sign-in is separate from the always available Zero Docs button', async () => {
+test('a single account action is shown before GitHub connects, then Zero Docs becomes available', async () => {
   const f=fake({phase:'signed-out'}), {page,panel}=await open(f), b=domHarness(panel.webview.html);
   b.update(panel.messages.at(-1));
   const tutorials=b.buttons.find(button=>button.dataset.action==='tutorials');
   const signIn=b.buttons.find(button=>button.dataset.action==='signIn');
-  assert.equal(tutorials.disabled,false);assert.equal(signIn.hidden,false);
-  assert.match(panel.webview.html, /data-action="tutorials" disabled>Zero Docs<\/button>/);
+  const connect=b.buttons.find(button=>button.dataset.action==='connect');
+  assert.equal(tutorials.disabled,true);assert.equal(signIn.hidden,false);assert.equal(connect.hidden,true);
+  assert.match(panel.webview.html, /data-action="tutorials" disabled><svg[^>]*class="zero-mark"[^>]*aria-hidden="true"[^>]*>[\s\S]*?<\/svg><span>Zero Docs<\/span><\/button>/);
   assert.doesNotMatch(panel.webview.html,/Start tutorial|tutorial-menu/);
-  tutorials.click();await f.message(panel,b.sent.at(-1));
   signIn.click();await f.message(panel,b.sent.at(-1));
-  assert.deepEqual(f.commands,['zero.openDocs','zero.signInToGitHub']);
+  f.setState({phase:'connect'});await page.refresh();b.update(panel.messages.at(-1));
+  assert.equal(tutorials.disabled,true);assert.equal(signIn.hidden,true);assert.equal(connect.hidden,false);
+  assert.equal(b.elements.get('project-button').disabled,true);
+  assert.equal(b.elements.get('github-profile').hidden,true);
+  assert.equal(b.elements.get('github-section').hidden,true);
+  connect.click();await f.message(panel,b.sent.at(-1));
   f.setState({phase:'ready',accountId:'42'});await page.refresh();b.update(panel.messages.at(-1));
-  assert.equal(signIn.hidden,true);assert.equal(tutorials.disabled,false);
+  assert.equal(signIn.hidden,true);assert.equal(connect.hidden,true);assert.equal(tutorials.disabled,false);
+  tutorials.click();await f.message(panel,b.sent.at(-1));
+  assert.deepEqual(f.commands,['zero.signInToGitHub','zero.signInToGitHub','zero.openDocs']);
   page.dispose();
 });
 
@@ -248,15 +260,17 @@ test('Project dropdown navigates enabled actions and closes on selection, Escape
   }
   page.dispose();
 });
-test('signed-out menu keeps Open and Tutorials available; auth drift and busy updates keep focus out of hidden items',async()=>{
+test('auth drift and busy updates close or constrain the Project menu without stranding focus',async()=>{
   const f=fake({phase:'signed-out'}),{page,panel}=await open(f),b=domHarness(panel.webview.html);b.update(panel.messages.at(-1));
   const trigger=b.elements.get('project-button'),menu=b.elements.get('project-menu'),action=name=>b.buttons.find(button=>button.dataset.action===name);
-  assert.equal(trigger.disabled,false);assert.equal(action('tutorials').disabled,false);assert.equal(action('new').disabled,true);assert.equal(action('clone').disabled,true);
+  assert.equal(trigger.disabled,true);assert.equal(action('tutorials').disabled,true);assert.equal(action('new').disabled,true);assert.equal(action('clone').disabled,true);
+  trigger.click();assert.equal(menu.hidden,true);
+  f.setState({phase:'checking',accountId:'42'});await page.refresh();b.update(panel.messages.at(-1));
   trigger.click();assert.equal(b.document.activeElement,action('local'));b.key('ArrowDown');assert.equal(b.document.activeElement,action('local'));
   f.setState({phase:'ready',accountId:'42'});await page.refresh();b.update(panel.messages.at(-1));b.key('Home');assert.equal(b.document.activeElement,action('new'));
   f.setState({phase:'ready',accountId:'42',status:'Updated'});await page.refresh();b.update(panel.messages.at(-1));assert.equal(b.document.activeElement,action('new'));assert.equal(menu.hidden,false);
-  f.setState({phase:'signed-out'});await page.refresh();b.update(panel.messages.at(-1));assert.equal(b.document.activeElement,action('local'));
-  f.setState({phase:'signed-out',busy:true});await page.refresh();b.update(panel.messages.at(-1));assert.equal(menu.hidden,true);assert.equal(trigger.disabled,true);assert.equal(b.document.activeElement,b.elements.get('start-title'));
+  f.setState({phase:'checking',accountId:'42'});await page.refresh();b.update(panel.messages.at(-1));assert.equal(b.document.activeElement,action('local'));
+  f.setState({phase:'connect'});await page.refresh();b.update(panel.messages.at(-1));assert.equal(menu.hidden,true);assert.equal(trigger.disabled,true);assert.equal(b.document.activeElement,b.elements.get('start-title'));
   page.dispose();
 });
 

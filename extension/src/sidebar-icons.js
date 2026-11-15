@@ -1,6 +1,13 @@
 'use strict';
-// Unmodified Lucide 1.56.0 glyphs; see media/LUCIDE-LICENSE. No runtime dependency.
+const {readFileSync} = require('node:fs');
+
+const zeroMark = readFileSync(require.resolve('../media/zero.svg'), 'utf8').trim()
+  .replace('<svg ', '<svg class="zero-mark" aria-hidden="true" focusable="false" ');
+
+// Lucide glyphs are covered by media/LUCIDE-LICENSE. No runtime dependency.
 const icons = {
+  Zero: zeroMark,
+  "CircleUserRound": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-user-round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M17.925 20.056a6 6 0 0 0-11.851.001\"></path><circle cx=\"12\" cy=\"11\" r=\"4\"></circle><circle cx=\"12\" cy=\"12\" r=\"10\"></circle></svg>",
   "Upload": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-upload\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 3v12\"></path><path d=\"m17 8-5-5-5 5\"></path><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"></path></svg>",
   "GitFork": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-git-fork\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"18\" r=\"3\"></circle><circle cx=\"6\" cy=\"6\" r=\"3\"></circle><circle cx=\"18\" cy=\"6\" r=\"3\"></circle><path d=\"M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9\"></path><path d=\"M12 12v3\"></path></svg>",
   "ExternalLink": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-external-link\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M15 3h6v6\"></path><path d=\"M10 14 21 3\"></path><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"></path></svg>",

@@ -30,6 +30,7 @@ async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=tr
   if(lesson && !practice) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons',lessonFile),'# First lesson');if(lessonFile==='00-hello-world.md')await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Quiz');}
   const commands=new Map(),calls=[],errors=[],starts=[],ends=[],processEnds=[],launches=[],subscriptions=[],panels=[];
   let webviewProvider, folderChanged, sessionChanged, tabReads=0;
+  let receiptChanged, savedReceipt=workosReceipt && {version:1,clientId:'client_01M70QJARN1KNAAYZS71R3C2HJ',id:'user_fixture'};
   let session=initialSession, interactiveSession, authFailure=false;
   const authCalls=[],notices=[];
   const outputLines=[];
@@ -66,11 +67,12 @@ async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=tr
     else delete project.template.scaffoldSha256;}
   }
   await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
-  extension.activate({extensionPath,subscriptions,extensionMode:workosReceipt?1:2,...(workosReceipt?{secrets:{get:async()=>JSON.stringify({version:1,clientId:'client_01M70QJARN1KNAAYZS71R3C2HJ',id:'user_fixture'})}}:{}),globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
+  const secrets=workosReceipt ? {get:async()=>savedReceipt && JSON.stringify(savedReceipt),onDidChange:fn=>{receiptChanged=fn;return disposable();}} : undefined;
+  extension.activate({extensionPath,subscriptions,extensionMode:workosReceipt?1:2,secrets,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
-  return {root,commands,calls,errors,outputLines,launches,webview,panels,get startPage(){return panels.find(panel=>panel.type==='zero.startPage');},get startState(){return this.startPage?.restored?.state;},remembered,finish,vscode,notices,authCalls,subscriptions,setSession(value){session=value;sessionChanged({provider:{id:'zero-github'}});},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:event=>folderChanged(event)};
+  return {root,commands,calls,errors,outputLines,launches,webview,panels,get startPage(){return panels.find(panel=>panel.type==='zero.startPage');},get startState(){return this.startPage?.restored?.state;},remembered,finish,vscode,notices,authCalls,subscriptions,setSession(value){session=value;sessionChanged({provider:{id:'zero-github'}});},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:event=>folderChanged(event),clearWorkOSReceipt(){savedReceipt=undefined;receiptChanged({key:require('../src/desktop.cjs').STORAGE_KEY});}};
 }
 test('tutorial opens online once per project and can be reopened', async t=>{
   const f=await fixture(t,{tutorial:'greeting',lesson:false});
@@ -124,9 +126,13 @@ test('empty onboarding opens one live Start Page and keeps the sidebar minimal',
   assert.equal(f.panels.length,1);assert.equal(f.startPage.reveals.length,2);assert.equal(f.startPage.webview.html,document);
   assert.equal(f.calls.filter(([id])=>id==='showTextDocument'||id==='markdown.showPreview').length,0);
 });
-test('Start Page Zero Docs opens the resume entry without a project or GitHub sign-in',async t=>{
+test('Start Page Zero Docs opens the resume entry after GitHub connects, without a project',async t=>{
   const f=await fixture(t,{empty:true,execute:async id=>f.commands.get(id)?.()});
   await settle(()=>f.startState?.phase==='signed-out');
+  await f.startPage.message({type:'action',action:'tutorials',token:f.startPage.restored.token});
+  assert.equal(f.calls.some(([id])=>id==='openExternal'),false);
+  f.setSession({id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'});
+  await settle(()=>f.startState?.phase==='ready');
   await f.startPage.message({type:'action',action:'tutorials',token:f.startPage.restored.token});
   assert.deepEqual(f.panels.map(panel=>panel.type),['zero.startPage']);
   assert.equal(f.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/resume-docs');
@@ -155,11 +161,15 @@ test('local and cloned projects persist the Start Page handoff before replacing 
 });
 test('saved first-use receipt permits offline local project open',async t=>{
   const f=await fixture(t,{empty:true,workosReceipt:true});
-  await settle(()=>f.startState?.phase==='signed-out');
+  await settle(()=>f.startState?.phase==='connect');
+  assert.equal(f.startState.accountId,undefined);
+  await f.startPage.message({type:'action',action:'connect',token:f.startPage.restored.token});
+  assert.ok(f.calls.some(([id])=>id==='zero.signInToGitHub'));
   await f.commands.get('zero.openLocalProject')();
   assert.ok(f.calls.some(([id,uri])=>id==='vscode.openFolder'&&uri.fsPath===f.root));
   assert.equal(f.calls.filter(([id])=>['openExternal','cloneRepository','createRepository'].includes(id)).length,0);
   assert.ok(!f.notices.some(({text})=>text.includes('Connect Zero with GitHub')));
+  f.clearWorkOSReceipt();await settle(()=>f.startState?.phase==='signed-out');
 });
 test('destination activation retains Start Page while opening Main and Tutorials',async t=>{
   let profile;

@@ -1,3 +1,18 @@
+# Editor Start Page account states — 2026-11-15
+
+The Start Page shows **Sign in to Zero**, **Connect to GitHub**, or a profile
+icon beside the verified GitHub username. Until GitHub connects, **Zero Docs**
+and **Project** are disabled. GitHub App setup remains a separate step for
+**New** and **Clone**. The public docs and local Run remain available.
+
+Chrome rendered the three account states in Zero Dev with sample data. The
+preview verified icon placement, equal button sizes, keyboard order and
+control availability at 360px and 820px. The renderer and preview sources are
+identical in the port to main at `9bccde0d3`. Local verification on that base
+passed 91 focused extension and playground tests and `npm run check`.
+Earlier independent Luna and Terra reviews found no actionable issues.
+Native editor interaction and live GitHub sign-in were outside this check.
+
 # Windows portable school pilot — 2026-11-14
 
 Local pilot source `6adc8a88721d26fcbfabfb4b3e4272b65300a227`. The

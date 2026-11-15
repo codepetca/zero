@@ -14,9 +14,9 @@ Zero 0.5.27 uses a native JavaFX window for Run App. Mac 0.5.26 and other
 earlier downloads retain their bundled Run behavior.
 
 This bundled Hello World project is an installation check. To begin a lesson,
-choose **Zero Docs** on the Start Page; it opens the latest lessons without
-sign-in. When ready to create a project, sign in to GitHub separately, choose
-**Project → New**, and follow the lesson to add its starting code. Zero creates
+sign in to Zero and connect GitHub. Choose **Zero Docs** on the Start Page to
+open the latest lessons. Choose **Project → New** to create a project and follow
+the lesson to add its starting code. Zero creates
 a public repository in your account and opens its clone. Keep that project across
 its continuing lessons. Use **Project → Open** for an existing local project or
 **Project → Clone** for an existing GitHub repository. Opening a project does not
