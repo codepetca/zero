@@ -35,11 +35,11 @@ lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/
 
 ## Open a tutorial project
 
-Choose **Sign in to Zero** on the Start Page and follow the browser prompts.
-Choose **Connect to GitHub** or **Install Zero for GitHub** if Zero asks. Once
-GitHub is connected, choose **Zero Docs** to open the latest lessons. If sign-in
-fails, check your connection and default browser and try again. Local Run and
-Files remain available signed out.
+Choose **Zero Docs** on the Start Page to open the latest lessons. If the
+button is disabled, choose **Sign in to Zero** or **Connect to GitHub**. Follow
+the browser prompts to connect GitHub before creating a project. Choose
+**Install Zero for GitHub** if Zero asks. If sign-in fails, check your connection
+and default browser and try again. Local Run and Files remain available signed out.
 
 Choose **Project → New**, name your repository and choose where to save its clone.
 Follow the lesson to add its starting code. Zero creates a public repository in

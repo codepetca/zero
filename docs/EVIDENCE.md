@@ -10,7 +10,8 @@ preview verified icon placement, equal button sizes, keyboard order and
 control availability at 360px and 820px. The renderer and preview sources are
 identical in the port to main at `9bccde0d3`. Local verification on that base
 passed 91 focused extension and playground tests and `npm run check`.
-Earlier independent Luna and Terra reviews found no actionable issues.
+Independent review on main by GPT-6.1 Terra at medium reasoning found one
+guidance issue. Instructions now also work with the current published installer.
 Native editor interaction and live GitHub sign-in were outside this check.
 
 # Windows portable school pilot — 2026-11-14
