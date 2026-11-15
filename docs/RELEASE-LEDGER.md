@@ -7,6 +7,7 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
+| GitHub manual kit | [Zero 0.5.74](https://github.com/codepetca/zero/releases/tag/v0.5.74) is public. All three anonymous downloads match the release preparation receipts. | Mac and Microsoft Store installers remain on their separate 0.5.73 releases. |
 | Website | The [homepage](https://zero.codepet.ca/) links to the 0.5.73 Mac DMG. The deployed [appcast](https://zero.codepet.ca/updates/macos/appcast.xml) matches the signed build 73 feed byte for byte. | Verify the live updater on an installed Mac. |
 | Mac installer | [0.5.73](https://github.com/codepetca/zero/releases/tag/setup-v0.5.73) is public. Its DMG and both corresponding Git source archives match the sealed candidate. | A fresh Mac and the live 0.5.72 → 0.5.73 update remain untested. |
 | Windows Store | Partner Center shows submission 9 live with [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.73.0, x64. | Verify installation or update on a physical Windows device. |
@@ -21,6 +22,27 @@ blocked-executables finding, disclosed with the submission. See the
 The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
+
+## Zero 0.5.74 GitHub kit — 2026-11-14
+
+The [release](https://github.com/codepetca/zero/releases/tag/v0.5.74) is tagged
+at `bd68da42e7c3737a46d1ff4e8510bab86e32fcd7`, the independently reviewed
+source of [PR #352](https://github.com/codepetca/zero/pull/352). The tag's tree
+matches the source merge `f885144e386f63b0c9648fe714988dd57064c77f`.
+[Preparation run 43651559253](https://github.com/codepetca/zero/actions/runs/43651559253)
+checked the public starter against the packaged VSIX and replayed the Greeting
+tutorial with native JavaFX Run and WebFX in Chrome. All three anonymous
+downloads match the sealed candidate. Core remains 0.3.0. The README link and
+kit manifest are tracked in [PR #353](https://github.com/codepetca/zero/pull/353).
+
+The public starter tree was `13861f37d5afb4cec9c325b770dea35f6c06e801`.
+Project → New now checks starter compatibility before repository creation and
+offers update guidance if the editor and starter do not match.
+[Live scratch Pages run 43651392133](https://github.com/armorup/zero-pages-publish-check-20261114/actions/runs/43651392133)
+used the GitHub App and published the expected source in one dispatch, despite
+a simulated failure on the first run lookup. The public page greeted Sam and
+Ada. This was a Mac source test with ZeroHub listing omitted. The separate
+Mac and Windows installers were not rebuilt or promoted for this kit.
 
 ## Zero Portable 0.5.74 school pilot — 2026-11-14
 
