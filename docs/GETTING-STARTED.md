@@ -9,8 +9,8 @@ publish an app others can open in their browser.
 1. Download Zero from the [Zero homepage](https://zero.codepet.ca).
 2. On Mac, open the downloaded DMG and drag **Zero** into **Applications**. On Windows, open the installer and follow its prompts.
 3. Open **Zero** and allow it to finish setting up. An internet connection is needed for the first setup and to download project dependencies.
-4. Choose **Zero Docs** on the Start Page to open the latest lessons. If the button is disabled, choose **Sign in to Zero** or **Connect to GitHub**, whichever Zero shows, and follow the browser prompts.
-5. Connect GitHub before creating a project. If Zero asks you to install its GitHub App, choose the repositories Zero may access.
+4. Connect GitHub before creating a project. On the Start Page, choose **Sign in to Zero** or **Connect to GitHub**, whichever Zero shows, and follow the browser prompts. If Zero asks you to install its GitHub App, choose the repositories Zero may access.
+5. Choose **Zero Docs** to open the latest lessons. If the button is already enabled, you can read the lessons before connecting GitHub.
 6. Choose **Project → New**, then follow the lesson to add its starting code.
 
 In an older released Zero, choose **Tutorial options → Tutorial docs** to open the lessons without signing in.
