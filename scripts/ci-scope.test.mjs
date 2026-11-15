@@ -127,6 +127,70 @@ test('real Git publication diff scopes metadata while mixed runtime and CI chang
     git('switch','-c','promoted-merge-base',promotedHead);assert.equal(scope(advanced).windows,false);
   } finally {rmSync(root,{recursive:true,force:true});}
 });
+test('a verified Windows preview promotion never rebuilds the published kit', () => {
+  const root=mkdtempSync(path.join(os.tmpdir(),'zero-ci-windows-preview-'));
+  const git=(...args)=>{
+    const result=spawnSync('git',args,{cwd:root,encoding:'utf8'});
+    assert.equal(result.status,0,result.stderr);
+    return result.stdout.trim();
+  };
+  const write=(file,value)=>{
+    const target=path.join(root,file);
+    mkdirSync(path.dirname(target),{recursive:true});
+    writeFileSync(target,JSON.stringify(value));
+  };
+  const commit=message=>{git('add','.');git('commit','-qm',message);return git('rev-parse','HEAD');};
+  const measured=(filename,tag)=>({
+    filename,size:123,sha256:'a'.repeat(64),
+    url:`https://github.com/codepetca/zero/releases/download/${tag}/${filename}`
+  });
+  const publication=tag=>({status:'published',repository:'codepetca/zero',tag});
+  const version='0.5.74';
+  const kit={
+    schema:1,kitVersion:version,coreVersion:'0.3.0',publication:publication(`v${version}`),
+    assets:Object.fromEntries(Object.entries({
+      kit:'zero-bootstrap.zip',starter:'zero-starter.zip',extension:`zero-${version}.vsix`
+    }).map(([key,name])=>[key,{label:key,...measured(name,`v${version}`)}]))
+  };
+  const preview=kitVersion=>({
+    schema:1,kind:'unsigned-preview',kitVersion,sourceRevision:'b'.repeat(40),
+    publication:publication(`windows-preview-v${kitVersion}`),
+    asset:{
+      platform:'windows',architectures:['x64'],minimumOS:'10.0.19041',
+      ...measured(`Zero-Setup-${kitVersion}-windows-development.exe`,`windows-preview-v${kitVersion}`)
+    },
+    authenticodeSigned:false,updaterEnabled:false,nativeWindowsTested:false,
+    manualSetup:measured('zero-bootstrap.zip',`windows-manual-v${kitVersion}`)
+  });
+  const manifest='release/windows-preview.json';
+  try {
+    git('init','-q');
+    git('config','maintenance.auto','false');
+    git('config','user.name','CI fixture');
+    git('config','user.email','ci@example.invalid');
+    write('release/kit.json',kit);
+    write(manifest,preview('0.5.73'));
+    const base=commit('previous preview');
+    write(manifest,preview(version));
+    write('docs/RELEASE-LEDGER.md','Verified downloads');
+    write('scripts/ci-scope.mjs','Classifier update');
+    const promoted=commit('current preview');
+    const scope=(head,baseSha=base)=>scopeForEvent({pull_request:{base:{sha:baseSha},head:{sha:head}}},root);
+    assert.deepEqual(scope(promoted),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
+    const revisions=[
+      ['same version asset change',promoted,manifest,{...preview(version),sourceRevision:'c'.repeat(40)}],
+      ['no matching manual kit',base,manifest,Object.fromEntries(Object.entries(preview(version)).filter(([key])=>key!=='manualSetup'))],
+      ['incorrect URL',base,manifest,{...preview(version),manualSetup:measured('zero-bootstrap.zip','windows-manual-v0.5.73')}],
+      ['mixed runtime change',base,'native-installer/windows/Program.cs','launcher edit'],
+      ['mixed kit change',base,'release/kit.json',{...kit,coreVersion:'0.4.0'}]
+    ];
+    for(const [name,baseSha,file,value] of revisions) {
+      git('checkout','--detach',promoted);
+      write(file,value);
+      assert.ok(Object.values(scope(commit(name),baseSha)).every(Boolean),name);
+    }
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
 test('combined publication requires intact matching snapshots and a signed coherent feed', () => {
   const root=mkdtempSync(path.join(os.tmpdir(),'zero-ci-native-promotion-'));
   const git=(...args)=>{const r=spawnSync('git',args,{cwd:root,encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
