@@ -22,8 +22,10 @@ $ErrorActionPreference = 'Stop'
 $identity = 'Codepet.zerostudio'
 $publisher = 'CN=DC9AEBC0-4CAE-4681-9E52-20B0B1C14919'
 $family = 'Codepet.zerostudio_g62pw1js6rhjp'
-$oldHash = '94c5d45ebf44ba6f3d3f5abe3f5c6a2dd7ea33a3f1a3e8a6710054226676cf22'
-$oldSource = 'f74ed9ce63b594fff61a70249b445d6516fe7e7f'
+$oldHash = '076a6971710d6c7e162f1c61b57c98240380dfd8d2f5b959fd9c867cc4a761b5'
+$oldSource = 'f6c9a5b4be2711a1bd5cb24912e05615ae1448d9'
+$oldKitVersion = '0.5.73'
+$oldPackageVersion = '1.5.73.0'
 $signTool = 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe'
 $stage = 'preflight'
 $certificate = $null
@@ -42,9 +44,9 @@ $project = Join-Path $env:USERPROFILE 'Zero Studio'
 $report = [ordered]@{
     schema = 1; result = 'failed'; stage = $stage; errorHResult = $null
     kind = 'same-certificate-local-msix-upgrade'; identity = $identity; family = $family
-    oldRunId = '41134687731'; oldRunAttempt = '1'; oldSourceRevision = $oldSource
+    oldRunId = '43518705078'; oldRunAttempt = '1'; oldSourceRevision = $oldSource
     newSourceRevision = $ExpectedNewSourceRevision
-    oldVersion = '1.5.58.0'; newVersion = $ExpectedNewPackageVersion
+    oldVersion = $oldPackageVersion; newVersion = $ExpectedNewPackageVersion
     oldCandidateSha256 = $null; newCandidateSha256 = $null
     oldSignedCopySha256 = $null; newSignedCopySha256 = $null
     signingThumbprint = $null; oldPackageFullName = $null; newPackageFullName = $null
@@ -166,7 +168,7 @@ try {
     $signature = Get-AuthenticodeSignature -LiteralPath $signTool
     if ($signature.Status -ne 'Valid' -or -not $signature.SignerCertificate -or $signature.SignerCertificate.Subject -notmatch '(?:^|,\s*)O=Microsoft Corporation(?:,|$)') { throw 'SignTool must have valid Microsoft Authenticode.' }
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $old = Check-Candidate $OldPackage $OldBuildReceipt '0.5.58' '1.5.58.0' $oldSource
+    $old = Check-Candidate $OldPackage $OldBuildReceipt $oldKitVersion $oldPackageVersion $oldSource
     $new = Check-Candidate $NewPackage $NewBuildReceipt $ExpectedNewKitVersion $ExpectedNewPackageVersion $ExpectedNewSourceRevision
     if ([version]$new.Version -le [version]$old.Version) { throw 'New package must advance the pinned previous version.' }
     $candidates = @($old, $new)
@@ -196,7 +198,7 @@ try {
     $packageRoots.Add($installedOld.InstallLocation)
     $report.oldPackageFullName = $installedOld.PackageFullName; $report.oldInstallVerified = $true
     $stage = 'old-activation'
-    & $FirstRunScript -PackageFamily $family -KitVersion '0.5.58' -TimeoutSeconds $TimeoutSeconds
+    & $FirstRunScript -PackageFamily $family -KitVersion $oldKitVersion -TimeoutSeconds $TimeoutSeconds -RequireGit
     $report.oldActivationVerified = $true
     $found = @($dataRoots | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'editor-opened') -PathType Leaf })
     if ($found.Count -ne 1) { throw 'Expected exactly one actual package data directory.' }
@@ -303,7 +305,7 @@ try {
         try { Close-OwnedProcesses } catch { $cleanupErrors.Add('owned processes') }
         try {
             foreach ($package in @(Get-AppxPackage -Name $identity)) {
-                if ($package.Publisher -ne $publisher -or $package.PackageFamilyName -ne $family -or $package.Version.ToString() -notin @('1.5.58.0', $ExpectedNewPackageVersion)) { throw 'Unexpected package during cleanup.' }
+                if ($package.Publisher -ne $publisher -or $package.PackageFamilyName -ne $family -or $package.Version.ToString() -notin @($oldPackageVersion, $ExpectedNewPackageVersion)) { throw 'Unexpected package during cleanup.' }
                 Remove-AppxPackage -Package $package.PackageFullName -ErrorAction Stop
             }
             if (@(Get-AppxPackage -Name $identity).Count -ne 0) { throw 'Package remains.' }

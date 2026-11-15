@@ -1,0 +1,128 @@
+# Temporary branch-only diagnostic; never merge this workflow.
+name: One-off local upgrade of the exact 0.5.73 and 0.5.74 Store packages
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  upgrade:
+    runs-on: windows-2022
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Bind upgrade harness to reviewed release source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:GITHUB_REPOSITORY -ne 'codepetca/zero' -or
+              $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_REF -ne 'refs/heads/codex/windows-0574-upgrade-check') {
+            throw 'Only a manual dispatch on the diagnostic branch and a disposable hosted runner are allowed.'
+          }
+          $base = 'bd68da42e7c3737a46d1ff4e8510bab86e32fcd7'
+          $tree = '68252d9bdfc78b27bfdc03ebb9e60a295ac0391a'
+          $source = (git rev-parse HEAD).Trim()
+          if ($source -ne $env:GITHUB_SHA -or (git rev-parse 'HEAD^').Trim() -ne $base -or
+              (git rev-parse "${base}^{tree}").Trim() -ne $tree -or (git status --porcelain)) {
+            throw 'Diagnostic checkout must be clean and descend directly from the reviewed release tree.'
+          }
+          $allowed = @('.github/workflows/windows-native.yml', '.github/workflows/store-upgrade-one-off.yml', 'scripts/test-windows-msix-upgrade.ps1')
+          $changed = @(git diff --name-only $base $source)
+          if ($changed.Count -ne $allowed.Count -or @($changed | Where-Object { $_ -notin $allowed }).Count -ne 0) {
+            throw 'Only the diagnostic workflows and upgrade harness may differ from reviewed source.'
+          }
+          $out = Join-Path $env:RUNNER_TEMP 'zero-upgrade-proof'
+          New-Item -ItemType Directory -Path $out | Out-Null
+          [ordered]@{
+            schema = 1; canonicalSourceRevision = $base; canonicalSourceTree = $tree
+            harnessSourceRevision = $source; differingPaths = $changed
+            oldArtifactId = '14081213373'; oldSource = 'f6c9a5b4be2711a1bd5cb24912e05615ae1448d9'
+            oldSourceTree = 'f46b6518186caf4e8d186ec3752958e4c0581141'
+            newArtifactId = '14136103090'; newSource = '68ccb79503cfcd0d61eb2ad253f08cc4353f4a30'
+            newSourceTree = $tree; runId = $env:GITHUB_RUN_ID; runAttempt = $env:GITHUB_RUN_ATTEMPT
+            runnerImage = $env:ImageOS; runnerImageVersion = $env:ImageVersion
+          } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $out 'source-binding.json') -Encoding utf8
+      - name: Download exact 0.5.73 baseline
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: zero-windows-msix-43518705078-1
+          run-id: 43518705078
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old-msix
+      - name: Download exact 0.5.74 candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: zero-windows-msix-43651552124-1
+          run-id: 43651552124
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/new-msix
+      - name: Download 0.5.73 first-launch receipt
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: zero-windows-msix-installation-43518705078-1
+          run-id: 43518705078
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old-msix
+      - name: Download 0.5.74 first-launch receipt
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: zero-windows-msix-installation-43651552124-1
+          run-id: 43651552124
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/new-msix
+      - name: Verify both pinned package and receipt byte sets
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Check-Bytes([string]$Path, [int64]$Size, [string]$Digest) {
+            if ((Get-Item -LiteralPath $Path).Length -ne $Size -or
+                (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $Digest) {
+              throw ('Unexpected artifact bytes: ' + (Split-Path $Path -Leaf))
+            }
+          }
+          $old = Join-Path $env:RUNNER_TEMP 'old-msix'
+          $new = Join-Path $env:RUNNER_TEMP 'new-msix'
+          Check-Bytes (Join-Path $old 'Zero-0.5.73-msix-store-x64.msix') 5362611 '076a6971710d6c7e162f1c61b57c98240380dfd8d2f5b959fd9c867cc4a761b5'
+          Check-Bytes (Join-Path $old 'build-msix.json') 2736 'f1a07d6a7bee38c9aed8ba4a588490a48095d547575d53de536ae5ce6739fa9e'
+          Check-Bytes (Join-Path $old 'source-and-kit.json') 1665 '5ebd5554e7c639467243816f4666e6e57989779897faf6ef18270e3f0ee0e0d8'
+          Check-Bytes (Join-Path $old 'install-msix.json') 3156 '75cb392c01871b5c4e6e2d298dae88d7ccdf77faa148f5232bae2e1204da3b7e'
+          Check-Bytes (Join-Path $new 'Zero-0.5.74-msix-store-x64.msix') 5369468 '508460506e8d9db5b4cbe847c7b7ec7f38c2377bf76a67d8930029d13042e03e'
+          Check-Bytes (Join-Path $new 'build-msix.json') 2736 '80b00591ecdce6779610fc16613ce9c3b26d285a12af207216166c29f921073a'
+          Check-Bytes (Join-Path $new 'source-and-kit.json') 1665 '7fb3566ddd33774ca9ba1055f091cc5460e42edb5e7dcac151d28c610b564ff1'
+          Check-Bytes (Join-Path $new 'install-msix.json') 3156 '2d66dc712f15d65503fb412dc3ec5ff41b6114c50d39482cea448467f7bafe70'
+          $out = Join-Path $env:RUNNER_TEMP 'zero-upgrade-proof'
+          foreach ($folder in @($old, $new)) {
+            $name = Split-Path $folder -Leaf
+            foreach ($file in @('build-msix.json', 'source-and-kit.json', 'install-msix.json')) {
+              Copy-Item -LiteralPath (Join-Path $folder $file) -Destination (Join-Path $out "$name-$file")
+            }
+          }
+      - name: Exercise first-run and in-place local upgrade on disposable Windows
+        shell: powershell
+        timeout-minutes: 25
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $old = Join-Path $env:RUNNER_TEMP 'old-msix'
+          $new = Join-Path $env:RUNNER_TEMP 'new-msix'
+          & ./scripts/test-windows-msix-upgrade.ps1 `
+            -OldPackage (Join-Path $old 'Zero-0.5.73-msix-store-x64.msix') `
+            -OldBuildReceipt (Join-Path $old 'build-msix.json') `
+            -NewPackage (Join-Path $new 'Zero-0.5.74-msix-store-x64.msix') `
+            -NewBuildReceipt (Join-Path $new 'build-msix.json') `
+            -ExpectedNewSourceRevision '68ccb79503cfcd0d61eb2ad253f08cc4353f4a30' `
+            -ExpectedNewKitVersion '0.5.74' -ExpectedNewPackageVersion '1.5.74.0' `
+            -Receipt (Join-Path $env:RUNNER_TEMP 'zero-upgrade-proof/zero-upgrade-report.json')
+      - name: Retain source and sanitized upgrade receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-store-upgrade-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: ${{ runner.temp }}/zero-upgrade-proof/
