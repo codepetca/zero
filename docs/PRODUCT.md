@@ -898,8 +898,10 @@ submitting the message proceeds directly.
 It validates and stages the captured changes, commits when needed and pushes the
 captured destination/SHA,
 then checks the remote branch before reporting success. A failed push can leave
-a local commit. Ordinary per-repository Git name/email identity is configured
-manually; signing in does not configure commit identity. Optional explicit
+a local commit. After GitHub sign-in, Zero fills missing Git name and email
+settings in the open trusted Zero repository using the signed-in username and
+GitHub `noreply` email. Existing settings are preserved. This also applies when
+a new or existing project is opened after sign-in. Optional explicit
 `simulation` remains available for maintainer/teacher testing: Commit & push,
 New branch, Update from main, Merge to main and Publish simulate without saving files or performing
 Git/network actions.

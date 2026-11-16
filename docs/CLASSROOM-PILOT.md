@@ -60,10 +60,10 @@ an ordinary local starter smoke test.
   For an existing or GitHub-created private repository, invite the teacher using
   their verified GitHub username; the teacher must accept and open the repository.
   A personal-repository collaborator has write access, not view-only access.
-- Configure Git identity per repository using a school-approved display name and
-  email. For email privacy, copy the exact GitHub-provided noreply address from
-  GitHub Settings → Emails; do not guess its form. Native sign-in does not set
-  commit identity. Keep passwords, tokens and recovery codes out of source and evidence.
+- After sign-in, Zero fills missing Git identity settings in the trusted project
+  with the student's GitHub username and `noreply` email. Check that the configured
+  identity follows school policy. Keep passwords, tokens and recovery codes out of
+  source and evidence.
 
 ## Local smoke and tutorial repository setup
 

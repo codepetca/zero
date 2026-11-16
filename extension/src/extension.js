@@ -37,6 +37,7 @@ const reftableUpdateInspection = require('./reftable-update-inspection');
 const reftableUpdateResolution = require('./reftable-update-resolution');
 const {updateRemoteTracking} = require('./git-tracking');
 const {createAuthentication,ownedProviderApi} = require('./authentication');
+const {configureGitIdentity} = require('./project-git-identity');
 const {createNativeGitAuthentication} = require('./native-git-authentication');
 const {githubAppConfiguration} = require('./github-app/config');
 const {createGitHubAppProvider} = require('./github-app/provider');
@@ -398,6 +399,7 @@ function activate(context, services = {}) {
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
   let githubReadiness,projectPicker,nativeGitAuthentication;
+  let gitIdentityAccount, gitIdentityGeneration = 0, gitIdentityRequest;
   const appConfiguration = githubAppConfiguration();
   appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({
     vscode, context, configuration:appConfiguration,
@@ -412,10 +414,46 @@ function activate(context, services = {}) {
     githubReadiness?.sync();projectPicker?.sessionChanged();
     const hint=JSON.stringify([auth.sessionId,auth.accountId,auth.signedIn,auth.revision]);
     if(hint!==branchAuthHint){branchAuthHint=hint;branchAuthEpoch++;branchRemoteStatus=undefined;branchCheckNextAt=0;mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;void checkCurrentBranch();void checkForMainUpdates();}
+    const account = auth.signedIn ? JSON.stringify([auth.accountId, auth.accountLabel]) : undefined;
+    if (account !== gitIdentityAccount) {
+      gitIdentityAccount = account;
+      gitIdentityGeneration++;
+      if (account) void configureProjectGitIdentity();
+    }
     refresh();
     void nativeGitAuthentication?.refresh();
   }, undefined, undefined, undefined, firstUse.enabled?firstUse:undefined);
   context.subscriptions.push(auth);
+  function configureProjectGitIdentity() {
+    const {accountId, accountLabel:login} = auth;
+    const generation = gitIdentityGeneration;
+    const folders = () => (vscode.workspace.workspaceFolders || []).map(folder => folder.uri);
+    const workspace = folders();
+    if (disposed || !accountId || vscode.workspace.isTrusted !== true ||
+        !workspace.length || workspace.some(uri => uri.scheme !== 'file')) return;
+    const paths = workspace.map(uri => uri.fsPath);
+    const key = JSON.stringify([generation, paths]);
+    if (gitIdentityRequest?.key === key) return gitIdentityRequest.promise;
+
+    const promise = (async () => {
+      const root = await core.resolveProject(paths).catch(() => undefined);
+      if (!root || isSetupProject(root) || await lessonProjects.isLocalPractice(root)) return;
+      const isCurrent = () => !disposed && generation === gitIdentityGeneration &&
+        vscode.workspace.isTrusted === true && uploadMode(root) === 'live' &&
+        JSON.stringify(folders().map(uri => uri.scheme === 'file' ? uri.fsPath : null)) === JSON.stringify(paths);
+      if (await configureGitIdentity(root, {accountId, login}, isCurrent) && isCurrent()) {
+        output.appendLine('Set the missing Git commit identity for this project.');
+      }
+    })().catch(() => {
+      if (!disposed && generation === gitIdentityGeneration) {
+        output.appendLine('Could not set up the Git commit identity for this project. Reopen the project to try again, or configure it in Git.');
+      }
+    }).finally(() => {
+      if (gitIdentityRequest?.promise === promise) gitIdentityRequest = undefined;
+    });
+    gitIdentityRequest = {key, promise};
+    return promise;
+  }
   let hasLocalZeroAccount = false, localZeroAccountRead = 0;
   async function refreshLocalZeroAccount() {
     const revision = ++localZeroAccountRead;
@@ -513,6 +551,7 @@ function activate(context, services = {}) {
       else await actions['zero.startPage']();
       await auth.refresh();
       if (!auth.signedIn) await auth.signIn(false);
+      await configureProjectGitIdentity();
       if (!disposed) {await githubReadiness.refresh();output.appendLine(auth.status);try {await rememberOpened({projectPath:await project()});}catch{}}
     } catch (error) {
       if (!disposed) throw error;
@@ -1889,7 +1928,7 @@ function activate(context, services = {}) {
       if (isBusy() || projectRoot !== root || repository !== currentRepository || branch !== currentBranch) return;
       if (choice?.action === 'recover') {
         connecting=true;refresh();
-        try{if(uploadMode()!=='live')return simulation('Resume created project');await githubProjects.resumeCreated(recovery);}
+        try{if(uploadMode()!=='live')return simulation('Resume created project');if(await githubProjects.resumeCreated(recovery)&&recovery.projectRoot)await configureProjectGitIdentity();}
         finally{connecting=false;refresh();}
       }
       if (choice?.action === 'account') await actions['zero.githubAccount']();
@@ -1919,7 +1958,12 @@ function activate(context, services = {}) {
     'zero.createRepository': async () => {
       if (disposed || isBusy()) return;
       connecting=true;refresh();
-      try {if(uploadMode()!=='live')return simulation('Create repository');return await githubProjects.createRepository();}
+      try {
+        if(uploadMode()!=='live')return simulation('Create repository');
+        const result = await githubProjects.createRepository();
+        if (result) await configureProjectGitIdentity();
+        return result;
+      }
       finally {connecting=false;await repositoryStatus();refresh();}
     },
     'zero.newProject': async () => {
@@ -2687,7 +2731,11 @@ function activate(context, services = {}) {
         const result = marker&&!remotes.includes('origin')
           ? await core.reconnectTutorialRepository(root,value,async page=>{const choice=await vscode.window.showWarningMessage(`Connect this project to ${page}?`,{modal:true,detail:'Confirm this is your repository. This only reconnects the project; it does not upload files.'},'Connect');if(await project()!==root)throw new Error('The student project changed. Connect the repository again.');return choice==='Connect';})
           : await core.connectRepository(root, value, async () => (await vscode.window.showWarningMessage('Replace this student project’s existing origin remote with the repository you entered?', {modal:true}, 'Replace origin')) === 'Replace origin');
-        if (result) {connected=true;report('Repository connected', 'Repository connected locally. No files uploaded.'); }
+        if (result) {
+          connected=true;
+          await configureProjectGitIdentity();
+          report('Repository connected', 'Repository connected locally. No files uploaded.');
+        }
       } finally {connecting = false;await repositoryStatus({forceBranchCheck:connected});refresh();}
     },
     'zero.copyRepositoryLink': async () => {
@@ -3443,6 +3491,11 @@ function activate(context, services = {}) {
   for(const method of ['onDidCreate','onDidChange','onDidDelete']) watcher[method](uri=>{if(path.basename(uri.fsPath)==='zero.json'){browserRun.stop();studentExplorer?.invalidate();}},undefined,context.subscriptions);
   let metadataRefreshTimer;
   const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config,index,MERGE_HEAD,packed-refs,zero-update-recovery.json,zero-pending-sync/*.json,refs/heads/**}');
+  metadataWatcher.onDidCreate(uri => {
+    if (projectRoot && path.resolve(uri.fsPath) === path.join(projectRoot, '.git', 'config')) {
+      void configureProjectGitIdentity();
+    }
+  }, undefined, context.subscriptions);
   for (const method of ['onDidCreate','onDidChange','onDidDelete']) metadataWatcher[method](uri => {
     if (!projectRoot) return;
     const filename = path.resolve(uri.fsPath);
@@ -3452,8 +3505,16 @@ function activate(context, services = {}) {
     scheduleProjectDirty();clearTimeout(metadataRefreshTimer);
     metadataRefreshTimer=setTimeout(()=>{if(!disposed&&!isBusy())void repositoryStatus();},60);
   }, undefined, context.subscriptions);
-  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {if (event.affectsConfiguration('zero.uploadMode')) refresh();}));
-  if(vscode.workspace.onDidGrantWorkspaceTrust)context.subscriptions.push(vscode.workspace.onDidGrantWorkspaceTrust(()=>scheduleProjectDirty()));
+  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {
+    if (event.affectsConfiguration('zero.uploadMode')) {
+      refresh();
+      void configureProjectGitIdentity();
+    }
+  }));
+  if(vscode.workspace.onDidGrantWorkspaceTrust)context.subscriptions.push(vscode.workspace.onDidGrantWorkspaceTrust(()=>{
+    scheduleProjectDirty();
+    void configureProjectGitIdentity();
+  }));
   // Linked worktrees keep HEAD and shared config outside the workspace watcher.
   // Refresh local state first so remote checks never use the previous branch.
   let backgroundStatusRunning=false,backgroundStatusPending=false;
@@ -3471,7 +3532,8 @@ function activate(context, services = {}) {
   context.subscriptions.push({dispose(){clearInterval(mainUpdateTimer);mainUpdateGeneration++;}});
   if(vscode.window.onDidChangeWindowState)context.subscriptions.push(vscode.window.onDidChangeWindowState(event=>{if(event.focused)void refreshBackgroundStatus(true);}));
   // The Start Page owns onboarding; authentication remains explicit and local work stays available.
-  const startup = Promise.all([auth.refresh(), sharedGitHubGrant && refreshLocalZeroAccount()]).catch(error => {
+  const startup = Promise.all([auth.refresh(), sharedGitHubGrant && refreshLocalZeroAccount()])
+    .then(() => gitIdentityRequest?.promise).catch(error => {
     if (!disposed) output.appendLine(`Getting started: ${error.message}`);
   });
   if (!firstUse.enabled && !(vscode.workspace.workspaceFolders || []).length) void introduceProject().catch(error=>output.appendLine(`Start Page: ${error.message}`));
@@ -3492,6 +3554,7 @@ function activate(context, services = {}) {
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
     savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;savedProblems?.clear();
     state='';projectRoot = undefined;projectDirty=undefined;projectDirtyError=undefined;projectDirtyGeneration++;clearTimeout(projectDirtyTimer);clearDirtyMetadataWatch();mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0; repositoryStatus(); void introduceAfterConnection({revealSidebar:Boolean(event?.added?.length), addedFolders:event?.added});
+    void configureProjectGitIdentity();
   }));
   context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});
   context.subscriptions.push(createNativeUpdateReload(vscode, {context,

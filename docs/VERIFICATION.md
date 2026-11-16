@@ -1,5 +1,16 @@
 # Verification
 
+## Automatic Git commit identity — 2026-11-16
+
+On local base `353707d42`, 85 focused extension tests and 17 generated
+example-project tests passed. The extension tests exercise sign-in with an
+open project, opening a project with a restored session, workspace trust,
+simulation to live, inherited Git settings, an occupied config lock, and
+a real local Git commit using the generated identity. Zero Dev preparation and
+`npm run check` passed. The full repository suite passed with 2,497 passed and
+154 skipped. Physical Windows and live GitHub sign-in and attribution remain
+unverified.
+
 ## Restore a saved ZeroHub connection after sign-in — 2026-11-13
 
 On `289c94b80`, the website suite passed with 835 tests passed and 3 skipped.

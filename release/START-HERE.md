@@ -4,7 +4,7 @@
 
 Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.
 
-This local kit candidate **0.5.75** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
+This local kit candidate **0.5.76** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
 
@@ -23,9 +23,9 @@ Tutorials require **your own GitHub account and Git 2.31+**. Before starting:
    before creating one. If private work is required, create a private repository
    on GitHub, invite the intended reviewer’s confirmed GitHub username and verify
    access. A link alone does not grant access.
-4. Configure a Git name/email that follows school policy in each cloned repository before
-   uploading. For email privacy, copy your exact GitHub `noreply` address from
-   Settings → Emails; do not put passwords or tokens in the project.
+4. After GitHub sign-in, Zero fills missing Git name and email settings in the
+   trusted project with your GitHub username and `noreply` email. Use an identity
+   that follows school policy and keep passwords and tokens out of the project.
 
 The ordinary Hello World setup check needs no account. After tutorial cloning
 and compiler caching, Run App works offline. Uploading needs internet/sign-in.
@@ -100,7 +100,7 @@ lesson 0, then create and clone your own tutorial repository.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.75.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.76.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors

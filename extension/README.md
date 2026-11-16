@@ -170,11 +170,14 @@ Local Git inspection and commits receive no native-session credentials.
 
 Live upload requires Git 2.31 or newer for isolated runtime configuration. Zero
 checks this before obtaining transport credentials and fails closed on older Git.
-Git still needs your name/email identity configured for this student repository.
-GitHub sign-in does not configure commit identity. For example, use
-`git config --local user.name "Your Name"` and
-`git config --local user.email "your GitHub email"` inside your student folder.
-Zero leaves that choice to you. Setup help reports local tools and upload mode.
+After GitHub sign-in, Zero fills missing Git name and email settings when a trusted
+Zero repository is open in live mode. It uses your GitHub username and the
+ID-based GitHub `noreply` address. Existing Git values are preserved. The defaults
+are saved in that repository for VS Code Source Control and terminal Git.
+Setup help reports local tools and upload mode.
+Some GitHub accounts created before July 18, 2017 still use the older
+`username@users.noreply.github.com` format. To use that address, copy it from
+GitHub **Settings → Emails** and set it as the repository's `user.email`.
 
 Copy Repository Link returns the clean page URL for separate Pika submission.
 Students create their own empty repositories; no GitHub Classroom is involved.
