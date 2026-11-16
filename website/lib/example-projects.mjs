@@ -93,8 +93,8 @@ function templateWorkflow() {
   return `## Your GitHub repository and Pika
 
 1. Sign in through the account control in Zero’s sidebar using your personal account.
-   Configure Git's per-repository name/email identity manually; signing in does
-   not configure commit identity. Real pushes require native GitHub sign-in.
+   Zero fills any missing Git name and email settings in your trusted project
+   using your GitHub username and noreply email. Existing Git settings are preserved.
    GitHub actions are live by default; nothing pushes automatically. Check the
    account, repository and branch before submitting a name or commit message.
 2. Personalize this README with your project idea and a short change plan.

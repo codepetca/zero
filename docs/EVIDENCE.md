@@ -1,3 +1,16 @@
+# Automatic Git commit identity — 2026-11-16
+
+On local base `353707d42`, Zero uses the verified GitHub username and ID to fill
+missing Git name and email settings in a trusted live Zero repository. The
+repository update uses Git's config lock and preserves existing effective values.
+A disposable repository accepted a commit with `user.useConfigOnly=true`.
+
+GPT-6.1 Terra at medium reasoning reviewed the local diff and identified a missed
+retry when switching to live mode and the older GitHub noreply format. The mode
+change now retries and has a regression test. The guides explain the ID-based
+default and how to use a legacy address. A focused re-review found no blocking
+issues. GitHub attribution for legacy accounts was not tested.
+
 # Editor Start Page account states — 2026-11-15
 
 The Start Page shows **Sign in to Zero**, **Connect to GitHub**, or a profile

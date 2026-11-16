@@ -59,8 +59,9 @@ before starting a tutorial project: student-owned verified account, Git 2.31+, s
 GitHub device sign-in and compiler-download access, awareness that repositories
 created through Zero are public, and reviewer access where needed. Keep secrets and
 private files out of those repositories. Existing or GitHub-created private repositories
-can grant collaborator access to the intended reviewer. Configure a per-repository commit identity that follows school policy;
-copy the exact GitHub `noreply` email when using email privacy. Publishing remains
+can grant collaborator access to the intended reviewer. After sign-in, Zero fills
+missing commit identity settings in the trusted project with your GitHub username
+and `noreply` email. Use an identity that follows school policy. Publishing remains
 optional and public, and private-repository Pages eligibility depends on the plan.
 No paid plan is required for tutorial work.
 
@@ -178,8 +179,8 @@ execute permission; re-extract the complete kit or follow the reported local
 permission repair guidance. Checks do not execute the project's Maven build.
 
 Before starting a tutorial project, students complete the GitHub account, school access
-and privacy steps, then create and clone their own tutorial repository. In that
-clone, configure a Git identity that follows school policy before the first upload.
+and privacy steps, then create and clone their own tutorial repository. After
+GitHub sign-in, Zero fills any missing Git name or email in the trusted repository.
 After cloning and caching the build tools, local Run works offline
 without an active GitHub session; uploads require sign-in and internet access.
 GitHub actions default to live. Check your work before choosing an action;

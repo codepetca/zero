@@ -17,7 +17,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, integratedBrowser=false, empty=false, profile, initialSession, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
+async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, integratedBrowser=false, empty=false, profile, initialSession, repository=false, trusted, uploadMode, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   if (typeof profile === 'function') profile=profile(root);
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
@@ -27,9 +27,21 @@ async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=tr
   if(practice||tutorial) {await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'class Main {}\n');}
   await fs.writeFile(path.join(root,'mvnw'),'');
   await fs.writeFile(path.join(root,'pom.xml'),'<project></project>');
+  if (repository) {
+    const saved = {GIT_CONFIG_GLOBAL:process.env.GIT_CONFIG_GLOBAL, GIT_CONFIG_NOSYSTEM:process.env.GIT_CONFIG_NOSYSTEM};
+    process.env.GIT_CONFIG_GLOBAL = path.join(root, 'isolated.gitconfig');
+    process.env.GIT_CONFIG_NOSYSTEM = '1';
+    t.after(() => {
+      for (const [key,value] of Object.entries(saved)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    });
+    await core.git(root, ['init', '-q', '--template=']);
+  }
   if(lesson && !practice) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons',lessonFile),'# First lesson');if(lessonFile==='00-hello-world.md')await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Quiz');}
   const commands=new Map(),calls=[],errors=[],starts=[],ends=[],processEnds=[],launches=[],subscriptions=[],panels=[];
-  let webviewProvider, folderChanged, sessionChanged, tabReads=0;
+  let webviewProvider, folderChanged, trustGranted, configurationChanged, sessionChanged, tabReads=0;
   let receiptChanged, savedReceipt=workosReceipt && {version:1,clientId:'client_01M70QJARN1KNAAYZS71R3C2HJ',id:'user_fixture'};
   let session=initialSession, interactiveSession, authFailure=false;
   const authCalls=[],notices=[];
@@ -37,7 +49,7 @@ async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=tr
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
   const vscode={
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});if(authFailure)throw new Error('PRIVATE');if(options.createIfNone&&interactiveSession)session=typeof interactiveSession==='function'?await interactiveSession():interactiveSession;return session;},onDidChangeSessions:fn=>{sessionChanged=fn;return disposable();},registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();}},
-    workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:empty?[]:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,onDidChangeConfiguration:disposable,
+    workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:empty?[]:[{uri:{scheme:'file',fsPath:root}}],isTrusted:trusted,onDidGrantWorkspaceTrust:fn=>{trustGranted=fn;return disposable();},getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(uploadMode??fallback):fallback}),saveAll:async()=>true,onDidChangeConfiguration:fn=>{configurationChanged=fn;return disposable();},
       onDidChangeWorkspaceFolders:fn=>{folderChanged=fn;return disposable();},openTextDocument:async uri=>({uri}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
     window:{createWebviewPanel:(type,title,column,options)=>{const panel={type,title,column,options,messages:[],reveals:[],reveal(...args){this.reveals.push(args);},onDidDispose:disposable,dispose(){},webview:{html:'',cspSource:'https://resources.invalid',asWebviewUri:uri=>({toString:()=>`https://resources.invalid/${path.basename(uri.fsPath)}`}),postMessage:async message=>{panel.messages.push(message);panel.restored=message;return true;},onDidReceiveMessage:fn=>{panel.message=fn;return disposable();}}};panels.push(panel);if(type==='zero.startPage')queueMicrotask(()=>panel.message?.({type:'ready'}));return panel;},tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs.concat(trackPanelTabs?panels.map(panel=>({input:{viewType:panel.type}})):[])}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine:text=>outputLines.push(text),clear(){},show:()=>outputLines.push(null),dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:pick,showInputBox:async options=>options.title==='GitHub repository URL'?'https://github.com/student/app':input(options),showOpenDialog:async()=>[{fsPath:root}],showInformationMessage:async(text,...choices)=>{notices.push({text,choices});return information(text,...choices);},showErrorMessage:text=>errors.push(text),showTextDocument:async(document,options)=>{calls.push(['showTextDocument',document.uri,options]);}},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>integratedBrowser?['workbench.action.browser.open']:[],executeCommand:async(...args)=>{calls.push(args);return execute(...args);}},
@@ -72,8 +84,47 @@ async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=tr
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
-  return {root,commands,calls,errors,outputLines,launches,webview,panels,get startPage(){return panels.find(panel=>panel.type==='zero.startPage');},get startState(){return this.startPage?.restored?.state;},remembered,finish,vscode,notices,authCalls,subscriptions,setSession(value){session=value;sessionChanged({provider:{id:'zero-github'}});},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:event=>folderChanged(event),clearWorkOSReceipt(){savedReceipt=undefined;receiptChanged({key:require('../src/desktop.cjs').STORAGE_KEY});}};
+  return {root,commands,calls,errors,outputLines,launches,webview,panels,get startPage(){return panels.find(panel=>panel.type==='zero.startPage');},get startState(){return this.startPage?.restored?.state;},remembered,finish,vscode,notices,authCalls,subscriptions,setSession(value){session=value;sessionChanged({provider:{id:'zero-github'}});},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:event=>folderChanged(event),grantTrust(){vscode.workspace.isTrusted=true;trustGranted();},setUploadMode(value){uploadMode=value;configurationChanged({affectsConfiguration:key=>key==='zero.uploadMode'});},clearWorkOSReceipt(){savedReceipt=undefined;receiptChanged({key:require('../src/desktop.cjs').STORAGE_KEY});}};
 }
+const identitySession = {id:'app', account:{id:'17', label:'student'}, accessToken:'MOCK_ONLY'};
+const identityConfigured = f => f.outputLines.includes('Set the missing Git commit identity for this project.');
+
+test('sign-in configures an already open trusted Zero repository', async t => {
+  const f = await fixture(t, {repository:true, trusted:true});
+  await assert.rejects(core.git(f.root, ['config', '--get', 'user.email']), {code:1});
+  f.setInteractiveSession(identitySession);
+  await f.commands.get('zero.signInToGitHub')();
+  assert.equal(await core.git(f.root, ['config', '--local', 'user.email']), '17+student@users.noreply.github.com');
+  assert.deepEqual(f.errors, []);
+});
+
+test('a project opened after sign-in waits for workspace trust', async t => {
+  const f = await fixture(t, {empty:true, repository:true, trusted:false, initialSession:identitySession});
+  await settle(() => f.startState?.phase === 'ready');
+  const folder = {uri:{scheme:'file', fsPath:f.root}};
+  f.vscode.workspace.workspaceFolders = [folder];
+  f.folderChanged({added:[folder], removed:[]});
+  await settle(() => f.remembered.get('zero.sidebarShown'));
+  await assert.rejects(core.git(f.root, ['config', '--get', 'user.email']), {code:1});
+  f.grantTrust();
+  await settle(() => identityConfigured(f));
+  assert.equal(await core.git(f.root, ['config', '--local', 'user.email']), '17+student@users.noreply.github.com');
+});
+
+test('a newly opened trusted Zero repository uses the restored GitHub session', async t => {
+  const f = await fixture(t, {repository:true, trusted:true, initialSession:identitySession});
+  assert.ok(identityConfigured(f));
+  assert.equal(await core.git(f.root, ['config', '--local', 'user.name']), 'student');
+  assert.equal(await core.git(f.root, ['config', '--local', 'user.email']), '17+student@users.noreply.github.com');
+});
+
+test('a signed-in project configures Git identity when switched from simulation to live', async t => {
+  const f = await fixture(t, {repository:true, trusted:true, initialSession:identitySession, uploadMode:'simulation'});
+  await assert.rejects(core.git(f.root, ['config', '--local', 'user.email']), {code:1});
+  f.setUploadMode('live');
+  await settle(() => identityConfigured(f));
+  assert.equal(await core.git(f.root, ['config', '--local', 'user.email']), '17+student@users.noreply.github.com');
+});
 test('tutorial opens online once per project and can be reopened', async t=>{
   const f=await fixture(t,{tutorial:'greeting',lesson:false});
   await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));

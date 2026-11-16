@@ -196,8 +196,10 @@ Test project resolution, Git URL parsing/root guards, simulation side effects,
 Zero GitHub App authentication states, review cancellation, account/session drift and
 credential isolation. Git/authentication tests use mocks and intercept transport;
 no real sign-in, upload or account/configuration changes are authorized by a
-local development check. Live is the student default; simulation tests must explicitly select it. Signing in is separate
-from manually configuring per-repository Git commit identity.
+local development check. Live is the student default; simulation tests must explicitly select it.
+Test commit identity with mock GitHub sessions and disposable repositories.
+Cover sign-in and project opening, existing Git values, trust, and the first
+local commit using the repository's saved identity.
 
 The individual workflow uses reviewed local start/finish and explicit update plans.
 Test actual local Git with injected disposable bare remotes: local/main/feature

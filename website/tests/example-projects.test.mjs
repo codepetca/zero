@@ -381,8 +381,8 @@ test("trusted templates clone the student's own repository and keep ZIP setup se
     assert.match(alternative, /ZIP has no Git history/);
     assert.match(alternative, /own empty GitHub/);
     assert.match(alternative, /Project → Connect to GitHub…/);
-    assert.match(readme, /per-repository name\/email identity manually/);
-    assert.match(readme, /signing in does\n   not configure commit identity/);
+    assert.match(readme, /Zero fills any missing Git name and email settings in your trusted project/);
+    assert.match(readme, /GitHub username and noreply email. Existing Git settings are preserved\./);
     assert.match(readme, /GitHub actions are live by default/);
     assert.match(readme, /nothing pushes automatically/);
     assert.match(readme, /Commit & push.*main.*before starting a/);

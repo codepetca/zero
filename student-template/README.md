@@ -47,8 +47,9 @@ public tutorial source is allowed before creating through Zero. Keep private fil
 out of public repositories. For an existing or GitHub-created private repository,
 invite the intended reviewer’s confirmed username as a collaborator and verify access;
 a private link alone grants none, and collaborators can edit.
-Set a Git name/email that follows school policy per repository; for email privacy, copy
-the exact GitHub `noreply` address from Settings → Emails. Keep passwords/tokens
+After sign-in, Zero fills missing Git name and email settings in the trusted project
+with your GitHub username and `noreply` email. Use an identity that follows school
+policy. Keep passwords and tokens
 out of projects. See [the account/privacy guide](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy).
 The ordinary local Hello World check below needs no account. After cloning and
 compiler caching, tutorial Run works offline; pushing needs internet/sign-in.
@@ -306,10 +307,12 @@ page URL through **Project → Connect to GitHub…** with the local Zero folder
 needed and adds origin; it asks before replacing origin. It does not authenticate
 or push. Local running works without GitHub sign-in.
 
-Before a real push, configure Git's per-repository name/email identity.
-In your project terminal, replace the examples with a display
-name and commit email. For email privacy, use the exact GitHub `noreply` address
-shown in Settings → Emails, rather than your personal email:
+After GitHub sign-in, Zero fills any missing name and email in the trusted
+repository with your GitHub username and the ID-based GitHub `noreply` address.
+Existing Git settings are preserved. To choose an identity yourself, use the
+commands below in the project terminal with your preferred name and commit email.
+If GitHub **Settings → Emails** shows an older `noreply` address, you can use it
+as your commit email.
 
 ```sh
 git config user.name "Your Name"
@@ -318,8 +321,8 @@ git config user.email "your-email@example.com"
 
 These commands apply only to this repository. For more help, read
 [the online repository setup guide](https://zero.codepet.ca/docs/setup#your-github-repository).
-Signing in does not configure commit identity. Zero supplies the selected native
-GitHub session to its network operations without storing a token in your project
+Zero supplies the selected native GitHub session to its network operations
+without storing a token in your project
 or Git configuration. Account/session changes require a fresh push review.
 Never put a password or token in Java source, the marker or README.
 
