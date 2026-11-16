@@ -1,18 +1,18 @@
 # Zero release ledger
 
-Last reconciled: 2026-11-15 (America/Toronto). This is a dated working record,
+Last reconciled 2026-11-16 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.75](https://github.com/codepetca/zero/releases/tag/v0.5.75) is public. All three anonymous downloads match the release preparation receipts. | Native distributions have their own publication records. |
-| Website | The homepage links to the verified 0.5.75 Mac DMG. The live signed appcast matches the sealed bytes. | The Windows button opens Zero Studio in the Store. |
-| Mac installer | [0.5.75](https://github.com/codepetca/zero/releases/tag/setup-v0.5.75) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup passed. The interactive Sparkle upgrade for 0.5.75 remains untested. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 11, package 1.5.75.0 x64, is in certification. Submission 10 (1.5.74.0) is live. | Submission 11 is set to publish after it passes certification. |
+| GitHub manual kit | [Zero 0.5.76](https://github.com/codepetca/zero/releases/tag/v0.5.76) is public. All three anonymous downloads match the release preparation receipts. | Native distributions have their own publication records. |
+| Website | The homepage links to the verified 0.5.76 Mac DMG. The live signed appcast matches the sealed bytes. | The Windows button opens Zero Studio in the Store. |
+| Mac installer | [0.5.76](https://github.com/codepetca/zero/releases/tag/setup-v0.5.76) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup passed. Interactive Sparkle upgrade remains unverified. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 11, package 1.5.75.0 x64, is live. Submission 12 remains a draft for 1.5.76.0. | Partner Center stalled while validating the 1.5.76.0 upload. |
 | Windows portable school pilot | [0.5.74 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74) is public. | Stage the vendor tools and test on one school desktop under a student login. |
-| Windows standalone download | [0.5.75 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.75) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.75) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+| Windows standalone download | [0.5.76 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.76) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.76) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
 updates, recent tutorial changes, and Store Java/VS Code startup fixes. Its exact
@@ -22,6 +22,46 @@ blocked-executables finding, disclosed with the submission. See the
 The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
+
+## Zero 0.5.76 — 2026-11-16
+
+Zero fills missing Git commit name and email settings after GitHub sign-in in
+trusted Zero projects. Existing Git values are preserved. The source merged at
+`26d229e35a086faeb1e481cb1ec1f39c9990a810` after all 11 checks passed in
+[PR #363](https://github.com/codepetca/zero/pull/363).
+[Starter PR #5](https://github.com/codepetca/zero-starter/pull/5) updated the
+generated README. [Preparation run 43930769431](https://github.com/codepetca/zero/actions/runs/43930769431)
+verified the public starter against the packaged VSIX and replayed Greeting in
+JavaFX and Chrome. The [kit release](https://github.com/codepetca/zero/releases/tag/v0.5.76)
+and the README download link were verified after [PR #364](https://github.com/codepetca/zero/pull/364)
+merged.
+
+The [Mac installer](https://github.com/codepetca/zero/releases/tag/setup-v0.5.76)
+was built from source `771fc980f86920e17a01c53e6a0724860d180f93`, whose tree
+matches the source merge, and sealed at `9c8dfbea1f172febb0851ecc4343c00c2a403065`.
+Apple accepted notarization `8634f916-ee0e-45f9-8271-0345155886db`.
+The public DMG SHA-256 is `08bc956b2e95e7bbbded099807a8338af704a1d6e8fed41caddf0e1d5b8eb399`.
+The Developer ID, staple, Gatekeeper, isolated-home setup and all three public
+assets passed verification. [PR #365](https://github.com/codepetca/zero/pull/365)
+merged the reviewed metadata and signed feed. The live homepage download and
+signed appcast passed verification. The live appcast SHA-256 is
+`828271bd5c16668b991b74243a1e2dba68e8e0a57fcd641eabbd33e75c77897c`.
+
+[Windows run 43927965131](https://github.com/codepetca/zero/actions/runs/43927965131)
+passed standalone setup, private Git, editor reopening, JavaFX with a cached
+offline rebuild, and Store first run with a test-signed copy. Its synthetic
+commit `fb5216be670b507185cad241448a2e62ec29bac8` has the reviewed source tree.
+The anonymous preview and matching manual ZIP matched the measured installer
+and its embedded kit. [PR #366](https://github.com/codepetca/zero/pull/366)
+merged the reviewed preview metadata.
+
+[WACK run 43930502773](https://github.com/codepetca/zero/actions/runs/43930502773)
+reported a required DPI analysis warning and an optional blocked-executables
+failure, matching 0.5.75. The Store MSIX version `1.5.76.0` x64 has SHA-256
+`20c1c0896f0cc2b75031ca5e09ccf2beea9314b4ce1f480f69487ee23ff53dda`.
+Draft submission 12 retains the certification notes, publish-after-certification
+selection, and as-soon-as-possible release schedule. Submission awaits successful
+package validation after retrying the browser and native upload paths.
 
 ## Zero 0.5.75 — 2026-11-15
 

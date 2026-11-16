@@ -11,6 +11,9 @@ change now retries and has a regression test. The guides explain the ID-based
 default and how to use a legacy address. A focused re-review found no blocking
 issues. GitHub attribution for legacy accounts was not tested.
 
+The [0.5.76 release ledger](RELEASE-LEDGER.md#zero-0576--2026-11-16) records
+the reviewed source, starter compatibility, public assets and platform status.
+
 # Editor Start Page account states — 2026-11-15
 
 The Start Page shows **Sign in to Zero**, **Connect to GitHub**, or a profile
