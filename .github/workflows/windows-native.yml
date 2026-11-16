@@ -11,6 +11,7 @@ permissions:
   actions: read
 jobs:
   scope:
+    if: github.event_name != 'workflow_dispatch' || github.ref_name != 'codex/wack-0576-check'
     uses: ./.github/workflows/ci-scope.yml
   windows-tests:
     needs: scope
@@ -191,7 +192,7 @@ jobs:
             dist/installers/build-windows.json
 
   windows:
-    if: ${{ always() }}
+    if: ${{ always() && (github.event_name != 'workflow_dispatch' || github.ref_name != 'codex/wack-0576-check') }}
     needs: [scope, windows-tests]
     runs-on: ubuntu-24.04
     steps:
@@ -205,3 +206,8 @@ jobs:
           SCOPE_RESULT: ${{ needs.scope.result }}
           SELECTED: ${{ needs.scope.outputs.windows || 'true' }}
           JOB_RESULT: ${{ needs.windows-tests.result }}
+
+  # Temporary branch-only diagnostic against an already tested Store candidate.
+  store-wack-one-off:
+    if: github.event_name == 'workflow_dispatch' && github.ref_name == 'codex/wack-0576-check'
+    uses: ./.github/workflows/store-wack-one-off.yml
