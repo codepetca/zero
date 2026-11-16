@@ -11,15 +11,15 @@ location. Test first sign-in, JavaFX Run/Stop and reopen under a student login.
 
 ---
 
-# Zero 0.5.73 release — 2026-11-13
+# Zero 0.5.76 release — 2026-11-16
 
-[PR #345](https://github.com/codepetca/zero/pull/345) merged automatic Git
-setup on Windows and Mac at `984cd94141e1d99ed5315aa809efa135c1d68094`.
-Zero 0.5.73 is live on GitHub, the website and Microsoft Store. The editor
-also includes [#341](https://github.com/codepetca/zero/pull/341), which hides
-Share game. The [release ledger](../docs/RELEASE-LEDGER.md#zero-0573--2026-11-13)
-records exact checks and deployment evidence. Fresh Mac, physical Windows
-and authenticated student workflows remain untested on the released builds.
+[PR #363](https://github.com/codepetca/zero/pull/363) merged automatic Git commit
+identity after sign-in. The GitHub kit, notarized Mac installer, and Windows
+preview and matching manual ZIP are public. The live Mac download and signed
+update feed passed verification. Partner Center draft submission 12 awaits
+package validation. The Store currently serves 1.5.75.0. The
+[release ledger](../docs/RELEASE-LEDGER.md#zero-0576--2026-11-16) records exact
+source, checks, public assets and platform status.
 
 ---
 
