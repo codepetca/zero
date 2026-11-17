@@ -13225,6 +13225,13 @@ The focused Files and menu suite passed all 41 tests with network access
 denied. GPT-6.1 Terra at medium reasoning reviewed `29b7b02a0..b18a2043b`
 and found no actionable issues.
 
+The first Windows run for PR #368 stopped at the immutable 0.5.76 kit
+packaging guard. The branch prepares 0.5.77 as a local candidate and retains
+the exact 0.5.76 manifest for public downloads. Configuration, 95 release
+tests, seven download fallback tests, local packaging and kit verification
+passed. GPT-6.1 Terra at medium reasoning reviewed `f690ac3c5..d27bc8729`
+without actionable findings.
+
 One independent review of `95811bf7b..c37a8632c` used GPT-6.1 Terra at medium
 reasoning as requested and found no actionable issues. It covered the opening
 and comparison paths, stale selections, deleted files and menu conditions.
