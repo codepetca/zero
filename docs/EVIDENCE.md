@@ -1,3 +1,34 @@
+# First branch workflow in Lesson 5 — 2026-11-17
+
+Local tutorial changes against `6bdcfa7cc` save the working one-coin game on
+main. Students test and commit the score and Restart controls, then three coins
+and winning on `coin-score`. They sync both commits, merge and test main
+before publishing.
+
+All 51 focused tutorial tests passed. Applying the lesson's copy blocks to
+the Lesson 4 checkpoint produced working JavaFX runs on macOS at the one-coin
+baseline, both branch checkpoints and merged main. A local test remote confirmed
+both branch commits and the merged main. The independent GPT-6.1 Terra review
+(medium reasoning) found no actionable issues. Live GitHub, editor interaction
+and publication were outside the verification.
+
+# Incremental commits in Coin game revisited — 2026-11-17
+
+The local tutorial changes against `6bdcfa7cc` add tested commits to
+`coin-refactor`, `coin-badge`, `coin-media` and `actor-refactor`. Students
+sync each completed branch, merge into main and test before the applicable
+publish or share step. Lesson 10 carries its branch into lesson 11.
+
+The 51 focused tutorial tests and `npm run check` passed. A finite macOS
+JavaFX check ran both lesson 10 checkpoints, the lesson 11 game, the lesson 12
+media game and both lesson 13 checkpoints. The first Actor checkpoint also
+passed with the original, media and scrolling Coin classes. The final Actor
+sources match the previous finished example. Independent GPT-6.1 Terra review
+(medium reasoning) found that the optional classmate badge could leave main
+dirty. The experiment now stays on its own branch with a return to main, and
+the follow-up review found no actionable issues. Live classroom sync, merge
+and publication were outside the verification.
+
 # Automatic Git commit identity — 2026-11-16
 
 On local base `353707d42`, Zero uses the verified GitHub username and ID to fill

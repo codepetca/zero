@@ -66,6 +66,10 @@ main and optional paths. Write for a student following along in Zero:
 - Include a practical Run/check after a meaningful stage and explain what the
   student should see. Keep commit, merge and publishing actions explicit and
   appropriately separated; retain backup and sharing guidance where it matters.
+- After introducing branches, repeat the workflow in later lessons with multiple
+  working stages. Ask students to commit each tested checkpoint on the branch,
+  then sync the branch, merge into main and test on main before publishing when
+  the lesson calls for it. A branch can carry across lessons in the same project.
 
 Apply these conventions when creating or revising a lesson; do not claim an
 existing lesson is consistent without checking its actual text and UI routes.

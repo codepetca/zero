@@ -9,8 +9,9 @@ projects retain their own source and builds.
 
 1. **Greeting:** make a small interactive app. Commit a checkpoint locally,
    sync it to GitHub, then publish and test.
-2. **Coin:** move a player, collect coins and keep score. Repeat Commit and Sync
-   on main, then publish and test the game.
+2. **Coin:** move a player and save the working one-coin game on main. On a
+   branch, test and commit the score and Restart controls, then three coins and
+   winning. Sync, merge into main, and test before publishing.
 3. **Pet:** show an animated pet, move it and play a sound. Save the working
    version on main and create a local branch. Try and discard a small movement
    experiment, then refactor into a Pet class and test the original behavior.
