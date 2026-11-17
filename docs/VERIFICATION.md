@@ -1,5 +1,17 @@
 # Verification
 
+## ZeroHub publish guide — 2026-11-17
+
+Local web changes on `6bdcfa7cc` move listing help into **Publish an app** and
+forward the old help URL to the new section. Chromium verified the old URL,
+keyboard focus and 320 px reflow with doubled guide text. Mobile WebKit at
+393 px verified the guide and the sidebar link to **My Projects**. Browser
+checks used a local server with listings enabled and no account credentials.
+TypeScript passed. The website suite passed 823 tests with 3 skipped, and the
+production build passed on retry after Next.js displayed a dependency advisory.
+One independent Terra/medium review (`publish_guide_review`) covered the scoped
+diff and listing feature gate with no actionable findings or fixes.
+
 ## Automatic Git commit identity — 2026-11-16
 
 On local base `353707d42`, 85 focused extension tests and 17 generated

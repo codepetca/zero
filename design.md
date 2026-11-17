@@ -22,6 +22,9 @@ Under **Jams**, show **How jams work** to everyone and **Create a jam** only to
 accounts with hosting access. Keep the sidebar free of the discovery blurb.
 Put **My Projects** under **Projects** and **My Libraries** under **Libraries**.
 
+Owner ZeroHub refinement, 2026-11-17. Put **How app listings work** in the
+**Publish an app** guide, with **My Projects** available from the sidebar.
+
 Owner ZeroHub sidebar approval, 2026-11-10. Use the Soft highlight design.
 Submenu links have no underline, and the current row has a subtle accent fill.
 Put **Share a game** under **Projects** and **Share a library** and
