@@ -1,11 +1,10 @@
-# Windows Portable 0.5.77 — 2026-11-17
+# Zero 0.5.78 — 2026-11-17
 
-The [public staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.77)
-matches the exact published 0.5.77 kit. See the [release ledger](../docs/RELEASE-LEDGER.md#zero-0577--2026-11-17)
-for checks and the [release guide](../docs/RELEASING.md#windows-portable-school-pilot)
-for the full release requirement. Next: school IT stages the vendor tools and
-replaces the approved folder. Verify sign-in, JavaFX Run/Stop and reopen under a
-student login.
+The kit, notarized Mac setup and matching Windows Portable staging ZIP are
+public. Merge reports recognized local Git errors in the notification and
+Zero Output. See the [release ledger](../docs/RELEASE-LEDGER.md#zero-0578--2026-11-17)
+for exact receipts. Store MSIX 1.5.78.0 passed hosted first-run checks.
+Partner Center submission 14 and on-device Store delivery are tracked separately.
 
 ---
 
