@@ -7,11 +7,11 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.78](https://github.com/codepetca/zero/releases/tag/v0.5.78) is public. All three anonymous downloads match the preparation receipts. | The extension includes the Merge diagnostic. |
-| Website | Release metadata selects the verified 0.5.78 Mac DMG, signed appcast and matching Portable ZIP. | Live verification follows deployment. The Windows button opens the Microsoft Store. |
+| GitHub manual kit | [Zero 0.5.79](https://github.com/codepetca/zero/releases/tag/v0.5.79) is public. All three anonymous downloads match the preparation receipts. | Includes the shorter Publish & open app confirmation. |
+| Website | PR #379 promotes both verified 0.5.79 Portable downloads; Mac setup remains 0.5.78. | The Windows button opens the Microsoft Store. |
 | Mac installer | [0.5.78](https://github.com/codepetca/zero/releases/tag/setup-v0.5.78) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup installed the exact extension. Interactive Sparkle upgrade remains unverified. |
 | Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 13, package 1.5.77.0 x64, was live when preparing submission 14 for package 1.5.78.0. | Store availability follows successful upload and Microsoft certification. |
-| Windows portable school pilot | [0.5.78 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.78) is public and matches the published kit. | School IT stages the vendor tools and replaces the approved folder. Verify on one school desktop under a student login. |
+| Windows Portable | [0.5.79 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.79) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.79) are public and embed the same published kit. | Complete: extract and open Zero.exe. Small: teacher/IT stages vendor tools. Verify actual school policy under a student login. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
@@ -22,6 +22,39 @@ blocked-executables finding, disclosed with the submission. See the
 The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
+
+## Zero 0.5.79 — 2026-11-17
+
+The extension shortens **Publish & open app** confirmation to the visibility
+warning and any applicable replacement warning. The exact kit and both
+Portable ZIPs were prepared at clean source
+`c90bbfc1405b9a5658d6eae3d34f0a1af2cc9811` by
+[run 44190436421](https://github.com/codepetca/zero/actions/runs/44190436421).
+The public starter, native/browser Greeting, kit and website checks passed.
+[PR #379](https://github.com/codepetca/zero/pull/379) promotes the kit and both
+Portable manifests. Independent GPT-6.1 Terra metadata review at medium
+reasoning covered its exact head `093115dc5b98fb45ea93fc7ce2a644c4baa067d1`.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| zero-bootstrap.zip | 5,070,974 | `1edefe2c174964946594d30ec1ccde3181b1d76fee82e7ef20d32a1162419ca2` |
+| zero-starter.zip | 2,773,959 | `f8c79d00a025753eb1150a512c48ef64c90257cb91c744c78a2f189c23c710be` |
+| zero-0.5.79.vsix | 2,272,184 | `e247d39e12c97b231e2a3f94078525ea669f5e5bb319d0adea3669a1630e072d` |
+| Small staging ZIP | 5,379,330 | `0c814d2639705a305c409f115f31202044348b68aefe10ca2021451cb2d11305` |
+| Complete VSCodium ZIP | 605,933,612 | `4b0ff4859dca61b874ebc742a8fc61ebf8d310c03b147bea6b875d29329f3c5a` |
+| Separate source TAR | 1,470,730,240 | `b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0` |
+
+Draft and anonymous public downloads matched these measurements. Both Portable
+launchers embed the exact kit. Their clean launcher and kit source are the
+same preparation commit. Vendor pins are unchanged from 0.5.78, so its verified
+source TAR is reused byte-for-byte with an adjacent 0.5.79 index and explanation.
+The complete ZIP's notice points to the 0.5.79 companion release.
+The exact public complete ZIP passed the
+[cold/warm Windows trial](https://github.com/codepetca/zero/actions/runs/44199398168),
+including unchanged tools and extension manifests on reopening. That run's
+installer lane correctly rejected rebuilding the immutable kit; PR #379 fixes
+it to fetch and verify the published assets and reruns the selected gates.
+Mac setup, Store delivery and physical school-device acceptance remain separate.
 
 ## Zero 0.5.78 — 2026-11-17
 

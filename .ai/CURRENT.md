@@ -1,3 +1,17 @@
+# Zero 0.5.79 kit and Portable — 2026-11-17
+
+The kit and both Windows Portable ZIPs are public from clean source
+`c90bbfc1405b9a5658d6eae3d34f0a1af2cc9811`. The complete ZIP includes
+VSCodium and the pinned tools; students use **Extract All → Zero Portable →
+Zero.exe** and reuse that folder in later classes. The small ZIP retains
+teacher/IT vendor staging. Both embed the same verified 0.5.79 kit.
+[PR #379](https://github.com/codepetca/zero/pull/379) promotes both website links.
+See the [release ledger](../docs/RELEASE-LEDGER.md#zero-0579--2026-11-17)
+for exact receipts. Mac setup and Store follow their separate release schedules;
+actual school-device acceptance remains separate.
+
+---
+
 # Zero 0.5.78 — 2026-11-17
 
 The kit, notarized Mac setup and matching Windows Portable staging ZIP are

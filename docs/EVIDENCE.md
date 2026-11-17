@@ -1,3 +1,37 @@
+# Zero 0.5.79 kit and both Portable downloads — 2026-11-17
+
+[Preparation run 44190436421](https://github.com/codepetca/zero/actions/runs/44190436421)
+passed source, release, native, lesson, website and public Project → New checks
+at `c90bbfc1405b9a5658d6eae3d34f0a1af2cc9811`. Native and browser Greeting
+checks passed against the packaged 0.5.79 extension and exact public starter.
+The kit and both Portable ZIPs are public. Downloaded draft and anonymous public
+bytes matched sealed sizes and SHA256 values, including the source companion.
+Both launchers contain the exact published kit. Full-release gates require both
+Portable versions to match when the kit and Mac setup advance together.
+
+Independent GPT-6.1 Terra review at medium reasoning found no metadata,
+source-companion or final PR #379 integration blockers. Three bounded reviewer
+turns covered candidates, a read-only parallel transfer experiment and the exact
+metadata head `093115dc5b98fb45ea93fc7ce2a644c4baa067d1`; zero fix batches.
+The original canonical publisher continued successfully; the transport adapter
+was tested read-only and was not used for publication. Effective model, tokens
+and reviewer elapsed time were unavailable. Account-wide weekly allowance was
+63% remaining at this turn's start and does not measure task cost.
+
+The first promotion run exposed an older Windows CI path that tried to rebuild
+a published immutable kit. The installer lane now fetches all three pinned
+published assets with size/SHA256 verification, then retains kit, installer,
+Store and JavaFX checks; unpublished source kits still package normally.
+
+The exact public complete ZIP passed the
+[hosted Windows cold/warm trial](https://github.com/codepetca/zero/actions/runs/44199398168).
+The second launch reused tool files and extension manifests. That run's separate
+installer lane exposed the immutable-kit CI issue described above; the corrected
+promotion head must pass every selected check before merge.
+
+Mac setup and Microsoft Store retain their independent public versions. Physical
+Windows school policy and interactive JavaFX acceptance remain separate.
+
 # Publish confirmation copy — 2026-11-17
 
 The next Zero release shortens **Publish & open app** confirmation to the
