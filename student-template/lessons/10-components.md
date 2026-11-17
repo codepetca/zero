@@ -125,8 +125,10 @@ is faster than travel along one axis. Preserve that rule in this refactor.
 Changing the speed rule would be a separate feature with its own checks.
 If behaviour changed, compare the old and new direction calculations first.
 
-You have made one responsibility smaller. Next extract score presentation into a
-reusable class while Main keeps the game rules.
+Save your files on `coin-refactor`. In the commit message field, enter
+`Extract PlayerInput`, then choose:
+
+**Commit**
 
 ## 6. Create ScoreDisplay.java
 
@@ -201,6 +203,10 @@ Collect a coin and stay on it (`Score: 1`), Restart during play (`Score: 0`),
 collect all three (`Score: 3`), then Restart after winning. Check that movement
 still works. Main owns the points and tells ScoreDisplay when they change.
 
+Save your files and enter `Extract ScoreDisplay`, then choose:
+
+**Commit**
+
 ## 9. Improve the display and check it
 
 Try changing the displayed word from Score to Points. In `ScoreDisplay.java`, replace each matching line with the copied code:
@@ -228,6 +234,10 @@ Before lesson 11, restore Score by replacing each matching line with the copied 
         label.setText("Points: " + points);
         label.setText("Score: " + points);
 ```
+
+Run again and confirm the display says Score. Keep both commits on
+`coin-refactor`. You will add another checkpoint, sync the branch and merge it
+into **main** in lesson 11.
 
 After writing your own code, compare [game Main](../../teaching/checkpoints/10/game/Main.java),
 [ScoreDisplay.java](../../teaching/checkpoints/10/game/ScoreDisplay.java) and

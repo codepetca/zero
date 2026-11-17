@@ -36,9 +36,13 @@ In the project lessons, have students save and run at each checkpoint, explain o
 
 ## Save, share and recover
 
-- **Greeting and Coin:** review the changed files, run the project and choose
+- **Greeting:** review the changed files, run the project and choose
   **Commit** with a message that describes the checkpoint. Choose **Sync** and
   verify that GitHub **main** shows the commit.
+- **Coin, lesson 5:** commit and sync the working one-coin game on **main**.
+  On `coin-score`, test and commit the score and Restart controls, then test
+  and commit three coins and winning. Sync both commits, merge into **main**,
+  and run the merged game before publishing.
 - **Pet, lesson 7:** commit and sync a working **main** with the two assets.
   **Lesson 8:** choose **New branch…** from the branch name menu and confirm
   that `pet-refactor` is selected. Keep the backwards-movement experiment as
@@ -51,6 +55,14 @@ In the project lessons, have students save and run at each checkpoint, explain o
   **main**. Run the merged game and check GitHub **main**. The feature branch
   stays available. If newer changes or conflicts appear, help the student
   preserve and resolve their work, run again and retry the merge.
+- **Coin game revisited, lessons 10–13:** commit the tested PlayerInput and
+  ScoreDisplay extractions separately on `coin-refactor`. Finish and merge
+  that branch in lesson 11, then commit the local badge and the checked library
+  separately on `coin-badge`. In lesson 12, commit artwork and sound separately
+  on `coin-media`. In lesson 13, commit the working Player and Coin
+  conversions separately on `actor-refactor`. Each time, have students sync the
+  finished branch, merge it into **main**, and run the merged game before
+  sharing or publishing.
 
 The Pet recovery exercise is guarded: first verify merged main on GitHub has all source and assets, and verify the published app when available. Check for uncommitted, untracked, unpushed and ignored files; save anything needed separately and verify the backup opens. Only then close the project and move its folder to Trash without emptying it. Clone the student's own repository into a different empty location and run it. If the clone or test fails, restore the original or backup without overwriting either copy. GitHub cannot restore files that were never uploaded; automatic Trash emptying is a risk. Keep source and finished web output, since future rebuilding may depend on tools and dependency hosts.
 

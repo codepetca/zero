@@ -96,6 +96,11 @@ Remove that experimental line and **restore `score.setCaption("Score")` in the
 game's Main `setup()` before continuing**. Keep view() and setScore(int) as the
 public ways to mount and update the display.
 
+Run once more and check that collecting one coin shows `Score: 1`. Save your
+files on `coin-refactor`, enter `Let ScoreDisplay change its caption`, and choose:
+
+**Commit**
+
 ## 4. Optionally improve PlayerInput with WASD
 
 The game now has one place to improve keyboard input. As an optional feature,
@@ -139,7 +144,12 @@ and reset behaviour should still work. Update Main's drawn help text by replacin
         text("Click the canvas, then hold arrows or WASD.", 20, 30);
 ```
 
-## 5. Record the API and save your tested changes
+Run and check that the new help text appears and the keys work. If you made
+this change, save your files, enter `Add WASD controls`, and choose:
+
+**Commit**
+
+## 5. Record the API and finish the refactor branch
 
 Record what you checked in README, including the expected result and what you
 observed. Record this API in a comment: `view()` gives the calling class an
@@ -155,10 +165,19 @@ checkpoint 11 (shown before library extraction). Its [PlayerInput.java](../../te
 includes the optional WASD change; checkpoint 10 is the arrow-only comparison if
 you skipped it. Checkpoint 12 carries that same WASD helper forward.
 
-Save your files and choose **Commit** with a message that describes the tested
-refactor. Choose **Sync** to send `coin-refactor` to GitHub. Then choose
-**Merge** beside the branch name and confirm **Merge coin-refactor into main?**
-Zero syncs the merged **main** to GitHub.
+Save your notes, enter `Document ScoreDisplay checks`, and choose:
+
+**Commit**
+
+Stop the game. With `coin-refactor` selected, choose:
+
+**Sync**
+
+Wait for Sync to finish, then choose **Merge** beside the branch name and
+confirm **Merge coin-refactor into main?**
+
+Check that **main** is selected. Run the merged game and check movement,
+scoring and Restart. Stop the game before starting the next branch.
 
 ## 6. Add a harmless practice badge
 
@@ -223,6 +242,10 @@ Run. You should see `Made with Zero: Coin game` under the controls. Change the
 message, run again, then restore `Coin game` for the checkpoint comparison. Check
 movement, coins, win and Restart still work. The badge has no game-state job.
 
+Save your files on `coin-badge`, enter `Add CreditsBadge to the game`, and choose:
+
+**Commit**
+
 ## 7. Extract the practice library
 
 Keep this same tutorial repository. Open the Command Palette, run:
@@ -280,9 +303,18 @@ Confirm the badge, controls, movement and Restart in the browser. A successful
 compile and an actual working page are different checks. Keep publication an
 explicit separate action; local browser preview is enough to practise checking.
 
-Save the tested badge work and choose **Commit**, then **Sync**. Choose
-**Merge** beside `coin-badge` and confirm **Merge coin-badge into main?**
-Check that **main** is selected before continuing.
+Save the checked library, examples and README. Enter
+`Extract and check the badge library` and choose:
+
+**Commit**
+
+Stop the game and choose **Sync** on `coin-badge`. Wait for Sync to finish,
+then choose **Merge** beside the branch and confirm
+**Merge coin-badge into main?**
+
+Check that **main** is selected. Run the merged game and verify the badge,
+movement, scoring and Restart. Run **Check library…** again on **main** before
+preparing a submission.
 
 ## 9. Practise submitting and using a classmate's badge
 
@@ -305,7 +337,13 @@ They are labelled tutorial copies and excluded from ordinary Projects/Libraries
 search. Everyone is expected to have a similar badge. Completing the workflow is
 the achievement; these are not candidates for automatic inclusion in Zero.
 
-To try a classmate's accepted version, open the Command Palette and run:
+To try a classmate's accepted version, stop the game. In the **Project**
+panel, click **main** and choose:
+
+**New branch…**
+
+Enter `try-classmate-badge` and press Enter. Check that the new branch is
+selected. Open the Command Palette and run:
 
 **Zero: Libraries and Games**
 
@@ -322,6 +360,10 @@ construction with their fully qualified class name and the same message argument
 keep your own library in local mode and keep the game rules unchanged. Run
 and check the displayed message. Use a new exact version for an improvement and
 review Update/Revert deliberately; editor updates never replace it automatically.
+
+Stop the game, save your files, enter `Try a classmate's badge`, and choose
+**Commit**. Select **main** from the branch menu before lesson 12. Your
+experiment stays on `try-classmate-badge`.
 
 Maintainers may periodically clear practice listings. That removes them
 from practice discovery. Your GitHub source, local extracted source and already

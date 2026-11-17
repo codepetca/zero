@@ -96,8 +96,7 @@ In `update()`, add the collection check; replace the matching lines with the cop
 
 In `draw()`, add the score and coin drawing before the player; replace the matching lines with the copied code:
 
-```java-after-1-2-3
-        fill(Color.rgb(47, 79, 79));
+```java-after-1-2
         text("Score: " + points, 20, 60);
         coin.draw(this);
         player.draw(this);
@@ -105,9 +104,38 @@ In `draw()`, add the score and coin drawing before the player; replace the match
 
 ## 7. Run and collect the coin once
 
-Click **Run**. Touch the coin, stay there, leave, and return. The coin should disappear and the score should become 1 only once. The `!coin.isCollected()` check prevents a point every frame. If you remove it, contact can repeatedly score even though Coin no longer draws. Put it back before continuing.
+If the movement demo from lesson 4 is still running, choose **Stop**. Then
+choose **Run** and click the canvas. Touch the coin, stay there, leave, and
+return. The coin should disappear and the score should become 1 only once.
+The `!coin.isCollected()` check prevents a point every frame. If you remove
+it, contact can repeatedly score even though Coin no longer draws. Put it back
+before saving the working game.
 
-## 8. Add a score and Restart below the canvas
+## 8. Save the one-coin game on main
+
+Stop the game and save your files. In the **Project** panel, check that **main**
+is selected. Enter `Collect one coin` in the commit message field, then choose:
+
+**Commit**
+
+Once Zero confirms the local commit, choose:
+
+**Sync**
+
+When Sync finishes, click your repository name and choose **Open on GitHub**.
+Check that **main** shows `Collect one coin`.
+
+## 9. Start a branch for the next version
+
+A branch lets you build the next version while **main** keeps the working
+one-coin game. In the **Project** panel, click **main**, then choose:
+
+**New branch…**
+
+Enter `coin-score` and press Enter. Check that `coin-score` is selected. The
+next two commits will save working versions on this branch.
+
+## 10. Add a score and Restart below the canvas
 
 Zero controls can sit below the canvas. In `Main.java`, add the control imports; replace the matching lines with the copied code:
 
@@ -118,7 +146,7 @@ import zero.ui.Label;
 import zero.ui.Row;
 ```
 
-## 9. Add label fields
+## 11. Add label fields
 
 In `Main.java`, add the label fields; replace the matching lines with the copied code:
 
@@ -128,7 +156,7 @@ In `Main.java`, add the label fields; replace the matching lines with the copied
     private Label message;
 ```
 
-## 10. Create the controls
+## 12. Create the controls
 
 In `setup()`, replace the two assignments with controls created once and a call to `restart()`. Copy the block over the matching lines:
 
@@ -143,7 +171,7 @@ In `setup()`, replace the two assignments with controls created once and a call 
         restart();
 ```
 
-## 11. Move the starting state into `restart()`
+## 13. Move the starting state into `restart()`
 
 The two assignments you replaced now belong in `restart()`. Add the method below `setup()` by replacing the matching lines with the copied code:
 
@@ -160,7 +188,7 @@ The two assignments you replaced now belong in `restart()`. Add the method below
     }
 ```
 
-## 12. Update the score label after collection
+## 14. Update the score label after collection
 
 In `update()`, add the score label update; replace the matching lines with the copied code:
 
@@ -175,7 +203,22 @@ In `draw()`, **find and remove** the old canvas score line:
 
 Restart should restore the coin, Player's position and score without creating another control row. `showGame()` returns keyboard focus to the retained canvas and clears held input; it keeps the existing control row. It also works here when the game is already showing.
 
-## 13. Grow to three coins and a win
+## 15. Test and commit the score and Restart
+
+Choose **Run**. Check that the score below the canvas starts at 0 and changes
+to 1 when you collect the coin. Stay on the coin to check that it scores only
+once. Click **Restart**. The coin and the player's starting position should
+return, and the score should reset to 0. Collect the coin again to check
+that Restart set up a fresh game.
+
+Choose **Stop** and save your files on `coin-score`. Enter
+`Add score and Restart controls` and choose:
+
+**Commit**
+
+This checkpoint is saved on `coin-score`. Stay on the branch for the next change.
+
+## 16. Grow to three coins and a win
 
 In `Main`, copy the block over the matching field:
 
@@ -196,7 +239,7 @@ In `restart()`, copy the block over the matching assignment:
         message.setText("Collect all " + coins.length + " coins.");
 ```
 
-## 14. Stop movement after collecting every coin
+## 17. Stop movement after collecting every coin
 
 In `restart()`, **find and remove** the earlier message line:
 
@@ -230,7 +273,7 @@ In `update()`, copy the block over the existing coin collection check:
         }
 ```
 
-## 15. Draw all coins, then test Restart and winning
+## 18. Test and commit three coins and winning
 
 In `draw()`, copy the block over the matching line:
 
@@ -239,17 +282,41 @@ In `draw()`, copy the block over the matching line:
         for (Coin each : coins) each.draw(this);
 ```
 
-Main still explicitly updates Player and draws every object. Click **Run**. Try Restart before collecting, after one coin and after winning. Each run should return to 0 with all three coins visible; winning stops movement until Restart. Change a coin's coordinates to make your own level. Keep each 24-pixel square within x 0–616 and y 0–376.
+Main still explicitly updates Player and draws every object. Choose **Run**.
+Try Restart before collecting, after one coin and after winning. Each Restart
+should return the score to 0 with all three coins visible. When the score
+reaches 3, check for the win message and confirm that movement stops until
+Restart. If you change a coin's coordinates, keep each 24-pixel square within
+x 0–616 and y 0–376, then run these checks again.
+
+Save your files on `coin-score`, enter `Add three coins and a win condition`, and choose:
+
+**Commit**
 
 After writing it, compare with checkpoint 9's [Main.java](../../teaching/checkpoints/9/Main.java), [Player.java](../../teaching/checkpoints/9/Player.java) and [Coin.java](../../teaching/checkpoints/9/Coin.java). Keep this project if you later try the optional [component lessons](10-components.md).
 
-## 16. Save your game
+## 19. Sync and merge your branch
 
-Save your files and check that **main** is selected. Enter `Finish coin game`
-and choose **Commit**. Then choose **Sync** to send the checkpoint to GitHub.
-Open your repository and check that **main** shows the new commit.
+Stop the game. With `coin-score` selected, choose:
 
-## 17. Publish your game
+**Sync**
+
+The first Sync creates `coin-score` on GitHub and sends both saved commits.
+When Sync finishes, open your repository on GitHub, switch to `coin-score` and
+check its commit history for both messages.
+
+In Zero, choose **Merge** beside the branch name and confirm
+**Merge coin-score into main?** Zero merges the branch and syncs **main** to
+GitHub.
+
+## 20. Test the merged game on main
+
+Check that **main** is selected in Zero. Choose **Run**, collect all three
+coins and check for the win message. Try Restart and check that the score
+returns to 0 and the player can move again. Check that GitHub **main** shows
+the finished game before publishing.
+
+## 21. Publish your game
 
 After checking that you have permission to share the contents, stop the running app. Open the Run dropdown and choose:
 
