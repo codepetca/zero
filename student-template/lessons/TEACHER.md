@@ -26,6 +26,7 @@ require a connection.
 | 1–3 Greeting | A label, button and name field work; another name changes the greeting. |
 | 4–5 Coin | Held arrows move the player within the edges; each coin scores once; all three win and Restart restores the game. |
 | 6–9 Pet | The bird displays, flaps, moves and chimes; extracting `Pet` preserves its behavior. A welcome screen has Start and Back. |
+| 14 Original game | Students build and test a game with their own rule, then publish it and play from its ZeroHub listing where available. |
 
 In the project lessons, have students save and run at each checkpoint, explain one change, and investigate a compiler error. For games, click the canvas before using keys. Compare the Pet's behavior before and after extracting its class: Main handles input and sound, while the pet owns its position and animation and is updated once per frame. Reference checkpoints are for comparison after trying the work, not completed starters.
 
