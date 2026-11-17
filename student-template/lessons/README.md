@@ -1,6 +1,6 @@
 # Build with Zero: tutorials
 
-Make three projects and build on your own code as you learn. Start each project
+Make three guided projects, then build a game of your own. Start each project
 once and keep using its folder while you follow its lessons. Illustrations show
 the intended result; native controls vary by platform.
 
@@ -11,9 +11,10 @@ the intended result; native controls vary by platform.
 | 2. Coin game | [4](08-movement.md), [5](09-coin-game.md) | A moving player, coins, a score and Restart. |
 | 3. Pet game | [6](13-pet.md), [7](16-pet-motion.md), [8](17-pet-class.md), [9](14-own-project.md) | Animate a bird, make a Pet class, and add a welcome screen. Practise branching, discarding an experiment, merging and re-cloning. |
 
-## Optional tutorials
+## Keep building
 
-- [Coin game revisited](10-components.md): reopen your Coin game for lessons 10–12, refactor input, practise sharing a CreditsBadge, and use what you learned in Pet to add artwork and sound. Tutorial-practice copies are expected; hosted acceptance may be paused.
+- [Coin game revisited](10-components.md): return to Coin in lessons 10–13 to refactor input, practise sharing a CreditsBadge, add media and try Actors. Tutorial-practice copies are expected; hosted acceptance may be paused.
+- [Build and publish your own game](19-original-game.md): create an original project, publish your game and play it from your ZeroHub listing.
 
 ## Start a lesson
 

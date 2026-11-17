@@ -7,6 +7,7 @@ const lessons = new Map([
   ['03-quiz.md', 'zero-study'],
   ['08-movement.md', 'zero-coin-game'],
   ['13-pet.md', 'zero-pet'],
+  ['19-original-game.md', 'zero-signal-rescue'],
 ]);
 
 test('new-project lessons make project creation step one and put the selection on its own line', async () => {
@@ -46,7 +47,7 @@ test('tutorial steps remain sequential and name the visible Run control', async 
     '04-counter.md', '05-methods.md', '06-objects.md', '07-study-app.md',
     '08-movement.md', '09-coin-game.md', '10-components.md', '11-zerohub.md',
     '12-media.md', '13-pet.md', '14-own-project.md', '15-recover-zero.md',
-    '16-pet-motion.md', '17-pet-class.md', '18-actors.md',
+    '16-pet-motion.md', '17-pet-class.md', '18-actors.md', '19-original-game.md',
   ]) {
     const text = await readFile(new URL(`../../student-template/lessons/${file}`, import.meta.url), 'utf8');
     const numbers = [...text.matchAll(/^## (\d+)\./gm)].map(match => Number(match[1]));

@@ -19,9 +19,9 @@ projects retain their own source and builds.
    into main. Publish. Confirm source and assets on GitHub,
    protect untracked/ignored work, move the local folder to Trash and re-clone
    the student's own repository; run the recovered game.
-4. **Make your own:** use Project → New for an original project; build and
-   personalize a pleasant title screen and a simple scene with Start/Back.
-   Offer a HUD as an optional extension. Commit, sync, publish and test.
+4. **Make your own (lesson 14):** start a new original game and choose a game
+   rule. Test and commit the controls and goal separately, then sync, merge and
+   test on main. Publish and play it from its ZeroHub listing when eligible.
 
 Optional tutorials: the Study quiz and a clearly labelled tutorial-practice
 component contribution. Preserve the existing legacy lessons and accessible

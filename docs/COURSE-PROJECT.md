@@ -56,10 +56,10 @@ and follow its first lesson's starting-code instructions. Continue in the
 same repository for the rest of that project's lessons. Use **Project → Open**
 to return to a local clone.
 
-Configure your Git name and email in each repository. The early lessons
-practise **Commit** and **Sync** on **main**. Pet adds a local branch, a
-discard exercise and **Merge** into **main**. Use your own repository for
-the lessons and keep private material out of public projects.
+Configure your Git name and email in each repository. Greeting practises
+**Commit** and **Sync** on **main**. Coin introduces branch commits and
+**Merge**. Pet adds a discard exercise. Use your own repository for the
+lessons and keep private material out of public projects.
 
 Ordinary ZeroHub contributions remain for separate original work. Lesson
 11 has one explicit exception: the copied `tutorial-credits-badge` library from
@@ -68,6 +68,10 @@ acceptance is enabled. Other tutorial games/libraries stay out of the community
 catalogue. Submit tutorial
 repository links in Pika if your course uses it and requests them; nothing is submitted
 automatically.
+
+For an original game, [Lesson 14](../student-template/lessons/19-original-game.md)
+walks through building a first playable version, publishing and opening it from
+its ZeroHub listing.
 
 ## Build one feature at a time
 

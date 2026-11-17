@@ -1,3 +1,16 @@
+# Original game capstone — 2026-11-17
+
+Lesson 14 starts a new original project, reuses earlier techniques and
+takes students from tested branch commits to publishing and playing from
+the ZeroHub listing. The Pet and Coin revisited paths both lead to it.
+
+Local changes against `b6f9e6f93` passed 51 focused tests and `npm run check`.
+The website build rendered Lesson 14, both navigation entry points and the
+ZeroHub links. Independent GPT-6 Luna review (medium reasoning) found the
+Restart exercise needed exact references. The lesson now names the related
+Coin steps and the state to reset. The follow-up review cleared the fix.
+Live student publication and listing were outside this check.
+
 # First branch workflow in Lesson 5 — 2026-11-17
 
 Local tutorial changes against `6bdcfa7cc` save the working one-coin game on

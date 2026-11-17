@@ -8,11 +8,11 @@ const lessonFiles = Object.freeze({
   '7':'07-study-app.md', '8':'08-movement.md', '9':'09-coin-game.md',
   '10':'10-components.md', '11':'11-zerohub.md', '12':'12-media.md',
   '13':'13-pet.md', '14':'14-own-project.md', '15':'15-recover-zero.md',
-  '16':'16-pet-motion.md', '17':'17-pet-class.md', '18':'18-actors.md',
+  '16':'16-pet-motion.md', '17':'17-pet-class.md', '18':'18-actors.md', '19':'19-original-game.md',
 });
 const LESSON_IDS = Object.freeze(Object.keys(lessonFiles));
-const MAIN_LESSONS = Object.freeze(['15','0','1','2','8','9','13','16','17','14']);
-const DISPLAY_NUMBERS = Object.freeze({'15':0,'0':1,'1':2,'2':3,'8':4,'9':5,'13':6,'16':7,'17':8,'14':9,'10':10,'11':11,'12':12,'18':13});
+const MAIN_LESSONS = Object.freeze(['15','0','1','2','8','9','13','16','17','14','19']);
+const DISPLAY_NUMBERS = Object.freeze({'15':0,'0':1,'1':2,'2':3,'8':4,'9':5,'13':6,'16':7,'17':8,'14':9,'10':10,'11':11,'12':12,'18':13,'19':14});
 const tutorialGroups = Object.freeze([
   {id:'getting-started',title:'Getting started',lessons:['15']},
   {id:'greeting',title:'Greeting app',lessons:['0','1','2']},
@@ -20,6 +20,7 @@ const tutorialGroups = Object.freeze([
   {id:'pet',title:'Animated pet',lessons:['13','16','17','14']},
   {id:'study',title:'Study quiz',lessons:['3','4','5','6','7']},
   {id:'practice',title:'Coin game revisited',lessons:['10','11','12','18']},
+  {id:'original',title:'Original game',lessons:['19']},
 ].map(group => Object.freeze({...group,lessons:Object.freeze(group.lessons)})));
 const visibleTutorialGroups = Object.freeze(tutorialGroups.filter(group => group.id !== 'study'));
 const PROJECT_LESSONS = Object.freeze({greeting:'0',study:'3',game:'8',pet:'13'});
@@ -34,7 +35,7 @@ function navigationIds(id) {
     : tutorialGroups.find(group => group.lessons.includes(id))?.lessons;
   if (!sequence) return {};
   const index = sequence.indexOf(id);
-  return {previous:sequence[index - 1],next:sequence[index + 1]};
+  return {previous:sequence[index - 1],next:sequence[index + 1] ?? (id === '18' ? '19' : undefined)};
 }
 function referencePath(value) {
   return /^teaching\/checkpoints\/(?:[0-9]|1[0-2])\/(?:[a-z]+\/)?[A-Za-z]+\.java$/.test(value)
