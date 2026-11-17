@@ -5,12 +5,14 @@ import {copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirS
 import path from 'node:path';
 import {kitEntries} from './installer-payload.mjs';
 import {root, releaseDefinition} from './release.mjs';
+import {writePublicPortable} from './windows-portable-package.mjs';
 import {buildWindowsIcon} from './windows-icon.mjs';
 
 const [downloadDirectory, outputDirectory, ...extra] = process.argv.slice(2);
 if (!downloadDirectory || !outputDirectory || extra.length)
-  throw new Error('Usage: node scripts/build-windows-portable.mjs DOWNLOAD_DIRECTORY NEW_OUTPUT_DIRECTORY');
+  throw new Error('Usage: node scripts/build-windows-portable.mjs DOWNLOAD_DIRECTORY|--public NEW_OUTPUT_DIRECTORY');
 
+const publicOnly = downloadDirectory === '--public';
 const release = releaseDefinition();
 const kitFile = path.join(root, 'dist', release.assets.kit.filename);
 const kit = readFileSync(kitFile);
@@ -63,11 +65,6 @@ assert.ok(source.includes(`PortableJavaVersion = "${javaExtension.version}"`) &&
   source.includes(`PortableJavaHash = "${javaExtension.sha256}"`) &&
   source.includes(`Length != ${javaExtension.size}`), 'Portable Java extension pins must match the launcher');
 
-const vs = pins.vscode;
-const stageScript = readFileSync(path.join(root, 'native-installer/windows/Stage-VSCode.ps1'), 'utf8')
-  .replaceAll('@VS_CODE_URL@', vs.url).replaceAll('@VS_CODE_SIZE@', String(vs.size)).replaceAll('@VS_CODE_SHA256@', vs.sha256);
-writeFileSync(path.join(stage, 'Stage-VSCode.ps1'), stageScript.replace(/\r?\n/g, '\r\n'), {flag:'wx'});
-copyFileSync(path.join(root, 'docs/WINDOWS-PORTABLE.md'), path.join(stage, 'READ-ME.md'));
 copyFileSync(path.join(root, 'LICENSE'), path.join(stage, 'LICENSE.txt'));
 const metadata = {
   kitVersion:release.kitVersion,
@@ -75,8 +72,17 @@ const metadata = {
   sourceDirty:!!execFileSync('git', ['status', '--porcelain'], {cwd:root, encoding:'utf8'}).trim(),
   kitSha256:digest(kit), launcherSha256:digest(launcher), runtimes:Object.fromEntries(
     Object.entries(pins).map(([key, {version, url, size, sha256}]) => [key, {version, url, size, sha256}])), javaExtension};
-writeFileSync(path.join(stage, 'BUILD.json'), JSON.stringify(metadata, null, 2) + '\n', {flag:'wx'});
 const output = path.resolve(outputDirectory);
-mkdirSync(output);
-execFileSync('python3', [path.join(root, 'scripts/stage-windows-portable.py'), path.resolve(downloadDirectory),
-  stage, output, path.join(root, 'setup/windows-downloads.json')], {cwd:root, stdio:'inherit', timeout:240000});
+if (publicOnly) {
+  writePublicPortable(root, metadata, name => readFileSync(path.join(stage, name)), output);
+} else {
+  const vs = pins.vscode;
+  const stageScript = readFileSync(path.join(root, 'native-installer/windows/Stage-VSCode.ps1'), 'utf8')
+    .replaceAll('@VS_CODE_URL@', vs.url).replaceAll('@VS_CODE_SIZE@', String(vs.size)).replaceAll('@VS_CODE_SHA256@', vs.sha256);
+  writeFileSync(path.join(stage, 'Stage-VSCode.ps1'), stageScript.replace(/\r?\n/g, '\r\n'), {flag:'wx'});
+  copyFileSync(path.join(root, 'docs/WINDOWS-PORTABLE.md'), path.join(stage, 'READ-ME.md'));
+  writeFileSync(path.join(stage, 'BUILD.json'), JSON.stringify(metadata, null, 2) + '\n', {flag:'wx'});
+  mkdirSync(output);
+  execFileSync('python3', [path.join(root, 'scripts/stage-windows-portable.py'), path.resolve(downloadDirectory),
+    stage, output, path.join(root, 'setup/windows-downloads.json')], {cwd:root, stdio:'inherit', timeout:240000});
+}

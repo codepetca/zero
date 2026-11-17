@@ -9,9 +9,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const headers = { 'Cache-Control': 'no-store' };
-  if (!localDownloadsEnabled()) return new Response(null, { status: 404, headers });
+  const localAsset = (pilot as { localAsset?: { filename: string; size: number; sha256: string } }).localAsset;
+  if (!localDownloadsEnabled() || !localAsset) return new Response(null, { status: 404, headers });
 
-  const { filename, size, sha256 } = pilot.localAsset;
+  const { filename, size, sha256 } = localAsset;
   try {
     const folder = resolve(process.cwd(), '../dist/school-pilot');
     const file = await realpath(resolve(folder, filename));

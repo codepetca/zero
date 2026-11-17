@@ -352,12 +352,36 @@ until that kit's independent publication is complete.
 
 ## Windows portable school pilot
 
-The school pilot has its own `windows-portable-pilot-v<version>` prerelease.
-Use `node scripts/package-windows-portable-public.mjs PRIVATE_ZIP NEW_OUTPUT_DIRECTORY`
-with the verified private ZIP recorded in `release/windows-portable-pilot.json`.
-It reuses the measured launcher and adds the pinned vendor staging script.
-Keep the vendor-binary ZIP in local pilot storage. Publish the staging ZIP and
-its checksum, then verify the public asset anonymously before recording its
-URL, size and SHA-256 in the pilot manifest. The public `/downloads` page
-reads that independent manifest. The trial remains unsigned and requires
-the on-device student workflow in [the pilot guide](WINDOWS-PORTABLE.md).
+A full release includes the published kit, Mac setup, Windows installer and a
+matching Windows Portable staging ZIP. Manual **Release checks and preparation**
+builds `zero-<version>-portable-<run-id>` from the same sealed kit bytes as the
+manual kit release. Keep the successful run and its matching kit and Portable
+artifacts together. A separate local Mac or Windows build can have different kit
+archive bytes even at the same version.
+
+1. Download the Portable artifact from the same successful preparation run.
+   Run `shasum -a 256 -c SHA256SUMS.txt` from that directory and compare
+   `portable-candidate.json` with the preparation source and kit SHA-256.
+2. With release authorization, create an unsigned school pilot draft prerelease
+   named `windows-portable-pilot-v<version>`, targeting that exact source commit.
+   Attach only `Zero-<version>-windows-portable-pilot-staging-x64.zip` and
+   `SHA256SUMS.txt`. Download the draft assets and verify their exact bytes
+   before publishing. Keep an existing verified release and its files intact
+   when retrying.
+3. Download the public ZIP and checksum anonymously and verify them against the
+   candidate. Copy the verified `portable-candidate.json` into
+   `release/windows-portable-pilot.json` as part of the final release promotion
+   PR. Once the kit and both native downloads match, the promotion check
+   requires the matching Portable metadata and verifies that the public launcher
+   embeds the exact published kit. This applies even when platforms are promoted
+   in separate PRs. Kit-only releases can keep the prior Portable download.
+4. After deployment, check the versioned link at
+   [Downloads → Windows portable pilot](https://zero.codepet.ca/downloads#windows-portable)
+   and check the school's [student login and run steps](WINDOWS-PORTABLE.md).
+   Existing school installs update when IT replaces the staged folder.
+
+For local preparation from a clean source checkout with an already verified
+`dist/` kit, run `node scripts/build-windows-portable.mjs --public NEW_OUTPUT_DIRECTORY`.
+An earlier release needs its original sealed kit receipt and exact published
+kit ZIP, verified against the original source checkout. Keep any ZIP containing
+local copies of the vendor binaries private.

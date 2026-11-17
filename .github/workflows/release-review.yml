@@ -93,6 +93,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           EXPECTED_VERSION: ${{ inputs.version }}
+      - name: Require the matching public Portable ZIP for a full release
+        if: github.event_name == 'pull_request'
+        env:
+          ZERO_RELEASE_BASE: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-windows-portable-release.mjs "$ZERO_RELEASE_BASE"
       - name: Configuration and release guard tests
         run: |
           npm run check
@@ -174,6 +179,17 @@ jobs:
         env:
           EXPECTED_VERSION: ${{ inputs.version }}
         run: node scripts/release-review.mjs seal
+      - name: Build the Portable staging ZIP from the sealed kit
+        if: github.event_name == 'workflow_dispatch' && steps.release.outputs.status == 'local'
+        run: node scripts/build-windows-portable.mjs --public dist/windows-portable
+      - name: Retain measured Windows Portable candidate
+        if: github.event_name == 'workflow_dispatch' && steps.release.outputs.status == 'local'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-${{ steps.release.outputs.version }}-portable-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 14
+          path: dist/windows-portable/
       - name: Upload the Project → New receipt for publication
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

@@ -1,11 +1,15 @@
 // The pilot has its own versioned release asset and is independent of the
 // regular kit, Windows installer and automatic updates.
 export function windowsPortablePilotHref(pilot) {
-  const { kitVersion, sourceRevision, asset, localAsset, publication } = pilot;
+  const { kitVersion, sourceRevision, kitSha256, asset, localAsset, publication } = pilot;
   if (!/^\d+\.\d+\.\d+$/.test(kitVersion) || !/^[a-f0-9]{40}$/.test(sourceRevision) ||
-      localAsset?.filename !== `Zero-${kitVersion}-windows-portable-pilot-x64.zip` ||
+      (kitSha256 !== undefined && !/^[a-f0-9]{64}$/.test(kitSha256))) {
+    throw new Error('Invalid Windows portable pilot metadata');
+  }
+  if ((!publication || localAsset !== undefined) &&
+      (localAsset?.filename !== `Zero-${kitVersion}-windows-portable-pilot-x64.zip` ||
       !Number.isSafeInteger(localAsset.size) || localAsset.size <= 0 || localAsset.size > 512 * 1024 * 1024 ||
-      !/^[a-f0-9]{64}$/.test(localAsset.sha256)) {
+      !/^[a-f0-9]{64}$/.test(localAsset.sha256))) {
     throw new Error('Invalid Windows portable pilot metadata');
   }
   if (!publication) {
