@@ -13221,6 +13221,9 @@ After removing the **Show All Project Files** row, a reload showed no action
 row in Files. The Files three-dot menu still opened the standard Explorer,
 and **Back to Zero** returned to Files. The Command Palette search did not
 offer the action. The right-click comparison still opened from the file row.
+The focused Files and menu suite passed all 41 tests with network access
+denied. GPT-6.1 Terra at medium reasoning reviewed `29b7b02a0..b18a2043b`
+and found no actionable issues.
 
 One independent review of `95811bf7b..c37a8632c` used GPT-6.1 Terra at medium
 reasoning as requested and found no actionable issues. It covered the opening
