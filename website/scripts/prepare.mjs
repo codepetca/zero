@@ -20,6 +20,7 @@ import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
 import { coreSources } from "../../scripts/prepare-starter.mjs";
 import { loadWindowsInstaller, loadWindowsUpdateFeed } from "../lib/windows-installer.mjs";
 import { loadWindowsPreview } from "../lib/windows-preview.mjs";
+import { windowsPortableBundleHref } from "../lib/windows-portable-bundle.mjs";
 import { windowsPortablePilotHref } from "../lib/windows-portable-pilot.mjs";
 import { loadUpdateFeed } from "../lib/update-feed.mjs";
 import { prepareBrandAssets } from "../lib/brand-assets.mjs";
@@ -95,6 +96,10 @@ try {
 } catch (error) {
   if (error.code !== 'ENOENT') throw error;
 }
+windowsPortableBundleHref(
+  JSON.parse(await readFile(resolve(root, "release/windows-portable-bundle.json"), "utf8")),
+  release.publication.status === "published" ? release : publishedKit,
+);
 let installer = null;
 try {
   installer = validateInstallerManifest(JSON.parse(await readFile(resolve(root, "release/installer.json"), "utf8")), release);
