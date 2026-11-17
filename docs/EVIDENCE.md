@@ -13209,8 +13209,13 @@ file tests passed. Repository checks and `git diff --check` passed. A disposable
 macOS VS Code extension host opened a modified Java file in a regular editor
 tab, then opened a diff against the committed version with an unsaved edit still
 present in the working document. It used the command handlers directly.
-The mouse and keyboard menu interactions and Windows and Linux UI were not
-exercised.
+
+On 2026-11-17, a macOS Zero development host running VS Code 1.146.0 showed
+**Compare with Last Commit** beside **Discard File Changes…** and **Rename
+file…** when right-clicking a modified `Main.java` in Files. Choosing Compare
+showed the committed `score = 0` beside the working `score = 42`. A normal
+click returned to the regular editor with the modified source intact. Keyboard
+menu interaction and Windows and Linux UI were not exercised.
 
 One independent review of `95811bf7b..c37a8632c` used GPT-6.1 Terra at medium
 reasoning as requested and found no actionable issues. It covered the opening
