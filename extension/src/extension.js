@@ -1420,10 +1420,10 @@ function activate(context, services = {}) {
     await repositoryStatus();
     reportGit(record.operation==='merge'?'Signed in · retry Merge to main':'Signed in · use Sync');
   }
-  const assertUpdateClean=async (root,action='updating')=>{
+  const assertUpdateClean=async (root,action='updating',run=core.git)=>{
     await assertGitProject(root);
     if((await dirtyProjectDocuments(vscode,root)).length)throw new Error(`Save or undo your project editor changes before ${action}. Then commit or discard any saved changes.`);
-    if(await guardedRunner(core.git)(root,['-c','core.fsmonitor=false','status','--porcelain=v1','-z','--untracked-files=all'],{env:{...process.env,GIT_OPTIONAL_LOCKS:'0'}}))throw new Error(`Commit or discard your project changes before ${action}. Use Discard All Changes in Files or open Source Control.`);
+    if(await guardedRunner(run)(root,['-c','core.fsmonitor=false','status','--porcelain=v1','-z','--untracked-files=all'],{env:{...process.env,GIT_OPTIONAL_LOCKS:'0'}}))throw new Error(`Commit or discard your project changes before ${action}. Use Discard All Changes in Files or open Source Control.`);
     await assertGitProject(root);
     if((await dirtyProjectDocuments(vscode,root)).length)throw new Error(`Save or undo your project editor changes before ${action}. Then commit or discard any saved changes.`);
   };
@@ -1507,12 +1507,14 @@ function activate(context, services = {}) {
           return;
         }
         const updating=kind==='sync'||kind==='updateBranch';
-        await assertUpdateClean(root,updating?'updating':'merging');
+        const localGit = updating ? core.git : workflow.mergeGitRunner(core.git);
+        const assertClean = () => assertUpdateClean(root,updating?'updating':'merging',localGit);
+        await assertClean();
         reportProgress('Checking GitHub access…');
         const ticket = await auth.capture();
         reviewedAccountId=ticket.session.accountId;
         const reviewedSyncSession=auth.sessionId||null,reviewedSyncRevision=auth.revision;
-        const destination = core.parseRepositoryUrl(await core.git(root,['remote','get-url','origin']));
+        const destination = core.parseRepositoryUrl(await localGit(root,['remote','get-url','origin']));
         const assertProject = () => assertGitProject(root);
         const allowedMergeReminders=[];
         const mergeReminderSnapshot=repositoryLedger?await allReminderRecords(root):pendingLedger.enumerable?compatibilityAll(root,branch):undefined;
@@ -1524,7 +1526,7 @@ function activate(context, services = {}) {
         const assertWorkspaceCurrent=reviewed=>{if(!reviewed||JSON.stringify(reviewed.workspace)!==JSON.stringify(workspaceNow())||!sameDirty(reviewed.dirty,dirtyNow()))throw new Error('The workspace or open files changed. Review this step again; your edits are kept.');};
         let authority;
         const beforeNetwork = async () => {
-          const workspace=workspaceNow(),dirty=dirtyNow();await assertProject();await assertUpdateClean(root,updating?'updating':'merging');await auth.assertCurrent(ticket);
+          const workspace=workspaceNow(),dirty=dirtyNow();await assertProject();await assertClean();await auth.assertCurrent(ticket);
           if(JSON.stringify(workspace)!==JSON.stringify(workspaceNow())||!sameDirty(dirty,dirtyNow()))throw new Error('The workspace or open files changed. Review this step again; your edits are kept.');
           authority={workspace,dirty};
         };
@@ -3365,12 +3367,14 @@ function activate(context, services = {}) {
       const message = error.zeroRunMessage || error.message;
       const signInUnavailable = /^Zero sign-in was cancelled or unavailable\./.test(message);
       const display = recoveryMessage(signInUnavailable ? 'Zero sign-in cancelled or unavailable. Try again.' : message,error.recoveryPath);
+      const mergeDetail = error.mergeGitDetail;
       const sidebarGit=['zero.syncBranch','zero.commitChanges','zero.startChange'].includes(id);
       if(sidebarGit)reportGit(display,error.message);
       else {
         if (!(execution && ['zero.runApp','zero.runNativeApp','zero.toggleApp'].includes(id))) state = display;
         if (id === 'zero.signInToGitHub') authFeedback = display;
         refresh();output.appendLine(error.message);
+        if (mergeDetail) output.appendLine(mergeDetail);
       }
       const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
       if(error.code==='git-prerequisite'){
@@ -3391,7 +3395,7 @@ function activate(context, services = {}) {
         const prior=context.globalState?.get('zero.repositoryCreationRecovery');
         await context.globalState?.update('zero.repositoryCreationRecovery',{...(prior?.repositoryUrl===destination.page?prior:{}),repositoryUrl:destination.page,at:Date.now()});
         vscode.window.showErrorMessage(`Zero: ${display} Use Zero: Repository Actions → Resume created project to continue.`);
-      }else if(!sidebarGit)vscode.window.showErrorMessage(`Zero: ${display}`);
+      }else if(!sidebarGit)vscode.window.showErrorMessage(`Zero: ${mergeDetail ? `${mergeDetail} ` : ''}${display}`);
     }
   }));
   if (vscode.debug?.registerDebugConfigurationProvider) context.subscriptions.push(registerJavaRun(vscode));

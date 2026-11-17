@@ -1,3 +1,22 @@
+# Local Git diagnostics for Merge — 2026-11-17
+
+Merge shows the failed local Git command, its exit status when available, and
+recognized Git errors in the notification and Zero Output. For example, an
+unreadable tree during the Coin game merge review shows
+`Git diff failed (exit 128). fatal: unable to read tree.` Recognized messages
+omit variable values and unknown stderr stays private.
+
+The local Coin tutorial replay with a deliberately unavailable main tree
+reproduced the diagnostic and merged successfully after restoring the object.
+Focused tests cover both editor entry points, failures before a push and a
+checkout failure after remote confirmation. Local bare repositories stood in
+for GitHub. Native Windows and live GitHub behavior were outside this check.
+
+Independent GPT-6.1 Sol review (medium reasoning) of the patch against
+`d09f58e7a` found lost diagnostics in the branch picker and checkout recovery,
+and reduced clarity for a missing remote. One fix batch addressed all three.
+The targeted follow-up review cleared the fixes.
+
 # Original game capstone — 2026-11-17
 
 Lesson 14 starts a new original project, reuses earlier techniques and

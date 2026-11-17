@@ -28,13 +28,13 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   let projectResolves=0;
   core.resolveProject=(...args)=>{projectResolves++;return original.resolve(...args);};
   let branch='main',branchRows,selectedSwitch,remote='https://github.com/student/app.git',mode='simulation',session={id:'session',account:{id:'1',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider,publishedState;
-  let accessFailure,repositoryId=12,installationId=99,gitStatus='',warningChoice,pendingRecovery,storedPending,storedLocal,currentHead='f'.repeat(40);const accesses=[];
+  let accessFailure,repositoryId=12,installationId=99,gitStatus='',mergeStatusError,warningChoice,pendingRecovery,storedPending,storedLocal,currentHead='f'.repeat(40);const accesses=[];
   let saved=0,authCalls=0,prepared=0,uploadSnapshots=0,transportDispatches=0,synced=0,syncError,syncUpdates=false,startGate,syncGate,afterSyncFetch,afterCheckout,activeUncertain=false,checkoutWarning=false,syncApplied=0,executed=0,deleted=0,input,choice,prepareGate,pickGate,warningGate,finishError,nativeScm=true,finishDrift=false,recoveryPushes=0,switchGuardError,switchPreparations=0,forbidRawSwitchStatus=false,switchFingerprintDrift=false;
   let retainedFinish,localFeatureHead='f'.repeat(40);
   const transportCalls=[],statusEnvironments=[];
   const commands=new Map(),picks=[],reviews=[],warnings=[],warningDetails=[],errors=[],notices=[],dispatch=[],deletions=[],logs=[],metadata={},progressRuns=[];
   core.assertRepositoryRoot=async()=>root;core.repositoryRoot=async()=>root;
-  core.git=async(_,args,options)=>{if(args[0]==='-c'&&args[1]==='core.fsmonitor=false')args=args.slice(2);if(args[0]==='ls-files')return '';if(args[0]==='remote'){if(!remote)throw new Error('No origin');return remote;};if(args[0]==='symbolic-ref'){if(args.at(-1)!=='HEAD')throw Object.assign(Error('Direct branch'),{code:1});return `refs/heads/${branch}`;}if(args[0]==='for-each-ref')return branchRows??`refs/heads/feature\t${currentHead}`;if(args[0]==='status'){statusEnvironments.push(options?.env?.GIT_OPTIONAL_LOCKS);if(forbidRawSwitchStatus)throw new Error('Unsafe status before guarded switch review');return gitStatus;}if(args[0]==='rev-parse')return args.includes('--show-toplevel')?root:args.includes('--git-common-dir')||args.includes('--absolute-git-dir')?path.join(root,'.git'):currentHead;throw new Error('Unexpected Git mutation');};
+  core.git=async(_,args,options)=>{if(args[0]==='-c'&&args[1]==='core.fsmonitor=false')args=args.slice(2);if(args[0]==='ls-files')return '';if(args[0]==='remote'){if(!remote)throw new Error('No origin');return remote;};if(args[0]==='symbolic-ref'){if(args.at(-1)!=='HEAD')throw Object.assign(Error('Direct branch'),{code:1});return `refs/heads/${branch}`;}if(args[0]==='for-each-ref')return branchRows??`refs/heads/feature\t${currentHead}`;if(args[0]==='status'){statusEnvironments.push(options?.env?.GIT_OPTIONAL_LOCKS);if(mergeStatusError){const error=mergeStatusError;mergeStatusError=undefined;throw error;}if(forbidRawSwitchStatus)throw new Error('Unsafe status before guarded switch review');return gitStatus;}if(args[0]==='rev-parse')return args.includes('--show-toplevel')?root:args.includes('--git-common-dir')||args.includes('--absolute-git-dir')?path.join(root,'.git'):currentHead;throw new Error('Unexpected Git mutation');};
   github.prepareUpload=async()=>{uploadSnapshots++;return {root,head:currentHead,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,changes:[],summary:'No changes'};};
   github.syncExistingHead=async(plan,{beforeUpload,networkRun})=>{await beforeUpload();await networkRun(root,['push',plan.remote,`${plan.head}:refs/heads/${plan.branch}`]);await networkRun(root,['ls-remote','--heads',plan.remote,`refs/heads/${plan.branch}`]);return {uploaded:true,head:plan.head,branch:plan.branch};};
   github.checkUpload=async(_root,_record,{beforeNetwork})=>{await beforeNetwork();return {confirmed:false,remoteHead:syncUpdates?'a'.repeat(40):null};};
@@ -218,6 +218,17 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   const dirtyMerge={isDirty:true,version:1,uri:{scheme:'file',fsPath:path.join(alias,'Main.java')}};vscode.workspace.textDocuments=[dirtyMerge];
   let beforeBlockedMerge={saved,prepared,executed,transportDispatches};await commands.get('zero.finishChange')();assert.deepEqual({saved,prepared,executed,transportDispatches},beforeBlockedMerge);assert.match(errors.at(-1),/Save or undo.*merging/);assert.equal(dirtyMerge.isDirty,true);
   vscode.workspace.textDocuments=[];gitStatus=' M Main.java\0';beforeBlockedMerge={saved,prepared,executed,transportDispatches};await commands.get('zero.finishChange')();assert.deepEqual({saved,prepared,executed,transportDispatches},beforeBlockedMerge);assert.match(errors.at(-1),/Commit or discard.*merging/);gitStatus='';
+  for (const command of ['zero.finishChange', 'zero.chooseBranch']) {
+    choice = 'finish';
+    const previousLogs = logs.length;
+    mergeStatusError = Object.assign(new Error('PRIVATE_GIT_OUTPUT'), {code:128, stderr:'fatal: index file corrupt\nPRIVATE_GIT_OUTPUT'});
+    await commands.get(command)();
+    assert.match(errors.at(-1), /Git status failed \(exit 128\)\. fatal: index file corrupt/);
+    assert.ok(logs.slice(previousLogs).includes('Git status failed (exit 128). fatal: index file corrupt.'));
+  }
+  choice = undefined;
+  assert.doesNotMatch([...errors,...logs].join('\n'), /PRIVATE_GIT_OUTPUT/);
+  assert.deepEqual({saved,prepared,executed,transportDispatches},beforeBlockedMerge);
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['start','finish','switch']);
   warningChoice='Merge';let releasePrepare;prepareGate=new Promise(resolve=>{releasePrepare=resolve;});const preparedBeforeFinish=prepared;const pending=commands.get('zero.finishChange')();await waitFor(()=>prepared>preparedBeforeFinish, 'Finish preparation should start directly');
   const before={saved,prepared,authCalls};for(const id of ['zero.startChange','zero.finishChange','zero.syncProject','zero.uploadToGitHub','zero.githubAccount','zero.chooseRepository','zero.chooseBranch','zero.connectRepository','zero.signInToGitHub'])await commands.get(id)();
