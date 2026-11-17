@@ -105,6 +105,49 @@ The Windows CI test installer needs a buildable local kit. The branch advances
 that kit to 0.5.75 and carries the published 0.5.74 metadata forward as the
 download fallback. Published releases and the update feed retain their bytes.
 
+# Two Windows Portable download choices — 2026-11-17
+
+The owner requested both the small staging ZIP and a complete VSCodium ZIP.
+The [complete 0.5.78 prerelease](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.78)
+embeds the exact public kit SHA-256
+`feaeef3706eb7a7c7f3dea64f0bb001607e52e0caf797bf97f9f8e3318d33bb4`.
+The launcher source and kit source are recorded separately in
+`release/windows-portable-bundle.json`. The two public files retain their own
+immutable URLs and measured sizes. New full website releases require both
+matching ZIPs. The publisher supports both candidate manifests and retains the
+older downloads during a kit-only publication.
+
+The 605,933,593-byte complete ZIP SHA-256 is
+`887ef13762f82b1da83e3455a35b64e8a22bd63b5a18f4649add24382c6510f9`.
+All five draft assets matched their local sizes and GitHub SHA-256 records.
+The separate source companion contains 68 verified upstream archives and build
+materials. Its size is 1,470,730,240 bytes with SHA-256
+`b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0`.
+The [source index](https://github.com/codepetca/zero/releases/download/windows-portable-bundled-v0.5.78/SOURCE-INDEX.json)
+maps exact versions, hashes, package recipes and upstream sources. Source
+acquisition/readability was verified; full Windows source rebuilds were not run.
+
+Sol/high independently reviewed `6f94129ee..943707362` and the corrected delta
+through `73861dbde`. Findings about scoped skipped jobs, retained bundle test
+fixtures and checkout history were corrected. The review reported no remaining
+blocking findings. Root validation passed 102 release tests, focused bundle and
+metadata tests, 21 CI contracts, workflow parsing, kit verification and Windows
+fixtures under Mono. The broader website suite had a local Git subprocess
+timeout; the affected 12 tests passed when rerun. Typecheck, production build and
+production function checks passed. The browser showed both versioned choices
+with measured sizes, setup instructions and their exact download destinations.
+
+[PR #378](https://github.com/codepetca/zero/pull/378) carries the website
+integration and requires public download verification and a real Windows
+cold/warm launcher trial. The isolated Windows job validates the exact complete
+ZIP in a fresh hosted account, including installed extension versions,
+unchanged tool files and extension timestamps across reopening. Actual school
+policy, sign-in and classroom JavaFX use remain on-device acceptance checks.
+Requested reviewer models/efforts are recorded above; effective configuration,
+token costs and task-specific account usage remain unavailable.
+
+---
+
 # Bundled Windows Portable 0.5.78 candidate — 2026-11-17
 
 The owner selected VSCodium for a ZIP that students can extract and launch
