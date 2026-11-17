@@ -100,7 +100,8 @@ test('real Git publication diff scopes metadata while mixed runtime and CI chang
     git('init','-q');git('config','maintenance.auto','false');git('config','user.name','CI fixture');git('config','user.email','ci@example.invalid');
     const before={schema:1,kitVersion:'0.5.55',coreVersion:'0.3.0',publication:{status:'local',repository:'codepetca/zero',tag:'v0.5.55'},assets:{
       kit:{filename:'zero-bootstrap.zip',label:'Kit'},starter:{filename:'zero-starter.zip',label:'Starter'},extension:{filename:'zero-0.5.55.vsix',label:'Extension'}}};
-    write('release/kit.json',before);git('add','.');git('commit','-qm','local kit');const base=git('rev-parse','HEAD');
+    const portableFile='release/windows-portable-pilot.json';
+    write('release/kit.json',before);write(portableFile,{kitVersion:'0.5.54'});git('add','.');git('commit','-qm','local kit');const base=git('rev-parse','HEAD');
     const after=structuredClone(before);after.publication.status='published';
     for(const asset of Object.values(after.assets))Object.assign(asset,{size:123,sha256:'a'.repeat(64),url:`https://github.com/codepetca/zero/releases/download/v0.5.55/${asset.filename}`});
     const scope=baseSha=>scopeForEvent({pull_request:{base:{sha:baseSha||base},head:{sha:git('rev-parse','HEAD')}}},root);
@@ -108,6 +109,23 @@ test('real Git publication diff scopes metadata while mixed runtime and CI chang
     write('scripts/ci-scope.mjs','standalone classifier change');git('add','.');git('commit','-qm','classifier only');assert.ok(Object.values(scope()).every(Boolean));git('switch','-c','promotion',base);
     publish();const promotedHead=git('rev-parse','HEAD');
     assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
+    git('switch','-c','portable-promotion',promotedHead);
+    const portableTag='windows-portable-pilot-v0.5.55';
+    const portableZip='Zero-0.5.55-windows-portable-pilot-staging-x64.zip';
+    const portable={kitVersion:'0.5.55',sourceRevision:'b'.repeat(40),kitSha256:after.assets.kit.sha256,
+      publication:{status:'published',tag:portableTag},
+      asset:{filename:portableZip,size:123,sha256:'c'.repeat(64),url:`https://github.com/codepetca/zero/releases/download/${portableTag}/${portableZip}`}};
+    write(portableFile,portable);git('add','.');git('commit','-qm','publish matching Portable metadata');
+    assert.deepEqual(scope(),{source:true,native:false,browser:false,windows:false,website:true,sharing:false,lessons:false});
+    for (const invalid of [
+      {...portable,kitSha256:'d'.repeat(64)},
+      {...portable,kitVersion:'0.5.54'},
+      {...portable,asset:{...portable.asset,url:'https://example.invalid/portable.zip'}}
+    ]) {
+      write(portableFile,invalid);git('add','.');git('commit','-qm','invalid Portable metadata');
+      assert.ok(Object.values(scope()).every(Boolean));
+    }
+    git('switch','promotion');
     write('README.md','updated public download');git('add','.');git('commit','-qm','document download');assert.equal(scope().windows,false);
     git('switch','-c','classifier-contracts',git('rev-parse','HEAD'));write('scripts/ci-scope.mjs','classifier change');write('scripts/ci-scope.test.mjs','selection regressions');write('docs/FAST-DEV-FLOW.md','document dependency scope');git('add','.');git('commit','-qm','promotion and classifier contracts');
     const recovery=git('rev-parse','HEAD');
