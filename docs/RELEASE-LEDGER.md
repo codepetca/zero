@@ -1,18 +1,18 @@
 # Zero release ledger
 
-Last reconciled 2026-11-16 (America/Toronto). This is a dated working record,
+Last reconciled 2026-11-17 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.76](https://github.com/codepetca/zero/releases/tag/v0.5.76) is public. All three anonymous downloads match the release preparation receipts. | Native distributions have their own publication records. |
-| Website | The homepage links to the verified 0.5.76 Mac DMG. The live signed appcast matches the sealed bytes. | The Windows button opens Zero Studio in the Store. |
-| Mac installer | [0.5.76](https://github.com/codepetca/zero/releases/tag/setup-v0.5.76) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup passed. Interactive Sparkle upgrade remains unverified. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 11, package 1.5.75.0 x64, is live. Submission 12 remains a draft for 1.5.76.0. | Partner Center stalled while validating the 1.5.76.0 upload. |
+| GitHub manual kit | [Zero 0.5.77](https://github.com/codepetca/zero/releases/tag/v0.5.77) is public. All three anonymous downloads match the preparation receipts. | Main has newer tutorial source and its own local kit version, 0.5.78. |
+| Website | Release metadata selects the verified 0.5.77 Mac DMG and signed appcast. | Live verification follows deployment. The Windows button opens Zero Studio in the Store. |
+| Mac installer | [0.5.77](https://github.com/codepetca/zero/releases/tag/setup-v0.5.77) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup passed. Interactive Sparkle upgrade remains unverified. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 12, package 1.5.76.0 x64, is live. Microsoft validated the 1.5.77.0 package in submission 13. | The local WACK harness reported failure. Microsoft certification is tracked separately. |
 | Windows portable school pilot | [0.5.74 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74) is public. | Stage the vendor tools and test on one school desktop under a student login. |
-| Windows standalone download | [0.5.76 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.76) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.76) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+| Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
 updates, recent tutorial changes, and Store Java/VS Code startup fixes. Its exact
@@ -22,6 +22,38 @@ blocked-executables finding, disclosed with the submission. See the
 The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
+
+## Zero 0.5.77 — 2026-11-17
+
+Zero opens modified files for editing. **Compare with Last Commit** moved to
+the file's context menu, and **Show All Project Files** appears in the Files
+three-dot menu. The macOS editor walkthrough passed. [PR #368](https://github.com/codepetca/zero/pull/368)
+merged at `273fa5e0ddc4cc02a7faa390415f7f7972822e2d` after all 11 checks passed.
+The [kit preparation run](https://github.com/codepetca/zero/actions/runs/44090942917)
+verified the public starter against the packaged VSIX and replayed Greeting
+in JavaFX and Chrome. The three public kit assets matched the CI checksums.
+[PR #369](https://github.com/codepetca/zero/pull/369) later changed packaged
+tutorials on main. The release metadata records 0.5.77 as the public fallback
+and advances the newer source to local kit 0.5.78.
+
+The Mac installer was built from the #368 merge and sealed at
+`6488b8c785f8677d2ddf8c1e0922f38860c73489`. Apple accepted notarization
+`f1a156eb-fb1f-487d-b4ec-a34053903536`. Developer ID, staple, Gatekeeper and
+isolated-home setup checks passed. The public DMG SHA-256 is
+`29a1a453db139e04a19a711c773471f4c34ba7830241494bddc94a0a09539156`.
+The sealed appcast SHA-256 is
+`e951e988cb3f3755cd3f4ed03e02eec3dd6d8dc817e2b01b448084ff2723bada`.
+
+[Windows run 44088714289](https://github.com/codepetca/zero/actions/runs/44088714289)
+passed standalone setup, editor reopening, JavaFX with a cached offline
+rebuild, and Store first run with a test-signed copy. Its synthetic commit
+`69fe79578b79702c1494d8749b33eef34bc7adca` has the source merge's tree. The
+anonymous EXE and matching ZIP matched the measured assets. The Store MSIX
+SHA-256 is `aaf7dfc9fa5bf5e4e8b7c8c4333d3ddce926fbd02aa3608b36994d59965086cb`.
+[WACK run 44091134102](https://github.com/codepetca/zero/actions/runs/44091134102)
+reported a DPI-awareness analysis warning and an optional blocked-executables
+failure, matching 0.5.76. Submission 13 has the validated x64 package and
+discloses both findings in its certification notes.
 
 ## Zero 0.5.76 — 2026-11-16
 
