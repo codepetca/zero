@@ -10,6 +10,7 @@ const {createReadStream,constants} = require('node:fs');
 const {assertShareable} = require('./lesson-projects');
 const {prepareUpload, assertNoUrlRewrites, validBranch} = require('./github');
 const {finishMessage,readFinishedBranch,validFinishedBranch}=require('./finished-change-marker');
+const {mergeGitDiagnostic} = require('./merge-git-diagnostic');
 const {updateDirectMain,checkoutDirectMain,preflightDirectMain,attachSameTreeMain,deleteDirectFeature}=require('./direct-main-transaction');
 // Only equal-tree, ref-only fast-forwards may use this path.
 const ENABLE_REFTABLE_REF_ONLY = true;
@@ -21,7 +22,11 @@ const switchEnvironment=()=>({...Object.fromEntries(Object.entries(process.env).
 const startCheckoutEnvironment=()=>({...switchEnvironment(),GIT_CONFIG_COUNT:'2',GIT_CONFIG_KEY_0:'core.attributesFile',GIT_CONFIG_VALUE_0:os.devNull,GIT_CONFIG_KEY_1:'core.fsmonitor',GIT_CONFIG_VALUE_1:'false'});
 const nativeUpdateHandoff = message => Object.assign(new Error(message), {nativeUpdateHandoff:true});
 const drift = () => new Error('The project, branch, main, repository, or files changed after review. Review this step again. Your commits are preserved.');
-function safeRunner(run) {
+function keepMergeDiagnostic(error, cause) {
+  if (cause?.mergeGitDetail) error.mergeGitDetail = cause.mergeGitDetail;
+  return error;
+}
+function safeRunner(run, describeMerge = false) {
   return async (root, args, options) => {
     let index=0;while(index<args.length){if(args[index]==='-c'){index+=2;continue;}if(['--no-replace-objects','--literal-pathspecs'].includes(args[index])){index++;continue;}break;}
     const readOnlyStatus=args[index]==='status',effective=readOnlyStatus?{...options,env:{...(options?.env||process.env),GIT_OPTIONAL_LOCKS:'0'}}:options;
@@ -29,10 +34,12 @@ function safeRunner(run) {
     catch (failure) {
       const error = new Error('Git could not inspect or update this project. Check native Source Control, then review again. Your files and commits are preserved.');
       error.code = failure.code;
+      if (describeMerge) error.mergeGitDetail = mergeGitDiagnostic(args[index], failure);
       throw error;
     }
   };
 }
+const mergeGitRunner = run => safeRunner(run, true);
 // Finish graph and tree reads must agree with the no-replacement view used by
 // the locked transaction, including when callers supply an isolated env.
 function finishRunner(run) {
@@ -46,15 +53,15 @@ async function refuseFinishReplacements(expected,run) {
 
 async function local(run, root, args, action, options) {
   try { return await run(root, args, options); }
-  catch { throw new Error(`Git could not ${action}. Check native Source Control, then review again. Your files and commits are preserved.`); }
+  catch (error) { throw keepMergeDiagnostic(new Error(`Git could not ${action}. Check native Source Control, then review again. Your files and commits are preserved.`), error); }
 }
 async function ancestor(run, root, older, newer) {
   try { await run(root, ['merge-base', '--is-ancestor', older, newer]); return true; }
-  catch (error) { if (error.code === 1) return false; throw new Error('Git could not check commit ancestry. Check this project with native Source Control.'); }
+  catch (error) { if (error.code === 1) return false; throw keepMergeDiagnostic(new Error('Git could not check commit ancestry. Check this project with native Source Control.'), error); }
 }
 async function assertDirectMain(root,run) {
   try {await run(root,['symbolic-ref','--quiet','--no-recurse','refs/heads/main']);}
-  catch(error){if(error.code===1)return;throw new Error('Local main could not be verified as a direct branch. Inspect it in Source Control.');}
+  catch(error){if(error.code===1)return;throw keepMergeDiagnostic(new Error('Local main could not be verified as a direct branch. Inspect it in Source Control.'), error);}
   throw new Error('Local main is a symbolic branch. Keep it and inspect Source Control before continuing.');
 }
 // Local branch creation keeps the same tree. Inspect refs and worktree state without
@@ -117,7 +124,7 @@ async function readWorkflowRefs(root,run) {
     }),
     run(root, ['rev-parse', '--verify', 'refs/heads/main^{commit}']).catch(error=>{
       if(error.code===128)return null;
-      throw new Error('Git could not inspect main. Check native Source Control.');
+      throw keepMergeDiagnostic(new Error('Git could not inspect main. Check native Source Control.'), error);
     })
   ]);
   if (head && !shaPattern.test(head) || mainHead && !shaPattern.test(mainHead)) throw new Error('Git returned an unexpected commit. Check native Source Control.');
@@ -400,7 +407,7 @@ async function pendingFinish(current, run, {allowDrift = false} = {}) {
 }
 async function prepareFinish(project, options = {}) {
   await assertShareable(project);
-  const opts={beforeNetwork:async()=>{},onProgress:()=>{},...options,run:finishRunner(guardedRunner(safeRunner(options.run||core.git)))},run=opts.run;
+  const opts={beforeNetwork:async()=>{},onProgress:()=>{},...options,run:finishRunner(guardedRunner(mergeGitRunner(options.run||core.git)))},run=opts.run;
   networkRequired(opts.networkRun);
   const current = await state(project, run, {full: true});
   clean(current);
@@ -486,7 +493,8 @@ async function preserveIgnored(expected, target, run) {
 function executorOptions(plan, kind, options) {
   if (!plans.has(plan) || plan.kind !== kind) throw new Error('Review this project step before continuing.');
   if (!['start','switch'].includes(kind)) networkRequired(options.networkRun);
-  return {beforeNetwork: async () => {}, beforeMutation: async () => {}, onProgress: () => {}, ...options, run: guardedRunner(safeRunner(options.run || core.git))};
+  const describeMerge = kind === 'finish' || kind === 'recover-finish';
+  return {beforeNetwork: async () => {}, beforeMutation: async () => {}, onProgress: () => {}, ...options, run: guardedRunner(safeRunner(options.run || core.git, describeMerge))};
 }
 async function switchPrepared(plan,options={}) {
   const opts=executorOptions(plan,'switch',options);
@@ -787,7 +795,7 @@ async function finishPrepared(plan, options = {}) {
     }
     if (confirmed !== candidate.id) throw Object.assign(new Error('GitHub did not confirm the completed main commit.'), {kind:'unconfirmed'});
   } catch (error) {
-    throw Object.assign(new Error(`${error.message} Your feature and local main are preserved. Retry Merge to main, or update from GitHub if main changed.`),{workflowRecovery:{root:plan.root,remote:plan.remote,page:plan.page,branch:plan.branch,head:candidate.id,committed:false,kind:error.kind||'network',operation:'merge'}});
+    throw Object.assign(keepMergeDiagnostic(new Error(`${error.message} Your feature and local main are preserved. Retry Merge to main, or update from GitHub if main changed.`), error),{workflowRecovery:{root:plan.root,remote:plan.remote,page:plan.page,branch:plan.branch,head:candidate.id,committed:false,kind:error.kind||'network',operation:'merge'}});
   }
   let final;
   try {
@@ -800,7 +808,11 @@ async function finishPrepared(plan, options = {}) {
     final=await state(plan.root,opts.run,{full:true});
     if(!same({...completed,branch:'main',head:candidate.id},final)||final.fingerprint!==completed.fingerprint)throw drift();
   }
-  catch(error){error.message+= ' This merge was confirmed on GitHub. The local switch may have completed; inspect the current branch and Source Control before retrying. The pending change is retained.';throw error;}
+  catch (error) {
+    keepMergeDiagnostic(error, error.cause);
+    error.message += ' This merge was confirmed on GitHub. The local switch may have completed; inspect the current branch and Source Control before retrying. The pending change is retained.';
+    throw error;
+  }
   try { await local(opts.run, plan.root, ['update-ref', '--no-deref', '-d', pendingFinishRef, candidate.id], 'clear the pending finished change'); } catch { /* Main and remote already contain the commit; a later start can clear the stale ref. */ }
   plans.delete(plan);
   const result = Object.freeze({finished: true, branch: 'main', head: final.head, featureHead: candidate.feature, page: plan.page, finishedBranch: plan.branch, remote: plan.remote});
@@ -818,7 +830,7 @@ function consumeFinishedBranchCleanup(root, result) {
 // Recover an interrupted finish without moving the feature branch or its newer commits.
 async function preparePendingFinishRecovery(project, options = {}) {
   await assertShareable(project);
-  const opts={...options,run:finishRunner(guardedRunner(safeRunner(options.run || core.git)))};
+  const opts={...options,run:finishRunner(guardedRunner(mergeGitRunner(options.run || core.git)))};
   const run=opts.run;
   const current = await state(project, run, {full:true});
   clean(current);
@@ -997,4 +1009,4 @@ async function checkpoint(root, options = {}) {
   opts.inspect = (project, run) => state(project, run);
   return recovery.checkpoint(root, opts);
 }
-module.exports = {preparePendingFinishRecovery, recoverPendingFinish, readRecovery, resolveRecovery, completeRecovery, cancelRecovery, checkpoint, prepareStart, startPrepared, prepareSwitch, switchPrepared, prepareSync, syncPrepared, prepareFinish, finishPrepared, consumeFinishedBranchCleanup, inspectFinishedBranchCleanup, prepareFinishedBranchDeletion, deleteFinishedBranch};
+module.exports = {preparePendingFinishRecovery, recoverPendingFinish, readRecovery, resolveRecovery, completeRecovery, cancelRecovery, checkpoint, prepareStart, startPrepared, prepareSwitch, switchPrepared, prepareSync, syncPrepared, prepareFinish, finishPrepared, mergeGitRunner, consumeFinishedBranchCleanup, inspectFinishedBranchCleanup, prepareFinishedBranchDeletion, deleteFinishedBranch};

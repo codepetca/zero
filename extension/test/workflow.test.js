@@ -275,6 +275,67 @@ test('finish records a named merge on main and safely deletes only the feature',
   await assert.rejects(core.git(f.root, ['show-ref', '--verify', 'refs/heads/add-score']));
   assert.equal(await core.git(f.bare, ['for-each-ref', '--format=%(refname)']), 'refs/heads/main');
 });
+test('merge review reports an unreadable main tree without pushing or displaying object IDs', async t => {
+  const f = await fixture(t);
+  const main = await core.git(f.root, ['rev-parse', 'refs/heads/main']);
+  const tree = await core.git(f.root, ['rev-parse', 'refs/heads/main^{tree}']);
+  await start(f, 'coin-score');
+  const feature = await commit(f.root, 'Main.java', 'class Main { int score; }\n');
+  const object = path.join(f.root, '.git', 'objects', tree.slice(0, 2), tree.slice(2));
+  await fs.rename(object, path.join(f.parent, 'main-tree'));
+  assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
+
+  await assert.rejects(workflow.prepareFinish(f.root, f.options), error => {
+    assert.match(error.mergeGitDetail, /^Git diff failed \(exit 128\)\. fatal: (unable to read tree|bad tree)/);
+    assert.ok(!error.mergeGitDetail.includes(tree));
+    return true;
+  });
+  assert.deepEqual(f.calls.map(args => args[0]), ['ls-remote']);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), main);
+});
+test('merge commit creation preserves a safe Git diagnostic through the workflow error', async t => {
+  const f = await fixture(t);
+  await start(f);
+  await commit(f.root, 'Score.java', 'class Score {}\n');
+  const plan = await workflow.prepareFinish(f.root, f.options);
+  const run = (root, args, options) => {
+    if (args.includes('commit-tree')) throw Object.assign(new Error('PRIVATE_VALUE'), {
+      code: 128,
+      stderr: 'error: signing helper printed PRIVATE_VALUE\nfatal: failed to write commit object\n'
+    });
+    return f.run(root, args, options);
+  };
+  await assert.rejects(workflow.finishPrepared(plan, {...f.options, run}), error => {
+    assert.match(error.message, /could not record the finished change/);
+    assert.equal(error.mergeGitDetail, 'Git commit-tree failed (exit 128). fatal: failed to write commit object.');
+    assert.doesNotMatch(JSON.stringify(error), /PRIVATE_VALUE/);
+    return true;
+  });
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('a checkout failure after GitHub confirms the merge keeps the Git diagnostic and recovery message', async t => {
+  const f = await fixture(t);
+  await start(f, 'coin-score');
+  const feature = await commit(f.root, 'Main.java', 'class Main { int score; }\n');
+  const plan = await workflow.prepareFinish(f.root, f.options);
+  const run = (root, args, options) => {
+    if (args.includes('checkout')) throw Object.assign(new Error('private path'), {
+      code: 128,
+      stderr: "fatal: unable to create '/private-path/.git/index.lock': Permission denied"
+    });
+    return f.run(root, args, options);
+  };
+  await assert.rejects(workflow.finishPrepared(plan, {...f.options, run}), error => {
+    assert.match(error.message, /This merge was confirmed on GitHub/);
+    assert.equal(error.mergeGitDetail, 'Git checkout failed (exit 128). fatal: Git could not lock a ref or index.');
+    assert.doesNotMatch(JSON.stringify(error), /private.path/);
+    return true;
+  });
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  const remoteMain = await core.git(f.bare, ['rev-parse', 'refs/heads/main']);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']), remoteMain);
+});
 test('explicit Sync fast-forwards a clean main to pinned newer remote main', async t => {
   const f = await fixture(t); const updated = await remoteChange(f, 'Remote.java', 'class Remote {}');
   const result = await sync(f); assert.equal(result.head, updated);
