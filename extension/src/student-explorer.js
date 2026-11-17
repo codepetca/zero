@@ -32,7 +32,6 @@ function createStudentExplorer(vscode, host) {
     return value;
   };
   const action = (label,command,context) => node({kind:'action',label,command,context});
-  const allFiles = () => action('Show all project files','zero.showAllProjectFiles');
   let discardAvailable;
   function setDiscardAvailable(value) {
     if(discardAvailable===value)return;
@@ -283,7 +282,7 @@ function createStudentExplorer(vscode, host) {
         if(snapshot.statusUnavailable)result.push(node({kind:'message',label:'File change status unavailable',detail:'Open Source Control to check the project changes.'}));
         if(snapshot.libraries.length)result.push(node({kind:'libraries',root:snapshot.root,label:'Libraries'}));
         if(hasOtherFiles(snapshot))result.push(node({kind:'other',root:snapshot.root,label:'Other project files'}));
-        result.push(allFiles());return result;
+        return result;
       }
       // VS Code can ask for children of an expanded old node during a full
       // refresh. Reads may reuse its identity; actions still require freshness.
@@ -335,7 +334,7 @@ function createStudentExplorer(vscode, host) {
     } catch(error) {
       if(disposed)return [];
       host.output.appendLine(`Student Explorer: ${error.message}`);
-      return [node({kind:'message',label:'Project view unavailable',detail:error.message}),allFiles()];
+      return [node({kind:'message',label:'Project view unavailable',detail:error.message})];
     }
   }
   async function treeChildren(parent) {
@@ -533,7 +532,6 @@ function createStudentExplorer(vscode, host) {
     try{return await host.execute('zero.removeAddedFile',{root:snapshot.root,relative:value.relative});}finally{invalidate();}
   }
   async function invoke(value) {
-    if(value?.command==='zero.showAllProjectFiles'&&known.has(value))return showAll();
     if(host.isBusy())return;
     if(!known.has(value)||value.kind!=='action'||value.generation!==generation||!['zero.libraryReference','zero.copyLibraryImports','zero.switchLibraryMode','zero.checkLibrary','zero.shareLibrary'].includes(value.command))throw Error('The project view changed. Select the action again.');
     const root=await host.project();

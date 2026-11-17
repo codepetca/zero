@@ -658,7 +658,7 @@ without replacing its open editors. The supported `zero-student-explorer` view c
 Both control views share the renderer but keep independent document lifecycles.
 The student controls omit the ZeroHub and New dropdowns. The native Project
 header keeps only the anchored **New (+)** dropdown for the selected folder.
-Refresh, Show All Project Files and Collapse All live in Project’s three-dot menu. A
+Refresh, Show All Project Files and Collapse All live in Files’ three-dot menu. A
 selected file targets its containing folder; without a selection, creation starts
 in java. Its description and name prompts use the visible hierarchy, such as
 **java › game › characters** or **Libraries › Health bar › resources**, while the
@@ -675,7 +675,7 @@ Project overflow retains ZeroHub's guarded browser. Actions revalidate current
 project/tree targets before opening the name prompt. File creation then targets
 the containing folder, revalidated before mutation; subsequent removal of the
 original sibling file does not change that destination.
-**Show all project files** opens the full Explorer without changing the selected mode;
+**Show All Project Files** in the Files menu opens the full Explorer without changing the selected mode;
 the Zero status-bar action returns to the active controls. **Zero: Show Standard
 Explorer** selects the standard layout. No host layout storage or private APIs are used.
 

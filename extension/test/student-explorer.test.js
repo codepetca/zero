@@ -69,11 +69,10 @@ test('unborn and committed projects keep added-file removal hidden',async t=>{
 });
 test('native roots lead with java/resources, conditionally show libraries and preserve other authored files',async t=>{
   const f=await fixture(t);await put(f.root,'notes.txt','notes');await put(f.root,'.zero-build/tool.cjs');await put(f.root,'src/main/java/zero/contrib/r88/helper/Mine.java');
-  const roots=await f.children();assert.deepEqual(roots.map(n=>n.label),['java','resources','Other project files','Show all project files']);
+  const roots=await f.children();assert.deepEqual(roots.map(n=>n.label),['java','resources','Other project files']);
   const code=await f.children(roots[0]);assert.deepEqual(code.map(n=>n.label),['zero','Main.java']);
   assert.equal(f.item(code[1]).command.command,'zero.explorerOpenFile');
   assert.deepEqual((await f.children(roots[2])).map(n=>n.label),['notes.txt']);
-  await f.tree.commands['zero.explorerAction'](roots.at(-1));assert.deepEqual(f.calls.at(-1),['workbench.view.explorer']);
 });
 test('selected packages create matching declarations through the guarded file command',async t=>{
   const f=await fixture(t);let roots=await f.children();await f.tree.commands['zero.explorerNewPackage'](roots[0]);
@@ -302,8 +301,8 @@ test('student explorer defaults on and an explicit Standard Explorer choice pers
   assert.deepEqual(reloaded.calls.slice(-2),[['workbench.view.extension.zero-student-explorer'],['zero.studentProject.focus']], 'Showing the project again focuses the view even when already selected');
 });
 test('bounded view errors retain a full-Explorer escape',async t=>{
-  const f=await fixture(t);await put(f.root,'zero.json','{');const roots=await f.children();assert.deepEqual(roots.map(n=>n.label),['Project view unavailable','Show all project files']);assert.equal(f.logs.length,1);
-  await f.tree.commands['zero.explorerAction'](roots[1]);assert.deepEqual(f.calls.at(-1),['workbench.view.explorer']);
+  const f=await fixture(t);await put(f.root,'zero.json','{');const roots=await f.children();assert.deepEqual(roots.map(n=>n.label),['Project view unavailable']);assert.equal(f.logs.length,1);
+  await f.tree.commands['zero.showAllProjectFiles']();assert.deepEqual(f.calls.at(-1),['workbench.view.explorer']);
 });
 test('initial model errors retain watching and recover after external repair without manual refresh',async t=>{
   const f=await fixture(t);await put(f.root,'pom.xml','broken XML');

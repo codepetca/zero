@@ -357,7 +357,7 @@
       },
       {
         "command": "zero.showAllProjectFiles",
-        "title": "Zero: Show All Project Files",
+        "title": "Show All Project Files",
         "icon": "$(files)"
       },
       {
@@ -616,6 +616,10 @@
         },
         {
           "command": "zero.explorerOpenFile",
+          "when": "false"
+        },
+        {
+          "command": "zero.showAllProjectFiles",
           "when": "false"
         },
         {

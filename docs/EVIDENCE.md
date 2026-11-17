@@ -13217,6 +13217,11 @@ showed the committed `score = 0` beside the working `score = 42`. A normal
 click returned to the regular editor with the modified source intact. Keyboard
 menu interaction and Windows and Linux UI were not exercised.
 
+After removing the **Show All Project Files** row, a reload showed no action
+row in Files. The Files three-dot menu still opened the standard Explorer,
+and **Back to Zero** returned to Files. The Command Palette search did not
+offer the action. The right-click comparison still opened from the file row.
+
 One independent review of `95811bf7b..c37a8632c` used GPT-6.1 Terra at medium
 reasoning as requested and found no actionable issues. It covered the opening
 and comparison paths, stale selections, deleted files and menu conditions.

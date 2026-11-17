@@ -40,6 +40,7 @@ test('student explorer owns New and ZeroHub while its controls stay minimal',asy
  assert.deepEqual(project.filter(item=>item.group.startsWith('navigation')).map(item=>item.submenu||item.command),['zero.projectNewMenu']);
  assert.deepEqual(commands.find(item=>item.command==='zero.discardProjectChanges'),{command:'zero.discardProjectChanges',title:'Discard All Changes…',icon:'$(discard)',enablement:'zero.projectHasDiscardableChanges'});
  for(const command of ['zero.refreshStudentExplorer','zero.showAllProjectFiles','zero.collapseStudentExplorer','zero.openGitSourceControl'])assert.ok(project.some(item=>item.command===command&&!item.group.startsWith('navigation')));
+ assert.equal(menus.commandPalette.find(item=>item.command==='zero.showAllProjectFiles')?.when,'false');
  assert.ok(menus['view/title'].some(item=>item.command==='zero.browseZeroHub'&&item.when==='view == zero.studentProject'));
  for(const command of ['zero.explorerNewFile','zero.explorerNewFolder'])assert.ok(menus['view/item/context'].some(item=>item.command===command));
 });

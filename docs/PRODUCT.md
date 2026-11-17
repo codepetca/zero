@@ -747,9 +747,10 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   the native Explorer notices created files. Clicking an existing file in
   Files opens it in the regular editor. Put files the app reads under **resources** and
   project notes under **Other project files**. Drag an ordinary project file onto
-  a folder in Files to move it. Java source moves within **java**. Use **Show all
-  project files** for folder moves in the full Explorer. **Compare with Last
-  Commit** opens the native diff for supported changes. Source Control handles
+  a folder in Files to move it. Java source moves within **java**. In the Files
+  three-dot menu, choose **Show All Project Files** for folder moves in the
+  full Explorer. **Compare with Last Commit** opens the native diff for
+  supported changes. Source Control handles
   other comparisons and deleted files. Files offers
   **Discard All Changes…** and **Discard File Changes…** where supported.
   There is no separate tools row. Supported VS Code
