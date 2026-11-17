@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "kitVersion": "0.5.77",
+  "kitVersion": "0.5.78",
   "coreVersion": "0.3.0",
   "publication": {
     "status": "local",
     "repository": "codepetca/zero",
-    "tag": "v0.5.77"
+    "tag": "v0.5.78"
   },
   "assets": {
     "kit": {
@@ -17,7 +17,7 @@
       "label": "Starter project"
     },
     "extension": {
-      "filename": "zero-0.5.77.vsix",
+      "filename": "zero-0.5.78.vsix",
       "label": "Zero extension"
     }
   }
