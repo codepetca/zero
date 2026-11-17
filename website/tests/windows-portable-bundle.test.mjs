@@ -8,10 +8,9 @@ const currentKit = JSON.parse(await readFile(new URL('../../release/kit.json', i
 const kit = currentKit.publication.status === 'published' ? currentKit :
   JSON.parse(await readFile(new URL('../../release/published-kit.json', import.meta.url)));
 
-test('published bundle matches the actual kit and its exact release URL', () => {
+test('published bundle has its exact release URL and is compatible with the public kit', () => {
   assert.equal(windowsPortableBundleHref(bundle, kit), bundle.asset.url);
-  assert.equal(bundle.kitVersion, kit.kitVersion);
-  assert.equal(bundle.kitSha256, kit.assets.kit.sha256);
+  if (bundle.kitVersion === kit.kitVersion) assert.equal(bundle.kitSha256, kit.assets.kit.sha256);
 });
 
 test('bundle rejects inconsistent, unsafe or guessed release metadata', () => {
@@ -27,7 +26,7 @@ test('bundle rejects inconsistent, unsafe or guessed release metadata', () => {
     { asset: { ...bundle.asset, sha256: '' } },
   ]) assert.throws(() => windowsPortableBundleHref({ ...bundle, ...change }, kit));
   assert.throws(() => windowsPortableBundleHref(bundle, { ...kit, kitVersion: '0.0.1' }), /published kit/);
-  assert.throws(() => windowsPortableBundleHref(bundle, { ...kit, assets: { kit: { sha256: 'a'.repeat(64) } } }), /published kit/);
+  assert.throws(() => windowsPortableBundleHref(bundle, { ...kit, kitVersion:bundle.kitVersion, assets: { kit: { sha256: 'a'.repeat(64) } } }), /published kit/);
 });
 
 test('an older complete ZIP stays available while a newer kit-only release is published', () => {

@@ -164,7 +164,8 @@ export function verifyChecks(pr, runs, expectedHead) {
   const checks = pr.statusCheckRollup || [];
   const optionalLanes = new Map([
     ['Browser export compatibility/browser-tests', 'compatible'],
-    ['Windows launcher checks/windows-tests', 'windows']
+    ['Windows launcher checks/windows-tests', 'windows'],
+    ['Windows launcher checks/portable-bundle', 'windows']
   ]);
   const runId = check => /^https:\/\/github\.com\/codepetca\/zero\/actions\/runs\/(\d+)\/job\/\d+$/.exec(check.detailsUrl || '')?.[1];
   function verifiedScopedSkip(check) {

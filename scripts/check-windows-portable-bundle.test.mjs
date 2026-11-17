@@ -8,7 +8,10 @@ const bundle = JSON.parse(await readFile(new URL('../release/windows-portable-bu
 const published = kit.publication.status === 'published' ? kit :
   JSON.parse(await readFile(new URL('../release/published-kit.json', import.meta.url)));
 const mac = {kitVersion:published.kitVersion, publication:{status:'published'}};
-const after = {kit:published, mac, bundle};
+const matchedKit = {...published, kitVersion:bundle.kitVersion,
+  publication:{...published.publication, tag:`v${bundle.kitVersion}`},
+  assets:{...published.assets,kit:{...published.assets.kit,sha256:bundle.kitSha256}}};
+const after = {kit:matchedKit, mac:{...mac,kitVersion:bundle.kitVersion}, bundle};
 test('completing either side of a website release requires its complete ZIP', () => {
   for (const key of ['kit', 'mac']) {
     const before = {...after, [key]:null};

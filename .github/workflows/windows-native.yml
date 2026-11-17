@@ -203,6 +203,10 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
       - name: Install Portable build dependencies and the selected kit
         shell: pwsh
         run: |
@@ -214,12 +218,28 @@ jobs:
             npm run package
           }
           npm run verify:kit
-      - name: Build complete ZIP with exact pinned tools
+      - name: Prepare the exact promoted ZIP or build a new candidate
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZERO_PORTABLE_BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          node scripts/download-windows-portable-tools.mjs .verification/portable-downloads
-          node scripts/build-windows-portable.mjs --bundled .verification/portable-downloads dist/portable-bundled
+          $changed = ''
+          if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
+            $changed = git diff --name-only $env:ZERO_PORTABLE_BASE HEAD -- release/windows-portable-bundle.json
+          }
+          if ($changed) {
+            $bundle = Get-Content 'release/windows-portable-bundle.json' -Raw | ConvertFrom-Json
+            gh release download $bundle.publication.tag --repo codepetca/zero --pattern $bundle.asset.filename --pattern SHA256SUMS.txt --dir dist/portable-bundled
+            $file = Join-Path 'dist/portable-bundled' $bundle.asset.filename
+            if ((Get-Item $file).Length -ne $bundle.asset.size -or (Get-FileHash $file -Algorithm SHA256).Hash -ne $bundle.asset.sha256) {
+              throw 'The promoted complete ZIP must match its exact manifest.'
+            }
+          } else {
+            node scripts/download-windows-portable-tools.mjs .verification/portable-downloads
+            node scripts/build-windows-portable.mjs --bundled .verification/portable-downloads dist/portable-bundled
+          }
       - name: Open and reopen the bundled editor on a fresh Windows account
         shell: powershell
         timeout-minutes: 12

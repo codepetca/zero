@@ -61,6 +61,10 @@ export function verifyBundleArchive(filename, bundle, kitBytes) {
     assert.match(pin?.sha256 ?? '', /^[a-f0-9]{64}$/, 'Complete Portable runtime pin missing');
     assert.equal(extract(`tools/${kind}/.zero-asset.sha256`).toString().trim(), pin.sha256, 'Complete runtime marker drift');
   }
+  const java = execFileSync('unzip', ['-p', filename, 'Zero Portable/tools/java.vsix'],
+    {maxBuffer:128 * 1024 * 1024});
+  assert.equal(java.length, build.javaExtension.size, 'Bundled Java extension size drift');
+  assert.equal(createHash('sha256').update(java).digest('hex'), build.javaExtension.sha256, 'Bundled Java extension checksum drift');
   const editor = JSON.parse(extract('tools/vscodium/resources/app/package.json'));
   assert.equal(editor.version, build.runtimes.vscodium.version, 'Bundled editor version drift');
   const editorHeader = execFileSync('unzip', ['-p', filename, 'Zero Portable/tools/vscodium/VSCodium.exe'],
