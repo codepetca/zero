@@ -231,6 +231,16 @@ internal static class RuntimeHarness
             var settings = JObject.Parse(File.ReadAllText(settingsFile));
             Assert((string)settings["java.jdt.ls.java.home"] == Path.Combine(tools, "jdk") &&
                 (string)settings["update.mode"] == "none" && (bool?)settings["extensions.autoUpdate"] == false, "portable editor pins Java and disables updates");
+            // Model a later class with a fresh launcher process and the same Windows profile.
+            int installs = f.Host.Installs;
+            var reopened = new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, portableTools: tools, bundledEditor: pin);
+            reopened.Prepare(null, CancellationToken.None).GetAwaiter().GetResult();
+            reopened.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(f.Host.Downloads == 0 && f.Host.Installs == installs,
+                "reopening Portable checks the existing tools and does not download or reinstall ready extensions");
+            Assert(f.Host.Launched.FileName == Path.Combine(tools, editorFolder, editorExecutable) &&
+                !f.Host.Launched.Arguments.Contains("--new-window"),
+                "reopening Portable uses the same editor and restores the student session");
             Directory.CreateDirectory(Path.Combine(tools, editorFolder, "data"));
             Reject(() => runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(), "shared editor profile rejected");
             Directory.Delete(Path.Combine(tools, editorFolder, "data"));

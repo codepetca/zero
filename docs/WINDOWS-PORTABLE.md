@@ -101,6 +101,12 @@ Students extract the ZIP to an allowed local folder and open **Zero.exe**.
 The candidate uses the existing isolated Portable profile and needs network
 access for Zero sign-in and the first Java build.
 
+For later classes, keep the extracted folder on the computer and open the same
+**Zero.exe** from the same Windows account. The launcher reuses its bundled
+tools and the student's editor profile. New project dependencies may still
+need to download. If the school resets the device or user profile at sign-out,
+use a school-approved location and profile that persist between classes.
+
 From a clean checkout, build and verify the kit and obtain the same pinned
 `jdk.zip`, `git.zip`, `node.zip` and `java.vsix` used for the local pilot.
 Add `vscodium.zip` from the exact release in
