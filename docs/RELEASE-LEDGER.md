@@ -7,11 +7,11 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.77](https://github.com/codepetca/zero/releases/tag/v0.5.77) is public. All three anonymous downloads match the preparation receipts. | Main has newer tutorial source and its own local kit version, 0.5.78. |
-| Website | Release metadata selects the verified 0.5.77 Mac DMG and signed appcast. | Live verification follows deployment. The Windows button opens Zero Studio in the Store. |
-| Mac installer | [0.5.77](https://github.com/codepetca/zero/releases/tag/setup-v0.5.77) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup passed. Interactive Sparkle upgrade remains unverified. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 12, package 1.5.76.0 x64, is live. Microsoft validated the 1.5.77.0 package in submission 13. | The local WACK harness reported failure. Microsoft certification is tracked separately. |
-| Windows portable school pilot | [0.5.77 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.77) is public and matches the published kit. | School IT stages the vendor tools and replaces the old folder. Verify on one school desktop under a student login. |
+| GitHub manual kit | [Zero 0.5.78](https://github.com/codepetca/zero/releases/tag/v0.5.78) is public. All three anonymous downloads match the preparation receipts. | The extension includes the Merge diagnostic. |
+| Website | Release metadata selects the verified 0.5.78 Mac DMG, signed appcast and matching Portable ZIP. | Live verification follows deployment. The Windows button opens the Microsoft Store. |
+| Mac installer | [0.5.78](https://github.com/codepetca/zero/releases/tag/setup-v0.5.78) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup installed the exact extension. Interactive Sparkle upgrade remains unverified. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 13, package 1.5.77.0 x64, was live when preparing submission 14 for package 1.5.78.0. | Store availability follows successful upload and Microsoft certification. |
+| Windows portable school pilot | [0.5.78 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.78) is public and matches the published kit. | School IT stages the vendor tools and replaces the approved folder. Verify on one school desktop under a student login. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
@@ -22,6 +22,40 @@ blocked-executables finding, disclosed with the submission. See the
 The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
+
+## Zero 0.5.78 — 2026-11-17
+
+Merge reports the local Git command, exit status and recognized error in the
+notification and Zero Output. [PR #374](https://github.com/codepetca/zero/pull/374)
+merged at `b59aacf4301cfccf585f850afd596d9b8da81a2f` after all 11 checks passed.
+The packaged extension reproduced the Tutorial 5 unreadable-tree diagnostic.
+Restoring the object allowed the merge to succeed.
+
+[Preparation run 44146602000](https://github.com/codepetca/zero/actions/runs/44146602000)
+verified the exact public starter, native and browser Greeting, kit and
+Portable candidate. The three kit assets and the Portable staging ZIP matched
+their sealed sizes and hashes when downloaded anonymously. The Portable launcher
+embeds the exact published kit. [PR #375](https://github.com/codepetca/zero/pull/375)
+promotes the kit and Portable metadata.
+
+The Mac build source `62c0edc45257fedaeb49bdee2f58f93249cfb232` has the merged
+source tree. The preparation commit is `c6d61d5fc766`. Apple accepted
+submission `46164bbc-050b-4095-8f10-6fae065c2350`. Developer ID, stapling,
+Gatekeeper and isolated-home setup passed. Independent GPT-6.1 Terra review
+at medium reasoning verified the sealed hashes, source binding and update
+signatures. The public DMG SHA-256 is
+`fbfd6efb0da2275a0d0a04382846d34c57f7a1496ad0a7b415382499339ee960`.
+The signed appcast SHA-256 is
+`29b43c0c3c04e057509e205af29e9df1081ebf786724c8d0858401ebb517d79b`.
+
+[Hosted Windows run 44144004101](https://github.com/codepetca/zero/actions/runs/44144004101)
+passed installer, JavaFX and Store first-run checks. Store MSIX 1.5.78.0 x64
+has SHA-256
+`3e2eccddf39e798a5e672378926470d96033bd0d744a1a6cbfb7cbb755bc401c`.
+[WACK run 44147086127](https://github.com/codepetca/zero/actions/runs/44147086127)
+reported a required DPI-awareness warning and optional blocked-executables
+failure, matching 0.5.77. Microsoft certification and on-device Store delivery
+are separate from these hosted checks.
 
 ## Zero 0.5.77 — 2026-11-17
 
