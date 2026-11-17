@@ -100,6 +100,10 @@ when there are supported saved changes. Right-click an unstaged modified file
 for **Discard File Changes…**. Open Source Control, Refresh, Show All Project
 Files and Collapse All belong in the three-dot menu.
 
+Owner Files refinement, 2026-11-16. Clicking a file opens it in the regular
+editor, including when it has changes. Right-click a modified file and choose
+**Compare with Last Commit** to review its changes.
+
 Owner naming refinement,2026-10-26: show `java` and `resources` in the student
 project tree and destination prompts, matching the real folder basenames. Keep
 Libraries and its grouping unchanged.

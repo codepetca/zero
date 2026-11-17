@@ -366,6 +366,7 @@ function createStudentExplorer(vscode, host) {
     result.contextValue=value.kind==='deleted'&&!value.retained&&value.canRestoreDeleted?'zeroDeletedFile':value.kind==='deleted'?'zeroReadonly':value.kind==='library'?'zeroLibrary':value.area&&!value.retained?(value.area==='project'?(value.kind==='file'?'zeroProjectFile':'zeroProject'):value.area.endsWith('code')?(value.kind==='file'?'zeroCodeFile':'zeroCode'):value.kind==='file'?'zeroAssetFile':'zeroAssets'):value.kind==='other'?'zeroProject':'zeroReadonly';
     if(value.kind==='file'&&!value.retained&&result.contextValue!=='zeroReadonly')result.contextValue+=value.canRestoreModified&&value.canRestoreCommitted?'ModifiedAndCommitted':value.canRestoreModified?'Modified':value.canRestoreCommitted?'Committed':'';
     if(value.kind==='file'&&value.canRemoveAdded&&!value.retained&&result.contextValue!=='zeroReadonly')result.contextValue+='Added';
+    if(value.kind==='file'&&value.status==='modified')result.contextValue+=':compare';
     return result;
   }
   async function fresh(value) {
@@ -428,19 +429,39 @@ function createStudentExplorer(vscode, host) {
     if(!entries.some(entry=>entry.relative===value.relative&&!entry.directory))throw Error('The file changed. Select it again.');
     try {return await host.execute('zero.renameStudentFile',{root:snapshot.root,relative:value.relative,area:value.area||'project',libraryFolder:value.libraryFolder});}finally{invalidate();}
   }
+  async function requireOpenSelection(value,expectedRoot) {
+    let root;
+    try {root=await host.project();} catch {}
+    if(disposed||value.generation!==generation||root!==expectedRoot)
+      throw Object.assign(Error('The project view changed. Select the file again.'),{code:'ZERO_STALE_FILES'});
+  }
+  async function fileToOpen(snapshot,value) {
+    if(value.kind!=='file')throw Error('Select a file.');
+    const parent=path.posix.dirname(value.relative);
+    const entries=await ordinaryEntries(snapshot.root,parent==='.'?'':parent);
+    if(!entries.some(entry=>entry.relative===value.relative&&!entry.directory))throw Error('The file changed. Select it again.');
+    return path.join(snapshot.root,value.relative);
+  }
   async function open(value) {
     const snapshot=await fresh(value);
-    const requireCurrent=async()=>{let root;try{root=await host.project();}catch{throw Object.assign(Error('The project view changed. Select the file again.'),{code:'ZERO_STALE_FILES'});}if(disposed||value.generation!==generation||root!==snapshot.root)throw Object.assign(Error('The project view changed. Select the file again.'),{code:'ZERO_STALE_FILES'});};
     if(value.kind==='deleted') {
-      if(vscode.workspace.isTrusted!==true){await requireCurrent();return vscode.commands.executeCommand('workbench.view.scm');}
-      const changes=await (host.readFileStatus||readStudentFileStatus)(snapshot.root);
-      await requireCurrent();if(changes.get(value.relative)!=='deleted')throw Error('The project view changed. Select the deleted file again.');
+      if(vscode.workspace.isTrusted===true) {
+        const changes=await (host.readFileStatus||readStudentFileStatus)(snapshot.root);
+        if(changes.get(value.relative)!=='deleted')throw Error('The project view changed. Select the deleted file again.');
+      }
+      await requireOpenSelection(value,snapshot.root);
       return vscode.commands.executeCommand('workbench.view.scm');
     }
-    const entries=await ordinaryEntries(snapshot.root,path.posix.dirname(value.relative)==='.'?'':path.posix.dirname(value.relative));
-    if(!entries.some(entry=>entry.relative===value.relative&&!entry.directory))throw Error('The file changed. Select it again.');
+    const filename=await fileToOpen(snapshot,value);
+    await requireOpenSelection(value,snapshot.root);
+    return vscode.commands.executeCommand('vscode.open',vscode.Uri.file(filename));
+  }
+  async function compareWithLastCommit(value) {
+    const snapshot=await fresh(value);
+    const filename=await fileToOpen(snapshot,value);
+    const target=vscode.Uri.file(filename);
+    const requireCurrent=()=>requireOpenSelection(value,snapshot.root);
     await requireCurrent();
-    const filename=path.join(snapshot.root,value.relative),target=vscode.Uri.file(filename);
     const sourceControl=async()=>{await requireCurrent();return vscode.commands.executeCommand('workbench.view.scm');};
     const findDirty=async()=>{let found;const docs=(vscode.workspace.textDocuments||[]).filter(doc=>doc.isDirty&&doc.uri?.scheme==='file'&&doc.uri.fsPath);if(docs.length){const selected=await fs.realpath(filename);for(const doc of docs){if(await fs.realpath(doc.uri.fsPath)===selected){if(found)throw Error('Multiple open editors match this file.');found=doc;}}}return found;};
     let dirty;try {dirty=await findDirty();}catch{return sourceControl();}
@@ -598,7 +619,7 @@ function createStudentExplorer(vscode, host) {
   return {provider,tree,invalidate,refreshCreated,refreshStatus:()=>{if(model)scheduleRefresh();},isPreview:()=>preview,
     commands:{'zero.previewStudentExplorer':()=>setPreview(true),'zero.standardExplorer':()=>setPreview(false),'zero.showAllProjectFiles':showAll,
       'zero.refreshStudentExplorer':invalidate,'zero.collapseStudentExplorer':collapseAll,'zero.explorerOpenFile':open,'zero.explorerAction':invoke,'zero.explorerRenameFile':rename,'zero.explorerRestoreDeletedFile':restoreDeleted,'zero.explorerRestoreModifiedFile':restoreModified,'zero.explorerRestoreCommittedFile':restoreCommitted,'zero.explorerRemoveAddedFile':removeAdded,
-      'zero.explorerCopyAssetPath':copyAsset,
+      'zero.explorerCopyAssetPath':copyAsset,'zero.explorerCompareWithLastCommit':compareWithLastCommit,
       ...Object.fromEntries(['newClass','newPackage','newFile','newFolder','importAssets'].flatMap(name=>[[`zero.explorer${name[0].toUpperCase()+name.slice(1)}`,value=>create(`zero.${name}`,value)],[`zero.project${name[0].toUpperCase()+name.slice(1)}`,()=>createSelected(`zero.${name}`)]]))},
     dispose(){disposed=true;generation++;setDiscardAvailable(false);clearTimeout(timer);watcher?.dispose();folders.dispose();trust?.dispose();for(const document of documents)document.dispose();selectionEvents?.dispose();diffProvider?.dispose();diffSnapshots.clear();tree.dispose();events.dispose();}
   };
