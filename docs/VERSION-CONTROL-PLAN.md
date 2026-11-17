@@ -13,9 +13,11 @@ Owner-approved scope supersedes the earlier implementation direction below. The
 sidebar answers: which branch am I on, what changed, and is my work saved on
 GitHub? Project contains New/Clone/Open, branch creation and switching, commit
 message and Commit, Merge, recent commits, History and compact GitHub status.
-Files remains separate, retains file creation and accessible added/modified/
-deleted indicators, and opens supported unstaged text changes in the native VS
-Code diff. Staged, mixed, deleted and unsupported changes use Source Control.
+Files remains separate and retains file creation and accessible added/modified/
+deleted indicators. Click a file to open it in the editor. **Compare with Last
+Commit** in a modified file's context menu opens supported unstaged text changes
+in the native VS Code diff. Staged, mixed and unsupported comparisons and
+deleted files use Source Control.
 
 The first milestone is the complete student journey: open main; create a feature
 branch; edit, run and review a native diff; commit locally even offline; sync on

@@ -13197,3 +13197,42 @@ The editor and release-focused suites passed 112 and 91 tests. Nineteen
 targeted publisher tests passed, with additional independent abort and
 identity checks. The public starter comparison, package verification,
 native and WebFX replay, and configuration checks passed.
+
+## Files opens changed files for editing — 2026-11-16
+
+Clicking a file in Zero's Files tree opens it in the regular editor. The context
+menu for modified files offers **Compare with Last Commit**. Unsupported
+comparisons and clicks on deleted rows still open Source Control.
+
+The 36 Files tests ran with network access denied and the 66 related menu and
+file tests passed. Repository checks and `git diff --check` passed. A disposable
+macOS VS Code extension host opened a modified Java file in a regular editor
+tab, then opened a diff against the committed version with an unsaved edit still
+present in the working document. It used the command handlers directly.
+
+On 2026-11-17, a macOS Zero development host running VS Code 1.146.0 showed
+**Compare with Last Commit** beside **Discard File Changes…** and **Rename
+file…** when right-clicking a modified `Main.java` in Files. Choosing Compare
+showed the committed `score = 0` beside the working `score = 42`. A normal
+click returned to the regular editor with the modified source intact. Keyboard
+menu interaction and Windows and Linux UI were not exercised.
+
+After removing the **Show All Project Files** row, a reload showed no action
+row in Files. The Files three-dot menu still opened the standard Explorer,
+and **Back to Zero** returned to Files. The Command Palette search did not
+offer the action. The right-click comparison still opened from the file row.
+The focused Files and menu suite passed all 41 tests with network access
+denied. GPT-6.1 Terra at medium reasoning reviewed `29b7b02a0..b18a2043b`
+and found no actionable issues.
+
+The first Windows run for PR #368 stopped at the immutable 0.5.76 kit
+packaging guard. The branch prepares 0.5.77 as a local candidate and retains
+the exact 0.5.76 manifest for public downloads. Configuration, 95 release
+tests, seven download fallback tests, local packaging and kit verification
+passed. GPT-6.1 Terra at medium reasoning reviewed `f690ac3c5..d27bc8729`
+without actionable findings.
+
+One independent review of `95811bf7b..c37a8632c` used GPT-6.1 Terra at medium
+reasoning as requested and found no actionable issues. It covered the opening
+and comparison paths, stale selections, deleted files and menu conditions.
+The change was verified locally.

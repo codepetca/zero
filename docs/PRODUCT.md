@@ -360,8 +360,10 @@ Merge keeps the feature branch locally and on GitHub. On clean main, choose
 **Delete merged local branch…** from the branch menu to remove a local branch
 whose commits are already in main. History names the current branch and
 shows its commit line, including shared starting commits. A merge appears as
-one entry. Files shows change indicators and opens supported changes in the native
-diff. On macOS and Linux, **Discard All Changes…** in Files clears saved edits,
+one entry. Files shows change indicators and opens the current file in the
+regular editor. Right-click a modified file and choose **Compare with Last
+Commit** to review supported changes in the native diff. On macOS and Linux,
+**Discard All Changes…** in Files clears saved edits,
 staged changes, and new untracked files after confirmation. Right-click a file
 with an unstaged modification to choose **Discard File Changes…**. Both actions
 require a trusted standalone repository with a first commit. Zero retains exact
@@ -742,12 +744,14 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Resources or Project files using native prompts. Routine text inputs show one short
   label with no explanatory or confirm/cancel footer; validation errors appear as needed. Relative names can create
   subfolders. Existing entries are preserved, cancellation makes no changes, and
-  the native Explorer notices created files. Clicking a new, untracked file in
-  Files opens it in the editor. Put files the app reads under **resources** and
+  the native Explorer notices created files. Clicking an existing file in
+  Files opens it in the regular editor. Put files the app reads under **resources** and
   project notes under **Other project files**. Drag an ordinary project file onto
-  a folder in Files to move it. Java source moves within **java**. Use **Show all
-  project files** for folder moves in the full Explorer. Files uses native diff
-  for supported changes and Source Control for other changes. Files offers
+  a folder in Files to move it. Java source moves within **java**. In the Files
+  three-dot menu, choose **Show All Project Files** for folder moves in the
+  full Explorer. **Compare with Last Commit** opens the native diff for
+  supported changes. Source Control handles
+  other comparisons and deleted files. Files offers
   **Discard All Changes…** and **Discard File Changes…** where supported.
   There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.

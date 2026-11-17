@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.",
-  "version": "0.5.76",
+  "version": "0.5.77",
   "publisher": "zero",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
@@ -357,7 +357,7 @@
       },
       {
         "command": "zero.showAllProjectFiles",
-        "title": "Zero: Show All Project Files",
+        "title": "Show All Project Files",
         "icon": "$(files)"
       },
       {
@@ -382,6 +382,10 @@
       {
         "command": "zero.explorerOpenFile",
         "title": "Zero: Open File"
+      },
+      {
+        "command": "zero.explorerCompareWithLastCommit",
+        "title": "Compare with Last Commit"
       },
       {
         "command": "zero.explorerRestoreDeletedFile",
@@ -615,6 +619,14 @@
           "when": "false"
         },
         {
+          "command": "zero.showAllProjectFiles",
+          "when": "false"
+        },
+        {
+          "command": "zero.explorerCompareWithLastCommit",
+          "when": "false"
+        },
+        {
           "command": "zero.explorerAction",
           "when": "false"
         },
@@ -799,18 +811,23 @@
       ],
       "view/item/context": [
         {
+          "command": "zero.explorerCompareWithLastCommit",
+          "when": "view == zero.studentProject && isWorkspaceTrusted && viewItem =~ /:compare$/",
+          "group": "zero-file@0"
+        },
+        {
           "command": "zero.explorerRemoveAddedFile",
-          "when": "view == zero.studentProject && (viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroProjectFileAdded || viewItem == zeroProjectFileModifiedAdded)",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroProjectFileAdded|zeroProjectFileModifiedAdded)(?::compare)?$/",
           "group": "zero-file@3"
         },
         {
           "command": "zero.explorerRestoreModifiedFile",
-          "when": "view == zero.studentProject && (viewItem == zeroCodeFileModified || viewItem == zeroAssetFileModified || viewItem == zeroProjectFileModified)",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCodeFileModified|zeroAssetFileModified|zeroProjectFileModified)(?::compare)?$/",
           "group": "zero-file@1"
         },
         {
           "command": "zero.explorerRestoreCommittedFile",
-          "when": "view == zero.studentProject && (viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted || viewItem == zeroProjectFileCommitted || viewItem == zeroProjectFileModifiedAndCommitted)",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted|zeroProjectFileCommitted|zeroProjectFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-file@2"
         },
         {
@@ -820,37 +837,37 @@
         },
         {
           "command": "zero.explorerNewClass",
-          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted)",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-create@1"
         },
         {
           "command": "zero.explorerNewPackage",
-          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted)",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-create@2"
         },
         {
           "command": "zero.explorerNewFile",
-          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssets || viewItem == zeroAssetFile || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted || viewItem == zeroProject || viewItem == zeroProjectFile || viewItem == zeroProjectFileAdded || viewItem == zeroProjectFileModifiedAdded || viewItem == zeroProjectFileModified || viewItem == zeroProjectFileCommitted || viewItem == zeroProjectFileModifiedAndCommitted)",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssets|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted|zeroProject|zeroProjectFile|zeroProjectFileAdded|zeroProjectFileModifiedAdded|zeroProjectFileModified|zeroProjectFileCommitted|zeroProjectFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-create@3"
         },
         {
           "command": "zero.explorerNewFolder",
-          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssets || viewItem == zeroAssetFile || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted || viewItem == zeroProject || viewItem == zeroProjectFile || viewItem == zeroProjectFileAdded || viewItem == zeroProjectFileModifiedAdded || viewItem == zeroProjectFileModified || viewItem == zeroProjectFileCommitted || viewItem == zeroProjectFileModifiedAndCommitted)",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssets|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted|zeroProject|zeroProjectFile|zeroProjectFileAdded|zeroProjectFileModifiedAdded|zeroProjectFileModified|zeroProjectFileCommitted|zeroProjectFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-create@4"
         },
         {
           "command": "zero.explorerImportAssets",
-          "when": "view == zero.studentProject && (viewItem == zeroCode || viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssets || viewItem == zeroAssetFile || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted)",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssets|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-create@5"
         },
         {
           "command": "zero.explorerCopyAssetPath",
-          "when": "view == zero.studentProject && (viewItem == zeroAssetFile || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted)",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-assets@1"
         },
         {
           "command": "zero.explorerRenameFile",
-          "when": "view == zero.studentProject && (viewItem == zeroCodeFile || viewItem == zeroCodeFileAdded || viewItem == zeroCodeFileModifiedAdded || viewItem == zeroCodeFileModified || viewItem == zeroCodeFileCommitted || viewItem == zeroCodeFileModifiedAndCommitted || viewItem == zeroAssetFile || viewItem == zeroAssetFileAdded || viewItem == zeroAssetFileModifiedAdded || viewItem == zeroAssetFileModified || viewItem == zeroAssetFileCommitted || viewItem == zeroAssetFileModifiedAndCommitted || viewItem == zeroProjectFile || viewItem == zeroProjectFileAdded || viewItem == zeroProjectFileModifiedAdded || viewItem == zeroProjectFileModified || viewItem == zeroProjectFileCommitted || viewItem == zeroProjectFileModifiedAndCommitted)",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted|zeroProjectFile|zeroProjectFileAdded|zeroProjectFileModifiedAdded|zeroProjectFileModified|zeroProjectFileCommitted|zeroProjectFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-file@1"
         }
       ],
