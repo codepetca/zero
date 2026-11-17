@@ -383,8 +383,11 @@ archive bytes even at the same version.
    `--portable-manifest /absolute/path/to/portable-candidate.json` with the
    original `--run-id` to `release:publish`. It verifies the Portable release
    before publishing the kit and includes the manifest in the kit metadata PR.
-   Keep the same options when resuming. When both assets are public through
-   separate flows, use a reviewed promotion PR with all matching metadata.
+   Keep the same options when resuming. If Mac setup was promoted while a
+   kit-only metadata PR was open, bring that PR up to date with main and add the
+   verified Portable manifest. Review and check the updated PR head, then resume
+   the original run with `--portable-manifest`. When both assets are public
+   through separate flows, use a reviewed promotion PR with all matching metadata.
 4. After deployment, check the versioned link at
    [Downloads → Windows portable pilot](https://zero.codepet.ca/downloads#windows-portable)
    and check the school's [student login and run steps](WINDOWS-PORTABLE.md).

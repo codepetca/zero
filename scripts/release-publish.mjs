@@ -528,7 +528,7 @@ export async function publishZero(options, dependencies = {}) {
     log(`Verified Zero ${options.version}: release assets, merged manual-kit metadata/README and platform downloads match.`);
     return {...state, phase: 'verified', prUrl};
   } catch (error) {
-    error.message = `${state.phase}: ${error.message}\nRelease: ${state.releaseUrl || 'not yet verified'}; PR: ${state.prUrl || 'not yet created'}; preparation: ${state.runId || options.runId || 'see request correlation above'}. Rerun with the same candidate options after resolving the failure; assets are never overwritten.`;
+    error.message = `${state.phase}: ${error.message}\nRelease: ${state.releaseUrl || 'not yet verified'}; PR: ${state.prUrl || 'not yet created'}; preparation: ${state.runId || options.runId || 'see request correlation above'}. Resume with the recorded version and run ID, including the verified Portable manifest when required. Published assets remain immutable.`;
     throw error;
   } finally {
     // Contains only public source/artifacts, but no credentials or persisted auth state.
