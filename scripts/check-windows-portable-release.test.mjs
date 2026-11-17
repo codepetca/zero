@@ -16,10 +16,10 @@ const portable = {
   asset:{filename, size:100, sha256:'b'.repeat(64),
     url:`https://github.com/codepetca/zero/releases/download/${tag}/${filename}`},
 };
-const full = {kit, mac:platform, windows:platform, portable};
+const full = {kit, mac:platform, portable};
 
 test('a full release cannot be promoted without the matching ZIP, in any promotion order', () => {
-  for (const last of ['kit', 'mac', 'windows']) {
+  for (const last of ['kit', 'mac']) {
     const before = {...full, [last]:null};
     for (const invalid of [null, {...portable, kitVersion:'0.0.1'}]) {
       assert.throws(() => portableForPromotion(before, {...full, portable:invalid}), /publish the verified windows portable/i);
@@ -30,7 +30,7 @@ test('a full release cannot be promoted without the matching ZIP, in any promoti
 });
 
 test('new local candidates and kit-only promotions can retain the previous Portable ZIP', () => {
-  const before = {...full, kit:null, mac:null, windows:null};
+  const before = {...full, kit:null, mac:null};
   const kitOnly = {...before, kit};
   assert.equal(portableForPromotion(before, kitOnly), null);
   assert.equal(portableForPromotion(full, full), null);

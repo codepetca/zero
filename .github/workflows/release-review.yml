@@ -180,8 +180,16 @@ jobs:
           EXPECTED_VERSION: ${{ inputs.version }}
         run: node scripts/release-review.mjs seal
       - name: Build the Portable staging ZIP from the sealed kit
-        if: github.event_name == 'workflow_dispatch' && steps.release.outputs.status == 'local'
-        run: node scripts/build-windows-portable.mjs --public dist/windows-portable
+        if: steps.release.outputs.status == 'local'
+        env:
+          ZERO_RELEASE_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == pull_request ]] &&
+              git diff --quiet "$ZERO_RELEASE_BASE" HEAD -- .github/workflows/release-review.yml \
+                scripts/build-windows-portable.mjs scripts/windows-portable-package.mjs native-installer/windows; then
+            exit 0
+          fi
+          node scripts/build-windows-portable.mjs --public dist/windows-portable
       - name: Retain measured Windows Portable candidate
         if: github.event_name == 'workflow_dispatch' && steps.release.outputs.status == 'local'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

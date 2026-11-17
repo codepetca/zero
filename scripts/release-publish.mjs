@@ -9,7 +9,9 @@ import {fileURLToPath} from 'node:url';
 import {publicKeys, reviewPlan, verifyReviewAssets} from './release-review.mjs';
 import {verifyStarterAtPublication} from './verify-project-new.mjs';
 import {downloadPage} from './release-download-page.mjs';
+import {releaseDownloadFiles, releaseDownloads, portableForPromotion, verifiedDownload, verifyPortableArchive} from './check-windows-portable-release.mjs';
 import {validateInstallerManifest} from '../website/lib/installer.mjs';
+import {windowsPortablePilotHref} from '../website/lib/windows-portable-pilot.mjs';
 import {availableInstaller, validatePublishedInstaller} from '../website/lib/published-installer.mjs';
 
 export const repository = 'codepetca/zero';
@@ -18,7 +20,7 @@ export const windowsStoreURL = 'https://apps.microsoft.com/detail/9mxkd6dqlfgx';
 const workflow = 'release-review.yml';
 const shaPattern = /^[a-f0-9]{40}$/;
 const definitionFiles = ['extension/package.json', 'framework/pom.xml'];
-const promotionFiles = ['README.md', 'release/kit.json'];
+const portableManifestPath = 'release/windows-portable-pilot.json';
 const projectNewGateSources = ['.github/workflows/release-review.yml', 'scripts/verify-project-new.mjs',
   'scripts/project-new-playthrough.mjs', 'scripts/ProjectNewGreetingCheck.java',
   'website/lib/example-projects.mjs', 'website/lib/project-templates.mjs',
@@ -48,11 +50,16 @@ export function parseArguments(args) {
     if (args[i] === '--verify-only' && !options.verifyOnly) options.verifyOnly = true;
     else if (args[i] === '--version' && !options.version) options.version = args[++i];
     else if (args[i] === '--run-id' && !options.runId) options.runId = args[++i];
-    else throw new Error('Usage: npm run release:publish -- --version X.Y.Z [--run-id DIGITS] [--verify-only]');
+    else if (args[i] === '--portable-manifest' && !Object.hasOwn(options, 'portableManifest')) options.portableManifest = args[++i];
+    else throw new Error('Usage: npm run release:publish -- --version X.Y.Z [--run-id DIGITS [--portable-manifest FILE]] [--verify-only]');
   }
   assert.match(options.version || '', /^\d+\.\d+\.\d+$/, 'Select one numeric version with --version.');
   if (options.runId !== undefined) assert.match(options.runId, /^\d+$/, 'Run ID must contain digits.');
   assert.ok(!options.verifyOnly || !options.runId, 'Verification does not use a preparation run.');
+  if (Object.hasOwn(options, 'portableManifest')) {
+    assert.ok(options.portableManifest && options.runId && !options.verifyOnly,
+      'Portable promotion requires an explicit candidate manifest and preparation run ID.');
+  }
   return options;
 }
 
@@ -180,7 +187,11 @@ export function verifyChecks(pr, runs, expectedHead) {
 
 // All transports are injectable; tests use disposable files and never contact GitHub.
 export async function publishZero(options, dependencies = {}) {
-  parseArguments(['--version', options.version, ...(options.runId ? ['--run-id', options.runId] : []), ...(options.verifyOnly ? ['--verify-only'] : [])]);
+  parseArguments(['--version', options.version, ...(options.runId ? ['--run-id', options.runId] : []), ...(options.verifyOnly ? ['--verify-only'] : []),
+    ...(options.portableManifest ? ['--portable-manifest', options.portableManifest] : [])]);
+  const suppliedPortable = options.portableManifest ? json(await readFile(options.portableManifest)) : null;
+  if (options.portableManifest) assert.ok(suppliedPortable && typeof suppliedPortable === 'object' &&
+    !Array.isArray(suppliedPortable), 'Portable candidate manifest must be a JSON object.');
   const runner = dependencies.runner || execute, request = dependencies.fetch || fetch;
   const now = dependencies.now || Date.now, sleep = dependencies.sleep || (ms => new Promise(resolve => setTimeout(resolve, ms)));
   const log = dependencies.log || console.log;
@@ -214,15 +225,15 @@ export async function publishZero(options, dependencies = {}) {
       await publicBytes({...actual, sha256: receipt.assets[key].sha256});
     }
   }
-  async function verifyTag(sha, {allowAbsent = false} = {}) {
-    const endpoint = `git/ref/tags/v${options.version}`;
+  async function verifyTag(sha, {allowAbsent = false, tag = `v${options.version}`} = {}) {
+    const endpoint = `git/ref/tags/${tag}`;
     let reference = allowAbsent ? await maybeApi(endpoint) : await api(endpoint);
     if (!reference) return;
     if (reference.object.type === 'tag') reference = await api(`git/tags/${reference.object.sha}`);
     assert.equal(reference.object.type, 'commit', 'Unsupported release tag target.');
     assert.equal(reference.object.sha, sha, 'Release tag target drift.');
   }
-  async function live(platforms) {
+  async function live(platforms, portable = null) {
     const deadline = now() + (dependencies.liveTimeout ?? 10 * 60000);
     let reason = 'The live platform download choices do not match published metadata yet.';
     while (now() < deadline) {
@@ -238,11 +249,44 @@ export async function publishZero(options, dependencies = {}) {
         const found = verifyPlatformDownloadPage(await response.text(), platforms);
         // Measure the actual Mac button target. Store delivery has its own native acceptance.
         await publicBytes({...platforms.mac.asset, url:found.mac});
+        if (portable) {
+          const downloads = await request(`${website}/downloads?check=${now()}`,
+            {signal: AbortSignal.timeout(30000), headers: {'Cache-Control':'no-cache'}});
+          assert.equal(downloads.status, 200, 'Live Portable downloads unavailable.');
+          if (downloads.url) {
+            const destination = new URL(downloads.url);
+            assert.ok(destination.origin === website && destination.pathname === '/downloads',
+              'Live Portable downloads redirected outside the expected page.');
+          }
+          const links = downloadPage(await downloads.text()).anchors;
+          assert.ok(links.some(link => link.href === portable.asset.url && link.text.includes(portable.kitVersion)),
+            'Live Downloads page does not show the verified Portable ZIP yet.');
+        }
         return;
       } catch (error) {reason = error.message;}
       await sleep(dependencies.pollInterval ?? 10000);
     }
     throw new Error(`Live platform verification timed out: ${reason}`);
+  }
+
+  async function checkPortablePromotion(kit, sourceSha, review) {
+    const manifests = new Map(await Promise.all(releaseDownloadFiles.map(async name => {
+      try { return [name, json(await readFile(path.join(source, `release/${name}.json`)))]; }
+      catch (error) { if (error.code === 'ENOENT') return [name, null]; throw error; }
+    })));
+    const before = releaseDownloads(name => manifests.get(name));
+    const after = {...before, kit, portable:suppliedPortable ?? before.portable};
+    const required = portableForPromotion(before, after);
+    if (required || suppliedPortable) {
+      const {portable} = after;
+      assert.ok(windowsPortablePilotHref(portable), 'Portable candidate needs a canonical public ZIP URL.');
+      assert.equal(portable.sourceRevision, sourceSha, 'Portable source must match this exact preparation run.');
+      assert.equal(portable.kitVersion, kit.kitVersion, 'Portable version must match the kit.');
+      assert.equal(portable.kitSha256, kit.assets.kit.sha256, 'Portable must embed the exact prepared kit.');
+      await verifyTag(sourceSha, {tag:portable.publication.tag});
+      const zip = await verifiedDownload(portable.asset, request);
+      verifyPortableArchive(portable, zip, await readFile(path.join(review, kit.assets.kit.filename)));
+    }
   }
 
   try {
@@ -331,6 +375,8 @@ export async function publishZero(options, dependencies = {}) {
     assert.ok(JSON.stringify(initial) === JSON.stringify(definition) || JSON.stringify(initial) === JSON.stringify(expectedPublished), 'Selected main release definition differs from the preparation candidate.');
     for (const name of definitionFiles) assert.equal(await readFile(path.join(source, name), 'utf8'), await readFile(path.join(candidate, name), 'utf8'), `Selected main definition drift: ${name}`);
     assert.equal(String(await command('git', ['diff', '--name-only', sourceSha, mainSha, '--', ...packagedSources])).trim(), '', 'Packaged source changed since preparation.');
+    state.phase = 'Portable promotion verification';
+    await checkPortablePromotion(expectedPublished, sourceSha, review);
     state.phase = 'release publication';
     let release = await findRelease(definition.publication.tag);
     let projectNew;
@@ -385,8 +431,18 @@ export async function publishZero(options, dependencies = {}) {
     const beforeReadme = await readFile(path.join(source, 'README.md'), 'utf8');
     const promotedReadme = promoteReadme(beforeReadme, options.version, promoted.assets.kit.url);
     const promotedJson = JSON.stringify(promoted, null, 2) + '\n';
-    let prUrl;
+    await checkPortablePromotion(promoted, sourceSha, review);
+    const promotionEntries = [];
     if (JSON.stringify(current) !== JSON.stringify(promoted) || beforeReadme !== promotedReadme) {
+      promotionEntries.push(['README.md', promotedReadme], ['release/kit.json', promotedJson]);
+    }
+    const portableJson = suppliedPortable && JSON.stringify(suppliedPortable, null, 2) + '\n';
+    const currentPortable = portableJson && await readFile(path.join(source, portableManifestPath), 'utf8')
+      .catch(error => { if (error.code === 'ENOENT') return null; throw error; });
+    if (portableJson && portableJson !== currentPortable) promotionEntries.push([portableManifestPath, portableJson]);
+    const promotionFiles = promotionEntries.map(([name]) => name);
+    let prUrl;
+    if (promotionEntries.length) {
       const branch = `codex/publish-${options.version.replaceAll('.', '-')}`;
       const branchRef = await maybeApi(`git/ref/heads/${branch}`);
       let head;
@@ -394,7 +450,7 @@ export async function publishZero(options, dependencies = {}) {
         head = branchRef.object.sha;
         assert.match(head, shaPattern);
         await command('git', ['fetch', 'origin', branch]);
-        for (const [name, expected] of [['release/kit.json', promotedJson], ['README.md', promotedReadme]]) {
+        for (const [name, expected] of promotionEntries) {
           assert.equal(String(await command('git', ['show', `${head}:${name}`])), expected, 'Existing metadata branch differs from generated state.');
         }
         assert.deepEqual(String(await command('git', ['diff', '--name-only', latestSha, head])).trim().split('\n').sort(), promotionFiles, 'Existing branch has arbitrary changes or a stale base.');
@@ -403,8 +459,7 @@ export async function publishZero(options, dependencies = {}) {
         assert.match(user.login || '', /^[a-zA-Z0-9][a-zA-Z0-9-]*$/, 'Cannot establish the signed-in release author.');
         assert.ok(Number.isSafeInteger(user.id) && user.id > 0, 'Cannot establish the signed-in release author ID.');
         await command('git', ['checkout', '-b', branch, latestSha]);
-        await writeFile(path.join(source, 'release/kit.json'), promotedJson);
-        await writeFile(path.join(source, 'README.md'), promotedReadme);
+        for (const [name, body] of promotionEntries) await writeFile(path.join(source, name), body);
         assert.deepEqual(String(await command('git', ['diff', '--name-only'])).trim().split('\n').sort(), promotionFiles, 'Generated diff must contain only release metadata and README.');
         await command('git', ['diff', '--check']);
         await command('git', ['add', '--', ...promotionFiles]);
@@ -439,6 +494,13 @@ export async function publishZero(options, dependencies = {}) {
         await sleep(dependencies.pollInterval ?? 10000);
       }
       assert.ok(green, 'Metadata CI/branch rules did not permit merge before timeout. Resume this exact PR after checks/review succeed.');
+      await command('git', ['fetch', 'origin', 'main']);
+      const mergeBase = String(await command('git', ['rev-parse', 'origin/main'])).trim();
+      if (mergeBase !== latestSha) {
+        assert.match(mergeBase, shaPattern, 'Invalid current main commit.');
+        await command('git', ['checkout', '--detach', mergeBase]);
+        await checkPortablePromotion(promoted, sourceSha, review);
+      }
       await gh(['pr', 'merge', prUrl, '--merge', '--match-head-commit', head]);
       const merged = json(await gh(['pr', 'view', prUrl, '--json', 'state,headRefOid,mergeCommit']));
       assert.equal(merged.state, 'MERGED', 'Metadata PR did not merge.');
@@ -450,6 +512,10 @@ export async function publishZero(options, dependencies = {}) {
     assert.match(mergedMainSha, shaPattern, 'Invalid merged main commit.');
     assert.equal(String(await command('git', ['show', `${mergedMainSha}:release/kit.json`])), promotedJson, 'Merged metadata readback drift.');
     assert.equal(String(await command('git', ['show', `${mergedMainSha}:README.md`])), promotedReadme, 'Merged README readback drift.');
+    if (portableJson) {
+      assert.equal(String(await command('git', ['show', `${mergedMainSha}:${portableManifestPath}`])),
+        portableJson, 'Merged Portable metadata readback drift.');
+    }
     // A concurrent Mac promotion may have advanced main while the kit PR was pending.
     // Read all final metadata from one fetched commit, without changing the checkout.
     const platformFiles = new Set(String(await command('git', ['ls-tree', '--name-only', mergedMainSha, '--',
@@ -457,12 +523,12 @@ export async function publishZero(options, dependencies = {}) {
     const platforms = await readPlatformDownloads(source, promoted, {readJSON:async name =>
       platformFiles.has(`release/${name}`) ? json(await command('git', ['show', `${mergedMainSha}:release/${name}`])) : null});
     state.phase = 'live platform verification';
-    await live(platforms);
+    await live(platforms, suppliedPortable);
     succeeded = true;
     log(`Verified Zero ${options.version}: release assets, merged manual-kit metadata/README and platform downloads match.`);
     return {...state, phase: 'verified', prUrl};
   } catch (error) {
-    error.message = `${state.phase}: ${error.message}\nRelease: ${state.releaseUrl || 'not yet verified'}; PR: ${state.prUrl || 'not yet created'}; preparation: ${state.runId || options.runId || 'see request correlation above'}. Rerun the same version/run ID after resolving the failure; assets are never overwritten.`;
+    error.message = `${state.phase}: ${error.message}\nRelease: ${state.releaseUrl || 'not yet verified'}; PR: ${state.prUrl || 'not yet created'}; preparation: ${state.runId || options.runId || 'see request correlation above'}. Rerun with the same candidate options after resolving the failure; assets are never overwritten.`;
     throw error;
   } finally {
     // Contains only public source/artifacts, but no credentials or persisted auth state.

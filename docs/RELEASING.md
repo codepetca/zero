@@ -46,8 +46,8 @@ its source/run receipt, exact filenames, licenses, sizes and SHA256 values.
 
 It creates and verifies a draft targeting that source commit, publishes precisely
 the three main files, and retrieves each public download without authentication
-to check its bytes. It generates only `release/kit.json` and README's download
-label/link and opens the metadata PR. Pending checks can be polled, but required
+to check its bytes. It updates `release/kit.json` and README's download label/link, plus the verified
+Portable manifest when explicitly supplied for a full release, and opens the metadata PR. Pending checks can be polled, but required
 review, outstanding review requests or a blocked merge stop the run and
 leave the exact published release and PR intact. Satisfy the actual GitHub review
 or branch requirement, then resume with the same version and successful preparation
@@ -352,8 +352,9 @@ until that kit's independent publication is complete.
 
 ## Windows portable school pilot
 
-A full release includes the published kit, Mac setup, Windows installer and a
-matching Windows Portable staging ZIP. Manual **Release checks and preparation**
+A full website release includes the published kit, Mac setup and a matching
+Windows Portable staging ZIP. The Microsoft Store and the standalone Windows
+installer follow their own publication schedules. Manual **Release checks and preparation**
 builds `zero-<version>-portable-<run-id>` from the same sealed kit bytes as the
 manual kit release. Keep the successful run and its matching kit and Portable
 artifacts together. A separate local Mac or Windows build can have different kit
@@ -367,14 +368,23 @@ archive bytes even at the same version.
    Attach only `Zero-<version>-windows-portable-pilot-staging-x64.zip` and
    `SHA256SUMS.txt`. Download the draft assets and verify their exact bytes
    before publishing. Keep an existing verified release and its files intact
-   when retrying.
+   when retrying. If a preparation run failed after uploading an artifact,
+   start a fresh manual dispatch to get a new run ID.
 3. Download the public ZIP and checksum anonymously and verify them against the
    candidate. Copy the verified `portable-candidate.json` into
    `release/windows-portable-pilot.json` as part of the final release promotion
-   PR. Once the kit and both native downloads match, the promotion check
-   requires the matching Portable metadata and verifies that the public launcher
-   embeds the exact published kit. This applies even when platforms are promoted
-   in separate PRs. Kit-only releases can keep the prior Portable download.
+   PR. When the published kit and Mac setup reach the same version, CI requires
+   the matching Portable metadata and verifies both public tags and the launcher
+   against the exact published kit. Kit-only releases can keep the prior download
+   while Mac setup is still at an earlier version. Before merging a release
+   promotion, recheck it against current main if another promotion merged since
+   its checks ran.
+   If the matching Mac setup is already public, pass
+   `--portable-manifest /absolute/path/to/portable-candidate.json` with the
+   original `--run-id` to `release:publish`. It verifies the Portable release
+   before publishing the kit and includes the manifest in the kit metadata PR.
+   Keep the same options when resuming. When both assets are public through
+   separate flows, use a reviewed promotion PR with all matching metadata.
 4. After deployment, check the versioned link at
    [Downloads → Windows portable pilot](https://zero.codepet.ca/downloads#windows-portable)
    and check the school's [student login and run steps](WINDOWS-PORTABLE.md).

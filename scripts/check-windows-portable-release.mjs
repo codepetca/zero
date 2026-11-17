@@ -11,23 +11,23 @@ import {availableInstaller} from '../website/lib/published-installer.mjs';
 import {windowsPortablePilotHref} from '../website/lib/windows-portable-pilot.mjs';
 
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
-const files = ['kit', 'published-kit', 'installer', 'published-installer', 'windows-preview', 'windows-installer', 'windows-portable-pilot'];
+export const releaseDownloadFiles = ['kit', 'published-kit', 'installer', 'published-installer', 'windows-portable-pilot'];
 
 export function releaseDownloads(read) {
   return {
     kit: availableKitRelease(read('kit'), read('published-kit')),
     mac: availableInstaller(read('installer'), read('published-installer')),
-    windows: read('windows-installer') ?? read('windows-preview'),
     portable: read('windows-portable-pilot'),
   };
 }
 
 export function portableForPromotion(before, after) {
-  const {kit, mac, windows, portable} = after;
+  const {kit, mac, portable} = after;
   const portableChanged = !isDeepStrictEqual(before.portable, portable);
-  const full = kit && [mac, windows].every(platform =>
-    platform?.publication?.status === 'published' && platform.kitVersion === kit.kitVersion);
-  const fullChanged = full && ['kit', 'mac', 'windows'].some(key => !isDeepStrictEqual(before[key], after[key]));
+  // The matching kit and Mac setup constitute a website release. Microsoft
+  // Store certification and the separate Windows preview can land later.
+  const full = kit && mac?.publication?.status === 'published' && mac.kitVersion === kit.kitVersion;
+  const fullChanged = full && (!isDeepStrictEqual(before.kit, kit) || !isDeepStrictEqual(before.mac, mac));
   if (!portableChanged && !fullChanged) return null;
 
   assert.equal(kit?.publication?.status, 'published', 'Portable promotion requires the public Zero kit');
@@ -35,11 +35,15 @@ export function portableForPromotion(before, after) {
   const version = kit.kitVersion;
   assert.ok(portable && portable.kitVersion === version && windowsPortablePilotHref(portable),
     `Publish the verified Windows Portable ${version} staging ZIP and include its manifest in this promotion.`);
+  if (before.portable?.publication?.status === 'published' && before.portable.kitVersion === version) {
+    assert.deepEqual(portable.asset, before.portable.asset, 'Published Portable assets are immutable');
+    assert.equal(portable.sourceRevision, before.portable.sourceRevision, 'Published Portable source is immutable');
+  }
   assert.equal(portable.kitSha256, kit.assets.kit.sha256, 'Portable must embed the exact published kit');
   return {portable, kit: kit.assets.kit};
 }
 
-async function verifiedDownload(asset, request) {
+export async function verifiedDownload(asset, request) {
   const response = await request(asset.url, {signal:AbortSignal.timeout(30000)});
   assert.equal(response.status, 200, `Public download failed for ${asset.filename}`);
   const bytes = Buffer.from(await response.arrayBuffer());
@@ -53,6 +57,10 @@ export async function verifyPublicPortable(promotion, request = fetch) {
   const [zip, kitBytes] = await Promise.all([
     verifiedDownload(portable.asset, request), verifiedDownload(kit, request),
   ]);
+  verifyPortableArchive(portable, zip, kitBytes);
+}
+
+export function verifyPortableArchive(portable, zip, kitBytes) {
   const contents = unzipSync(zip, {filter: entry =>
     entry.name.startsWith('Zero Portable/') && ['BUILD.json', 'Zero.exe'].includes(entry.name.slice('Zero Portable/'.length)) &&
     entry.originalSize <= 32 * 1024 * 1024});
@@ -71,7 +79,7 @@ async function main() {
   const [base, ...extra] = process.argv.slice(2);
   assert.ok(/^[a-f0-9]{40}$/.test(base ?? '') && !extra.length,
     'Usage: node scripts/check-windows-portable-release.mjs BASE_SHA');
-  const paths = files.map(file => `release/${file}.json`);
+  const paths = releaseDownloadFiles.map(file => `release/${file}.json`);
   const changed = execFileSync('git', ['diff', '--name-only', base, 'HEAD', '--', ...paths], {encoding:'utf8'}).trim();
   if (!changed) return;
   const tracked = new Set(execFileSync('git', ['ls-tree', '-r', '--name-only', base, '--', ...paths], {encoding:'utf8'}).trim().split('\n'));
