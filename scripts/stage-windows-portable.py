@@ -121,6 +121,15 @@ def main():
         if bad:
             raise ValueError(f"Corrupt packaged bytes for {bad}")
     sha256 = digest(file)
+    if codium_pin:
+        tag = f'windows-portable-bundled-v{metadata["kitVersion"]}'
+        candidate = {key: metadata[key] for key in
+                     ("kitVersion", "sourceRevision", "kitSourceRevision", "kitSha256")}
+        candidate["publication"] = {"status": "published", "tag": tag}
+        candidate["asset"] = {"filename": name, "size": file.stat().st_size, "sha256": sha256,
+                              "url": f"https://github.com/codepetca/zero/releases/download/{tag}/{name}"}
+        (output / "portable-bundle-candidate.json").write_text(
+            json.dumps(candidate, indent=2) + "\n", encoding="utf-8")
     (output / "SHA256SUMS.txt").write_text(f"{sha256}  {name}\n", encoding="ascii")
     print(f"{file} ({file.stat().st_size:,} bytes, SHA-256 {sha256})")
 
