@@ -64,7 +64,11 @@ jobs:
       - name: Build measured development installer
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          npm run package
+          if ((Get-Content 'release/kit.json' -Raw | ConvertFrom-Json).publication.status -eq 'published') {
+            node scripts/prepare-portable-kit.mjs
+          } else {
+            npm run package
+          }
           npm run verify:kit
           node scripts/build-installers.mjs --platform windows
           node scripts/verify-installers.mjs --platform windows
