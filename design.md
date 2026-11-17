@@ -216,7 +216,8 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Merge keeps the feature branch locally and on GitHub. On main, the branch
   menu offers **Delete merged local branch…** as a separate action.
 - First publication, or a changed publishing destination, gets one short warning:
-  **“Your app and included assets will be public.”** Show the destination.
+  **“Your app and its assets will be public.”** When ZeroHub listing is part of the
+  flow, add **“This may replace your currently published app.”** Show the destination.
   Do not ask again after setup/upload or for routine updates to the same site.
   Keep native authorization, account, destination, source and conflict checks.
 - Show routine success in the sidebar, without success popups. Use brief results
