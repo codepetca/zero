@@ -97,6 +97,40 @@ The Windows CI test installer needs a buildable local kit. The branch advances
 that kit to 0.5.75 and carries the published 0.5.74 metadata forward as the
 download fallback. Published releases and the update feed retain their bytes.
 
+# Bundled Windows Portable 0.5.78 candidate — 2026-11-17
+
+The owner selected VSCodium for a ZIP that students can extract and launch
+with **Zero.exe**. The local x64 bundle was built from clean source
+`799e176bb850c7cf08f02c10464357fa368c58d5` with the verified 0.5.78 kit.
+The 605,932,585-byte archive expands to 1,275,026,404 bytes and has SHA-256
+`4df297d9a29e5c0eadfc4d12969f78f00d3498c8359c7dc94650e2dd8ba7edcf`.
+It includes VSCodium 1.143.17232, Temurin, Node.js, MinGit and the pinned
+universal Red Hat Java VSIX. Its x64 launcher embeds the exact kit and editor
+pin. The archive check verified all files and the five tool pins.
+
+Configuration and local documentation link checks, kit verification including
+the extracted Maven build, and all Windows fixtures under Mono passed. The
+runtime harness covers the original Portable and VSCodium paths, including
+launch selection, profile isolation, and absence of tool downloads. The Sol/high
+independent review passed for `b59aacf43..799e176bb`. The reviewer verified
+VSCodium's real CLI invocation. Windows extension installation, sign-in,
+JavaFX and reopening under a standard user remain unverified.
+
+The candidate is private. Before publication, retain the upstream notices and
+complete the corresponding-source inventory. Start with the exact
+[VSCodium release](https://github.com/VSCodium/vscodium/releases/tag/1.143.17232),
+[Temurin release](https://github.com/adoptium/temurin21-binaries/releases/tag/jdk-21.0.12.1%2B1),
+[Node.js archive](https://nodejs.org/en/download/archive/v22.23.4),
+[Git for Windows release](https://github.com/git-for-windows/git/releases/tag/v2.56.1.windows.1)
+and [Red Hat Java release](https://github.com/redhat-developer/vscode-java/releases/tag/v1.57.0).
+MinGit lists its component versions in `etc/package-versions.txt`. Verify
+source availability for those components as well as for the language server
+bundled in the universal VSIX and the editor's bundled dependencies.
+Run the [bundled pilot](WINDOWS-PORTABLE.md#build-a-bundled-pilot-candidate)
+on the target school device before promoting a download.
+
+---
+
 # Windows portable school pilot — 2026-11-14
 
 Local pilot source `6adc8a88721d26fcbfabfb4b3e4272b65300a227`. The
