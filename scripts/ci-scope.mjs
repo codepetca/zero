@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
 import {validateInstallerManifest} from '../website/lib/installer.mjs';
 import {validateWindowsPreview} from '../website/lib/windows-preview.mjs';
+import {windowsPortablePilotHref} from '../website/lib/windows-portable-pilot.mjs';
 import {validateMacUpdateFeed} from './mac-update-feed.mjs';
 
 export const groups=['source','native','browser','windows','website','sharing','lessons'];
@@ -18,6 +19,7 @@ const scopeTools=new Set(['scripts/ci-scope.mjs','scripts/ci-scope.test.mjs']);
 const publicationMetadata=new Set(['release/kit.json','release/published-kit.json','release/installer.json',
   'release/published-installer.json','release/mac-appcast.xml','release/mac-update-feed.json']);
 const windowsPreviewManifest='release/windows-preview.json';
+const windowsPortableManifest='release/windows-portable-pilot.json';
 
 // Deliberately a small allowlist. Unknown/shared executable inputs retain every
 // existing lane. Renames are read as a deletion plus addition, so the old scope
@@ -33,7 +35,7 @@ export function classify(files, {kitPublicationPromotion = false, windowsPreview
     // Only scopeForEvent can establish this from both committed manifests.
     // Source release guards and website validation still run; no immutable kit
     // is rebuilt. Any other changed shared/runtime input retains full coverage.
-    if(kitPublicationPromotion&&publicationMetadata.has(file)){add('source','website');continue;}
+    if(kitPublicationPromotion&&(publicationMetadata.has(file)||file===windowsPortableManifest)){add('source','website');continue;}
     if(windowsPreviewPromotion&&file===windowsPreviewManifest){add('source','website');continue;}
     // A verified publication promotion may carry its classifier correction;
     // selection/gate contracts still run. Standalone CI edits, caller workflows,
@@ -108,13 +110,23 @@ function committedKitPromotion(base,head,cwd,files,{installerOnly=false}={}) {
       if(!isDeepStrictEqual(before,after)||!isPublishedKit(after))return false;
     } else if(!isKitPublicationPromotion(before,after))return false;
     const ancillary=files.some(file=>publicationMetadata.has(file)&&file!=='release/kit.json');
-    if(!ancillary)return !installerOnly;
+    const portableChanged=files.includes(windowsPortableManifest);
+    if(!ancillary&&!portableChanged)return !installerOnly;
     const get=(ref,file)=>{
       const result=spawnSync('git',['show',`${ref}:${file}`],{cwd,maxBuffer:128*1024});
       if(result.status!==0||result.error)throw new Error('Unavailable publication metadata');
       return result.stdout;
     };
     const json=(ref,file)=>JSON.parse(get(ref,file).toString('utf8'));
+    if(portableChanged) {
+      const previous=json(base,windowsPortableManifest);
+      const portable=json(head,windowsPortableManifest);
+      // The source job always checks both public tags, downloads and embedded
+      // kit bytes. Only matching publication metadata can use that narrow lane.
+      if(previous.kitVersion===portable.kitVersion||portable.kitVersion!==after.kitVersion||
+        portable.kitSha256!==after.assets.kit.sha256||!windowsPortablePilotHref(portable))return false;
+    }
+    if(!ancillary)return !installerOnly;
     const installer=json(head,'release/installer.json');
     // The reviewed local native receipt may be committed after the PR merge
     // base. Compare against the parent of its latest first-parent change.
