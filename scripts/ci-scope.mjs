@@ -121,6 +121,7 @@ function committedKitPromotion(base,head,cwd,files,{installerOnly=false}={}) {
     if(portableChanged) {
       const previous=json(base,windowsPortableManifest);
       const portable=json(head,windowsPortableManifest);
+      windowsPortablePilotHref(previous);
       // The source job always checks both public tags, downloads and embedded
       // kit bytes. Only matching publication metadata can use that narrow lane.
       if(previous.kitVersion===portable.kitVersion||portable.kitVersion!==after.kitVersion||

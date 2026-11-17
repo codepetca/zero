@@ -101,7 +101,10 @@ test('real Git publication diff scopes metadata while mixed runtime and CI chang
     const before={schema:1,kitVersion:'0.5.55',coreVersion:'0.3.0',publication:{status:'local',repository:'codepetca/zero',tag:'v0.5.55'},assets:{
       kit:{filename:'zero-bootstrap.zip',label:'Kit'},starter:{filename:'zero-starter.zip',label:'Starter'},extension:{filename:'zero-0.5.55.vsix',label:'Extension'}}};
     const portableFile='release/windows-portable-pilot.json';
-    write('release/kit.json',before);write(portableFile,{kitVersion:'0.5.54'});git('add','.');git('commit','-qm','local kit');const base=git('rev-parse','HEAD');
+    write('release/kit.json',before);
+    write(portableFile,{kitVersion:'0.5.54',sourceRevision:'a'.repeat(40),
+      localAsset:{filename:'Zero-0.5.54-windows-portable-pilot-x64.zip',size:123,sha256:'b'.repeat(64)}});
+    git('add','.');git('commit','-qm','local kit');const base=git('rev-parse','HEAD');
     const after=structuredClone(before);after.publication.status='published';
     for(const asset of Object.values(after.assets))Object.assign(asset,{size:123,sha256:'a'.repeat(64),url:`https://github.com/codepetca/zero/releases/download/v0.5.55/${asset.filename}`});
     const scope=baseSha=>scopeForEvent({pull_request:{base:{sha:baseSha||base},head:{sha:git('rev-parse','HEAD')}}},root);
@@ -125,6 +128,12 @@ test('real Git publication diff scopes metadata while mixed runtime and CI chang
       write(portableFile,invalid);git('add','.');git('commit','-qm','invalid Portable metadata');
       assert.ok(Object.values(scope()).every(Boolean));
     }
+    git('switch','-c','malformed-portable-base',base);
+    write(portableFile,{});git('add','.');git('commit','-qm','malformed prior Portable metadata');
+    const malformedBase=git('rev-parse','HEAD');
+    write('release/kit.json',after);write(portableFile,portable);
+    git('add','.');git('commit','-qm','publish with malformed prior Portable metadata');
+    assert.ok(Object.values(scope(malformedBase)).every(Boolean));
     git('switch','promotion');
     write('README.md','updated public download');git('add','.');git('commit','-qm','document download');assert.equal(scope().windows,false);
     git('switch','-c','classifier-contracts',git('rev-parse','HEAD'));write('scripts/ci-scope.mjs','classifier change');write('scripts/ci-scope.test.mjs','selection regressions');write('docs/FAST-DEV-FLOW.md','document dependency scope');git('add','.');git('commit','-qm','promotion and classifier contracts');
