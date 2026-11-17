@@ -21,6 +21,8 @@ namespace ZeroSetup
         private readonly string kit, executionKit, data, storage, project, architecture;
         private readonly IWindowsRuntimeHost host;
         private readonly string portableTools;
+        private readonly bool usesBundledEditor;
+        private string EditorExecutable => usesBundledEditor ? "VSCodium.exe" : "Code.exe";
         private const string PortableJavaVersion = "1.57.0";
         private const string PortableJavaHash = "80a6b852577aec37510b1f975e188279181e8c30ab5cae88812d941cd2d11bff";
         private readonly JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024, RecursionLimit = 32 };
@@ -45,9 +47,9 @@ namespace ZeroSetup
             public int schemaVersion { get; set; }
             public Dictionary<string, Dictionary<string, WindowsRuntimeAsset>> architectures { get; set; }
         }
-        public WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, string architecture = null, string storageRoot = null, string executionKitRoot = null, string portableTools = null)
-            : this(kitRoot, dataRoot, projectRoot, new WindowsRuntimeHost(), architecture, storageRoot, executionKitRoot, portableTools) { }
-        internal WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, IWindowsRuntimeHost host, string architecture = null, string storageRoot = null, string executionKitRoot = null, string portableTools = null)
+        public WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, string architecture = null, string storageRoot = null, string executionKitRoot = null, string portableTools = null, WindowsRuntimeAsset bundledEditor = null)
+            : this(kitRoot, dataRoot, projectRoot, new WindowsRuntimeHost(), architecture, storageRoot, executionKitRoot, portableTools, bundledEditor) { }
+        internal WindowsRuntime(string kitRoot, string dataRoot, string projectRoot, IWindowsRuntimeHost host, string architecture = null, string storageRoot = null, string executionKitRoot = null, string portableTools = null, WindowsRuntimeAsset bundledEditor = null)
         {
             this.host = host ?? throw new ArgumentNullException("host");
             host.ValidatePlatform();
@@ -63,6 +65,13 @@ namespace ZeroSetup
             if (manifest == null || manifest.schemaVersion != 1 || manifest.architectures == null || !manifest.architectures.TryGetValue(this.architecture, out assets) || assets.Count != 4 || !assets.ContainsKey("jdk") || !assets.ContainsKey("vscode") || !assets.ContainsKey("node") || !assets.ContainsKey("git"))
                 throw new IOException("Verified Windows download metadata is missing. Reinstall Zero.");
             foreach (var pair in assets) ValidateAsset(pair.Key, pair.Value);
+            if (bundledEditor != null)
+            {
+                if (this.portableTools == null) throw new IOException("A bundled editor requires local Portable tools.");
+                ValidateAsset("vscodium", bundledEditor);
+                assets["vscode"] = bundledEditor;
+                usesBundledEditor = true;
+            }
             var properties = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (string line in ReadText(Path.Combine(kit, "setup", "kit.properties"), 4096).Replace("\r\n", "\n").Split('\n'))
             {
@@ -120,6 +129,11 @@ namespace ZeroSetup
                     PrivateGitFiles.All(file => asset.files.ContainsKey(file.Replace('\\', '/'))) &&
                     asset.files.All(file => Regex.IsMatch(file.Value ?? "", "^[a-f0-9]{64}$"));
             }
+            else if (kind == "vscodium")
+            {
+                official = ValidVersion(asset.version) && uri.Host == "github.com" &&
+                    path == "/VSCodium/vscodium/releases/download/" + asset.version + "/VSCodium-win32-x64-" + asset.version + ".zip";
+            }
             else if (kind == "vscode")
             {
                 official = ValidVersion(asset.version) && uri.Host == "vscode.download.prss.microsoft.com" &&
@@ -136,7 +150,8 @@ namespace ZeroSetup
         private string Extensions { get { return Path.Combine(data, "editor", "extensions"); } }
         private string AssetFolder(string kind)
         {
-            if (portableTools != null) return Path.Combine(portableTools, kind);
+            if (portableTools != null)
+                return Path.Combine(portableTools, kind == "vscode" && usesBundledEditor ? "vscodium" : kind);
             string digest = assets[kind].sha256;
 #if ZERO_STORE_PRODUCTION
             // Keep the verifier executable below the Windows path limit. The
@@ -229,13 +244,15 @@ namespace ZeroSetup
         }
         private Task<string> Code(IEnumerable<string> arguments, int milliseconds, CancellationToken cancellation)
         {
-            return Execute(Path.Combine(editor, "Code.exe"), new[] { Path.Combine(editorApp, "out", "cli.js") }.Concat(Isolated).Concat(arguments), milliseconds, cancellation, true);
+            return Execute(Path.Combine(editor, EditorExecutable), new[] { Path.Combine(editorApp, "out", "cli.js") }.Concat(Isolated).Concat(arguments), milliseconds, cancellation, true);
         }
         private void Marker(string folder, string kind)
         {
             string receipt = Path.Combine(folder, ".zero-asset.sha256");
             if (portableTools != null && !File.Exists(receipt))
-                throw new IOException("Missing " + kind + " tools. Ask school IT to stage the complete Zero Portable folder: " + folder);
+                throw new IOException(usesBundledEditor
+                    ? "Zero's bundled tools are missing. Extract the complete Zero Portable ZIP and open Zero.exe again: " + folder
+                    : "Missing " + kind + " tools. Ask school IT to stage the complete Zero Portable folder: " + folder);
             if (ReadText(receipt, 128).Trim() != assets[kind].sha256) throw new IOException("Zero's private tool folder is unrecognized. Reinstall Zero or ask for help.");
         }
         private async Task Install(string kind, Action<string> progress, CancellationToken cancellation)
@@ -450,12 +467,14 @@ namespace ZeroSetup
             try
             {
                 WindowsRuntimeFolders.Check(root);
-                if (!File.Exists(Path.Combine(root, "Code.exe"))) return false;
+                if (!File.Exists(Path.Combine(root, EditorExecutable))) return false;
                 string app = ResolveEditorApp(root);
                 var product = json.Deserialize<Dictionary<string, object>>(ReadText(Path.Combine(app, "product.json"), 1024 * 1024));
                 var package = json.Deserialize<Dictionary<string, object>>(ReadText(Path.Combine(app, "package.json"), 1024 * 1024));
                 object quality, editorVersion;
                 if (product == null || package == null || !product.TryGetValue("quality", out quality) || quality as string != "stable" || !package.TryGetValue("version", out editorVersion) || !AtLeast(editorVersion as string, minimum)) return false;
+                if (usesBundledEditor && ((string)editorVersion != assets["vscode"].version ||
+                    !product.TryGetValue("applicationName", out object application) || application as string != "codium")) return false;
                 editor = root; editorApp = app;
                 string output = await Code(new[] { "--version" }, 30000, cancellation);
                 return output.Replace("\r\n", "\n").Split('\n').Any(line => AtLeast(line.Trim(), minimum));
@@ -733,7 +752,9 @@ namespace ZeroSetup
                     await PrepareTools(progress, cancellation);
                     folders.Ensure(UserData); folders.Ensure(Extensions);
                     progress("Preparing editor…"); await FindEditor(cancellation);
-                    if (editor == null && portableTools != null) throw new IOException("The staged VS Code could not start. Ask school IT to check the approved folder and its application rules.");
+                    if (editor == null && portableTools != null) throw new IOException(usesBundledEditor
+                        ? "The bundled editor could not start. Extract the entire ZIP to a local folder. Ask IT if this device blocks it."
+                        : "The staged VS Code could not start. Ask school IT to check the approved folder and its application rules.");
                     if (editor == null)
                     {
                         if (Directory.Exists(AssetFolder("vscode"))) await Repair("vscode", progress, cancellation);
@@ -832,7 +853,7 @@ namespace ZeroSetup
                 cancellation.ThrowIfCancellationRequested();
                 try { PublishGitSelection(folders); }
                 catch (Exception error) when (error is IOException || error is UnauthorizedAccessException || error is JsonException || error is FormatException || error is ArgumentException) { }
-                host.Launch(Info(Path.Combine(editor, "Code.exe"), Isolated.Concat(resume ? new string[0] : new[] { "--new-window" }), false));
+                host.Launch(Info(Path.Combine(editor, EditorExecutable), Isolated.Concat(resume ? new string[0] : new[] { "--new-window" }), false));
             }
         }
     }

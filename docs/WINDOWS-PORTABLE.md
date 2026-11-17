@@ -92,3 +92,25 @@ as `java.vsix` in the same folder. Run
 with .NET SDK and Python 3.11+ available. The output contains the measured ZIP
 and its checksum. The build uses locked dependencies and includes the exact
 verified kit in the Windows launcher.
+
+
+## Build a bundled pilot candidate
+
+The VSCodium candidate includes the editor and all five runtime components.
+Students extract the ZIP to an allowed local folder and open **Zero.exe**.
+The candidate uses the existing isolated Portable profile and needs network
+access for Zero sign-in and the first Java build.
+
+From a clean checkout, build and verify the kit and obtain the same pinned
+`jdk.zip`, `git.zip`, `node.zip` and `java.vsix` used for the local pilot.
+Add `vscodium.zip` from the exact release in
+`native-installer/windows/portable-editor.json`. Then run:
+
+```sh
+node scripts/build-windows-portable.mjs --bundled DOWNLOAD_DIRECTORY NEW_OUTPUT_DIRECTORY
+```
+
+This produces a ZIP and a SHA-256 checksum. Keep the candidate private until its
+source materials and notices have been verified for public redistribution.
+Verify launch, account isolation, sign-in, JavaFX run and reopen under a
+standard Windows account, then repeat the trial under the target school policy.

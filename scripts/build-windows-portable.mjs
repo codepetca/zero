@@ -8,11 +8,14 @@ import {root, releaseDefinition} from './release.mjs';
 import {writePublicPortable} from './windows-portable-package.mjs';
 import {buildWindowsIcon} from './windows-icon.mjs';
 
-const [downloadDirectory, outputDirectory, ...extra] = process.argv.slice(2);
-if (!downloadDirectory || !outputDirectory || extra.length)
-  throw new Error('Usage: node scripts/build-windows-portable.mjs DOWNLOAD_DIRECTORY|--public NEW_OUTPUT_DIRECTORY');
+const args = process.argv.slice(2);
+const bundled = args[0] === '--bundled';
+const [downloadDirectory, outputDirectory, ...extra] = bundled ? args.slice(1) : args;
+if (!downloadDirectory || !outputDirectory || extra.length || (bundled && downloadDirectory === '--public'))
+  throw new Error('Usage: node scripts/build-windows-portable.mjs DOWNLOAD_DIRECTORY|--public|--bundled DOWNLOAD_DIRECTORY NEW_OUTPUT_DIRECTORY');
 
 const publicOnly = downloadDirectory === '--public';
+const editorPin = path.join(root, 'native-installer/windows/portable-editor.json');
 const release = releaseDefinition();
 const kitFile = path.join(root, 'dist', release.assets.kit.filename);
 const kit = readFileSync(kitFile);
@@ -35,6 +38,7 @@ const stage = path.join(work, 'Zero Portable');
 execFileSync('dotnet', ['publish', path.join(root, 'native-installer/windows/ZeroSetup.csproj'),
   '-c', 'Release', '-o', stage, '-p:ZeroDistribution=Portable', '-p:PlatformTarget=x64',
   '-p:RuntimeIdentifier=win-x64', '-p:RestoreLockedMode=true', '-p:NuGetAudit=false',
+  ...(bundled ? [`-p:ZeroPortableEditor=${editorPin}`] : []),
   `-p:Version=${release.kitVersion}`, `-p:ZeroIcon=${icon}`, `-p:ZeroKitZip=${kitFile}`,
   `-p:BaseIntermediateOutputPath=${path.join(work, 'obj')}${path.sep}`,
   `-p:BaseOutputPath=${path.join(work, 'bin')}${path.sep}`], {cwd:root, stdio:'inherit', timeout:240000});
@@ -52,8 +56,14 @@ const pe = launcher.readUInt32LE(0x3c);
 assert.equal(launcher.readUInt32LE(pe), 0x00004550);
 assert.equal(launcher.readUInt16LE(pe + 4), 0x8664);
 assert.ok(launcher.includes(kit), 'The launcher must embed the exact measured Zero kit');
+if (bundled) assert.ok(launcher.includes(readFileSync(editorPin)), 'The launcher must embed the pinned Portable editor');
 
 const pins = JSON.parse(runtimeManifest).architectures.x64;
+const runtimePins = {...pins};
+if (bundled) {
+  delete runtimePins.vscode;
+  runtimePins.vscodium = JSON.parse(readFileSync(editorPin, 'utf8'));
+}
 const javaExtension = {
   version:'1.57.0',
   url:'https://github.com/redhat-developer/vscode-java/releases/download/v1.57.0/vscode-java-1.57.0-1110.vsix',
@@ -70,19 +80,24 @@ const metadata = {
   kitVersion:release.kitVersion,
   sourceRevision:execFileSync('git', ['rev-parse', 'HEAD'], {cwd:root, encoding:'utf8'}).trim(),
   sourceDirty:!!execFileSync('git', ['status', '--porcelain'], {cwd:root, encoding:'utf8'}).trim(),
-  kitSha256:digest(kit), launcherSha256:digest(launcher), runtimes:Object.fromEntries(
-    Object.entries(pins).map(([key, {version, url, size, sha256}]) => [key, {version, url, size, sha256}])), javaExtension};
+  kitSha256:digest(kit), launcherSha256:digest(launcher),
+  ...(bundled ? {toolDistribution:'bundled'} : {}),
+  runtimes:Object.fromEntries(
+    Object.entries(runtimePins).map(([key, {version, url, size, sha256}]) => [key, {version, url, size, sha256}])), javaExtension};
 const output = path.resolve(outputDirectory);
 if (publicOnly) {
   writePublicPortable(root, metadata, name => readFileSync(path.join(stage, name)), output);
 } else {
-  const vs = pins.vscode;
-  const stageScript = readFileSync(path.join(root, 'native-installer/windows/Stage-VSCode.ps1'), 'utf8')
-    .replaceAll('@VS_CODE_URL@', vs.url).replaceAll('@VS_CODE_SIZE@', String(vs.size)).replaceAll('@VS_CODE_SHA256@', vs.sha256);
-  writeFileSync(path.join(stage, 'Stage-VSCode.ps1'), stageScript.replace(/\r?\n/g, '\r\n'), {flag:'wx'});
-  copyFileSync(path.join(root, 'docs/WINDOWS-PORTABLE.md'), path.join(stage, 'READ-ME.md'));
+  if (!bundled) {
+    const vs = pins.vscode;
+    const stageScript = readFileSync(path.join(root, 'native-installer/windows/Stage-VSCode.ps1'), 'utf8')
+      .replaceAll('@VS_CODE_URL@', vs.url).replaceAll('@VS_CODE_SIZE@', String(vs.size)).replaceAll('@VS_CODE_SHA256@', vs.sha256);
+    writeFileSync(path.join(stage, 'Stage-VSCode.ps1'), stageScript.replace(/\r?\n/g, '\r\n'), {flag:'wx'});
+  }
+  const guide = bundled ? 'release/PORTABLE-BUNDLED.md' : 'docs/WINDOWS-PORTABLE.md';
+  copyFileSync(path.join(root, guide), path.join(stage, 'READ-ME.md'));
   writeFileSync(path.join(stage, 'BUILD.json'), JSON.stringify(metadata, null, 2) + '\n', {flag:'wx'});
   mkdirSync(output);
   execFileSync('python3', [path.join(root, 'scripts/stage-windows-portable.py'), path.resolve(downloadDirectory),
-    stage, output, path.join(root, 'setup/windows-downloads.json')], {cwd:root, stdio:'inherit', timeout:240000});
+    stage, output, path.join(root, 'setup/windows-downloads.json'), ...(bundled ? [editorPin] : [])], {cwd:root, stdio:'inherit', timeout:240000});
 }

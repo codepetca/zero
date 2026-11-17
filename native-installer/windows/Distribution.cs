@@ -11,7 +11,11 @@ namespace ZeroSetup
         internal const string DataFolder = "ZeroPortableData";
         internal const string KitFolder = "Zero Portable";
         internal const string BrokerPrefix = "Codepet.Zero.Portable.Launcher.";
+#if ZERO_PORTABLE_BUNDLED
+        internal const string LaunchError = "Zero could not open. Extract the complete Zero Portable ZIP and open Zero.exe from that local folder.";
+#else
         internal const string LaunchError = "Zero could not open. Run Zero.exe from the folder prepared by school IT.";
+#endif
 #elif ZERO_STORE_PRODUCTION
         internal const string DataFolder = "ZeroStudioStoreData";
         internal const string KitFolder = "Zero Studio";

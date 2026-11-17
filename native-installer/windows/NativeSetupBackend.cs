@@ -56,8 +56,18 @@ namespace ZeroSetup
                 throw new IOException("Ask school IT to copy Zero Portable to an approved folder on this computer’s local drive.");
             portableTools = Path.Combine(portableRoot, "tools");
 #endif
+            WindowsRuntimeAsset bundledEditor = null;
+#if ZERO_PORTABLE_BUNDLED
+            using (Stream manifest = Assembly.GetExecutingAssembly().GetManifestResourceStream("ZeroPortableEditor.json"))
+            {
+                if (manifest == null) throw new InvalidDataException("Zero's bundled editor pin is missing.");
+                using (var reader = new StreamReader(manifest))
+                    bundledEditor = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<WindowsRuntimeAsset>(reader.ReadToEnd());
+                if (bundledEditor == null) throw new InvalidDataException("Zero's bundled editor pin is invalid.");
+            }
+#endif
             runtime = new WindowsRuntime(bundledKit, runtimeRoot, Path.Combine(target.Path, "starter"),
-                storageRoot: dataRoot, executionKitRoot: executionKit, portableTools: portableTools);
+                storageRoot: dataRoot, executionKitRoot: executionKit, portableTools: portableTools, bundledEditor: bundledEditor);
 #if ZERO_STORE
             runtime.ApproveGitDownload = () => DependencyConsent.EnsureGit(dataRoot, ApproveGitDownload);
 #endif
