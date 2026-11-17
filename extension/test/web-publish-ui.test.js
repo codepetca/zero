@@ -47,8 +47,8 @@ test('publish completion reports in sidebar and its verified copy command remain
   assert.equal(h.states.at(-1),'App published');assert.equal(h.messages.length,1,'Only first-publish warning remains');
   await h.api.commands['zero.copyPublishedWebLink']();assert.deepEqual(h.copied,['https://student.github.io/game/']);
   const warning=h.messages.find(message=>message[1]?.modal);
-  assert.equal(warning[0],'Publish this app publicly?');
-  assert.equal(warning[1].detail,'Your app and included assets will be public.\nhttps://student.github.io/game/');
+  assert.equal(warning[0],'Publish app?');
+  assert.equal(warning[1].detail,'Your app and its assets will be public.\nhttps://student.github.io/game/');
 });
 test('first setup warns once, checks App workflow access, uploads and revalidates before publishing',async t=>{
   const h=fixture(t);h.setup=true;h.choices.push('Publish app');const result=await h.api.publish();assert.equal(result.status,'live');assert.equal(h.uploaded,1);assert.deepEqual(h.calls,['review','review','setup','review','publish']);assert.deepEqual(h.authCalls.map(call=>call.permissions),[{contents:'write',workflows:'write'}]);assert.equal(h.messages.filter(m=>m[1]?.modal).length,1);
@@ -355,7 +355,7 @@ test('unsynced source stops before the publisher can push or ask for approval',a
     assert.deepEqual(h.messages,[]);assert.equal(h.stored.has('zero.webPublish.approval'),false);
     h.publisher.review=review;
     await h.api[entry](); // Source is now synced, but the first public warning is dismissed.
-    assert.equal(h.messages.at(-1)[0],'Publish this app publicly?');
+    assert.equal(h.messages.at(-1)[0],'Publish app?');
     assert.equal(h.uploaded,0);assert.equal(h.published,0);assert.deepEqual(h.opened,[]);
   }
 });
@@ -603,7 +603,7 @@ test('verified publish lists automatically and reusing the same app retries only
   }});
   h.choices.push('Publish app');
   await h.api.publish();
-  assert.match(h.messages[0][1].detail,/add the app to ZeroHub.*first unprotected app/);
+  assert.equal(h.messages[0][1].detail,'Your app and its assets will be public. This may replace your currently published app.\nhttps://student.github.io/game/');
   assert.deepEqual(listings,[42]);
   assert.match(h.states.at(-1),/ZeroHub app listing pending/);
   await h.api.publishAndOpen();

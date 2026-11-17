@@ -60,7 +60,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     return {id:'zero-app-session-'+accountId,account:{id:accountId,label:accountId==='1'?'student':'other'},accessToken:'APP_TEST_ONLY',scopes:[]};
   },onDidChangeSessions:listener=>{listeners.add(listener);return {dispose(){disposed++;listeners.delete(listener);}};}},
   workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],isTrusted:true,textDocuments:[],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saves++;await afterSave();return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-  window:{createOutputChannel:()=>({appendLine:text=>results.push(text),dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:async(items,options)=>{picks.push({items,options});},showWarningMessage:async(text,options)=>{notices.push(text);await afterWarning(text,options);return text==='Sync saved project commits?'?'Sync commits':undefined;},showInformationMessage:async(text,options)=>{notices.push(text);if(publishing&&text==='Publish this app publicly?')return publicChoice;assert.ok(!options?.modal,'Routine push needs no confirmation');},showInputBox:async()=>{inputs++;await afterInput();return cancelMessage?undefined:'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
+  window:{createOutputChannel:()=>({appendLine:text=>results.push(text),dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:async(items,options)=>{picks.push({items,options});},showWarningMessage:async(text,options)=>{notices.push(text);await afterWarning(text,options);return text==='Sync saved project commits?'?'Sync commits':undefined;},showInformationMessage:async(text,options)=>{notices.push(text);if(publishing&&text==='Publish app?')return publicChoice;assert.ok(!options?.modal,'Routine push needs no confirmation');},showInputBox:async()=>{inputs++;await afterInput();return cancelMessage?undefined:'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
   tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}};
   let setupPrepared=false,deploys=0,publishApi;
   const publishPublisher={review:async()=>{
@@ -322,7 +322,7 @@ test('Publish leaves both saved commits and dirty changes for an explicit Sync',
     await h.commands.get('zero.publishWeb')();
     assert.deepEqual(h.errors,[]);assert.equal(h.inputs,0);assert.equal(h.pushes,0);assert.equal(h.deploys,0);
     assert.equal(h.transportDispatches,0);assert.match(h.results.at(-1),/choose Sync on main/);
-    assert.ok(!h.notices.includes('Publish this app publicly?'));
+    assert.ok(!h.notices.includes('Publish app?'));
   });
 });
 test('Publish approval cancellation, setup upload cancellation or failure, and a change branch stop deployment',async t=>{
