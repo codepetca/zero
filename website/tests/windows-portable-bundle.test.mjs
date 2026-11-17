@@ -4,7 +4,9 @@ import { readFile } from 'node:fs/promises';
 import { windowsPortableBundleHref } from '../lib/windows-portable-bundle.mjs';
 
 const bundle = JSON.parse(await readFile(new URL('../../release/windows-portable-bundle.json', import.meta.url)));
-const kit = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
+const currentKit = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
+const kit = currentKit.publication.status === 'published' ? currentKit :
+  JSON.parse(await readFile(new URL('../../release/published-kit.json', import.meta.url)));
 
 test('published bundle matches the actual kit and its exact release URL', () => {
   assert.equal(windowsPortableBundleHref(bundle, kit), bundle.asset.url);
@@ -26,4 +28,9 @@ test('bundle rejects inconsistent, unsafe or guessed release metadata', () => {
   ]) assert.throws(() => windowsPortableBundleHref({ ...bundle, ...change }, kit));
   assert.throws(() => windowsPortableBundleHref(bundle, { ...kit, kitVersion: '0.0.1' }), /published kit/);
   assert.throws(() => windowsPortableBundleHref(bundle, { ...kit, assets: { kit: { sha256: 'a'.repeat(64) } } }), /published kit/);
+});
+
+test('an older complete ZIP stays available while a newer kit-only release is published', () => {
+  const next = {...kit, kitVersion:'999.0.0'};
+  assert.equal(windowsPortableBundleHref(bundle, next), bundle.asset.url);
 });

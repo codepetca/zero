@@ -97,7 +97,9 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           ZERO_RELEASE_BASE: ${{ github.event.pull_request.base.sha }}
-        run: node scripts/check-windows-portable-release.mjs "$ZERO_RELEASE_BASE"
+        run: |
+          node scripts/check-windows-portable-release.mjs "$ZERO_RELEASE_BASE"
+          node scripts/check-windows-portable-bundle.mjs "$ZERO_RELEASE_BASE"
       - name: Configuration and release guard tests
         run: |
           npm run check

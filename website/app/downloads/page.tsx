@@ -3,7 +3,7 @@ import { localDownloadsEnabled } from "@/lib/release";
 import { windowsPortablePilotHref } from "@/lib/windows-portable-pilot.mjs";
 import { windowsPortableBundleHref } from "@/lib/windows-portable-bundle.mjs";
 import bundle from "../../../release/windows-portable-bundle.json";
-import kit from "../../../release/kit.json";
+import { downloadableKit } from "@/lib/release";
 import pilot from "../../../release/windows-portable-pilot.json";
 import { LearnTheme } from "../learn/LearnTheme";
 import "../../.generated/learn-theme.css";
@@ -15,7 +15,8 @@ export const metadata = {
 };
 export const dynamic = "force-dynamic";
 
-const bundleDownload = windowsPortableBundleHref(bundle, kit.publication.status === "published" ? kit : undefined);
+const available = downloadableKit();
+const bundleDownload = windowsPortableBundleHref(bundle, available?.publication.status === "published" ? available : undefined);
 const sizeMB = (size: number) => `${(size / 1_000_000).toFixed(1)} MB`;
 const pilotDownload = windowsPortablePilotHref(pilot);
 
@@ -32,11 +33,11 @@ export default function DownloadsPage() {
           <p className="home-description">
             For testing on a school desktop, choose the Windows x64 ZIP that fits your setup.
           </p>
-          <p><a href={bundleDownload}>Complete ZIP — VSCodium and tools included ({sizeMB(bundle.asset.size)})</a></p>
+          <p><a href={bundleDownload}>Complete ZIP {bundle.kitVersion} — VSCodium and tools included ({sizeMB(bundle.asset.size)})</a></p>
           <p className="source-note">Extract all files to an approved folder, then open Zero.exe.</p>
           {pilotDownload ? (
             <>
-              <p><a href={pilotDownload}>Small setup ZIP — downloads tools ({sizeMB(pilot.asset.size)})</a></p>
+              <p><a href={pilotDownload}>Small setup ZIP {pilot.kitVersion} — downloads tools ({sizeMB(pilot.asset.size)})</a></p>
               <p className="source-note">For setup or school IT: extract all files, then run Stage-Tools.ps1 to download the tools before copying the folder.</p>
             </>
           ) : localDownloadsEnabled() ? (

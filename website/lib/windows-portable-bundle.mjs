@@ -6,9 +6,17 @@ export function windowsPortableBundleHref(manifest, publishedKit) {
       !/^[a-f0-9]{64}$/.test(kitSha256 ?? '')) {
     throw new Error('Invalid Windows portable bundle metadata');
   }
-  if (publishedKit && (publishedKit.publication?.status !== 'published' ||
-      publishedKit.kitVersion !== kitVersion || publishedKit.assets?.kit?.sha256 !== kitSha256)) {
-    throw new Error('Windows portable bundle does not match the published kit');
+  if (publishedKit) {
+    if (!/^\d+\.\d+\.\d+$/.test(publishedKit.kitVersion ?? '')) throw new Error('Invalid published kit version');
+    const current = publishedKit.kitVersion.split('.').map(BigInt);
+    const candidate = kitVersion.split('.').map(BigInt);
+    const differing = current?.findIndex((part, index) => part !== candidate[index]);
+    if (publishedKit.publication?.status !== 'published' ||
+        !current || current.length !== 3 ||
+        (differing !== -1 && candidate[differing] > current[differing]) ||
+        (publishedKit.kitVersion === kitVersion && publishedKit.assets?.kit?.sha256 !== kitSha256)) {
+      throw new Error('Windows portable bundle does not match the published kit');
+    }
   }
   const tag = `windows-portable-bundled-v${kitVersion}`;
   const filename = `Zero-${kitVersion}-windows-portable-bundled-x64.zip`;

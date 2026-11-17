@@ -2,9 +2,34 @@
 
 Pilot for one school desktop running x64 Windows 10 (build 19041 or later) or
 Windows 11 with .NET Framework 4.8. A regular student can start it by opening
-**Zero.exe** in the approved local folder. The launcher is unsigned. School IT
+**Zero.exe** in the extracted local folder. The launcher is unsigned. School IT
 can use the accompanying SHA-256 checksum and the application's normal approval
 process.
+
+## Complete ZIP
+
+Choose **Complete ZIP** on [Downloads](https://zero.codepet.ca/downloads#windows-portable)
+for the editor, Java, Git, Node.js and Java language support in one download.
+
+1. Right-click the downloaded ZIP in File Explorer and choose **Extract All**.
+   Select a short local path where the school permits applications to run.
+2. Open the extracted **Zero Portable** folder and double-click **Zero.exe**.
+   Windows may show its name as **Zero** and its type as **Application**.
+   Keep the **tools** folder and the other files alongside it.
+3. Complete **Sign in to Zero** if prompted, then follow **Test with a student
+   login** below. The first Java build needs internet access.
+4. In later classes, open the same **Zero.exe** from the same Windows account.
+   The launcher reuses its bundled tools, installed extensions and student
+   profile. New project dependencies may still download.
+
+The complete ZIP uses VSCodium and includes its upstream notices. School
+application policy still applies. If local folders or profiles are erased at
+sign-out, use an approved location that persists between classes.
+
+## Small setup ZIP
+
+Choose **Small setup ZIP** when preparing a shared folder with Microsoft VS Code.
+It includes the launcher and a script that downloads the pinned tools.
 
 ## Prepare the public ZIP
 
@@ -116,7 +141,8 @@ Add `vscodium.zip` from the exact release in
 node scripts/build-windows-portable.mjs --bundled DOWNLOAD_DIRECTORY NEW_OUTPUT_DIRECTORY
 ```
 
-This produces a ZIP and a SHA-256 checksum. Keep the candidate private until its
-source materials and notices have been verified for public redistribution.
+This produces a ZIP, measured candidate manifest and SHA-256 checksum. Before
+public promotion, verify its public source companion and notices alongside the
+binary assets.
 Verify launch, account isolation, sign-in, JavaFX run and reopen under a
 standard Windows account, then repeat the trial under the target school policy.
