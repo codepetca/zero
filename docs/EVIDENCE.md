@@ -13197,3 +13197,22 @@ The editor and release-focused suites passed 112 and 91 tests. Nineteen
 targeted publisher tests passed, with additional independent abort and
 identity checks. The public starter comparison, package verification,
 native and WebFX replay, and configuration checks passed.
+
+## Files opens changed files for editing — 2026-11-16
+
+Clicking a file in Zero's Files tree opens it in the regular editor. The context
+menu for modified files offers **Compare with Last Commit**. Unsupported
+comparisons and clicks on deleted rows still open Source Control.
+
+The 36 Files tests ran with network access denied and the 66 related menu and
+file tests passed. Repository checks and `git diff --check` passed. A disposable
+macOS VS Code extension host opened a modified Java file in a regular editor
+tab, then opened a diff against the committed version with an unsaved edit still
+present in the working document. It used the command handlers directly.
+The mouse and keyboard menu interactions and Windows and Linux UI were not
+exercised.
+
+One independent review of `95811bf7b..c37a8632c` used GPT-6.1 Terra at medium
+reasoning as requested and found no actionable issues. It covered the opening
+and comparison paths, stale selections, deleted files and menu conditions.
+The change was verified locally.
