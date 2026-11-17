@@ -3,6 +3,7 @@ import {notFound,redirect} from 'next/navigation';
 import Link from 'next/link';
 import {HubDiscovery} from '@/components/HubDiscovery';
 import {HubMyLibraries} from '@/components/HubMyLibraries';
+import {listingsEnabled} from '@/lib/hub-listings-store.mjs';
 import {isJamHubVisibilityEnforced} from '@/lib/jam-hub-visibility.mjs';
 
 export const metadata={title:'ZeroHub'};
@@ -23,6 +24,11 @@ export default async function Hub({searchParams}:{searchParams:Promise<Record<st
       </ol>
       <p>To choose the ZeroHub picture, commit a square PNG as <code>zerohub/thumbnail.png</code> (128 to 2048 pixels, up to 1 MB) before publishing. Without one, ZeroHub shows a pattern made from your GitHub name and repository name.</p>
       <p>Zero publishes the app to GitHub Pages. Eligible apps can also appear in ZeroHub.</p>
+      {listingsEnabled()&&<>
+        <h2 id="app-listings">How app listings work</h2>
+        <p>Choose <strong>Do not replace</strong> to protect one app. Choose <strong>Move to back</strong> to keep an app in the queue longer.</p>
+        <p><strong>Remove from ZeroHub</strong> takes the app out of discovery. Its GitHub Pages link still works.</p>
+      </>}
     </>;
     if(query.kind==='library'&&query.view==='use')return <>
       <h1>Add a library</h1>

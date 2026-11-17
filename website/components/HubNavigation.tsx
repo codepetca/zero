@@ -12,9 +12,8 @@ export function HubNavigation({active,path='/hub',view='',showListings=false,sho
   const groups:{id:string;label:string;href:string;visible?:boolean;items:MenuItem[]}[] = [
     {id:'game',label:'Projects',href:'/hub?kind=game',items:[
       ['Browse projects','/hub?kind=game',!sharing&&!projectListings&&view!=='publish'],
-      ['My Projects','/hub/listings',projectListings&&view!=='help',showListings],
-      ['Publish an app','/hub?kind=game&view=publish',!sharing&&!projectListings&&view==='publish'],
-      ['How app listings work','/hub/listings?view=help',projectListings&&view==='help',showListings]
+      ['My Projects','/hub/listings',projectListings,showListings],
+      ['Publish an app','/hub?kind=game&view=publish',!sharing&&!projectListings&&view==='publish']
     ]},
     {id:'library',label:'Libraries',href:'/hub?kind=library',items:[
       ['Browse libraries','/hub?kind=library',!sharing&&!['use','practice','mine'].includes(view)],

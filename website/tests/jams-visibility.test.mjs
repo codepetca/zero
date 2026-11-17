@@ -77,7 +77,9 @@ test('ZeroHub expands only the selected section and reserves creation for Pro',a
   assert.match(render({active:'library',view:'practice'}),/aria-current="location">Libraries/);
   assert.doesNotMatch(render({active:'library',view:'practice'}),/aria-current="page"/);
   assert.match(render({active:'game',path:'/hub/listings'}),/aria-current="page">My Projects/);
-  assert.match(render({active:'game',path:'/hub/listings',view:'help'}),/aria-current="page">How app listings work/);
+  const publish=render({active:'game',view:'publish'});
+  assert.match(publish,/aria-current="page">Publish an app/);
+  assert.doesNotMatch(publish,/How app listings work/);
   assert.doesNotMatch(render({active:'library'}),/My Projects/);
   assert.match(render({active:'library',view:'mine'}),/aria-current="page">My Libraries/);
   const shareLibrary=render({active:'library',path:'/hub/share',view:'library'});
