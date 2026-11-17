@@ -11,7 +11,7 @@ permission to publish from this ledger.
 | Website | Release metadata selects the verified 0.5.77 Mac DMG and signed appcast. | Live verification follows deployment. The Windows button opens Zero Studio in the Store. |
 | Mac installer | [0.5.77](https://github.com/codepetca/zero/releases/tag/setup-v0.5.77) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup passed. Interactive Sparkle upgrade remains unverified. |
 | Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 12, package 1.5.76.0 x64, is live. Microsoft validated the 1.5.77.0 package in submission 13. | The local WACK harness reported failure. Microsoft certification is tracked separately. |
-| Windows portable school pilot | [0.5.74 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.74) is public. | Stage the vendor tools and test on one school desktop under a student login. |
+| Windows portable school pilot | [0.5.77 unsigned x64 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.77) is public and matches the published kit. | School IT stages the vendor tools and replaces the old folder. Verify on one school desktop under a student login. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
@@ -54,6 +54,17 @@ SHA-256 is `aaf7dfc9fa5bf5e4e8b7c8c4333d3ddce926fbd02aa3608b36994d59965086cb`.
 reported a DPI-awareness analysis warning and an optional blocked-executables
 failure, matching 0.5.76. Submission 13 has the validated x64 package and
 discloses both findings in its certification notes.
+
+[Windows Portable 0.5.77](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.77)
+was built from the same source and exact sealed kit as the public 0.5.77 kit
+release. The public staging ZIP is 5,376,857 bytes with SHA-256
+`c3d45844ac836fe9d6af8c3bdb63b90e64bf4d5b5d3b4923c61d8fba97b98309`.
+The draft and anonymous downloads of both assets matched the local candidate.
+PowerShell on macOS staged all five pinned vendor tools. Windows runtime
+fixtures passed under Mono. The actual student workflow on a school-managed
+Windows desktop remains untested.
+The Downloads page uses the verified public manifest. Future full promotions
+require the matching Portable ZIP and verify its embedded kit.
 
 ## Zero 0.5.76 — 2026-11-16
 

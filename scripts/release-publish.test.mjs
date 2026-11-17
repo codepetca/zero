@@ -54,6 +54,21 @@ async function fixture(t, changes = {}) {
   const bytes = [Buffer.from('reviewed kit bytes'), Buffer.from('reviewed starter bytes'), Buffer.from(zipSync({
     'extension/LICENSE.txt': Buffer.from(license), 'extension/src/extension.js': Buffer.from(js), 'extension/package.json': Buffer.from(manifest),
     [harnessMedia]: Buffer.from(harness), [sharingMedia]: Buffer.from(sharing)}))];
+  let portableManifest, portable, portableBytes;
+  const portableTag = `windows-portable-pilot-v${version}`;
+  if (changes.portable) {
+    const launcher = Buffer.concat([Buffer.from('fixture launcher'), bytes[0]]);
+    const build = {kitVersion:version, sourceRevision:sourceSha, sourceDirty:false,
+      toolDistribution:'vendor-downloads', kitSha256:digest(bytes[0]), launcherSha256:digest(launcher)};
+    portableBytes = zipSync({'Zero Portable/Zero.exe':launcher, 'Zero Portable/BUILD.json':Buffer.from(JSON.stringify(build))});
+    const filename = `Zero-${version}-windows-portable-pilot-staging-x64.zip`;
+    portable = {kitVersion:version, sourceRevision:sourceSha, kitSha256:digest(bytes[0]),
+      publication:{status:'published', tag:portableTag}, asset:{filename, size:portableBytes.length,
+        sha256:digest(portableBytes), url:`https://github.com/codepetca/zero/releases/download/${portableTag}/${filename}`}};
+    portableManifest = path.join(root, 'portable-candidate.json');
+    await writeFile(portableManifest, JSON.stringify(portable));
+  }
+  const promotionDiff = 'README.md\nrelease/kit.json\n' + (changes.portable ? 'release/windows-portable-pilot.json\n' : '');
   const receipt = {...definition, assets: Object.fromEntries(keys.map((key, i) => [key, {...definition.assets[key], size: bytes[i].length, sha256: digest(bytes[i])}]))};
   const release = {id: 7, tag_name: `v${version}`, target_commitish: sourceSha, draft: true, prerelease: false,
     html_url: 'https://github.com/codepetca/zero/releases/tag/untagged-fixture123', assets: filenames.map((name, i) => ({
@@ -93,7 +108,7 @@ async function fixture(t, changes = {}) {
         // On resumed public metadata, the exact candidate still has the original local definition.
         await writeFile(path.join(args[3], 'release/kit.json'), JSON.stringify(definition, null, 2) + '\n');
         return output('');}
-      if (args[0] === 'diff') return output(args.includes('--check') || args.includes('--') ? '' : 'README.md\nrelease/kit.json\n');
+      if (args[0] === 'diff') return output(args.includes('--check') || args.includes('--') ? '' : promotionDiff);
       if (args[0] === 'ls-tree') {
         const found=[];
         for (const name of args.slice(args.indexOf('--')+1)) {
@@ -120,6 +135,7 @@ async function fixture(t, changes = {}) {
         const endpoint = args[1].replace('repos/codepetca/zero/', '');
         if (endpoint === 'releases') return output([exists ? [release] : []]);
         if (endpoint === `git/ref/tags/v${version}`) return published ? output({object: {type: 'commit', sha: sourceSha}}) : notFound();
+        if (endpoint === `git/ref/tags/${portableTag}` && portable) return output({object:{type:'commit', sha:sourceSha}});
         if (endpoint.startsWith('git/ref/heads/')) return changes.branchExists ? output({object: {sha: head}}) : notFound();
         if (endpoint === `actions/runs/${runId}`) return output({id: Number(runId), path: '.github/workflows/release-review.yml'});
         if (endpoint === 'releases/7') {
@@ -155,7 +171,7 @@ async function fixture(t, changes = {}) {
       if (args[0] === 'pr') {
         if (args[1] === 'list') return output(changes.branchExists ? [{number: 8, url: 'https://github.com/codepetca/zero/pull/8', state: 'OPEN', headRefOid: head}] : []);
         if (args[1] === 'create') {createdPr = true; return output('https://github.com/codepetca/zero/pull/8\n');}
-        if (args[1] === 'diff') return output(changes.arbitraryDiff ? 'README.md\nrelease/kit.json\nextension/src/extension.js\n' : 'README.md\nrelease/kit.json\n');
+        if (args[1] === 'diff') return output(changes.arbitraryDiff ? 'README.md\nrelease/kit.json\nextension/src/extension.js\n' : promotionDiff);
         if (args[1] === 'view') return output(pr.state === 'MERGED' ? {...pr, mergeCommit: {oid: mergedSha}} : pr);
         if (args[1] === 'merge') {
           if (changes.deniedMerge) throw new Error('Merge denied by repository rules.');
@@ -186,6 +202,10 @@ async function fixture(t, changes = {}) {
       return Response.json({name:'main', commit:{sha:changes.projectNewMoves && publicStarterReads > 1 ? mergedSha : sha,
         commit:{tree:{sha:changes.projectNewMoves === 'tree' && publicStarterReads > 1 ? mergedSha : head}}}});
     }
+    if (url === portable?.asset.url) return new Response(portableBytes);
+    if (portable && url.startsWith('https://zero.codepet.ca/downloads?')) {
+      return new Response(`<main><a href="${portable.asset.url}">Download Zero Portable ${version}</a></main>`);
+    }
     if (url.startsWith('https://zero.codepet.ca/')) {
       return {status:changes.failedPage ? 503 : 200, url:changes.landingRedirect || url,
         text:async () => changes.choices ? changes.choices(macURL, windowsStoreURL) : changes.staleSite ?
@@ -198,7 +218,7 @@ async function fixture(t, changes = {}) {
     return {status: changes.failedDownload ? 503 : 200,
       arrayBuffer: async () => changes.corruptPublic === i ? Buffer.from('corrupt') : bytes[i]};
   };
-  return {...environment, dependencies: {runner, fetch: request, log: value => logs.push(value), uuid: () => uuid,
+  return {...environment, portableManifest, dependencies: {runner, fetch: request, log: value => logs.push(value), uuid: () => uuid,
     makeTemp: async () => {const folder = path.join(root, 'temporary'); await mkdir(folder); return folder;},
     now: () => clock, sleep: async ms => {clock += ms;}, preparationTimeout: 30, ciTimeout: 30, liveTimeout: 30, pollInterval: 10}};
 }
@@ -223,6 +243,25 @@ test('full bounded lifecycle dispatches exact main, publishes three exact files,
   assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length, 1, 'Public manual kit fetched directly');
   assert.equal(f.requests.filter(url => url === macURL).length, 1, 'Actual live Mac button bytes verified separately');
   assert.ok(f.logs.some(value => value.includes(result.prUrl)));
+});
+
+test('a kit promotion after the matching Mac release requires and promotes a verified Portable manifest', async t => {
+  const advanced = structuredClone(publicMac);
+  advanced.kitVersion = version;
+  advanced.publication.tag = `setup-v${version}`;
+  advanced.asset.filename = `Zero-${version}-macos.dmg`;
+  advanced.asset.url = `https://github.com/codepetca/zero/releases/download/setup-v${version}/${advanced.asset.filename}`;
+  const options = {liveMac:advanced, modify:({template}) =>
+    writeFile(path.join(template, 'release/published-installer.json'), JSON.stringify(advanced))};
+  const withoutPortable = await fixture(t, options);
+  await assert.rejects(publishZero({version, runId}, withoutPortable.dependencies), /publish the verified windows portable/i);
+  assert.ok(!withoutPortable.calls.some(call => call.args[0] === 'release'));
+
+  const withPortable = await fixture(t, {...options, portable:true});
+  const result = await publishZero({version, runId, portableManifest:withPortable.portableManifest}, withPortable.dependencies);
+  assert.equal(result.phase, 'verified');
+  assert.ok(withPortable.calls.some(call => call.args.includes('release/windows-portable-pilot.json')));
+  assert.ok(withPortable.requests.some(url => url.startsWith('https://zero.codepet.ca/downloads?')));
 });
 
 for (const stale of [true,false]) test(`Mac promotion during kit publication ${stale ? 'rejects stale live platform bytes' : 'uses the fetched promoted target'}`,async t=>{

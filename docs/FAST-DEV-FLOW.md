@@ -106,7 +106,7 @@ For an explicit full run on a selected ref, dispatch **Release checks and
 preparation** (supply its exact current kit version), **Windows launcher checks**
 and **Browser export compatibility** from Actions. Every manual dispatch selects
 all lanes; release preparation retains its existing version/immutable-asset rules
-and does not publish. PR checks are scoped automatically; no manual skip flags
+and does not publish. Manual preparation also retains the [matching Windows Portable ZIP](RELEASING.md#windows-portable-school-pilot). PR checks are scoped automatically; no manual skip flags
 are provided.
 
 PR173's browser install took382seconds. Treat that as one baseline observation;
