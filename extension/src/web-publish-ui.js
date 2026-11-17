@@ -275,9 +275,9 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
           consent.account === review.account && consent.repository === review.repository && consent.url === review.publicUrl;
         if(!sameDestination || listPublication && !listingNotice) {
           clearProgress();
-          const notice = listPublication ? ' When available, Zero will also add the app to ZeroHub. If your app slots are full, this app replaces the first unprotected app in your queue.' : '';
+          const notice = listPublication ? ' This may replace your currently published app.' : '';
           const setup=review.setup ? `\nZero will sync its publishing files to ${review.repository}.` : '';
-          const chosen=await vscode.window.showInformationMessage('Publish this app publicly?',{modal:true,detail:`Your app and included assets will be public.${notice}\n${review.publicUrl || (review.repository + ' → GitHub Pages')}${setup}`},'Publish app');
+          const chosen=await vscode.window.showInformationMessage('Publish app?',{modal:true,detail:`Your app and its assets will be public.${notice}\n${review.publicUrl || (review.repository + ' → GitHub Pages')}${setup}`},'Publish app');
           if(chosen!=='Publish app')return;
           await stillCurrent(expected);
           await workspaceState?.update('zero.webPublish.approval',{root:expected,account:review.account,repository:review.repository,url:review.publicUrl,...(listPublication ? {listingNotice:true} : {})});

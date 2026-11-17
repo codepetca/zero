@@ -1,3 +1,11 @@
+# Publish confirmation copy — 2026-11-17
+
+The next Zero release shortens **Publish & open app** confirmation to the
+public visibility warning and, when ZeroHub listing is part of the flow,
+the possible replacement warning. The destination and first-time setup
+notice remain visible. All 156 focused publishing UI and upload authorization
+tests passed with mocked editor and GitHub operations.
+
 # Local Git diagnostics for Merge — 2026-11-17
 
 Merge shows the failed local Git command, its exit status when available, and
