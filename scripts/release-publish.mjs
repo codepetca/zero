@@ -10,6 +10,8 @@ import {publicKeys, reviewPlan, verifyReviewAssets} from './release-review.mjs';
 import {verifyStarterAtPublication} from './verify-project-new.mjs';
 import {downloadPage} from './release-download-page.mjs';
 import {releaseDownloadFiles, releaseDownloads, portableForPromotion, verifiedDownload, verifyPortableArchive} from './check-windows-portable-release.mjs';
+import {bundleForPromotion, downloadBundle, verifyBundleArchive} from './check-windows-portable-bundle.mjs';
+import {windowsPortableBundleHref} from '../website/lib/windows-portable-bundle.mjs';
 import {validateInstallerManifest} from '../website/lib/installer.mjs';
 import {windowsPortablePilotHref} from '../website/lib/windows-portable-pilot.mjs';
 import {availableInstaller, validatePublishedInstaller} from '../website/lib/published-installer.mjs';
@@ -21,6 +23,7 @@ const workflow = 'release-review.yml';
 const shaPattern = /^[a-f0-9]{40}$/;
 const definitionFiles = ['extension/package.json', 'framework/pom.xml'];
 const portableManifestPath = 'release/windows-portable-pilot.json';
+const bundleManifestPath = 'release/windows-portable-bundle.json';
 const projectNewGateSources = ['.github/workflows/release-review.yml', 'scripts/verify-project-new.mjs',
   'scripts/project-new-playthrough.mjs', 'scripts/ProjectNewGreetingCheck.java',
   'website/lib/example-projects.mjs', 'website/lib/project-templates.mjs',
@@ -51,7 +54,8 @@ export function parseArguments(args) {
     else if (args[i] === '--version' && !options.version) options.version = args[++i];
     else if (args[i] === '--run-id' && !options.runId) options.runId = args[++i];
     else if (args[i] === '--portable-manifest' && !Object.hasOwn(options, 'portableManifest')) options.portableManifest = args[++i];
-    else throw new Error('Usage: npm run release:publish -- --version X.Y.Z [--run-id DIGITS [--portable-manifest FILE]] [--verify-only]');
+    else if (args[i] === '--portable-bundle-manifest' && !Object.hasOwn(options, 'bundleManifest')) options.bundleManifest = args[++i];
+    else throw new Error('Usage: npm run release:publish -- --version X.Y.Z [--run-id DIGITS [--portable-manifest FILE] [--portable-bundle-manifest FILE]] [--verify-only]');
   }
   assert.match(options.version || '', /^\d+\.\d+\.\d+$/, 'Select one numeric version with --version.');
   if (options.runId !== undefined) assert.match(options.runId, /^\d+$/, 'Run ID must contain digits.');
@@ -59,6 +63,10 @@ export function parseArguments(args) {
   if (Object.hasOwn(options, 'portableManifest')) {
     assert.ok(options.portableManifest && options.runId && !options.verifyOnly,
       'Portable promotion requires an explicit candidate manifest and preparation run ID.');
+  }
+  if (Object.hasOwn(options, 'bundleManifest')) {
+    assert.ok(options.bundleManifest && options.runId && !options.verifyOnly,
+      'Complete Portable promotion requires its candidate manifest and preparation run ID.');
   }
   return options;
 }
@@ -156,7 +164,8 @@ export function verifyChecks(pr, runs, expectedHead) {
   const checks = pr.statusCheckRollup || [];
   const optionalLanes = new Map([
     ['Browser export compatibility/browser-tests', 'compatible'],
-    ['Windows launcher checks/windows-tests', 'windows']
+    ['Windows launcher checks/windows-tests', 'windows'],
+    ['Windows launcher checks/portable-bundle', 'windows']
   ]);
   const runId = check => /^https:\/\/github\.com\/codepetca\/zero\/actions\/runs\/(\d+)\/job\/\d+$/.exec(check.detailsUrl || '')?.[1];
   function verifiedScopedSkip(check) {
@@ -188,7 +197,10 @@ export function verifyChecks(pr, runs, expectedHead) {
 // All transports are injectable; tests use disposable files and never contact GitHub.
 export async function publishZero(options, dependencies = {}) {
   parseArguments(['--version', options.version, ...(options.runId ? ['--run-id', options.runId] : []), ...(options.verifyOnly ? ['--verify-only'] : []),
-    ...(options.portableManifest ? ['--portable-manifest', options.portableManifest] : [])]);
+    ...(options.portableManifest ? ['--portable-manifest', options.portableManifest] : []),
+    ...(options.bundleManifest ? ['--portable-bundle-manifest', options.bundleManifest] : [])]);
+  const suppliedBundle = options.bundleManifest ? json(await readFile(options.bundleManifest)) : null;
+  if (options.bundleManifest) windowsPortableBundleHref(suppliedBundle);
   const suppliedPortable = options.portableManifest ? json(await readFile(options.portableManifest)) : null;
   if (options.portableManifest) assert.ok(suppliedPortable && typeof suppliedPortable === 'object' &&
     !Array.isArray(suppliedPortable), 'Portable candidate manifest must be a JSON object.');
@@ -233,7 +245,7 @@ export async function publishZero(options, dependencies = {}) {
     assert.equal(reference.object.type, 'commit', 'Unsupported release tag target.');
     assert.equal(reference.object.sha, sha, 'Release tag target drift.');
   }
-  async function live(platforms, portable = null) {
+  async function live(platforms, portable = null, bundle = null) {
     const deadline = now() + (dependencies.liveTimeout ?? 10 * 60000);
     let reason = 'The live platform download choices do not match published metadata yet.';
     while (now() < deadline) {
@@ -249,7 +261,7 @@ export async function publishZero(options, dependencies = {}) {
         const found = verifyPlatformDownloadPage(await response.text(), platforms);
         // Measure the actual Mac button target. Store delivery has its own native acceptance.
         await publicBytes({...platforms.mac.asset, url:found.mac});
-        if (portable) {
+        if (portable || bundle) {
           const downloads = await request(`${website}/downloads?check=${now()}`,
             {signal: AbortSignal.timeout(30000), headers: {'Cache-Control':'no-cache'}});
           assert.equal(downloads.status, 200, 'Live Portable downloads unavailable.');
@@ -259,8 +271,10 @@ export async function publishZero(options, dependencies = {}) {
               'Live Portable downloads redirected outside the expected page.');
           }
           const links = downloadPage(await downloads.text()).anchors;
-          assert.ok(links.some(link => link.href === portable.asset.url && link.text.includes(portable.kitVersion)),
-            'Live Downloads page does not show the verified Portable ZIP yet.');
+          for (const choice of [portable, bundle].filter(Boolean)) {
+            assert.ok(links.some(link => link.href === choice.asset.url && link.text.includes(choice.kitVersion)),
+              'Live Downloads page does not show the verified Portable ZIP yet.');
+          }
         }
         return;
       } catch (error) {reason = error.message;}
@@ -275,7 +289,7 @@ export async function publishZero(options, dependencies = {}) {
       catch (error) { if (error.code === 'ENOENT') return [name, null]; throw error; }
     })));
     const before = releaseDownloads(name => manifests.get(name));
-    const after = {...before, kit, portable:suppliedPortable ?? before.portable};
+    const after = {...before, kit, portable:suppliedPortable ?? before.portable, bundle:suppliedBundle ?? before.bundle};
     const required = portableForPromotion(before, after);
     if (required || suppliedPortable) {
       const {portable} = after;
@@ -286,6 +300,20 @@ export async function publishZero(options, dependencies = {}) {
       await verifyTag(sourceSha, {tag:portable.publication.tag});
       const zip = await verifiedDownload(portable.asset, request);
       verifyPortableArchive(portable, zip, await readFile(path.join(review, kit.assets.kit.filename)));
+    }
+    if (before.bundle || suppliedBundle) {
+      const promotion = bundleForPromotion(before, after);
+      if (promotion || suppliedBundle) {
+        const bundle = after.bundle;
+        windowsPortableBundleHref(bundle, kit);
+        assert.equal(bundle.kitSourceRevision, sourceSha, 'Complete Portable kit source differs from the preparation run.');
+        await verifyTag(bundle.sourceRevision, {tag:bundle.publication.tag});
+        const checkDirectory = await mkdtemp(path.join(directory, 'complete-'));
+        try {
+          const zip = await downloadBundle(bundle.asset, checkDirectory, request);
+          verifyBundleArchive(zip, bundle, await readFile(path.join(review, kit.assets.kit.filename)));
+        } finally { await rm(checkDirectory, {recursive:true, force:true}); }
+      }
     }
   }
 
@@ -440,7 +468,13 @@ export async function publishZero(options, dependencies = {}) {
     const currentPortable = portableJson && await readFile(path.join(source, portableManifestPath), 'utf8')
       .catch(error => { if (error.code === 'ENOENT') return null; throw error; });
     if (portableJson && portableJson !== currentPortable) promotionEntries.push([portableManifestPath, portableJson]);
-    const promotionFiles = promotionEntries.map(([name]) => name);
+    const bundleJson = suppliedBundle && JSON.stringify(suppliedBundle, null, 2) + '\n';
+    if (bundleJson) {
+      const currentBundle = await readFile(path.join(source, bundleManifestPath), 'utf8')
+        .catch(error => { if (error.code === 'ENOENT') return null; throw error; });
+      if (bundleJson !== currentBundle) promotionEntries.push([bundleManifestPath, bundleJson]);
+    }
+    const promotionFiles = promotionEntries.map(([name]) => name).sort();
     let prUrl;
     if (promotionEntries.length) {
       const branch = `codex/publish-${options.version.replaceAll('.', '-')}`;
@@ -516,6 +550,10 @@ export async function publishZero(options, dependencies = {}) {
       assert.equal(String(await command('git', ['show', `${mergedMainSha}:${portableManifestPath}`])),
         portableJson, 'Merged Portable metadata readback drift.');
     }
+    if (bundleJson) {
+      assert.equal(String(await command('git', ['show', `${mergedMainSha}:${bundleManifestPath}`])),
+        bundleJson, 'Merged complete Portable metadata readback drift.');
+    }
     // A concurrent Mac promotion may have advanced main while the kit PR was pending.
     // Read all final metadata from one fetched commit, without changing the checkout.
     const platformFiles = new Set(String(await command('git', ['ls-tree', '--name-only', mergedMainSha, '--',
@@ -523,7 +561,7 @@ export async function publishZero(options, dependencies = {}) {
     const platforms = await readPlatformDownloads(source, promoted, {readJSON:async name =>
       platformFiles.has(`release/${name}`) ? json(await command('git', ['show', `${mergedMainSha}:release/${name}`])) : null});
     state.phase = 'live platform verification';
-    await live(platforms, suppliedPortable);
+    await live(platforms, suppliedPortable, suppliedBundle);
     succeeded = true;
     log(`Verified Zero ${options.version}: release assets, merged manual-kit metadata/README and platform downloads match.`);
     return {...state, phase: 'verified', prUrl};

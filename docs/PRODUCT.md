@@ -408,7 +408,11 @@ Code blocks in tutorials, docs, source views and ZeroHub copy their exact text w
 clicked, with a keyboard-accessible Copy button and success/failure feedback.
 Dragging to select text keeps manual copying available.
 The `/downloads` page lists the regular platform downloads and the portable
-Windows school pilot.
+Windows school pilot. Offer both the complete ZIP, with VSCodium and the
+tools already included, and the small setup ZIP, which downloads tools during
+staging. Show each version and measured download size. The complete ZIP's
+student path is **Extract All → Zero Portable → Zero.exe**. School application
+policy and the first Java dependency download still apply.
 The top menu contains Tutorials, Docs and ZeroHub. The Zero logo returns to Home,
 where platform download options are available; platform buttons do not appear below tutorials.
 Docs opens the complete searchable Zero API directly; method names stay visible

@@ -57,6 +57,20 @@ reported a required DPI-awareness warning and optional blocked-executables
 failure, matching 0.5.77. Microsoft certification and on-device Store delivery
 are separate from these hosted checks.
 
+The [complete Portable ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.78)
+was added as a second distribution of the exact public 0.5.78 kit. Students
+extract it and open **Zero.exe**. VSCodium 1.143.17232 and the pinned Java,
+Git, Node.js and Java extension are included. The 605,933,593-byte ZIP has SHA-256
+`887ef13762f82b1da83e3455a35b64e8a22bd63b5a18f4649add24382c6510f9`.
+Its clean launcher source is `cc823f4fecb8a4d9471523bfb9f7d732d02d9659`;
+the embedded kit remains from `b59aacf4301cfccf585f850afd596d9b8da81a2f`.
+The release also supplies the measured source index and a separate
+1,470,730,240-byte source companion. The small staging ZIP stays independently
+available. Website integration is tracked in
+[PR #378](https://github.com/codepetca/zero/pull/378), with the exact public
+bundle and cold/warm Windows handoff checked before merging.
+A student trial under the school's actual application policy remains separate.
+
 ## Zero 0.5.77 — 2026-11-17
 
 Zero opens modified files for editing. **Compare with Last Commit** moved to

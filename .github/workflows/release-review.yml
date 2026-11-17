@@ -97,7 +97,9 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           ZERO_RELEASE_BASE: ${{ github.event.pull_request.base.sha }}
-        run: node scripts/check-windows-portable-release.mjs "$ZERO_RELEASE_BASE"
+        run: |
+          node scripts/check-windows-portable-release.mjs "$ZERO_RELEASE_BASE"
+          node scripts/check-windows-portable-bundle.mjs "$ZERO_RELEASE_BASE"
       - name: Configuration and release guard tests
         run: |
           npm run check
@@ -198,6 +200,19 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           path: dist/windows-portable/
+      - name: Build the complete Portable ZIP from the sealed kit
+        if: github.event_name == 'workflow_dispatch' && steps.release.outputs.status == 'local'
+        run: |
+          node scripts/download-windows-portable-tools.mjs .verification/portable-downloads
+          node scripts/build-windows-portable.mjs --bundled .verification/portable-downloads dist/portable-bundled
+      - name: Retain the matching complete Portable candidate
+        if: github.event_name == 'workflow_dispatch' && steps.release.outputs.status == 'local'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-${{ steps.release.outputs.version }}-portable-bundled-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 14
+          path: dist/portable-bundled/
       - name: Upload the Project → New receipt for publication
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

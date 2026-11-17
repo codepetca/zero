@@ -32,7 +32,7 @@
     "test:updates": "node --test scripts/mac-updater.test.mjs scripts/mac-update-feed.test.mjs",
     "test:updates:live": "node scripts/test-mac-updater-live.mjs",
     "release:publish": "node scripts/release-publish.mjs",
-    "test:release": "node --test scripts/release-review.test.mjs scripts/release-publish.test.mjs scripts/check-windows-portable-release.test.mjs scripts/verify-project-new.test.mjs",
+    "test:release": "node --test scripts/release-review.test.mjs scripts/release-publish.test.mjs scripts/check-windows-portable-release.test.mjs scripts/check-windows-portable-bundle.test.mjs scripts/verify-project-new.test.mjs",
     "verify:kit": "node scripts/verify-kit.mjs",
     "verify:framework": "node scripts/verify-framework.mjs",
     "verify:web": "node scripts/verify-web-export.mjs --browser",

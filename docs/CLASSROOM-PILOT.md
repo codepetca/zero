@@ -18,12 +18,12 @@ verified native GitHub sign-in and a private upload; consult
 ## Portable Windows
 
 The unsigned Zero Portable pilot is for one x64 Windows school desktop.
-On a staging PC, extract the public pilot ZIP and run `Stage-Tools.ps1`
-to download and verify the five vendor packages. For the original private
-pilot ZIP, use its `Stage-VSCode.ps1` instead. Have school IT approve the
-launcher and copy the complete staged folder to the approved local path.
-Give students read and execute access and keep the folder writable only by
-the people who manage the deployment.
+The [Downloads page](https://zero.codepet.ca/downloads#windows-portable) offers
+a complete ZIP and a smaller setup ZIP. For the complete VSCodium ZIP, extract
+all files to a local folder and open **Zero.exe**. The small ZIP requires
+`Stage-Tools.ps1` to download the pinned tools before the folder is ready.
+School application policy applies to either choice. Keep the extracted tools
+and each student's profile available between classes.
 
 Under a regular student login, open `Zero.exe` and complete **Sign in to
 Zero** with a school-approved test account. Open **Zero: Troubleshooting**

@@ -6,6 +6,14 @@ Zero Output. See the [release ledger](../docs/RELEASE-LEDGER.md#zero-0578--2026-
 for exact receipts. Store MSIX 1.5.78.0 passed hosted first-run checks.
 Partner Center submission 14 and on-device Store delivery are tracked separately.
 
+The separate complete VSCodium 0.5.78 ZIP and its source companion are public.
+[PR #378](https://github.com/codepetca/zero/pull/378) integrates both download
+choices and their full-release checks. The complete ZIP starts from
+**Extract All → Zero Portable → Zero.exe** and reuses the tools in later classes.
+The small ZIP keeps the vendor-staging workflow.
+See the [release ledger](../docs/RELEASE-LEDGER.md#zero-0578--2026-11-17)
+for exact files and source provenance. School policy testing remains separate.
+
 ---
 
 # Zero 0.5.76 release — 2026-11-16

@@ -68,7 +68,33 @@ async function fixture(t, changes = {}) {
     portableManifest = path.join(root, 'portable-candidate.json');
     await writeFile(portableManifest, JSON.stringify(portable));
   }
-  const promotionDiff = 'README.md\nrelease/kit.json\n' + (changes.portable ? 'release/windows-portable-pilot.json\n' : '');
+  let bundleManifest, bundle, bundleBytes;
+  const bundleTag = `windows-portable-bundled-v${version}`;
+  if (changes.complete) {
+    const launcher = Buffer.concat([Buffer.from('fixture launcher'), bytes[0]]);
+    const java = Buffer.from('fixture java extension');
+    const pin = {version:'1.0.0', sha256:'e'.repeat(64)};
+    const runtimes = Object.fromEntries(['vscodium','jdk','node','git'].map(name => [name,pin]));
+    const build = {kitVersion:version,sourceRevision:sourceSha,kitSourceRevision:sourceSha,sourceDirty:false,
+      toolDistribution:'bundled',kitSha256:digest(bytes[0]),launcherSha256:digest(launcher),runtimes,
+      javaExtension:{size:java.length,sha256:digest(java)}};
+    bundleBytes = zipSync({
+      'Zero Portable/Zero.exe':launcher,
+      'Zero Portable/BUILD.json':Buffer.from(JSON.stringify(build)),
+      ...Object.fromEntries(Object.keys(runtimes).map(name => [`Zero Portable/tools/${name}/.zero-asset.sha256`,Buffer.from(pin.sha256)])),
+      'Zero Portable/tools/vscodium/resources/app/package.json':Buffer.from('{"version":"1.0.0"}'),
+      'Zero Portable/tools/vscodium/VSCodium.exe':Buffer.from('MZfixture editor'),
+      'Zero Portable/tools/java.vsix':java,
+    });
+    const filename = `Zero-${version}-windows-portable-bundled-x64.zip`;
+    bundle = {kitVersion:version,sourceRevision:sourceSha,kitSourceRevision:sourceSha,kitSha256:digest(bytes[0]),
+      publication:{status:'published',tag:bundleTag},asset:{filename,size:bundleBytes.length,sha256:digest(bundleBytes),
+        url:`https://github.com/codepetca/zero/releases/download/${bundleTag}/${filename}`}};
+    bundleManifest = path.join(root,'bundle-candidate.json');
+    await writeFile(bundleManifest,JSON.stringify(bundle));
+  }
+  const promotionDiff = 'README.md\nrelease/kit.json\n' + (changes.portable ? 'release/windows-portable-pilot.json\n' : '') +
+    (changes.complete ? 'release/windows-portable-bundle.json\n' : '');
   const receipt = {...definition, assets: Object.fromEntries(keys.map((key, i) => [key, {...definition.assets[key], size: bytes[i].length, sha256: digest(bytes[i])}]))};
   const release = {id: 7, tag_name: `v${version}`, target_commitish: sourceSha, draft: true, prerelease: false,
     html_url: 'https://github.com/codepetca/zero/releases/tag/untagged-fixture123', assets: filenames.map((name, i) => ({
@@ -135,6 +161,7 @@ async function fixture(t, changes = {}) {
         const endpoint = args[1].replace('repos/codepetca/zero/', '');
         if (endpoint === 'releases') return output([exists ? [release] : []]);
         if (endpoint === `git/ref/tags/v${version}`) return published ? output({object: {type: 'commit', sha: sourceSha}}) : notFound();
+        if (endpoint === `git/ref/tags/${bundleTag}` && bundle) return output({object:{type:'commit',sha:sourceSha}});
         if (endpoint === `git/ref/tags/${portableTag}` && portable) return output({object:{type:'commit', sha:sourceSha}});
         if (endpoint.startsWith('git/ref/heads/')) return changes.branchExists ? output({object: {sha: head}}) : notFound();
         if (endpoint === `actions/runs/${runId}`) return output({id: Number(runId), path: '.github/workflows/release-review.yml'});
@@ -202,9 +229,10 @@ async function fixture(t, changes = {}) {
       return Response.json({name:'main', commit:{sha:changes.projectNewMoves && publicStarterReads > 1 ? mergedSha : sha,
         commit:{tree:{sha:changes.projectNewMoves === 'tree' && publicStarterReads > 1 ? mergedSha : head}}}});
     }
+    if (url === bundle?.asset.url) return new Response(bundleBytes);
     if (url === portable?.asset.url) return new Response(portableBytes);
     if (portable && url.startsWith('https://zero.codepet.ca/downloads?')) {
-      return new Response(`<main><a href="${portable.asset.url}">Download Zero Portable ${version}</a></main>`);
+      return new Response(`<main><a href="${portable.asset.url}">Download Zero Portable ${version}</a>${bundle ? `<a href="${bundle.asset.url}">Complete ZIP ${version}</a>` : ''}</main>`);
     }
     if (url.startsWith('https://zero.codepet.ca/')) {
       return {status:changes.failedPage ? 503 : 200, url:changes.landingRedirect || url,
@@ -218,13 +246,16 @@ async function fixture(t, changes = {}) {
     return {status: changes.failedDownload ? 503 : 200,
       arrayBuffer: async () => changes.corruptPublic === i ? Buffer.from('corrupt') : bytes[i]};
   };
-  return {...environment, portableManifest, dependencies: {runner, fetch: request, log: value => logs.push(value), uuid: () => uuid,
+  return {...environment, portableManifest, bundleManifest, dependencies: {runner, fetch: request, log: value => logs.push(value), uuid: () => uuid,
     makeTemp: async () => {const folder = path.join(root, 'temporary'); await mkdir(folder); return folder;},
     now: () => clock, sleep: async ms => {clock += ms;}, preparationTimeout: 30, ciTimeout: 30, liveTimeout: 30, pollInterval: 10}};
 }
 
 test('arguments require one version and keep verification read-only', () => {
   assert.deepEqual(parseArguments(['--version', version, '--run-id', runId]), {version, runId});
+  assert.throws(()=>parseArguments(['--version',version,'--portable-bundle-manifest','candidate.json']));
+  assert.deepEqual(parseArguments(['--version',version,'--run-id',runId,'--portable-bundle-manifest','candidate.json']),
+    {version,runId,bundleManifest:'candidate.json'});
   for (const args of [[], ['--version', 'v1.2.3'], ['--version', version, '--run-id', 'x'], ['--version', version, '--verify-only', '--run-id', runId], ['--version', version, '--force']]) assert.throws(() => parseArguments(args));
 });
 
@@ -264,6 +295,13 @@ test('a kit promotion after the matching Mac release requires and promotes a ver
   assert.ok(withPortable.requests.some(url => url.startsWith('https://zero.codepet.ca/downloads?')));
 });
 
+test('the coordinated publisher promotes and verifies both Portable manifests', async t => {
+  const f = await fixture(t, {portable:true,complete:true});
+  const result = await publishZero({version,runId,portableManifest:f.portableManifest,
+    bundleManifest:f.bundleManifest},f.dependencies);
+  assert.equal(result.phase,'verified');
+  assert.ok(f.calls.some(call=>call.args.includes('release/windows-portable-bundle.json')));
+});
 for (const stale of [true,false]) test(`Mac promotion during kit publication ${stale ? 'rejects stale live platform bytes' : 'uses the fetched promoted target'}`,async t=>{
   const newBytes=Buffer.from('new independently promoted Mac installer');
   const advanced=structuredClone(publicMac);

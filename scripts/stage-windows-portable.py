@@ -51,7 +51,10 @@ def extract_runtime(archive, folder, prefix):
 
 
 def main():
-    downloads, stage, output, manifest = map(Path, sys.argv[1:])
+    if len(sys.argv) not in (5, 6):
+        raise ValueError("Expected downloads, stage, output, manifest, and optional VSCodium pin")
+    downloads, stage, output, manifest = map(Path, sys.argv[1:5])
+    codium_pin = Path(sys.argv[5]) if len(sys.argv) == 6 else None
     metadata = json.loads((stage / "BUILD.json").read_text(encoding="utf-8"))
     pins = json.loads(manifest.read_text(encoding="utf-8"))["architectures"]["x64"]
     prefixes = {"jdk": pins["jdk"]["version"], "git": "",
@@ -81,11 +84,33 @@ def main():
             raise ValueError("Expected the pinned Java extension without a bundled JRE")
     shutil.copyfile(java_vsix, tools / "java.vsix")
 
-    for member in ("jdk/bin/java.exe", "jdk/bin/javac.exe", "git/cmd/git.exe", "node/node.exe"):
+    executables = ["jdk/bin/java.exe", "jdk/bin/javac.exe", "git/cmd/git.exe", "node/node.exe"]
+    if codium_pin:
+        pin = json.loads(codium_pin.read_text(encoding="utf-8"))
+        archive = downloads / "vscodium.zip"
+        verify(archive, pin)
+        destination = tools / "vscodium"
+        extract_runtime(archive, destination, "")
+        app = destination / "resources/app"
+        for member in (app / "out/cli.js", app / "product.json", app / "package.json"):
+            if not member.is_file():
+                raise ValueError(f"Missing VSCodium file: {member.relative_to(destination)}")
+        package = json.loads((app / "package.json").read_text(encoding="utf-8"))
+        product = json.loads((app / "product.json").read_text(encoding="utf-8"))
+        if (package.get("version") != pin["version"] or product.get("quality") != "stable" or
+                product.get("applicationName") != "codium"):
+            raise ValueError("Expected the pinned stable VSCodium version")
+        if not (app / "LICENSE.txt").is_file():
+            raise ValueError("Missing VSCodium license")
+        (destination / ".zero-asset.sha256").write_text(pin["sha256"] + "\n", encoding="ascii")
+        executables.append("vscodium/VSCodium.exe")
+
+    for member in executables:
         with (tools / member).open("rb") as executable:
             if executable.read(2) != b"MZ":
                 raise ValueError(f"Missing Windows executable: {member}")
-    name = f'Zero-{metadata["kitVersion"]}-windows-portable-pilot-x64.zip'
+    flavor = "bundled" if codium_pin else "pilot"
+    name = f'Zero-{metadata["kitVersion"]}-windows-portable-{flavor}-x64.zip'
     file = output / name
     with zipfile.ZipFile(file, "x", zipfile.ZIP_DEFLATED, compresslevel=3) as candidate:
         for member in sorted(stage.rglob("*")):
@@ -96,6 +121,15 @@ def main():
         if bad:
             raise ValueError(f"Corrupt packaged bytes for {bad}")
     sha256 = digest(file)
+    if codium_pin:
+        tag = f'windows-portable-bundled-v{metadata["kitVersion"]}'
+        candidate = {key: metadata[key] for key in
+                     ("kitVersion", "sourceRevision", "kitSourceRevision", "kitSha256")}
+        candidate["publication"] = {"status": "published", "tag": tag}
+        candidate["asset"] = {"filename": name, "size": file.stat().st_size, "sha256": sha256,
+                              "url": f"https://github.com/codepetca/zero/releases/download/{tag}/{name}"}
+        (output / "portable-bundle-candidate.json").write_text(
+            json.dumps(candidate, indent=2) + "\n", encoding="utf-8")
     (output / "SHA256SUMS.txt").write_text(f"{sha256}  {name}\n", encoding="ascii")
     print(f"{file} ({file.stat().st_size:,} bytes, SHA-256 {sha256})")
 

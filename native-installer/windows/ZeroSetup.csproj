@@ -30,6 +30,9 @@
     <DefineConstants>$(DefineConstants);ZERO_PORTABLE;ZERO_NO_UPDATER</DefineConstants>
     <NuGetLockFilePath>packages.store.lock.json</NuGetLockFilePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(ZeroDistribution)' == 'Portable' and '$(ZeroPortableEditor)' != ''">
+    <DefineConstants>$(DefineConstants);ZERO_PORTABLE_BUNDLED</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs;MainForm.cs;KitFiles.cs;Processes.cs;AutomaticSetupController.cs;NativeSetupBackend.cs;InstanceBroker.cs;WindowsRuntime.cs;WindowsRuntimeFiles.cs;WindowsRuntimeHost.cs;Distribution.cs" />
     <Compile Include="TrustedUpdateSource.cs;UpdateCoordinator.cs" Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store' and '$(ZeroDistribution)' != 'Portable'" />
@@ -43,6 +46,8 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
     <PackageReference Include="Velopack" Version="1.2.161" Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store' and '$(ZeroDistribution)' != 'Portable'" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <EmbeddedResource Include="$(ZeroPortableEditor)" LogicalName="ZeroPortableEditor.json"
+      Condition="'$(ZeroDistribution)' == 'Portable' and '$(ZeroPortableEditor)' != ''" />
     <EmbeddedResource Include="$(ZeroKitZip)" LogicalName="ZeroKit.zip" Condition="Exists('$(ZeroKitZip)')" />
     <EmbeddedResource Include="$(ZeroUpdaterConfig)" LogicalName="WindowsUpdater.json" Condition="'$(ZeroDistribution)' != 'StoreFeasibility' and '$(ZeroDistribution)' != 'Store' and '$(ZeroDistribution)' != 'Portable' and Exists('$(ZeroUpdaterConfig)')" />
   </ItemGroup>

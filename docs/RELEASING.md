@@ -353,11 +353,14 @@ until that kit's independent publication is complete.
 ## Windows portable school pilot
 
 A full website release includes the published kit, Mac setup and a matching
-Windows Portable staging ZIP. The Microsoft Store and the standalone Windows
+Windows Portable staging ZIP and complete VSCodium ZIP. The Microsoft Store and the standalone Windows
 installer follow their own publication schedules. Manual **Release checks and preparation**
 builds `zero-<version>-portable-<run-id>` from the same sealed kit bytes as the
 manual kit release. Keep the successful run and its matching kit and Portable
-artifacts together. A separate local Mac or Windows build can have different kit
+artifacts together. Manual preparation also retains
+`zero-<version>-portable-bundled-<run-id>` with the complete ZIP and its measured
+`portable-bundle-candidate.json`. Publish its third-party notices and source
+companion archives alongside it. A separate local Mac or Windows build can have different kit
 archive bytes even at the same version.
 
 1. Download the Portable artifact from the same successful preparation run.
@@ -382,7 +385,7 @@ archive bytes even at the same version.
    If the matching Mac setup is already public, pass
    `--portable-manifest /absolute/path/to/portable-candidate.json` with the
    original `--run-id` to `release:publish`. It verifies the Portable release
-   before publishing the kit and includes the manifest in the kit metadata PR.
+   before publishing the kit and includes both manifests in the kit metadata PR.
    Keep the same options when resuming. If Mac setup was promoted while a
    kit-only metadata PR was open, bring that PR up to date with main and add the
    verified Portable manifest. Review and check the updated PR head, then resume
@@ -390,11 +393,21 @@ archive bytes even at the same version.
    through separate flows, use a reviewed promotion PR with all matching metadata.
 4. After deployment, check the versioned link at
    [Downloads → Windows portable pilot](https://zero.codepet.ca/downloads#windows-portable)
-   and check the school's [student login and run steps](WINDOWS-PORTABLE.md).
+   and check that both Portable links have the intended versions and sizes.
+   Verify the school's [student login and run steps](WINDOWS-PORTABLE.md).
    Existing school installs update when IT replaces the staged folder.
 
 For local preparation from a clean source checkout with an already verified
 `dist/` kit, run `node scripts/build-windows-portable.mjs --public NEW_OUTPUT_DIRECTORY`.
 An earlier release needs its original sealed kit receipt and exact published
-kit ZIP, verified against the original source checkout. Keep any ZIP containing
-local copies of the vendor binaries private.
+kit ZIP, verified against the original source checkout.
+
+The complete ZIP is a separate immutable prerelease,
+`windows-portable-bundled-v<version>`. The build records the launcher source
+and the public kit's source separately so an added distribution can reuse exact
+published kit bytes. Publish the complete ZIP, checksum, `SOURCE-INDEX.json`
+and measured source archives after review and the hosted Windows cold/warm trial.
+Download and verify each draft asset before publication and each public asset
+without authentication afterward. Promote its measured manifest to
+`release/windows-portable-bundle.json` in the reviewed metadata PR. The website
+keeps the two independent download links. Never replace an already public asset.

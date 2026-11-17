@@ -105,6 +105,83 @@ The Windows CI test installer needs a buildable local kit. The branch advances
 that kit to 0.5.75 and carries the published 0.5.74 metadata forward as the
 download fallback. Published releases and the update feed retain their bytes.
 
+# Two Windows Portable download choices — 2026-11-17
+
+The owner requested both the small staging ZIP and a complete VSCodium ZIP.
+The [complete 0.5.78 prerelease](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.78)
+embeds the exact public kit SHA-256
+`feaeef3706eb7a7c7f3dea64f0bb001607e52e0caf797bf97f9f8e3318d33bb4`.
+The launcher source and kit source are recorded separately in
+`release/windows-portable-bundle.json`. The two public files retain their own
+immutable URLs and measured sizes. New full website releases require both
+matching ZIPs. The publisher supports both candidate manifests and retains the
+older downloads during a kit-only publication.
+
+The 605,933,593-byte complete ZIP SHA-256 is
+`887ef13762f82b1da83e3455a35b64e8a22bd63b5a18f4649add24382c6510f9`.
+All five draft assets matched their local sizes and GitHub SHA-256 records.
+The separate source companion contains 68 verified upstream archives and build
+materials. Its size is 1,470,730,240 bytes with SHA-256
+`b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0`.
+The [source index](https://github.com/codepetca/zero/releases/download/windows-portable-bundled-v0.5.78/SOURCE-INDEX.json)
+maps exact versions, hashes, package recipes and upstream sources. Source
+acquisition/readability was verified; full Windows source rebuilds were not run.
+
+Sol/high independently reviewed `6f94129ee..943707362` and the corrected delta
+through `73861dbde`. Findings about scoped skipped jobs, retained bundle test
+fixtures and checkout history were corrected. The review reported no remaining
+blocking findings. Root validation passed 102 release tests, focused bundle and
+metadata tests, 21 CI contracts, workflow parsing, kit verification and Windows
+fixtures under Mono. The broader website suite had a local Git subprocess
+timeout; the affected 12 tests passed when rerun. Typecheck, production build and
+production function checks passed. The browser showed both versioned choices
+with measured sizes, setup instructions and their exact download destinations.
+
+[PR #378](https://github.com/codepetca/zero/pull/378) carries the website
+integration and requires public download verification and a real Windows
+cold/warm launcher trial. The isolated Windows job validates the exact complete
+ZIP in a fresh hosted account, including installed extension versions,
+unchanged tool files and extension timestamps across reopening. Actual school
+policy, sign-in and classroom JavaFX use remain on-device acceptance checks.
+Requested reviewer models/efforts are recorded above; effective configuration,
+token costs and task-specific account usage remain unavailable.
+
+---
+
+# Bundled Windows Portable 0.5.78 candidate — 2026-11-17
+
+The owner selected VSCodium for a ZIP that students can extract and launch
+with **Zero.exe**. The local x64 bundle was built from clean source
+`799e176bb850c7cf08f02c10464357fa368c58d5` with the verified 0.5.78 kit.
+The 605,932,585-byte archive expands to 1,275,026,404 bytes and has SHA-256
+`4df297d9a29e5c0eadfc4d12969f78f00d3498c8359c7dc94650e2dd8ba7edcf`.
+It includes VSCodium 1.143.17232, Temurin, Node.js, MinGit and the pinned
+universal Red Hat Java VSIX. Its x64 launcher embeds the exact kit and editor
+pin. The archive check verified all files and the five tool pins.
+
+Configuration and local documentation link checks, kit verification including
+the extracted Maven build, and all Windows fixtures under Mono passed. The
+runtime harness covers the original Portable and VSCodium paths, including
+launch selection, profile isolation, and absence of tool downloads. The Sol/high
+independent review passed for `b59aacf43..799e176bb`. The reviewer verified
+VSCodium's real CLI invocation. Windows extension installation, sign-in,
+JavaFX and reopening under a standard user remain unverified.
+
+The candidate is private. Before publication, retain the upstream notices and
+complete the corresponding-source inventory. Start with the exact
+[VSCodium release](https://github.com/VSCodium/vscodium/releases/tag/1.143.17232),
+[Temurin release](https://github.com/adoptium/temurin21-binaries/releases/tag/jdk-21.0.12.1%2B1),
+[Node.js archive](https://nodejs.org/en/download/archive/v22.23.4),
+[Git for Windows release](https://github.com/git-for-windows/git/releases/tag/v2.56.1.windows.1)
+and [Red Hat Java release](https://github.com/redhat-developer/vscode-java/releases/tag/v1.57.0).
+MinGit lists its component versions in `etc/package-versions.txt`. Verify
+source availability for those components as well as for the language server
+bundled in the universal VSIX and the editor's bundled dependencies.
+Run the [bundled pilot](WINDOWS-PORTABLE.md#build-a-bundled-pilot-candidate)
+on the target school device before promoting a download.
+
+---
+
 # Windows portable school pilot — 2026-11-14
 
 Local pilot source `6adc8a88721d26fcbfabfb4b3e4272b65300a227`. The

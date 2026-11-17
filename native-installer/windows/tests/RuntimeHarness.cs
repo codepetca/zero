@@ -163,20 +163,28 @@ internal static class RuntimeHarness
         Environment.SetEnvironmentVariable(Distribution.Marker, "msix-feasibility");
         try
         {
-            TestGit(parent); TestRetainedKitIntegration(parent); TestLifecycle(parent); TestRecovery(parent); TestNodeRecovery(parent); TestFailures(parent); TestArchives(parent); TestPortable(parent);
+            TestGit(parent); TestRetainedKitIntegration(parent); TestLifecycle(parent); TestRecovery(parent); TestNodeRecovery(parent); TestFailures(parent); TestArchives(parent); TestPortable(parent, false); TestPortable(parent, true);
         }
         finally { Environment.SetEnvironmentVariable("PATH", inheritedPath); Environment.SetEnvironmentVariable(Distribution.Marker, inheritedDistribution); WindowsRuntimeArchive.DeleteStaging(parent); }
         return checks;
     }
-    private static void TestPortable(string parent)
+    private static void TestPortable(string parent, bool bundled)
     {
         using (var f = new Fixture(parent))
         {
             string tools = Path.Combine(f.Root, "approved", "tools");
             Directory.CreateDirectory(tools);
+            const string editorVersion = "1.142.0";
+            string editorFolder = bundled ? "vscodium" : "vscode";
+            string editorExecutable = bundled ? "VSCodium.exe" : "Code.exe";
+            byte[] editorArchive = bundled
+                ? Zip("VSCodium.exe", "fake codium", "resources/app/out/cli.js", "fake CLI",
+                    "resources/app/product.json", "{\"quality\":\"stable\",\"applicationName\":\"codium\"}",
+                    "resources/app/package.json", "{\"version\":\"" + editorVersion + "\"}")
+                : f.Host.Editor;
             var archives = new Dictionary<string, (byte[] Bytes, string Prefix)> {
                 ["jdk"] = (f.Host.Jdk, "jdk-21"), ["node"] = (f.Host.Node, "node-v22.23.4-win-x64"),
-                ["git"] = (f.Host.Git, null), ["vscode"] = (f.Host.Editor, null)
+                ["git"] = (f.Host.Git, null), [editorFolder] = (editorArchive, null)
             };
             foreach (var asset in archives)
             {
@@ -192,7 +200,15 @@ internal static class RuntimeHarness
             Directory.CreateDirectory(extensions);
             File.WriteAllText(Path.Combine(extensions, "package.json"), "{}");
             f.Host.RedhatVersion = "1.57.0";
-            var runtime = new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, portableTools: tools);
+            var pin = bundled ? new WindowsRuntimeAsset {
+                version = editorVersion, format = "zip", size = editorArchive.Length,
+                sha256 = WindowsRuntimeArchive.Hash(Path.Combine(f.Root, editorFolder + ".zip"), CancellationToken.None),
+                url = "https://github.com/VSCodium/vscodium/releases/download/" + editorVersion + "/VSCodium-win32-x64-" + editorVersion + ".zip"
+            } : null;
+            if (bundled)
+                Reject(() => new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, bundledEditor: pin),
+                    "bundled editor cannot replace an ordinary installed editor");
+            var runtime = new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, portableTools: tools, bundledEditor: pin);
             string inheritedAppData = Environment.GetEnvironmentVariable("VSCODE_APPDATA");
             try
             {
@@ -206,7 +222,7 @@ internal static class RuntimeHarness
             Assert(f.Host.Downloads == 0 && !Directory.Exists(Path.Combine(f.Data, "runtime")), "portable tools never download into the profile");
             Assert(f.Host.Commands.All(command => command.FileName.StartsWith(tools + Path.DirectorySeparatorChar, StringComparison.Ordinal)),
                 "portable launcher starts approved tools only");
-            Assert(f.Host.Launched.FileName == Path.Combine(tools, "vscode", "Code.exe") &&
+            Assert(f.Host.Launched.FileName == Path.Combine(tools, editorFolder, editorExecutable) &&
                 f.Host.Launched.EnvironmentVariables["ZERO_PORTABLE_TOOLS"] == tools &&
                 f.Host.Launched.EnvironmentVariables["ZERO_PORTABLE_STARTER"] == f.Project &&
                 f.Host.Launched.Arguments.Contains(Processes.QuoteArgument(Path.Combine(f.Data, "editor", "shared-data"))),
@@ -215,9 +231,19 @@ internal static class RuntimeHarness
             var settings = JObject.Parse(File.ReadAllText(settingsFile));
             Assert((string)settings["java.jdt.ls.java.home"] == Path.Combine(tools, "jdk") &&
                 (string)settings["update.mode"] == "none" && (bool?)settings["extensions.autoUpdate"] == false, "portable editor pins Java and disables updates");
-            Directory.CreateDirectory(Path.Combine(tools, "vscode", "data"));
+            // Model a later class with a fresh launcher process and the same Windows profile.
+            int installs = f.Host.Installs;
+            var reopened = new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, portableTools: tools, bundledEditor: pin);
+            reopened.Prepare(null, CancellationToken.None).GetAwaiter().GetResult();
+            reopened.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(f.Host.Downloads == 0 && f.Host.Installs == installs,
+                "reopening Portable checks the existing tools and does not download or reinstall ready extensions");
+            Assert(f.Host.Launched.FileName == Path.Combine(tools, editorFolder, editorExecutable) &&
+                !f.Host.Launched.Arguments.Contains("--new-window"),
+                "reopening Portable uses the same editor and restores the student session");
+            Directory.CreateDirectory(Path.Combine(tools, editorFolder, "data"));
             Reject(() => runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(), "shared editor profile rejected");
-            Directory.Delete(Path.Combine(tools, "vscode", "data"));
+            Directory.Delete(Path.Combine(tools, editorFolder, "data"));
             string git = Path.Combine(tools, "git", "cmd", "git.exe");
             File.Delete(git);
             Reject(() => runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(), "missing approved Git stops without installing it elsewhere");

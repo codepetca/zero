@@ -11,13 +11,14 @@ import {availableInstaller} from '../website/lib/published-installer.mjs';
 import {windowsPortablePilotHref} from '../website/lib/windows-portable-pilot.mjs';
 
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
-export const releaseDownloadFiles = ['kit', 'published-kit', 'installer', 'published-installer', 'windows-portable-pilot'];
+export const releaseDownloadFiles = ['kit', 'published-kit', 'installer', 'published-installer', 'windows-portable-pilot', 'windows-portable-bundle'];
 
 export function releaseDownloads(read) {
   return {
     kit: availableKitRelease(read('kit'), read('published-kit')),
     mac: availableInstaller(read('installer'), read('published-installer')),
     portable: read('windows-portable-pilot'),
+    bundle: read('windows-portable-bundle'),
   };
 }
 
