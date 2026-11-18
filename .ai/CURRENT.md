@@ -27,8 +27,8 @@ cloud Chrome checks passed 16 layouts and API/keyboard/navigation interactions.
 CI exposed an immutable-kit/source mismatch; the documented local candidate flow
 now selects unpublished kit/extension 0.5.80 for building this changed source.
 
-Tutorial PRs Greeting9/Study9/Game9/Pet8 are published and verified. Published
-kit/Portable and website fallback records remain at their recorded versions;
+Tutorial PRs Greeting9/Study9/Game9/Pet8 are published and verified. The exact published 0.5.79 kit manifest is retained as the website fallback;
+installer and Portable records remain at their recorded versions;
 public kit downloads remain 0.5.79. No new kit or
 installer release, website deployment, credential or account/access change is
 authorized. Preserve approved designs, ordinary Java and student project ownership.

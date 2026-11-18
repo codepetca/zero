@@ -13616,8 +13616,9 @@ Initial Windows CI compared changed builder source against immutable published
 0.5.79 assets and correctly failed kit parity. Following RELEASING, the source
 candidate now uses local/unpublished kit and extension 0.5.80, with the new tag
 and VSIX filename and cleared public URLs, sizes and hashes. Core remains 0.3.0.
-The existing public-kit fallback, installer and Portable publication records and
-README public download remain unchanged. Getting Started and starter README use
+The exact previously published 0.5.79 kit manifest is retained in published-kit.json
+so local-candidate fallback preserves current public downloads and Portable parity.
+The installer and Portable publication records and README download remain unchanged. Getting Started and starter README use
 version-independent VSIX instructions already. This correction builds source
 candidates; it does not publish a kit, installer or website.
 
