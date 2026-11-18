@@ -1,8 +1,7 @@
-import styles from './hub.module.css';
 import {Suspense} from 'react';
 import {notFound,redirect} from 'next/navigation';
 import Link from 'next/link';
-import {HubDiscovery} from '@/components/HubDiscovery';
+import {HubDiscovery,HubProjectsFallback} from '@/components/HubDiscovery';
 import {HubMyLibraries} from '@/components/HubMyLibraries';
 import {listingsEnabled} from '@/lib/hub-listings-store.mjs';
 import {isJamHubVisibilityEnforced} from '@/lib/jam-hub-visibility.mjs';
@@ -53,10 +52,10 @@ export default async function Hub({searchParams}:{searchParams:Promise<Record<st
   }
   const browseProjects=query.kind==='game'?!query.id&&!query.version:
     !query.kind&&query.id===undefined&&query.version===undefined;
-  if(browseProjects)return <Suspense fallback={<p className={styles.progress} role="status">Fetching…</p>}>
+  if(browseProjects)return <Suspense fallback={<HubProjectsFallback/>}>
     <Projects/>
   </Suspense>;
-  return <Suspense fallback={<p className={styles.progress} role="status">Fetching…</p>}>
+  return <Suspense fallback={null}>
     <HubDiscovery key="legacy-discovery" enforceJamVisibility={isJamHubVisibilityEnforced()}/>
   </Suspense>;
 }

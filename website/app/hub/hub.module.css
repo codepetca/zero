@@ -74,7 +74,12 @@
 /* One square per project. Title and actions stay visible over the preview. */
 .projectCards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 16px; }
 .projectCard { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); position: relative; width: 100%; max-width: 100%; min-width: 0; min-height: calc(8em + 96px); aspect-ratio: 1; isolation: isolate; border-radius: 6px; background: var(--zero-surface); color: white; font-size: 16px; line-height: 1.45; }
-.projectPlaceholder { aspect-ratio: 1; border-radius: 6px; background: var(--zero-border, var(--outline)); opacity: .25; }
+.projectPlaceholder, .searchPlaceholder { border-radius: 6px; background: var(--zero-border, var(--outline)); opacity: .25; }
+.projectPlaceholder { aspect-ratio: 1; min-height: calc(8em + 96px); font-size: 16px; }
+.searchPlaceholder { width: min(100%, 28rem); height: 46px; margin: 0 0 16px; }
+@media (width <= 1220px) { .projectPlaceholder:nth-child(n+4) { display: none; } }
+@media (width <= 1040px) { .projectPlaceholder:nth-child(n+3) { display: none; } }
+@media (width <= 560px) { .projectPlaceholder:nth-child(n+2) { display: none; } }
 .projectCard > * { min-width: 0; }
 .projectCard .playImage { position: absolute; inset: 0; width: 100%; height: 100%; }
 .projectCard .thumbnail, .projectCard .playPlaceholder { width: 100%; height: 100%; }
@@ -101,7 +106,7 @@
 
 @media (width > 800px) {
   .compactProjectCards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 10px; }
-  .compactProjectCards .projectCard { min-height: calc(8em + 62px); }
+  .compactProjectCards .projectCard, .compactProjectCards .projectPlaceholder { min-height: calc(8em + 62px); }
   .compactProjectCards .imageTitle { font-size: 16px; padding: 6px 8px; }
   .compactProjectCards .cardFooter { padding: 14px 8px 6px; }
 }
