@@ -52,8 +52,12 @@ export async function readProjectListingPage({env = process.env, signal, search 
       signal?.throwIfAborted();
       const batch = candidates.slice(offset,offset+Math.min(4,limit+1-observed.length));
       offset += batch.length;
-      const checked = await Promise.all(batch.map(async entry =>
-        visible(entry) && await readDestination(entry, {signal}) ? entry : null));
+      const checked = await Promise.all(batch.map(async entry => {
+        if (!visible(entry)) return null;
+        const result = await readDestination(entry, {signal,includeFeedback:true});
+        if (!result) return null;
+        return result === true ? entry : {...entry,feedback:result};
+      }));
       observed.push(...checked.filter(Boolean));
     }
   }

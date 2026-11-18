@@ -60,6 +60,17 @@ test('combined maintained and shared pages check only displayed candidates and l
   assert.ok(!seen.includes('101'));
 });
 
+test('Projects start catalog and visibility reads together',async()=>{
+  let catalogStarted;
+  const started=new Promise(resolve=>{catalogStarted=resolve;});
+  const result=await request(options({
+    visibilityReader:async()=>{await started;return visibility();},
+    catalogReader:async()=>{catalogStarted();return catalog([]);},
+    responseBudgetMs:500
+  }));
+  assert.equal(result.status,200);
+});
+
 test('distinct games in the same repository retain their catalog identities',async()=>{
   const opts=options({catalogReader:async()=>catalog([game(103,'First game','first'),game(103,'Second game','second')])});
   const {status,body}=await request(opts);
@@ -105,10 +116,16 @@ test('published listings fill the same page and check Play only on the later req
         (!search||row.title.toLowerCase().includes(search))&&!excluded.includes(row.repositoryId)).slice(0,limit),
       stillListed:async entries=>entries
     }),
-    listingDestinationReader:async()=>true,playReader:async entry=>{played.push(entry.repositoryId);return entry.pagesUrl;}});
+    listingDestinationReader:async(_entry,{includeFeedback})=>{
+      assert.equal(includeFeedback,true);
+      return {stars:4,issuesEnabled:true};
+    },playReader:async entry=>{played.push(entry.repositoryId);return entry.pagesUrl;}});
   const first=await request(opts);
   assert.equal(first.status,200,JSON.stringify(first.body));
   assert.equal(first.body.listings.length,22);
+  assert.ok(first.body.listings.every(item=>item.stars===4 && item.issuesEnabled===true));
+  assert.ok(first.body.listings.every(item=>typeof item.playRef==='string'));
+  assert.equal(new Set(first.body.listings.map(item=>item.playRef)).size,22);
   assert.equal(first.body.maintained.length,1);
   assert.equal(first.body.catalog.releases.length,1);
   assert.equal(played.length,0);
@@ -118,6 +135,7 @@ test('published listings fill the same page and check Play only on the later req
   assert.equal(recheck.status,200);
   assert.equal(played.length,22);
   assert.deepEqual(recheck.body.listings.map(item=>item.identity),first.body.listings.map(item=>item.identity));
+  assert.deepEqual(recheck.body.listings.map(item=>item.playRef),first.body.listings.map(item=>item.playRef));
   assert.ok(recheck.body.listings.every(item=>item.pagesUrl));
   const next=await request(opts,{cursor:first.body.next});
   assert.equal(next.status,200);

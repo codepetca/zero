@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import ts from 'typescript';
+import {parseProjectPlayRef} from '../lib/hub-play-selector.mjs';
 
 const source=await readFile(new URL('../components/HubDiscovery.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
@@ -16,7 +17,7 @@ function harness(projects=[project], enforceJamVisibility=true, fakeTimers=false
   const timerSet=fakeTimers?(fn,delay)=>{const id=++nextTimer;timers.set(id,{at:time+delay,fn});return id;}:setTimeout;
   const timerClear=fakeTimers?id=>timers.delete(id):clearTimeout;
   const advance=ms=>{time+=ms;for(const [id,timer] of [...timers])if(timer.at<=time){timers.delete(id);timer.fn();}};
-  const window={addEventListener:(name,fn)=>{listeners[`window:${name}`]=fn;},removeEventListener:()=>{}};
+  const window={location:{href:'https://zero.test/hub'},addEventListener:(name,fn)=>{listeners[`window:${name}`]=fn;},removeEventListener:()=>{}};
   const document={visibilityState:'visible',addEventListener:(name,fn)=>{listeners[`document:${name}`]=fn;},removeEventListener:()=>{},querySelectorAll:()=>[]};
   const element=(type,props)=>({type,props:props||{}});
   const react={useRef(initial){const i=cursor++;if(!(i in hooks))hooks[i]={current:initial};return hooks[i];},useState(initial){const i=cursor++;if(!(i in hooks))hooks[i]=typeof initial==='function'?initial():initial;return [hooks[i],value=>{hooks[i]=typeof value==='function'?value(hooks[i]):value;}];},useEffect(fn,deps){const i=cursor++,old=hooks[i];if(!old||deps.some((v,n)=>v!==old.deps[n])){effects.push(()=>{old?.cleanup?.();hooks[i]={deps,cleanup:fn()};});}}};
@@ -24,12 +25,14 @@ function harness(projects=[project], enforceJamVisibility=true, fakeTimers=false
   const card=()=>null;
   const modules={'react':react,'react/jsx-runtime':{jsx:element,jsxs:element,Fragment:'fragment'},'next/navigation':{useSearchParams:()=>params},'next/link':{default:'a'},'@/lib/sharing-client.mjs':sharing,'@/content/projects.json':{default:[project]},'@/content/project-previews.json':{default:{}},'@/content/release-authors.json':{default:{}},'@/app/hub/hub.module.css':{default:{}},'./HubProjectCard':{HubProjectCard:card},'@/lib/hub-metrics-client.mjs':{loadMetricBatches:async()=>{},metricLabel:()=>null}};
   for(const [path,name] of [['./HubPublishedProjects','HubPublishedProjects'],['./CodeBlock','CodeBlock'],['./Icon','Icon'],['./HubProjectInfo','HubProjectInfo'],['./HubProjectFeedback','HubProjectFeedback']])modules[path]={[name]:()=>null,...(path.includes('Feedback')?{HubProjectDetails:()=>null}:{})};
+  modules['@/lib/hub-play-selector.mjs']={parseProjectPlayRef};
   const exports={};
-  vm.runInNewContext(compiled,{exports,require:name=>{if(!(name in modules))throw Error(name);return modules[name];},fetch:(url,options)=>new Promise((resolve,reject)=>{calls.push({url,options,resolve,reject,onReply:data=>{if(url==='/api/hub/discovery')baseline=data;}});if(url.includes('revalidate=1')&&!deferEligibility)resolve({ok:true,json:async()=>baseline});options.signal?.addEventListener('abort',()=>reject(Error('aborted')),{once:true});}),AbortController,AbortSignal,URLSearchParams,Set,Number,Date,Object,Array,JSON,Promise,setTimeout:timerSet,clearTimeout:timerClear,window,document});
+  vm.runInNewContext(compiled,{exports,require:name=>{if(!(name in modules))throw Error(name);return modules[name];},fetch:(url,options)=>new Promise((resolve,reject)=>{calls.push({url,options,resolve,reject,onReply:data=>{if(url==='/api/hub/discovery')baseline=data;}});if(url.includes('revalidate=1')&&!deferEligibility)resolve({ok:true,json:async()=>baseline});options.signal?.addEventListener('abort',()=>reject(Error('aborted')),{once:true});}),AbortController,AbortSignal,performance,URL,URLSearchParams,Set,Number,Date,Object,Array,JSON,Promise,setTimeout:timerSet,clearTimeout:timerClear,window,document});
   const render=(props={})=>{cursor=0;const tree=exports.HubDiscovery({enforceJamVisibility,...props});const pending=effects;effects=[];pending.forEach(fn=>fn());return tree;};
   const cards=tree=>{const found=[];function walk(node){if(!node||typeof node!=='object')return;if(Array.isArray(node)){node.forEach(walk);return;}if(node.type===card)found.push(node.props);walk(node.props?.children);}walk(tree);return found;};
   const search=tree=>{let input;function walk(node){if(!node||typeof node!=='object')return;if(Array.isArray(node)){node.forEach(walk);return;}if(node.type==='input'&&node.props.id==='sharing-search')input=node;walk(node.props?.children);}walk(tree);return value=>input.props.onChange({target:{value}});};
-  return {render,cards,calls,advance,search,setQuery:q=>{params=new URLSearchParams(q);},fire:name=>listeners[name]?.(),document};
+  const unmount=()=>{hooks.forEach(hook=>hook?.cleanup?.());hooks=[];};
+  return {render,cards,calls,advance,search,unmount,window,setQuery:q=>{params=new URLSearchParams(q);},fire:name=>listeners[name]?.(),document};
 }
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const reply=(call,data,ok=true)=>{call.onReply?.(data);call.resolve({ok,json:async()=>data});};
@@ -37,7 +40,8 @@ const reply=(call,data,ok=true)=>{call.onReply?.(data);call.resolve({ok,json:asy
 
 const envelope=(maintained=[project],catalog={schema:1,releases:[]},presentation=[])=>({schema:1,maintained,catalog,presentation});
 const discovery=h=>h.calls.filter(call=>call.url.includes('/api/hub/discovery')&&!call.url.includes('revalidate=1')).at(-1);
-const statuses=h=>h.calls.filter(call=>call.url.includes('/api/hub/projects')).at(-1);
+const statuses=h=>h.calls.filter(call=>call.url.startsWith('/api/hub/projects?')).at(-1);
+const readiness=(h,ref)=>h.calls.find(call=>call.url===`/api/hub/projects/play?ref=${ref}`);
 const button=(node,label)=>{
   if (!node || typeof node!=='object') return;
   if (Array.isArray(node)) return node.map(child=>button(child,label)).find(Boolean);
@@ -106,9 +110,7 @@ test('paginated Projects retire the old page and reset the cursor on search',asy
   reply(next,page([second]));await tick();
   assert.equal(h.cards(render())[0].title,'Second project');
   reply(statuses(h),{},false);await tick();
-  const recheck=h.calls.at(-1);
-  assert.equal(recheck.url,'/api/hub/projects/discover?q=&cursor=next-page&revalidate=1');
-  reply(recheck,page([second]));await tick();
+  assert.equal(h.calls.some(call=>call.url.includes('revalidate=1')),false);
   assert.equal(h.cards(render())[0].title,'Second project');
   h.search(render())('needle');
   assert.equal(h.cards(render()).length,0);
@@ -117,20 +119,103 @@ test('paginated Projects retire the old page and reset the cursor on search',asy
   reply(h.calls.at(-1),page([]));await tick();render();
 });
 
-test('a changed fresh Projects page replaces the cards and continuation together',async()=>{
-  const h=harness([project],true,false,true), render=()=>h.render({paginatedProjects:true});
-  const replacement={...project,id:'replacement',title:'Newly public',repositoryId:'124'};
-  const page=(maintained,next=null)=>({...envelope(maintained),listings:[],next});
-  render();reply(h.calls.at(-1),page([project]));await tick();
-  assert.equal(button(render(),'Next page'),undefined);
-  reply(statuses(h),{schema:1,items:[status]});await tick();
-  reply(h.calls.at(-1),page([replacement],'new-cursor'));await tick();
-  const updated=render();
-  assert.deepEqual(h.cards(updated).map(card=>card.title),['Newly public']);
-  assert.ok(button(updated,'Next page'));
-  reply(statuses(h),{schema:1,items:[]});await tick();
-  reply(h.calls.at(-1),page([replacement],'new-cursor'));await tick();
-  assert.deepEqual(h.cards(render()).map(card=>card.title),['Newly public']);
+test('server-rendered Projects use their initial metadata once and verify Play per card',async()=>{
+  const h=harness([],true,true,true);
+  const publishedRef=`1.listing.235.${'a'.repeat(64)}.42`;
+  const slowRef=`1.listing.236.${'b'.repeat(64)}.42`;
+  const hiddenRef=`1.listing.237.${'c'.repeat(64)}.42`;
+  const published={id:'235',identity:'e'.repeat(64),title:'Published app',author:'student',playRef:publishedRef,
+    repositoryUrl:'https://github.com/student/app',stars:0,issuesEnabled:true};
+  const slow={...published,id:'236',identity:'f'.repeat(64),title:'Slow app',playRef:slowRef};
+  const hidden={...published,id:'237',identity:'1'.repeat(64),title:'Hidden app',playRef:hiddenRef};
+  const initialProjects={...envelope([]),listings:[published,slow,hidden],next:null};
+  const render=()=>h.render({paginatedProjects:true,initialProjects});
+  const [pending]=h.cards(render());
+  assert.equal(pending.feedback().props.children.props.children.at(-1),'0');
+  assert.equal(pending.fallbackPlayHref,`/hub/play?ref=${publishedRef}`);
+  assert.equal(pending.playHref,undefined);
+  assert.equal(h.calls.some(call=>call.url.includes('/discover')),false);
+
+  const url='https://student.github.io/app/';
+  assert.equal(readiness(h,hiddenRef),undefined,'only two projects are checked at a time');
+  const thumbnail=`/api/hub/listings/thumbnail/235/${'e'.repeat(40)}`;
+  reply(readiness(h,publishedRef),{url,siteStatus:'reachable',freshForMs:30_000,thumbnail});
+  await tick();
+  readiness(h,hiddenRef).resolve({status:404,ok:false});
+  await tick();
+  const [ready,stillPending]=h.cards(render());
+  assert.equal(h.cards(render()).length,2);
+  assert.equal(ready.playHref,url);
+  assert.equal(ready.image,thumbnail);
+  assert.equal(stillPending.fallbackPlayHref,`/hub/play?ref=${slowRef}`);
+  const details=ready.feedback('Author','','details').props.children.props;
+  assert.equal(details.feedback.issuesEnabled,true);
+  assert.equal(details.feedback.site.status,'reachable');
+  h.advance(30_000);
+  assert.equal(h.cards(render())[0].playHref,undefined);
+  assert.equal(h.cards(render())[0].image,thumbnail);
+
+  h.fire('window:blur');
+  h.fire('window:focus');
+  assert.equal(h.cards(render()).length,0);
+  assert.equal(readiness(h,slowRef).options.signal.aborted,true);
+  const fresh=h.calls.at(-1);
+  assert.equal(fresh.url,'/api/hub/projects/discover?q=');
+  reply(fresh,{...envelope([]),listings:[],next:null});await tick();
+  assert.equal(h.cards(render()).length,0);
+});
+
+test('same-document history traversal discards a cached server-rendered project page',async()=>{
+  const h=harness();
+  const initialProjects={...envelope([project]),listings:[],next:null};
+  const props={paginatedProjects:true,initialProjects};
+  assert.equal(h.cards(h.render(props)).length,1);
+  assert.equal(new URL(statuses(h).url,'https://zero.test').searchParams.get('metadata'),'1');
+  h.unmount();
+
+  h.window.location.href='https://zero.test/docs';
+  h.fire('window:popstate');
+  h.window.location.href='https://zero.test/hub';
+  h.fire('window:popstate');
+  assert.equal(h.cards(h.render(props)).length,0);
+  const fresh=h.calls.at(-1);
+  assert.equal(fresh.url,'/api/hub/projects/discover?q=');
+  reply(fresh,{...envelope([]),listings:[],next:null});await tick();
+  assert.equal(h.cards(h.render(props)).length,0);
+  h.unmount();
+
+  const priorCount=h.calls.filter(call=>call.url.includes('/discover')).length;
+  assert.equal(h.cards(h.render(props)).length,1);
+  assert.equal(h.calls.filter(call=>call.url.includes('/discover')).length,priorCount);
+  h.unmount();
+});
+
+test('lost visibility authority quarantines only the affected card',async()=>{
+  const h=harness([],true,true);
+  const a={id:'235',identity:'e'.repeat(64),title:'Uncertain visibility',author:'student',
+    repositoryUrl:'https://github.com/student/app',playRef:`1.listing.235.${'a'.repeat(64)}.42`};
+  const b={...a,id:'236',identity:'f'.repeat(64),title:'Capacity limited',playRef:`1.listing.236.${'b'.repeat(64)}.43`};
+  const props={paginatedProjects:true,initialProjects:{...envelope([]),listings:[a,b],next:null}};
+  assert.equal(h.cards(h.render(props)).length,2);
+  const check=readiness(h,a.playRef);
+  assert.equal(check.options.headers['X-ZeroHub-Background'],'1');
+  check.resolve({ok:false,status:503,json:async()=>({code:'visibility-unavailable'})});
+  readiness(h,b.playRef).resolve({ok:false,status:503,json:async()=>({error:'Try again'})});
+  await tick();
+  const tree=h.render(props);
+  assert.deepEqual(h.cards(tree).map(card=>card.title),['Capacity limited']);
+  assert.ok(button(tree,'Try again'));
+});
+
+test('a failed server-rendered Projects request is retried by the explicit user action',async()=>{
+  const h=harness();
+  const props={paginatedProjects:true,initialProjects:null};
+  const initial=h.render(props);
+  assert.equal(h.calls.length,0);
+  button(initial,'Try again').props.onClick();
+  h.render(props);
+  assert.equal(h.calls.at(-1).url,'/api/hub/projects/discover?q=');
+  reply(h.calls.at(-1),{...envelope([]),listings:[],next:null});await tick();
 });
 
 test('focus and query changes retire old responses; practice uses the dedicated projection',async()=>{

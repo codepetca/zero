@@ -153,7 +153,7 @@ test('public discovery uses a GitHub App grant for one public repository and met
     if (url === root) {
       assert.equal(credential,installationToken);
       if (status !== 200) return new Response(null,{status});
-      return Response.json({id:21,private:false,has_pages:hasPages,owner:{id:6,type:'User'},html_url:receipt.repositoryUrl});
+      return Response.json({id:21,private:false,has_pages:hasPages,stargazers_count:0,has_issues:false,owner:{id:6,type:'User'},html_url:receipt.repositoryUrl});
     }
     const [header,payload,signature] = credential.split('.');
     assert.equal(JSON.parse(Buffer.from(payload,'base64url')).iss,appId);
@@ -169,14 +169,15 @@ test('public discovery uses a GitHub App grant for one public repository and met
   const options = {appId,key,now:()=>now,fetchImpl};
   const read = createListingRepositoryReader(options);
   assert.equal(await read(entry,{signal}),true);
+  assert.deepEqual(await read(entry,{signal,includeFeedback:true}),{stars:0,issuesEnabled:false});
   hasPages = false;
-  assert.equal(await read(entry,{signal}),false);
-  assert.equal(calls.length,4,'cached grant still fetches fresh metadata');
+  assert.equal(await read(entry,{signal,includeFeedback:true}),false);
+  assert.equal(calls.length,5,'cached grant still fetches fresh metadata');
   status = 429;
   await assert.rejects(read(entry,{signal}),/metadata is unavailable/);
   status = 200;
   assert.equal(await read(entry,{signal}),false);
-  assert.equal(calls.length,6,'transient failures preserve the grant');
+  assert.equal(calls.length,7,'transient failures preserve the grant');
   permissions = {metadata:'read',contents:'read'};
   await assert.rejects(createListingRepositoryReader(options)(entry,{signal}),/metadata is unavailable/);
   permissions = {metadata:'read'};

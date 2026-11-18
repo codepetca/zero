@@ -317,7 +317,7 @@ export function createHubProjectStatusService({fetchImpl = fetch, now = Date.now
           if (error instanceof RepositoryIdentityMismatch) return null;
           throw error;
         }),
-      target.playUrl ? cached(pageCache, pageInflight, visibility !== null ?
+      target.playUrl && !options.metadataOnly ? cached(pageCache, pageInflight, visibility !== null ?
         `${target.repositoryId}:${target.playUrl}` : target.playUrl,
         () => pageStatus(target.playUrl, fetchImpl, Math.min(remainingMs, timeoutMs, TIMEOUT_MS), now), now,
         value => value.status !== 'unknown') : {status:'not-checked'}
@@ -386,8 +386,10 @@ export async function hubProjectsResponse(request, {service = hubProjectStatusSe
   const url = new URL(request.url);
   const kind = url.searchParams.get('kind');
   const ids = url.searchParams.get('ids');
-  if (url.searchParams.size !== 2 || url.searchParams.getAll('kind').length !== 1 ||
+  const metadataOnly = kind === 'game' && url.searchParams.get('metadata') === '1';
+  if (url.searchParams.size !== (metadataOnly ? 3 : 2) || url.searchParams.getAll('kind').length !== 1 ||
       url.searchParams.getAll('ids').length !== 1 || !['game','library'].includes(kind) ||
+      (url.searchParams.has('metadata') && !metadataOnly) ||
       // Maintained discovery IDs support 128 characters. Include all eleven
       // separators when accepting a full twelve-ID status selection.
       !ids || ids.length > 12 * MAX_HUB_PROJECT_ID_LENGTH + 11) return Response.json({error:'Invalid project selection.'},{status:400, headers});
@@ -428,7 +430,7 @@ export async function hubProjectsResponse(request, {service = hubProjectStatusSe
         // Keep the route's bound destination private from custom status code.
         // Mutating its argument must not restore a URL the route withheld.
         return (builtIn ? builtInStatusTarget : service.statusTarget).call(service, {...target}, undefined, {visibility, visibilityReader, destinationReader, decisionNow, ...(pagesBindingReader !== undefined ? {pagesBindingReader} : {}), destinationTimeoutMs,
-          env, signal:deadline.signal, check:deadline.check});
+          env, metadataOnly, signal:deadline.signal, check:deadline.check});
       }))));
     }
   } catch {

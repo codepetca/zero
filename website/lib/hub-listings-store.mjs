@@ -156,7 +156,15 @@ export function createHubListingsStore(pool) {
     return row ? {repositoryUrl:row.repository_url, pagesUrl:row.pages_url} : null;
   }
 
-  return {savePublication, manage, owned, mine, discover, stillListed, listedPublication};
+  async function listedForPlay(repositoryId, runId) {
+    // A repository can have older rows under a previous owner's account.
+    // Compare the full publication reference and bind the live owner before use.
+    const {rows} = await pool.query(`SELECT account_id, ${fields} FROM ${table}
+      WHERE repository_id=$1 AND run_id=$2::bigint AND listed_order IS NOT NULL`, [repositoryId,runId]);
+    return rows.map(row => ({...project(row), accountId:row.account_id, order:row.listed_order}));
+  }
+
+  return {savePublication, manage, owned, mine, discover, stillListed, listedPublication, listedForPlay};
 }
 
 export function configuredListingsStore(env = process.env) {

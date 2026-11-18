@@ -14,6 +14,7 @@ import {listingsEnabled} from './hub-listings-store.mjs';
 import {hubConfig, json, seal, unseal} from './hub-github-auth.mjs';
 import {jamsPreviewAvailable} from './jams-visibility.mjs';
 import {createHubRequestDeadline} from './hub-request-deadline.mjs';
+import {projectPlayRef} from './hub-play-reference.mjs';
 
 export const PROJECT_PAGE_SIZE = 24;
 const SCAN_LIMIT = 96;
@@ -74,6 +75,8 @@ function listingDto(entry, visibility, env) {
   const winner = jamsPreviewAvailable(env) && visibility?.isGameJamWinner?.(entry.repositoryId, entry.accountId);
   return {id:entry.repositoryId,title:entry.title,author:entry.author,repositoryUrl:entry.repositoryUrl,
     identity:hash([entry.repositoryId,entry.accountId,entry.repositoryUrl,entry.pagesUrl,entry.commit,entry.runId]),
+    playRef:projectPlayRef('listing',entry),
+    stars:entry.feedback?.stars ?? null, issuesEnabled:entry.feedback?.issuesEnabled ?? null,
     ...(entry.playUrl ? {pagesUrl:entry.playUrl, thumbnail:listingThumbnailPath(entry.repositoryId, entry.commit)} : {}),
     ...(winner ? {gameJamWinner:true} : {})};
 }
@@ -114,12 +117,15 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
       if (initial!==undefined && (initial===null)!==(value===null)) throw new Error('Visibility mode changed.');
       return value;
     };
-    initial = await deadline.run(signal=>readVisibility({signal}));
-    let catalog = null;
     const catalogDeadline = createHubRequestDeadline({budgetMs:Math.min(8000,responseBudgetMs),signal:deadline.signal});
-    try { catalog = contracts.validateCatalog(await catalogDeadline.run(signal=>catalogReader({env,signal}))); }
-    catch { deadline.check(); }
-    finally { catalogDeadline.dispose(); }
+    const [visibility, catalog] = await Promise.all([
+      deadline.run(signal=>readVisibility({signal})),
+      catalogDeadline.run(signal=>catalogReader({env,signal}))
+        .then(contracts.validateCatalog)
+        .catch(()=>{deadline.check(); return null;})
+        .finally(()=>catalogDeadline.dispose())
+    ]);
+    initial = visibility;
     const candidates = selectCandidates(projectRecords,catalog,search);
     const revision = hash([catalog,projectRecords,includeListings]);
     if (cursor && cursor.revision!==revision) return restart();
@@ -175,8 +181,10 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
       const position = last.entry ? seal({order:last.entry.order,revision,search:hash(search)},CURSOR_PURPOSE,config) : last.position;
       next = writeCursor(search,revision,position,!!last.entry);
     }
-    const projectedCatalog = catalog && {schema:1,revision:catalog.revision,releases:page.flatMap(item=>item.release?[item.release]:[])};
-    const result = {schema:1,maintained:page.flatMap(item=>item.project?[item.project]:[]),
+    const projectedCatalog = catalog && {schema:1,revision:catalog.revision,releases:page.flatMap(item=>
+      item.release?[{...item.release,playRef:projectPlayRef('release',item.release)}]:[])};
+    const result = {schema:1,maintained:page.flatMap(item=>
+      item.project?[{...item.project,playRef:projectPlayRef('maintained',item.project)}]:[]),
       catalog:projectedCatalog,presentation:presentationFor(projectedCatalog,previewRecords,authorRecords),
       listings:page.flatMap(item=>item.entry?[listingDto(item.entry,final,env)]:[]),next};
     deadline.check();

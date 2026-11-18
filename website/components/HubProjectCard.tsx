@@ -8,7 +8,7 @@ import styles from '@/app/hub/hub.module.css';
 
 type Props = {
   projectId?: string; title: string; description: string; author: string; version?: string;
-  repositoryHref: string; image?: string; playHref?: string; compact?: boolean; siteReachable?: boolean;
+  repositoryHref: string; image?: string; playHref?: string; fallbackPlayHref?: string; playRef?: string; compact?: boolean; siteReachable?: boolean;
   feedback?: (identity?: ReactNode, description?: string, placement?: 'details') => ReactNode; children?: ReactNode;
 };
 
@@ -21,19 +21,21 @@ export function ProjectPattern({seed}: {seed: string}) {
   </svg>;
 }
 
-export function HubProjectCard({projectId, title, description, author, version, repositoryHref, image, playHref, compact, siteReachable, feedback, children}: Props) {
+export function HubProjectCard({projectId, title, description, author, version, repositoryHref, image, playHref, fallbackPlayHref, playRef, compact, siteReachable, feedback, children}: Props) {
   const [failedImage, setFailedImage] = useState<string>();
   const pattern = <ProjectPattern seed={projectPatternSeed(author, repositoryHref.split('/').filter(Boolean).at(-1) || title)} />;
-  const recordOpen = (event: {button: number}) => { if (projectId && (event.button === 0 || event.button === 1)) recordPlayOpen(projectId); };
+  const destination = playHref || fallbackPlayHref;
+  const playLabel = `${playHref ? 'Play' : 'Check availability and play'} ${title} (opens in a new tab)`;
+  const recordOpen = (event: {button: number}) => { if (playHref && projectId && (event.button === 0 || event.button === 1)) recordPlayOpen(projectId); };
   const identity = <p className={styles.metadata}><a href={version ? `https://github.com/${author}` : repositoryHref}>@{author}</a>{version && <> · <a href={repositoryHref} aria-label={`${title} v${version} on GitHub`}>v{version}</a></>}</p>;
   const preview = <>
     {image && failedImage !== image ? <img className={styles.thumbnail} src={image} alt={`${title} screenshot`} loading="lazy" onError={() => setFailedImage(image)}
       // An image can fail before hydration attaches onError.
       ref={node => { if (node?.complete && !node.naturalWidth) setFailedImage(image); }} /> : pattern}
-    {playHref && <span className={styles.playOverlay} aria-hidden="true"><span><Icon name="play" className={styles.playIcon} /></span></span>}
+    {destination && <span className={styles.playOverlay} aria-hidden="true"><span><Icon name="play" className={styles.playIcon} /></span></span>}
   </>;
-  if (compact) return <article className={styles.projectCard} data-hub-project-id={projectId}>
-    {playHref ? <a className={styles.playImage} data-muted={!siteReachable || undefined} href={playHref} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={`Play ${title} (opens in a new tab)`}>
+  if (compact) return <article className={styles.projectCard} data-hub-project-id={projectId} data-hub-play-ref={playRef}>
+    {destination ? <a className={styles.playImage} data-muted={!siteReachable || undefined} href={destination} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={playLabel}>
       {preview}
     </a> : <div className={styles.playImage} data-muted>{preview}</div>}
     <div className={styles.projectHeading}>
@@ -45,8 +47,8 @@ export function HubProjectCard({projectId, title, description, author, version, 
       {feedback?.()}
     </div>
   </article>;
-  return <article className={styles.card} data-hub-project-id={projectId}>
-    {playHref ? <a className={styles.playImage} href={playHref} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={`Play ${title} (opens in a new tab)`}>{preview}</a> : image && <img className={styles.thumbnail} src={image} alt={`${title} screenshot`} loading="lazy" />}
+  return <article className={styles.card} data-hub-project-id={projectId} data-hub-play-ref={playRef}>
+    {destination ? <a className={styles.playImage} href={destination} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={playLabel}>{preview}</a> : image && <img className={styles.thumbnail} src={image} alt={`${title} screenshot`} loading="lazy" />}
     <div className={styles.cardContent}>
       <h3>{title}</h3><p className={styles.description}>{description}</p>
       {identity}{feedback?.()}
