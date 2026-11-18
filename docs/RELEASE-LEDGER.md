@@ -1,17 +1,17 @@
 # Zero release ledger
 
-Last reconciled 2026-11-17 (America/Toronto). This is a dated working record,
+Last reconciled 2026-11-18 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.79](https://github.com/codepetca/zero/releases/tag/v0.5.79) is public. All three anonymous downloads match the preparation receipts. | Includes the shorter Publish & open app confirmation. |
-| Website | PR #379 promotes both verified 0.5.79 Portable downloads; Mac setup remains 0.5.78. | The Windows button opens the Microsoft Store. |
-| Mac installer | [0.5.78](https://github.com/codepetca/zero/releases/tag/setup-v0.5.78) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup installed the exact extension. Interactive Sparkle upgrade remains unverified. |
+| GitHub manual kit | [Zero 0.5.80](https://github.com/codepetca/zero/releases/tag/v0.5.80) is public. All three anonymous downloads match preparation44339762972. | Audited fixes and current project builder. |
+| Website | [PR383](https://github.com/codepetca/zero/pull/383) promotes the verified0.5.80 Mac, signed feed and both Portable downloads. | The Windows button opens the Microsoft Store. |
+| Mac installer | [0.5.80](https://github.com/codepetca/zero/releases/tag/setup-v0.5.80) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup installed the exact extension. Interactive Sparkle upgrade remains unverified. |
 | Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 13, package 1.5.77.0 x64, was live when preparing submission 14 for package 1.5.78.0. | Store availability follows successful upload and Microsoft certification. |
-| Windows Portable | [0.5.79 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.79) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.79) are public and embed the same published kit. | Complete: extract and open Zero.exe. Small: teacher/IT stages vendor tools. Verify actual school policy under a student login. |
+| Windows Portable | [0.5.80 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.80) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.80) are public and embed the same published kit. | Complete: extract and open Zero.exe. Small: teacher/IT stages vendor tools. Verify actual school policy under a student login. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
@@ -22,6 +22,62 @@ blocked-executables finding, disclosed with the submission. See the
 The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
+
+## Zero 0.5.80 — 2026-11-18
+
+Owner authorized the full 0.5.80 website release. It includes the reviewed audit
+fixes ([PR380](https://github.com/codepetca/zero/pull/380)) and progressive ZeroHub
+loading ([PR381](https://github.com/codepetca/zero/pull/381)). Kit and both Portable
+packages were prepared at source `7ec896f719e2f4a4c550588d7091f34748556d32` by
+[manual run44339762972](https://github.com/codepetca/zero/actions/runs/44339762972).
+Kit metadata is promoted by [PR382](https://github.com/codepetca/zero/pull/382).
+The full download/feed records and final verification belong to [PR383](https://github.com/codepetca/zero/pull/383).
+
+[Starter PR6](https://github.com/codepetca/zero-starter/pull/6) updates only the
+14 generated builder files. Independent Terra/high review verified all97 file
+bytes and executable modes. Public starter commit `32c4d56a706d8d677db0eecfea5b202ca1bee8ca`,
+tree `369608a5d9847148dc801b3b1e2499adcb00a767`, passed Project → New with this
+VSIX: native starter UI, Hello Sam/Ada and actual Chrome157 WebFX output.
+
+The universal Mac candidate was built from the same source and sealed at
+`4b79a16a5fc6fe0269ec0b90ce062afeffdb8371` after protected-source equivalence.
+Apple accepted notarization `6b6ada03-8433-41c2-b516-f92c549f561a`. Developer ID
+signatures, staple and Gatekeeper app/DMG assessments passed. Existing update
+build79 advances published build78; no key or credential changed. Sol/high
+independently verified all15 sealed hashes,42 protected paths and Ed25519 archive
+and feed signatures. An isolated temporary home completed native installation
+and readiness with extension0.5.80; no owner app/editor was launched.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| zero-bootstrap.zip | 5,110,365 | `615700e2753bcd56d0bf07b2e9b193634ee2a1a62f712e74289a0b41bd4df43f` |
+| zero-starter.zip | 2,778,887 | `b9df3af39aaddde08f950a6cc8b147f532d3c667786590ede28da788a77577f3` |
+| zero-0.5.80.vsix | 2,306,597 | `eec09dee6ebccbc2beb6ad5b2658a4123e39675975b56a7e0d10cbcf26210bba` |
+| Zero-0.5.80-macos.dmg | 12,353,838 | `a66680ecf6d9b4c502ca764cd62ad3b4911fb2d2d32564a28aa60f87a6992487` |
+| Zero-0.5.80-windows-portable-pilot-staging-x64.zip | 5,419,000 | `af4600f1a1d0e45dde4c611340d1193b80126ec1674676eac93035bb74eb19da` |
+| Zero-0.5.80-windows-portable-bundled-x64.zip | 605,972,821 | `6b9f50b7d79eadc66730ac3e2c508a8e43e5805d1623c8a8b11f74b9144aa227` |
+| Zero-0.5.80-windows-portable-sources.tar | 1,470,730,240 | `b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0` |
+
+Windows and the manual kit use the same exact kit archive. The native Mac
+installer embeds its separately built source-equivalent0.5.80 kit; its measured
+archive stays in the sealed native receipt. Native asset bytes remain independent
+from the Linux kit/Portable run. No old public asset is replaced.
+
+The kit, native and small Portable public downloads match their measured bytes. Complete Portable draft downloads are checked against all five sealed files. Final acceptance on the promotion PR additionally requires all five anonymous downloads, the exact-ZIP Windows cold/warm trial and live download/feed read-back.
+
+The complete ZIP retains bundled third-party notices and a verified0.5.80
+source-companion link. All upstream tool pins are unchanged from0.5.79. Independent
+Terra/high review verified the reused TAR and all68 source mappings. The adjacent
+index explains the original0.5.78 index inside the byte-identical source TAR.
+
+Local full-promotion checks:868 website tests passed,3 skipped, with typecheck,
+production build and11 focused published-download tests passing. Exact-head
+review, selected CI and the hosted Windows cold/warm trial are recorded on the
+full-promotion PR. Final live checks require both Portable links, the Mac link
+and the exact signed appcast to match these records. Skipped and physical-device,
+school-policy, authenticated-student and interactive Sparkle acceptance remain
+explicit limits. Microsoft Store and standalone Windows deliveries keep their
+independent publication schedules. Unrelated owner files/staging are preserved.
 
 ## Zero 0.5.79 — 2026-11-17
 

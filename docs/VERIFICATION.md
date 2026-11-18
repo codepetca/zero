@@ -6106,3 +6106,23 @@ compatibility CI passed. Prior cloud full-suite results retain their original
 source scope. Current source integration, package parity, release contracts and
 publication gates are checked separately. The original checkout remains untouched;
 all commits and generated outputs belong to the isolated PR worktree.
+
+
+## Full0.5.80 release — 2026-11-18
+
+The [release ledger](RELEASE-LEDGER.md#zero-0580--2026-11-18) records the exact
+source, manual preparation44339762972, starterPR6, kitPR382, native notarization,
+artifact measurements, independent reviews and acceptance limits. [PR383](https://github.com/codepetca/zero/pull/383)
+promotes the independently verified native/feed/Portable records and current
+starter/public-kit fallback. Only the fallback fixture's exact immutable values
+change; no production implementation or key changes. The signed appcast is copied
+byte for byte from the sealed candidate.868 local website tests pass with3 skips;
+typecheck, production build and11 focused published-download tests pass.
+
+The kit, native and small Portable public downloads match their measured bytes. Complete Portable draft downloads are checked against all five sealed files. Final acceptance on the promotion PR additionally requires all five anonymous downloads, the exact-ZIP Windows cold/warm trial and live download/feed read-back.
+
+The PR is authoritative for its final head, CI, hosted Windows cold/warm trial and
+merge. Source-only checks do not establish physical school-device acceptance,
+interactive Sparkle upgrade, authenticated student publication or Store delivery.
+Original owner checkout files/staging remain preserved. Bulky evidence remains
+ignored under `.verification/release-080/`.

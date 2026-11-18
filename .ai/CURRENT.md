@@ -1,34 +1,20 @@
-# Audit remediation PR integration — 2026-11-18
+# Full Zero0.5.80 release — 2026-11-18
 
-Owner authorized commit, PR, CI and merge of the reviewed Zero changes while
-preserving unrelated local work. The coordinator owns isolated branch
-`codex/zero-audit-remediation`, based on origin/main `8192a7ab7`.
-See the [audit record](../docs/FULL-AUDIT-2026-11-17.md) and
-[preserved prior release state](archive/current-before-audit-integration-2026-11-18.md).
+Owner authorized full publication. Audited fixes and progressive ZeroHub loading
+are on main. [Release ledger](../docs/RELEASE-LEDGER.md#zero-0580--2026-11-18)
+records source, artifacts and limits; [PR383](https://github.com/codepetca/zero/pull/383) is authoritative for final
+review, CI and merge. Prior integration state is
+[archived](archive/current-before-release-080-2026-11-18.md).
 
-A1–A11, verified tutorial records and the reviewed website timeout correction
-are integrated from the saved pre-audit baseline. Upstream Git, publishing
-and release improvements must be retained. Original checkout working files and
-staging remain untouched; preexisting owner changes are excluded from this PR.
+Manual preparation44339762972 passed exact source7ec896f7, public starter32c4d56,
+native Greeting and real Chrome/WebFX checks. Kit metadata uses PR382. Full release
+records include Mac0.5.80, signed update build79, both Portable0.5.80 downloads,
+retained published-kit fallback and refreshed starter identity. Original owner
+checkout files/staging remain untouched.
 
-Prior cloud verification passed root/website suites, seven native and ten WebFX
-fixtures and 388/388 native/browser evidence targets. That proof applies to its
-recorded source; this latest-main integration uses its own focused checks, independent
-review and final GitHub CI. [PR380](https://github.com/codepetca/zero/pull/380)
-is authoritative for the final checked head and merge state.
+The kit, native and small Portable public downloads match their measured bytes. Complete Portable draft downloads are checked against all five sealed files. Final acceptance on the promotion PR additionally requires all five anonymous downloads, the exact-ZIP Windows cold/warm trial and live download/feed read-back.
 
-Integrated local checks pass: 72 onboarding/Start Page, 83 builder/evidence,
-67 website-focused tests and 92 publishing tests (one filesystem skip),
-website typecheck, four-template publication gate and repository checks.
-Git prerequisite recovery and resumed publishing preserve their latest-main flows.
-
-Two independent full-diff reviews passed without actionable findings. Exact-head
-cloud Chrome checks passed 16 layouts and API/keyboard/navigation interactions.
-CI exposed an immutable-kit/source mismatch; the documented local candidate flow
-now selects unpublished kit/extension 0.5.80 for building this changed source.
-
-Tutorial PRs Greeting9/Study9/Game9/Pet8 are published and verified. The exact published 0.5.79 kit manifest is retained as the website fallback;
-installer and Portable records remain at their recorded versions;
-public kit downloads remain 0.5.79. No new kit or
-installer release, website deployment, credential or account/access change is
-authorized. Preserve approved designs, ordinary Java and student project ownership.
+Preserve immutable assets, approved designs, ordinary Java and student ownership.
+Store and standalone Windows delivery remain separate; physical school devices
+and interactive Sparkle acceptance retain documented limits. No next local version,
+credential or account-setting change is authorized by this release.
