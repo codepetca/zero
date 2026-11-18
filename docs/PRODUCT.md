@@ -487,6 +487,10 @@ Unconfirmed or unreachable
 previews are muted until the existing page-reachability check succeeds; this does
 not verify gameplay. The screenshot opens the hosted game in a new tab. Older
 playable releases without screenshots use a Play tile. Withdrawn images remain static.
+Projects display public card information while availability checks are pending.
+Each card updates as its own check finishes. Selecting Play while a check is
+pending opens a ZeroHub page in a new tab that checks that project and opens the
+verified game or offers a retry.
 Library cards retain their text layout and usage disclosure.
 The version opens the GitHub repository;
 unversioned maintained projects link through the author instead. There is no

@@ -16,7 +16,7 @@ function Workspace({active,path,view,showListings,showJams,children}:{
 }) {
   const {canCreate}=useJamDirectory();
   const sidebar = <>
-    <Link className={styles.sidebarEyebrow} href="/hub">ZeroHub</Link>
+    <Link className={styles.sidebarEyebrow} href="/hub" prefetch={false}>ZeroHub</Link>
     <p className={`${styles.sidebarTitle} ${styles.sidebarIntro}`}>{HUB_SECTION_TITLES[active]}</p>
     <HubNavigation active={active} path={path} view={view} showListings={showListings}
       showJams={showJams||active==='jams'} canCreateJam={canCreate}/>

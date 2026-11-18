@@ -35,11 +35,11 @@ export function HubNavigation({active,path='/hub',view='',showListings=false,sho
       const items=group.items.filter(([, , ,visible])=>visible!==false);
       const hasCurrentChild=expanded&&items.some(([, ,current])=>current);
       return <li key={group.id}>
-        <Link href={group.href} data-active={expanded||undefined}
+        <Link href={group.href} prefetch={group.id==='game'?false:undefined} data-active={expanded||undefined}
           aria-current={expanded&&!hasCurrentChild?'location':undefined}>{group.label}</Link>
         {expanded&&<ul className={styles.subnavigation} aria-label={`${group.label} options`}>
           {items.map(([label,href,current])=><li key={href}>
-            <Link href={href} aria-current={current?'page':undefined}>{label}</Link>
+            <Link href={href} prefetch={href==='/hub?kind=game'?false:undefined} aria-current={current?'page':undefined}>{label}</Link>
           </li>)}
         </ul>}
       </li>;

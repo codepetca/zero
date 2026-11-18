@@ -1,3 +1,19 @@
+# ZeroHub Projects responsiveness — 2026-11-18
+
+Draft based on `8192a7ab`. The first Projects page is resolved on the server.
+Cards update independently, and an unchecked Play link opens a new tab with
+availability feedback and retry. Background checks reserve capacity for
+foreground requests. Visibility and publication identity still gate Play.
+
+Astra high implemented the Play resolver. Independent correctness and
+compatibility reviews identified authority-failure handling, cached browser
+history restoration, and shared request capacity. The draft addresses those
+findings. Local Chromium verified server-rendered metadata without a duplicate
+discovery request, in-place readiness, new-tab retry, and a fresh result after
+Back. The production build and 861 website tests passed, with four tests
+skipped. Hosted provider performance and live
+PostgreSQL listings were outside local verification.
+
 # Zero 0.5.79 kit and both Portable downloads — 2026-11-17
 
 [Preparation run 44190436421](https://github.com/codepetca/zero/actions/runs/44190436421)

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
@@ -23,9 +24,10 @@ export function Navigation({ active = "", actions = null }) {
           ["Docs", "/docs", "book-open"],
           ["ZeroHub", "/hub", "graph-star"],
         ].map(([name, href, icon]) => (
-          <a
+          <Link
             key={name}
             href={href}
+            prefetch={href === "/hub" ? false : undefined}
             aria-label={name}
             data-tooltip={name}
             data-tooltip-dismissed={tooltipDismissed ? 'true' : undefined}
@@ -36,7 +38,7 @@ export function Navigation({ active = "", actions = null }) {
             onMouseLeave={() => setTooltipDismissed(false)}
           >
             <Icon name={icon} /><span>{name}</span>
-          </a>
+          </Link>
         ))}
       </nav>
       {actions}

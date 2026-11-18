@@ -64,6 +64,23 @@ test('endpoint returns unavailable after its response budget', async () => {
   assert.equal(external,0);
 });
 
+test('metadata-only game status returns repository feedback without probing Pages', async () => {
+  let pageCalls = 0;
+  const service = createHubProjectStatusService({catalogReader, fetchImpl:async url => {
+    if (url === pages) {pageCalls++; return new Response(null,{status:200});}
+    return Response.json({stargazers_count:4,has_issues:true});
+  }});
+  const result = await hubProjectsResponse(request(`kind=game&ids=${id}&metadata=1`),{service});
+  assert.equal(result.status,200);
+  const {items:[item]} = await result.json();
+  assert.equal(item.stars,4);
+  assert.equal(item.site.status,'not-checked');
+  assert.equal(pageCalls,0);
+  for (const invalid of [`kind=library&ids=${id}&metadata=1`,`kind=game&ids=${id}&metadata=0`,
+    `kind=game&ids=${id}&metadata=1&metadata=1`])
+    assert.equal((await hubProjectsResponse(request(invalid),{service})).status,400);
+});
+
 test('status classifies site results, parses counts and deduplicates concurrent requests', async () => {
   let time = 1000, repoCalls = 0, pageCalls = 0;
   const fetchImpl = async (url, options) => {

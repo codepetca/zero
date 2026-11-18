@@ -47,7 +47,7 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
     throw Object.assign(unavailable(),{status:response.status});
   }
 
-  return async function read(entry,{signal}) {
+  return async function read(entry,{signal,includeFeedback=false}) {
     const parts = repositoryParts(entry.repositoryUrl);
     const repositoryId = Number(entry.repositoryId);
     const ownerId = Number(entry.accountId);
@@ -79,9 +79,14 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
     try {
       const repo = await github(root,grant.token,signal);
       if (!repo && tokens.get(cacheId) === grant) tokens.delete(cacheId);
-      return repo?.private === false && repo.has_pages === true && repo.id === repositoryId &&
+      const verified = repo?.private === false && repo.has_pages === true && repo.id === repositoryId &&
         repo.owner?.type === 'User' && repo.owner.id === ownerId && typeof repo.html_url === 'string' &&
         repo.html_url.toLowerCase() === entry.repositoryUrl.toLowerCase();
+      if (!verified || !includeFeedback) return verified;
+      return {
+        stars:Number.isSafeInteger(repo.stargazers_count) && repo.stargazers_count >= 0 ? repo.stargazers_count : null,
+        issuesEnabled:typeof repo.has_issues === 'boolean' ? repo.has_issues : null
+      };
     } catch (error) {
       if (error.status === 401 && tokens.get(cacheId) === grant) tokens.delete(cacheId);
       throw error;

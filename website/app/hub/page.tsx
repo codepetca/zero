@@ -1,3 +1,4 @@
+import styles from './hub.module.css';
 import {Suspense} from 'react';
 import {notFound,redirect} from 'next/navigation';
 import Link from 'next/link';
@@ -5,8 +6,18 @@ import {HubDiscovery} from '@/components/HubDiscovery';
 import {HubMyLibraries} from '@/components/HubMyLibraries';
 import {listingsEnabled} from '@/lib/hub-listings-store.mjs';
 import {isJamHubVisibilityEnforced} from '@/lib/jam-hub-visibility.mjs';
+import {hubProjectPageResponse} from '@/lib/hub-project-page.mjs';
 
 export const metadata={title:'ZeroHub'};
+
+async function Projects() {
+  // The reader uses the URL only to parse selectors. Resolve providers on
+  // the server without an extra HTTP request to this deployment.
+  const response=await hubProjectPageResponse(new Request('https://zerohub.invalid/api/hub/projects/discover?q='));
+  const initialProjects=response.ok?await response.json():null;
+  return <HubDiscovery key="project-browser" enforceJamVisibility={isJamHubVisibilityEnforced()}
+    paginatedProjects initialProjects={initialProjects}/>;
+}
 
 export default async function Hub({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
   const query=await searchParams;
@@ -40,7 +51,12 @@ export default async function Hub({searchParams}:{searchParams:Promise<Record<st
       <p><Link href="/hub?kind=library">Browse libraries</Link></p>
     </>;
   }
-  return <Suspense fallback={<p role="status">Loading projects…</p>}>
-    <HubDiscovery enforceJamVisibility={isJamHubVisibilityEnforced()} paginatedProjects/>
+  const browseProjects=query.kind==='game'?!query.id&&!query.version:
+    !query.kind&&query.id===undefined&&query.version===undefined;
+  if(browseProjects)return <Suspense fallback={<p className={styles.progress} role="status">Fetching…</p>}>
+    <Projects/>
+  </Suspense>;
+  return <Suspense fallback={<p className={styles.progress} role="status">Fetching…</p>}>
+    <HubDiscovery key="legacy-discovery" enforceJamVisibility={isJamHubVisibilityEnforced()}/>
   </Suspense>;
 }
