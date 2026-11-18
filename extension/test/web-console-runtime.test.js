@@ -10,7 +10,8 @@ const root = path.resolve(__dirname, '../..');
 test('generated WebFX entrypoint registers the scheduled-exception console bridge', async () => {
   const {adaptSources} = require('../src/web-export/adapters');
   const {generateProject} = require('../src/web-export/project');
-  const adapted = adaptSources({sources: {'Main.java': 'import javafx.application.Application; public class Main extends Application { public void start(javafx.stage.Stage stage) {} }'}});
+  // Synthetic selection isolates console generation; semantic discovery is tested separately.
+  const adapted = adaptSources({sources: {'Main.java': 'import javafx.application.Application; public class Main extends Application { public void start(javafx.stage.Stage stage) {} }'},applicationClasses:[{file:'Main.java',className:'Main'}]});
   assert.ok(adapted.sources['zero/web/BrowserConsoleProvider.java']);
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'zero-console-project-'));
   try {

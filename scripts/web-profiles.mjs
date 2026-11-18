@@ -16,7 +16,8 @@ export function verifyWebProfiles() {
   assert.deepEqual(keyConstants, ['LEFT', 'RIGHT', 'UP', 'DOWN', 'W', 'A', 'S', 'D', 'SPACE', 'ENTER', 'ESCAPE', 'R'], 'Review each supported Zero key constant explicitly.');
   assert.equal(declarations + keyConstants.length, 194, 'The supported Zero API declaration inventory changed. Extend browser fixture coverage before updating the profile.');
   sources['Main.java']=fs.readFileSync(path.join(root,'framework/web-checks/Main.java'),'utf8');
-  adaptSources({sources,resourcePaths:['tiles.png']});
+  // Known fixture selection only; actual exports receive compiler attribution.
+  adaptSources({sources,resourcePaths:['tiles.png'],applicationClasses:[{file:'Main.java',className:'Main'}]});
   return names;
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))console.log('Reviewed browser profiles: '+verifyWebProfiles().join(', '));

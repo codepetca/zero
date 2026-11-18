@@ -59,6 +59,83 @@ test('cancelled build cannot be returned or rebuild after cancellation',async t=
  const f=await fixture(t),controller=new AbortController();controller.abort();await assert.rejects(ensureValidatedExport({...f.options,signal:controller.signal,engine:{exportForWeb:f.build}}),{name:'AbortError'});assert.equal(f.builds,1);
 });
 
+test('ordinary input limits reject oversized files, totals, counts, entries and depth before content reads',async t=>{
+ const f=await fixture(t),open=fs.open;let opens=0;
+ t.mock.method(fs,'open',async(...args)=>{opens++;return open(...args);});
+ await fs.writeFile(path.join(f.root,'src/main/resources/large.bin'),Buffer.alloc(129));
+ for(const [limits,message]of [[{fileBytes:128},/file limit/],[{totalBytes:32},/total limit/],[{files:2},/file limit/],[{entries:1},/entry limit/]]) {
+  opens=0;await assert.rejects(captureBuildInputs(f.root,{limits}),message);assert.equal(opens,0,'preflight rejects before opening content');
+ }
+ await fs.mkdir(path.join(f.root,'src/main/resources/a/b/c'),{recursive:true});
+ opens=0;await assert.rejects(captureBuildInputs(f.root,{limits:{depth:1}}),/depth limit/);assert.equal(opens,0);
+});
+
+test('resource metadata snapshots preserve exact digest/order without retaining asset buffers or rereading assets',async t=>{
+ const f=await fixture(t),resource=path.join(f.root,'src/main/resources/tone.wav');
+ const content=Buffer.alloc(3*65536+7);for(let i=0;i<content.length;i++)content[i]=i%251;
+ await fs.writeFile(resource,content);
+ const open=fs.open;let reads=0,readBytes=0,maxRead=0;
+ t.mock.method(fs,'open',async(filename,...args)=>{
+  const handle=await open(filename,...args);if(filename!==resource)return handle;
+  return {stat:handle.stat.bind(handle),close:handle.close.bind(handle),read:async(...args)=>{const result=await handle.read(...args);reads++;readBytes+=result.bytesRead;maxRead=Math.max(maxRead,args[2]);return result;}};
+ });
+ const full=await captureBuildInputs(f.root),metadata=await captureBuildInputs(f.root,{metadataOnlyResources:true});
+ assert.equal(full.sourceHash,require('../src/web-export/snapshot')._test.digest(full.files));
+ assert.equal(metadata.sourceHash,full.sourceHash);assert.deepEqual(metadata.files.map(file=>file.path),full.files.map(file=>file.path));
+ const asset=metadata.files.find(file=>file.path==='src/main/resources/tone.wav');
+ assert.equal(Object.hasOwn(asset,'bytes'),false);assert.equal(asset.byteLength,content.length);assert.equal(asset.sha256,sha(content));
+ assert.equal(readBytes,content.length*2,'each capture reads each asset exactly once');assert.equal(reads,8);assert.equal(maxRead,65536);
+ await fs.writeFile(resource,Buffer.from(content).fill(42));
+ assert.notEqual((await captureBuildInputs(f.root,{metadataOnlyResources:true})).sourceHash,metadata.sourceHash);
+});
+
+test('snapshot cancellation stops traversal and chunk reads and closes an active resource handle',async t=>{
+ const f=await fixture(t),controller=new AbortController();controller.abort();
+ await assert.rejects(captureBuildInputs(f.root,{signal:controller.signal}),{name:'AbortError'});
+ const resource=path.join(f.root,'src/main/resources/tone.wav');await fs.writeFile(resource,Buffer.alloc(3*65536));
+ const duringRead=new AbortController(),open=fs.open;let reads=0,closed=false;
+ t.mock.method(fs,'open',async(filename,...args)=>{const handle=await open(filename,...args);if(filename!==resource)return handle;return {stat:handle.stat.bind(handle),close:async()=>{closed=true;await handle.close();},read:async(...args)=>{const result=await handle.read(...args);reads++;duringRead.abort();return result;}};});
+ await assert.rejects(captureBuildInputs(f.root,{signal:duringRead.signal,metadataOnlyResources:true}),{name:'AbortError'});
+ assert.equal(reads,1);assert.equal(closed,true);
+});
+
+test('cancellation during inventory stops before opening any input content',async t=>{
+ const f=await fixture(t),controller=new AbortController(),lstat=fs.lstat,open=fs.open;let opens=0;
+ t.mock.method(fs,'lstat',async(filename,...args)=>{const result=await lstat(filename,...args);if(filename===path.join(f.root,'src/main/resources/tone.wav'))controller.abort();return result;});
+ t.mock.method(fs,'open',async(...args)=>{opens++;return open(...args);});
+ await assert.rejects(captureBuildInputs(f.root,{signal:controller.signal}),{name:'AbortError'});assert.equal(opens,0);
+});
+
+test('a replacement between inventory and opening is rejected before its bytes are accepted',async t=>{
+ const f=await fixture(t),resource=path.join(f.root,'src/main/resources/tone.wav'),open=fs.open;let replaced=false;
+ t.mock.method(fs,'open',async(filename,...args)=>{if(filename===resource&&!replaced){replaced=true;await fs.rename(resource,resource+'.old');await fs.writeFile(resource,'sound');}return open(filename,...args);});
+ await assert.rejects(captureBuildInputs(f.root,{metadataOnlyResources:true}),/changed while reading/);assert.equal(replaced,true);
+});
+
+for(const metadataOnlyResources of [false,true])test('snapshot rejects same-length mutations and path replacement during '+(metadataOnlyResources?'streaming':'buffered')+' reads',async t=>{
+ const f=await fixture(t),resource=path.join(f.root,'src/main/resources/tone.wav'),originalStat=await fs.stat(resource),open=fs.open;let mutation='rewrite',mutated=false;
+ t.mock.method(fs,'open',async(filename,...args)=>{const handle=await open(filename,...args);if(filename!==resource)return handle;return {stat:handle.stat.bind(handle),close:handle.close.bind(handle),read:async(...args)=>{const result=await handle.read(...args);if(!mutated){mutated=true;if(mutation==='replace'){await fs.rename(resource,resource+'.old');await fs.writeFile(resource,'sound');}else{await fs.writeFile(resource,'other');await fs.utimes(resource,originalStat.atime,originalStat.mtime);}}return result;}};});
+ await assert.rejects(captureBuildInputs(f.root,{metadataOnlyResources}),/changed while reading/);
+ mutation='replace';mutated=false;
+ await assert.rejects(captureBuildInputs(f.root,{metadataOnlyResources}),/changed while reading/);
+});
+
+test('captured local library discovery retains validation and streams its resources with the same identity',async t=>{
+ const f=await fixture(t),authoring=require('../src/sharing/authoring');
+ await fs.writeFile(path.join(f.root,'zero.json'),'{}');await fs.writeFile(path.join(f.root,'src/main/java/Health.java'),'public class Health { public int value(){ return 1; } }');
+ await fs.writeFile(path.join(f.root,'pom.xml'),await fs.readFile(path.resolve(__dirname,'../../student-template/pom.xml')));
+ await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository:{id:'12345',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'0.1.0',title:'Health bar',description:'Captured library resource test',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
+ const name='libraries/health-bar/src/main/resources/zero/contrib/r12345/health_bar/icon.txt';await fs.mkdir(path.dirname(path.join(f.root,name)),{recursive:true});await fs.writeFile(path.join(f.root,name),'exact local resource');
+ const open=fs.open,sourceReads=new Map();
+ t.mock.method(fs,'open',async(filename,...args)=>{if(filename.endsWith('.java'))sourceReads.set(filename,(sourceReads.get(filename)||0)+1);return open(filename,...args);});
+ const full=await captureBuildInputs(f.root),metadata=await captureBuildInputs(f.root,{metadataOnlyResources:true});
+ assert.equal(metadata.sourceHash,full.sourceHash);assert.equal(Object.hasOwn(metadata.files.find(file=>file.path===name),'bytes'),false);
+ const resolved=await require('../src/web-export/libraries').resolveLibrarySources(f.root,metadata);
+ assert.equal(resolved.sources.length,1);assert.equal(resolved.resources[0].path,'zero/contrib/r12345/health_bar/icon.txt');
+ assert.equal(full.files.some(file=>file.path==='zero.json'),false,'marker remains outside the original browser digest');
+ assert.ok(sourceReads.size>=2);assert.ok([...sourceReads.values()].every(count=>count===2),'discovery reuses each captured source, with one content read per snapshot');
+});
+
 test('publish binds every build input to committed Git blobs, including ignored resources',async t=>{
  const f=await fixture(t),{execFile}=require('node:child_process'),{promisify}=require('node:util'),exec=promisify(execFile);
  const git=async(root,args)=>(await exec('git',args,{cwd:root})).stdout;

@@ -31,19 +31,25 @@ async function safePath(root, filename, {missing = false} = {}) {
   }
   return path.join(root, filename);
 }
-async function read(root, filename, optional = false) {
+const cancelDiscovery=signal=>{if(signal?.aborted)throw Object.assign(new Error('Library discovery cancelled.'),{name:'AbortError'});};
+async function read(root, filename, optional = false, options = {}) {
+  cancelDiscovery(options.signal);
   const actual = await safePath(root, filename, {missing: optional});
-  return fs.readFile(actual, 'utf8').catch(e => { if (optional && e.code === 'ENOENT') return null; throw e; });
+  return (options.readFile||fs.readFile)(actual,{encoding:'utf8',signal:options.signal}).catch(e => { if (optional && e.code === 'ENOENT') return null; throw e; });
 }
-async function javaFiles(root, directory) {
+async function javaFiles(root, directory, options = {}) {
   relative(directory);
+  cancelDiscovery(options.signal);
+  if(options.sourceFiles)return options.sourceFiles.filter(name=>name.startsWith(directory+'/')&&name.endsWith('.java')).sort();
   const files = [];
   async function walk(dir) {
+    cancelDiscovery(options.signal);
     const actual = path.join(root, dir);
     const stat = await fs.lstat(actual).catch(e => { if (e.code === 'ENOENT') return null; throw e; });
     if (!stat) return;
     if (!stat.isDirectory() || stat.isSymbolicLink()) fail(`Use an ordinary source directory: ${dir}`);
     for (const entry of await fs.readdir(actual, {withFileTypes: true})) {
+      cancelDiscovery(options.signal);
       const name = `${dir}/${entry.name}`;
       if (entry.isSymbolicLink()) fail(`Symbolic links are not supported: ${name}`);
       if (entry.isDirectory()) await walk(name);
@@ -174,28 +180,28 @@ function integratePom(text, state) {
   const replaced = marked(text, DEP_START, DEP_END, binary);
   return replaced === null ? text.slice(0, deps.close) + `    ${DEP_START}\n${binary}\n    ${DEP_END}\n  ` + text.slice(deps.close) : replaced;
 }
-async function base(root) {
+async function base(root, options = {}) {
   root = path.resolve(root);
-  await read(root, 'zero.json');
-  const pom = await read(root, 'pom.xml');
-  const stateText = await read(root, STATE, true), state = stateValue(stateText);
+  await read(root, 'zero.json', false, options);
+  const pom = await read(root, 'pom.xml', false, options);
+  const stateText = await read(root, STATE, true, options), state = stateValue(stateText);
   if (state.libraries.length && integratePom(pom, state) !== pom) fail('Library modes and the generated POM disagree. Restore the reviewed POM before another change.');
   return {root,pom,state,stateText};
 }
-async function snapshot(root) {
-  const names = [...await javaFiles(root,'src/main/java')];
-  const state = stateValue(await read(root, STATE, true));
-  for (const lib of state.libraries) names.push(...await javaFiles(root,`libraries/${lib.slug}/src/main/java`));
+async function snapshot(root, options = {}) {
+  const names = [...await javaFiles(root,'src/main/java',options)];
+  const state = stateValue(await read(root, STATE, true,options));
+  for (const lib of state.libraries) names.push(...await javaFiles(root,`libraries/${lib.slug}/src/main/java`,options));
   const entries = [];
-  for (const name of names.sort()) entries.push({path:name, hash:hash(await read(root,name))});
+  for (const name of names.sort()) entries.push({path:name, hash:hash(await read(root,name,false,options))});
   return entries;
 }
 async function checkShadows(root, state, changes, options) {
-  const files = new Map((await snapshot(root)).map(x => [x.path, null]));
+  const files = new Map((await snapshot(root,options)).map(x => [x.path, null]));
   for (const change of changes) if (change.path.endsWith('.java')) { if (change.after === null) files.delete(change.path); else files.set(change.path, change.after); }
   const classes = new Map();
   for (const [filename, updated] of files) {
-    const contents = updated === null ? await read(root,filename) : updated;
+    const contents = updated === null ? await read(root,filename,false,options) : updated;
     const decl = applicationDeclaration(contents,filename,options);
     if (classes.has(decl.className)) fail(`Duplicate class ${decl.className}: ${classes.get(decl.className)} and ${filename}`);
     classes.set(decl.className,filename);
@@ -269,14 +275,14 @@ async function previewMode(root, {slug,mode,version,publishedRelease}) {
   await checkShadows(project.root,state,changes);
   return {schema:1,root:project.root,kind:'mode',changes,sourceSnapshot:await snapshot(project.root),coreDescriptorPath:descriptorPath,coreDescriptorText:descriptorText,...(core?{coreDescriptor,coreExact:mode==='local',coreSnapshot:core.snapshot}:{})};
 }
-async function discoverLibraries(root, {allowNameMismatch=false}={}) {
-  const project = await base(root), results = [];
+async function discoverLibraries(root, options={}) {
+  const project = await base(root,options), results = [];
   for (const lib of project.state.libraries) {
-    const folder = `libraries/${lib.slug}`, descriptor = contracts().validateDescriptor(JSON.parse(await read(project.root,`${folder}/zero-library.json`)));
+    const folder = `libraries/${lib.slug}`, descriptor = contracts().validateDescriptor(JSON.parse(await read(project.root,`${folder}/zero-library.json`,false,options)));
     if (descriptor.kind !== 'library' || descriptor.slug !== lib.slug) fail('Library metadata does not match its folder.');
-    results.push({...lib,folder,descriptor,identity:contracts().identity('library',lib.repositoryId,lib.slug),sources:await javaFiles(project.root,`${folder}/src/main/java`)});
+    results.push({...lib,folder,descriptor,identity:contracts().identity('library',lib.repositoryId,lib.slug),sources:await javaFiles(project.root,`${folder}/src/main/java`,options)});
   }
-  await checkShadows(project.root,project.state,[],{allowNameMismatch});
+  await checkShadows(project.root,project.state,[],options);
   return results;
 }
 async function verifyPlan(plan) {

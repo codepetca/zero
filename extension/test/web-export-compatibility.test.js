@@ -31,6 +31,45 @@ async function check(sources, overrides = {}) {
   return checkCompatibility({ sources: { ...await helpersPromise, ...await evidencePromise, ...sources }, pom: await pomPromise, workRoot, cacheRoot: path.join(temporary, 'cache'), ...overrides });
 }
 const app = body => `import zero.App;\npublic class Main extends App {\n public void setup() { ${body} }\n public static void main(String[] args) { launch(args); }\n}\n`;
+test('resolved application attribution supports qualified parents and abstract intermediate bases', {timeout:120000}, async () => {
+  const {adaptSources}=require('../src/web-export/adapters');
+  for (const sources of [
+    {'Main.java':'public class Main extends zero.GameApp {}'},
+    {'Base.java':'public abstract class Base<T> extends zero.GameApp {}','Main.java':'public class Main extends Base<String> {}'},
+    {'school/games/Hello.java':'package school.games; public class Hello extends zero.App {}'}
+  ]) {
+    const name=Object.hasOwn(sources,'Main.java')?'Main':'school.games.Hello';
+    const receipt=await check(sources,{sources:{...await helpersPromise,...sources},pom:(await pomPromise).replace('<app.mainClass>Main</app.mainClass>',`<app.mainClass>${name}</app.mainClass>`)});
+    const file=Object.keys(sources).find(file=>file.endsWith(name==='Main'?'Main.java':'Hello.java'));
+    assert.deepEqual(receipt.applicationClasses,[{file,className:name}]);
+    assert.equal(receipt.applicationMainClass,name);
+    const adapted=adaptSources({sources:{...await helpersPromise,...sources},applicationClasses:receipt.applicationClasses,applicationMainClass:receipt.applicationMainClass});
+    assert.ok(adapted.sources['zero/web/BrowserLauncher.java'].includes(`new ${name==='Main'?'zero.exported.Main':name}()`));
+    assert.deepEqual(adapted.sourceMap[name==='Main'?'zero/exported/Main.java':'school/games/Hello.java'],{originalPath:file,lineOffset:name==='Main'?1:0});
+  }
+});
+test('resolved launch candidates exclude abstract, nested and non-instantiable classes and honor existing POM selection', {timeout:120000}, async () => {
+  const {adaptSources}=require('../src/web-export/adapters');
+  const sources={
+    'Main.java':'public class Main extends zero.App { public static class Nested extends zero.App {} }',
+    'Alternate.java':'public class Alternate extends zero.App {}',
+    'Base.java':'public abstract class Base extends zero.App {}',
+    'NeedsArgs.java':'public class NeedsArgs extends zero.App { public NeedsArgs(String name) {} }',
+    'PrivateConstructor.java':'public class PrivateConstructor extends zero.App { private PrivateConstructor() {} }',
+    'NotPublic.java':'class NotPublic extends zero.App {}',
+    'Decoy.java':'class Application {} class Decoy extends Application {}'
+  };
+  const pom=(await pomPromise).replace('<app.mainClass>Main</app.mainClass>','<app.mainClass>Alternate</app.mainClass>');
+  const receipt=await check(sources,{sources:{...await helpersPromise,...sources},pom});
+  assert.deepEqual(receipt.applicationClasses,[{file:'Alternate.java',className:'Alternate'},{file:'Main.java',className:'Main'}]);
+  assert.equal(receipt.applicationMainClass,'Alternate');
+  const options={sources:{...await helpersPromise,...sources},applicationClasses:receipt.applicationClasses};
+  assert.match(adaptSources({...options,applicationMainClass:receipt.applicationMainClass}).sources['zero/web/BrowserLauncher.java'],/new zero\.exported\.Alternate\(\)/);
+  assert.throws(()=>adaptSources(options),/found 2/);
+  assert.throws(()=>adaptSources({...options,applicationMainClass:'Base'}),/pom.xml: app.mainClass/);
+  const noSelection=await check({'Main.java':sources['Main.java']},{sources:{...await helpersPromise,'Main.java':sources['Main.java']},pom:pom.replace('<app.mainClass>Alternate</app.mainClass>','')});
+  assert.equal(noSelection.applicationMainClass,null);
+});
 test('contract has an immutable explicit type/member boundary and hashed attribution inputs', async () => {
   const profile = await compatibilityProfile();
   assert.equal(profile.schemaVersion, 1); assert.equal(profile.javafxVersion, '21.0.12');
@@ -190,7 +229,7 @@ test('resolved resource URL types remain consistent across helpers, fields and w
  };
  const receipt=await check(sources),{adaptSources}=require('../src/web-export/adapters');
  for (const spans of Object.values(receipt.resourceUrlReferences)) for (const span of spans) assert.ok(span.start >= 0 && span.end > span.start);
- const result=adaptSources({sources:{...await helpersPromise,...sources},resourcePaths:['theme.css'],urlReferences:receipt.resourceUrlReferences});
+ const result=adaptSources({sources:{...await helpersPromise,...await evidencePromise,...sources},resourcePaths:['theme.css'],urlReferences:receipt.resourceUrlReferences,applicationClasses:receipt.applicationClasses,applicationMainClass:receipt.applicationMainClass});
  assert.match(result.sources['zero/exported/Main.java'],/zero.web.ResourceURL URL = new Assets\(\).theme\(\)/);
  assert.match(result.sources['zero/exported/Assets.java'],/var resource = zero.web.Resources.get\(getClass\(\),/);
  assert.match(result.sources['zero/exported/Assets.java'],/zero.web.ResourceURL pass\(zero.web.ResourceURL URL\) \{ return URL; \}/);

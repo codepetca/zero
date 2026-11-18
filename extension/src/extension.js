@@ -505,8 +505,12 @@ function activate(context, services = {}) {
   projectPicker=createProjectPicker(vscode,{authentication:auth,repositories,history:recentProjects,active:()=>!disposed,report:text=>output.appendLine(text)});
   const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,prepare:prepareGitHub,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
   context.subscriptions.push(projectFolders,githubProjects,projectPicker);
+  // Only this host-owned object requests inline reporting from registered
+  // commands; it is never sent to the webview or accepted as a command name.
+  const startPageInvocation=Object.freeze({});
   startPage=createStartPage(vscode,{
     onDidChangeOpen:refreshSidebarShortcut,
+    executeAction:command=>vscode.commands.executeCommand(command,startPageInvocation),
     getState:()=>({phase:auth.signedIn ? githubReadiness.phase : hasLocalZeroAccount ? 'connect' : 'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
     listRecent:accountId=>recentProjects.list(accountId),
     openRecent:async(item,accountId)=>{
@@ -519,7 +523,7 @@ function activate(context, services = {}) {
         await assertCurrent();
         await projectFolders.openLocal({projectPath:item.path,assertCurrent});
       } finally {connecting=false;if(!disposed)refresh();}
-    },report:(message,detail)=>report(message,detail)
+    },report:(message,detail)=>output.appendLine(detail || message)
   });
   context.subscriptions.push(startPage);
   const githubSetup = createGitHubSetup({vscode, authentication:auth, repositories,
@@ -3363,9 +3367,16 @@ function activate(context, services = {}) {
     };
   }
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async (...args) => {
+    const inline=args[0]===startPageInvocation;
+    if(inline)args.shift();
     try {await action(...args);} catch(error) {
       const message = error.zeroRunMessage || error.message;
       const signInUnavailable = /^Zero sign-in was cancelled or unavailable\./.test(message);
+      const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
+      // Special recovery flows retain their existing notification and recovery
+      // records. Ordinary Start Page errors have one owner: its inline retry.
+      const special=error.code==='git-prerequisite' || installUrl&&error.actionUrl===installUrl || signInUnavailable&&['zero.signInToGitHub','zero.githubAccount'].includes(id) || error.code==='creation-uncertain'&&typeof error.repositoryUrl==='string' || Boolean(error.recoveryPath);
+      if(inline&&!special)throw error;
       const display = recoveryMessage(signInUnavailable ? 'Zero sign-in cancelled or unavailable. Try again.' : message,error.recoveryPath);
       const mergeDetail = error.mergeGitDetail;
       const sidebarGit=['zero.syncBranch','zero.commitChanges','zero.startChange'].includes(id);
@@ -3376,7 +3387,6 @@ function activate(context, services = {}) {
         refresh();output.appendLine(error.message);
         if (mergeDetail) output.appendLine(mergeDetail);
       }
-      const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
       if(error.code==='git-prerequisite'){
         const gitUrl=process.platform==='win32'?'https://git-scm.com/install/win':'https://git-scm.com/downloads/';
         const choice=await vscode.window.showErrorMessage(`Zero: ${display}`,'Get Git');

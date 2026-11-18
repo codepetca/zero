@@ -92,7 +92,8 @@ test('fingerprint-checked browser copy strips all native reporting code and reta
   const {helperHashes} = require('../src/core-contract');
   const sources = {'Main.java': 'import zero.App; public class Main extends App {}'};
   for (const file of Object.keys(helperHashes)) sources[file] = fs.readFileSync(path.join(__dirname, '../../framework/src/main/java', file), 'utf8');
-  const adapted = adaptSources({sources}).sources;
+  // Synthetic selection isolates runtime overlays; semantic discovery is tested separately.
+  const adapted = adaptSources({sources,applicationClasses:[{file:'Main.java',className:'Main'}]}).sources;
   assert.doesNotMatch(adapted['zero/App.java'], /Thread\.|System\.(out|getenv|getProperty)|RuntimeReporter|java\.io\.|java\.net\.|java\.nio\./);
   assert.match(adapted['zero/App.java'], /BrowserRuntime.fatal/);
   assert.match(adapted['zero/App.java'], /BrowserLifecycle.own\(this, this::stop\)/);

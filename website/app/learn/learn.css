@@ -421,3 +421,10 @@ html:has(.learn-theme),
   -webkit-box-decoration-break: clone;
 }
 .learn-theme .markdown .doc-shortcut { font-family: inherit; font-weight: 650; }
+
+/* Keep the full set of 44px header actions inside very narrow viewports. */
+@media (max-width: 360px) {
+  .learn-theme .site-header { padding-inline: 8px; flex-wrap: wrap; }
+  .learn-theme .site-header .site-identity { width: 100%; flex-direction: row; align-items: center; }
+  .learn-theme .site-header .brand { --wordmark-width: 105px; }
+}

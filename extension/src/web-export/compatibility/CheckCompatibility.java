@@ -15,6 +15,7 @@ public final class CheckCompatibility {
     static final Set<String> contract = new HashSet<>();
     static final Set<String> failures = new LinkedHashSet<>();
     static final Set<String> resourceUrls = new LinkedHashSet<>();
+    static final Set<String> applicationClasses = new LinkedHashSet<>();
     static Trees trees;
     static Types types;
     static Elements elements;
@@ -116,6 +117,17 @@ public final class CheckCompatibility {
                 new TreePathScanner<Void, Void>() {
                     @Override public Void visitClass(ClassTree tree, Void ignored) {
                         Element e = trees.getElement(getCurrentPath());
+                        TypeElement application = elements.getTypeElement("javafx.application.Application");
+                        if (e instanceof TypeElement type && application != null
+                                && type.getKind() == ElementKind.CLASS && type.getNestingKind() == NestingKind.TOP_LEVEL
+                                && type.getModifiers().contains(Modifier.PUBLIC) && !type.getModifiers().contains(Modifier.ABSTRACT)
+                                && types.isSubtype(types.erasure(type.asType()), types.erasure(application.asType()))
+                                && ElementFilter.constructorsIn(type.getEnclosedElements()).stream().anyMatch(constructor ->
+                                    constructor.getParameters().isEmpty() && constructor.getModifiers().contains(Modifier.PUBLIC))) {
+                            String file = root.relativize(Path.of(unit.getSourceFile().toUri())).toString().replace(File.separatorChar, '/');
+                            applicationClasses.add("ZERO_APP\t" + Base64.getEncoder().encodeToString(file.getBytes(StandardCharsets.UTF_8))
+                                + "\t" + Base64.getEncoder().encodeToString(type.getQualifiedName().toString().getBytes(StandardCharsets.UTF_8)));
+                        }
                         if (e instanceof TypeElement type && Set.of("zero.Actor", "zero.AnimationSource", "zero.AnimationPlayback", "zero.Color", "zero.Key", "zero.ui.Element", "zero.ui.Label", "zero.ui.TextField", "zero.ui.Button", "zero.ui.Column", "zero.ui.Row", "zero.App", "zero.GameApp", "zero.ImageRegion", "zero.SpriteAnimation", "zero.Collisions", "zero.Sound", "zero.Music").contains(type.getQualifiedName().toString())) fail(unit, tree, "This Zero helper identity requires its exact reviewed source path and adapter hash; use a different name for your own helper.");
                         return super.visitClass(tree, ignored);
                     }
@@ -166,5 +178,6 @@ public final class CheckCompatibility {
         failures.forEach(System.err::println);
         if (!failures.isEmpty()) System.exit(1);
         resourceUrls.forEach(System.out::println);
+        applicationClasses.forEach(System.out::println);
     }
 }

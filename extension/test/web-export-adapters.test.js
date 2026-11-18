@@ -3,7 +3,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { adaptSources, helperHashes } = require('../src/web-export/adapters');
+const { adaptSources: adaptAttributedSources, helperHashes } = require('../src/web-export/adapters');
+// Synthetic attribution for isolated source-transform tests, not compiler evidence.
+const adaptSources = options => adaptAttributedSources({applicationClasses: [{file: 'Main.java', className: 'Main'}], ...options});
 const root = path.resolve(__dirname, '../..');
 const app = 'import zero.GameApp;\npublic class Main extends GameApp { public void setup() {} }\n';
 const helpers = () => Object.fromEntries(Object.keys(helperHashes).map(file => [file, fs.readFileSync(path.join(root, 'framework/src/main/java', file), 'utf8')]));
@@ -97,14 +99,14 @@ test('lexical rewrites preserve literals/comments and bridge only code resource 
 
 test('packaged student applications retain package and line mapping', () => {
   const source = 'package school.games;\nimport zero.App;\npublic class Hello extends App {}\n';
-  const result = adaptSources({ sources: { 'school/games/Hello.java': source } });
+  const result = adaptSources({ sources: { 'school/games/Hello.java': source }, applicationClasses: [{file: 'school/games/Hello.java', className: 'school.games.Hello'}] });
   assert.equal(result.sources['school/games/Hello.java'], source);
   assert.deepEqual(result.sourceMap['school/games/Hello.java'], { originalPath: 'school/games/Hello.java', lineOffset: 0 });
 });
 
 test('ambiguous applications, path escapes, reserved packages and unsupported media fail usefully', () => {
-  assert.throws(() => adaptSources({ sources: {} }), /expected one application/);
-  assert.throws(() => adaptSources({ sources: { 'Main.java': app, 'Other.java': 'class Other extends App {}' } }), /found 2/);
+  assert.throws(() => adaptSources({ sources: {}, applicationClasses: [] }), /expected one attributed/);
+  assert.throws(() => adaptSources({ sources: { 'Main.java': app, 'Other.java': 'class Other extends App {}' }, applicationClasses: [{file:'Main.java',className:'Main'},{file:'Other.java',className:'Other'}] }), /found 2/);
   assert.throws(() => adaptSources({ sources: { '../Main.java': app } }), /invalid Java source path/);
   assert.throws(() => adaptSources({ sources: { 'Main.java': app }, resourcePaths: ['../private.png'] }), /invalid packaged resource path/);
   assert.throws(() => adaptSources({ sources: { 'Main.java': 'package zero.web;\n' + app } }), /reserved/);
@@ -130,6 +132,24 @@ test('all eighteen native helpers retain declarations and generated audio owners
 test('abstract nested app owners are not mistaken for a second launch target', () => {
   const main = app.replace('public void setup() {}', 'public void setup() {} private abstract static class Owner extends App {}');
   assert.doesNotThrow(() => adaptSources({ sources: { 'Main.java': main } }));
+});
+
+test('application selection requires valid attribution and never falls back to source tokens', () => {
+  const sources = {'Main.java': app, 'Other.java': 'public class Other extends zero.App {}'};
+  assert.throws(() => adaptAttributedSources({sources}), /requires original-source compiler attribution/);
+  for (const applicationClasses of [null, {}, [{file:'Missing.java',className:'Main'}],
+    [{file:'Main.java',className:'Main',extra:true}], [{file:'Main.java',className:'Main);evil('}],
+    [{file:'Main.java',className:'Main/*comment*/'}], [{file:'Main.java',className:'a..Main'}],
+    [{file:'Main.java',className:'Main'},{file:'Main.java',className:'Main'}]]) {
+    assert.throws(() => adaptAttributedSources({sources,applicationClasses}), /attribution/);
+  }
+  const applicationClasses = [{file:'Main.java',className:'Main'},{file:'Other.java',className:'Other'}];
+  assert.throws(() => adaptSources({sources,applicationClasses}), /found 2.*app.mainClass.*Main, Other/);
+  for (const applicationMainClass of ['Missing', '', 2]) assert.throws(() => adaptSources({sources,applicationClasses,applicationMainClass}), /pom.xml: app.mainClass/);
+  const selected = adaptSources({sources,applicationClasses,applicationMainClass:'Other'});
+  assert.match(selected.sources['zero/web/BrowserLauncher.java'], /new zero\.exported\.Other\(\)/);
+  const dollar = adaptSources({sources:{'Main$$.java':'public class Main$$ extends zero.App {}'},applicationClasses:[{file:'Main$$.java',className:'Main$$'}]});
+  assert.ok(dollar.sources['zero/web/BrowserLauncher.java'].includes('new zero.exported.Main$$()'));
 });
 
 test('ordinary instance resource lookup supports stylesheets without enabling reflection rewrites', () => {

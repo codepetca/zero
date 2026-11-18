@@ -17,7 +17,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, integratedBrowser=false, empty=false, profile, initialSession, repository=false, trusted, uploadMode, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
+async function fixture(t, {workosReceipt=false, boundReceipt=false, studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, integratedBrowser=false, empty=false, profile, initialSession, repository=false, trusted, uploadMode, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, create=async()=>({repository:{html_url:'https://github.com/student/my-project'}}), execute=async()=>undefined, openDialog, dispatchRegistered=false}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   if (typeof profile === 'function') profile=profile(root);
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
@@ -42,7 +42,7 @@ async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=tr
   if(lesson && !practice) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons',lessonFile),'# First lesson');if(lessonFile==='00-hello-world.md')await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Quiz');}
   const commands=new Map(),calls=[],errors=[],starts=[],ends=[],processEnds=[],launches=[],subscriptions=[],panels=[];
   let webviewProvider, folderChanged, trustGranted, configurationChanged, sessionChanged, tabReads=0;
-  let receiptChanged, savedReceipt=workosReceipt && {version:1,clientId:'client_01M70QJARN1KNAAYZS71R3C2HJ',id:'user_fixture'};
+  let receiptChanged, receiptReads=0, savedReceipt=workosReceipt && {version:1,clientId:'client_01M70QJARN1KNAAYZS71R3C2HJ',id:'user_fixture',...(boundReceipt?{githubId:'17'}:{})};
   let session=initialSession, interactiveSession, authFailure=false;
   const authCalls=[],notices=[];
   const outputLines=[];
@@ -52,12 +52,13 @@ async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=tr
     workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:empty?[]:[{uri:{scheme:'file',fsPath:root}}],isTrusted:trusted,onDidGrantWorkspaceTrust:fn=>{trustGranted=fn;return disposable();},getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(uploadMode??fallback):fallback}),saveAll:async()=>true,onDidChangeConfiguration:fn=>{configurationChanged=fn;return disposable();},
       onDidChangeWorkspaceFolders:fn=>{folderChanged=fn;return disposable();},openTextDocument:async uri=>({uri}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
     window:{createWebviewPanel:(type,title,column,options)=>{const panel={type,title,column,options,messages:[],reveals:[],reveal(...args){this.reveals.push(args);},onDidDispose:disposable,dispose(){},webview:{html:'',cspSource:'https://resources.invalid',asWebviewUri:uri=>({toString:()=>`https://resources.invalid/${path.basename(uri.fsPath)}`}),postMessage:async message=>{panel.messages.push(message);panel.restored=message;return true;},onDidReceiveMessage:fn=>{panel.message=fn;return disposable();}}};panels.push(panel);if(type==='zero.startPage')queueMicrotask(()=>panel.message?.({type:'ready'}));return panel;},tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs.concat(trackPanelTabs?panels.map(panel=>({input:{viewType:panel.type}})):[])}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine:text=>outputLines.push(text),clear(){},show:()=>outputLines.push(null),dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:pick,showInputBox:async options=>options.title==='GitHub repository URL'?'https://github.com/student/app':input(options),showOpenDialog:async()=>[{fsPath:root}],showInformationMessage:async(text,...choices)=>{notices.push({text,choices});return information(text,...choices);},showErrorMessage:text=>errors.push(text),showTextDocument:async(document,options)=>{calls.push(['showTextDocument',document.uri,options]);}},
-    commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>integratedBrowser?['workbench.action.browser.open']:[],executeCommand:async(...args)=>{calls.push(args);return execute(...args);}},
+    commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>integratedBrowser?['workbench.action.browser.open']:[],executeCommand:async(...args)=>{calls.push(args);if(dispatchRegistered&&commands.has(args[0]))return commands.get(args[0])(...args.slice(1));return execute(...args);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:disposable,
       executeTask:async task=>{const active={task,terminate(){processEnds.forEach(fn=>fn({execution:active,exitCode:undefined}));ends.forEach(fn=>fn({execution:active}));}};launches.push(active);starts.forEach(fn=>fn({execution:active}));return active;}},
     ViewColumn:{One:1,Beside:2},Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ProcessExecution:class{},ShellExecution:class{},
     EventEmitter:class{event(){}fire(){}dispose(){}},env:{openExternal:async uri=>{calls.push(['openExternal',uri]);return externalResult;}},Uri:{file:fsPath=>({fsPath}),parse:value=>({value})}
   };
+  if(openDialog)vscode.window.showOpenDialog=openDialog;
   if(studentExplorer) {
     vscode.window.createTreeView=()=>({dispose(){}});
     vscode.TreeItemCollapsibleState={None:0,Collapsed:1,Expanded:2};
@@ -79,12 +80,12 @@ async function fixture(t, {workosReceipt=false, studentExplorer=false, lesson=tr
     else delete project.template.scaffoldSha256;}
   }
   await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
-  const secrets=workosReceipt ? {get:async()=>savedReceipt && JSON.stringify(savedReceipt),onDidChange:fn=>{receiptChanged=fn;return disposable();}} : undefined;
-  extension.activate({extensionPath,subscriptions,extensionMode:workosReceipt?1:2,secrets,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
+  const secrets=workosReceipt ? {get:async()=>{receiptReads++;return savedReceipt && JSON.stringify(savedReceipt);},onDidChange:fn=>{receiptChanged=fn;return disposable();}} : undefined;
+  extension.activate({extensionPath,subscriptions,extensionMode:workosReceipt?1:2,secrets,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return create(value);}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
-  return {root,commands,calls,errors,outputLines,launches,webview,panels,get startPage(){return panels.find(panel=>panel.type==='zero.startPage');},get startState(){return this.startPage?.restored?.state;},remembered,finish,vscode,notices,authCalls,subscriptions,setSession(value){session=value;sessionChanged({provider:{id:'zero-github'}});},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:event=>folderChanged(event),grantTrust(){vscode.workspace.isTrusted=true;trustGranted();},setUploadMode(value){uploadMode=value;configurationChanged({affectsConfiguration:key=>key==='zero.uploadMode'});},clearWorkOSReceipt(){savedReceipt=undefined;receiptChanged({key:require('../src/desktop.cjs').STORAGE_KEY});}};
+  return {root,commands,calls,errors,outputLines,launches,webview,panels,get startPage(){return panels.find(panel=>panel.type==='zero.startPage');},get startState(){return this.startPage?.restored?.state;},remembered,finish,vscode,notices,authCalls,subscriptions,receiptReads:()=>receiptReads,setSession(value){session=value;sessionChanged({provider:{id:'zero-github'}});},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:event=>folderChanged(event),grantTrust(){vscode.workspace.isTrusted=true;trustGranted();},setUploadMode(value){uploadMode=value;configurationChanged({affectsConfiguration:key=>key==='zero.uploadMode'});},clearWorkOSReceipt(){savedReceipt=undefined;receiptChanged({key:require('../src/desktop.cjs').STORAGE_KEY});}};
 }
 const identitySession = {id:'app', account:{id:'17', label:'student'}, accessToken:'MOCK_ONLY'};
 const identityConfigured = f => f.outputLines.includes('Set the missing Git commit identity for this project.');
@@ -190,6 +191,41 @@ test('Start Page Zero Docs opens the resume entry after GitHub connects, without
   assert.equal(f.launches.length,0);assert.ok(f.authCalls.every(call=>call.options.silent));
   assert.equal(f.calls.filter(([id])=>['createRepository','cloneRepository','vscode.openFolder'].includes(id)).length,0);
   assert.deepEqual(f.errors,[]);
+});
+test('registered Start Page action reports failure inline and retries through first-use guards',async t=>{
+  let attempts=0, f;
+  f=await fixture(t,{empty:true,workosReceipt:true,boundReceipt:true,initialSession:{id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'},dispatchRegistered:true,openDialog:async()=>{
+    if(++attempts===1)throw new Error('Picker unavailable');
+    return [{fsPath:f.root}];
+  }});
+  await settle(()=>f.startState?.phase==='ready');
+  await f.startPage.message({type:'action',action:'local',token:f.startPage.restored.token});
+  assert.equal(attempts,1);
+  assert.match(f.startState.error,/Could not open a local project/);
+  assert.equal(f.startState.canRetry,true);
+  assert.ok(f.outputLines.includes('Picker unavailable'));
+  assert.deepEqual(f.errors,[]);
+  const beforeRetry=f.receiptReads();
+  await f.startPage.message({type:'retry',token:f.startPage.restored.token});
+  assert.ok(f.receiptReads()>beforeRetry,'Retry rechecks the first-use receipt');
+  assert.equal(attempts,2);
+  assert.equal(f.startState.error,'');
+  assert.equal(f.startState.canRetry,false);
+  assert.doesNotMatch(f.startState.status,/Could not open a local project/);
+  assert.ok(f.calls.some(([id,uri])=>id==='vscode.openFolder'&&uri.fsPath===f.root));
+  assert.deepEqual(f.errors,[]);
+});
+test('Start Page preserves uncertain repository creation recovery without a retry',async t=>{
+  const profile=new Map(), repositoryUrl='https://github.com/student/my-project';
+  const f=await fixture(t,{empty:true,profile,dispatchRegistered:true,
+    initialSession:{id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'},
+    create:async()=>{throw Object.assign(Error('GitHub may have created this repository.'),{code:'creation-uncertain',repositoryUrl});}});
+  await settle(()=>f.startState?.phase==='ready');
+  await f.startPage.message({type:'action',action:'new',token:f.startPage.restored.token});
+  assert.equal(f.calls.filter(([id])=>id==='createRepository').length,1);
+  assert.equal(profile.get('zero.repositoryCreationRecovery').repositoryUrl,repositoryUrl);
+  assert.match(f.errors.at(-1),/Resume created project/);
+  assert.equal(f.startState.canRetry,false);
 });
 test('local and cloned projects persist the Start Page handoff before replacing the workspace',async t=>{
   for (const kind of ['local','clone']) {
@@ -485,6 +521,18 @@ test('clone with unavailable local Git offers the official installer without sug
  await f.commands.get('zero.cloneRepository')();
  assert.match(f.errors.at(-1),/could not find Git/);
  assert.doesNotMatch(f.errors.at(-1),/GitHub access|ENOENT/);
+ assert.ok(f.calls.some(([id,uri])=>id==='openExternal'&&uri.value===(process.platform==='win32'?'https://git-scm.com/install/win':'https://git-scm.com/downloads/')));
+});
+
+test('registered Start Page clone preserves the Get Git recovery action',async t=>{
+ const f=await fixture(t,{empty:true,workosReceipt:true,boundReceipt:true,dispatchRegistered:true,
+   initialSession:{id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'},
+   clone:async()=>{throw Object.assign(Error('Zero could not find Git on this computer.'),{code:'git-prerequisite'});}});
+ await settle(()=>f.startState?.phase==='ready');
+ f.vscode.window.showErrorMessage=async(message,action)=>{f.errors.push(message);assert.equal(action,'Get Git');return action;};
+ await f.startPage.message({type:'action',action:'clone',token:f.startPage.restored.token});
+ assert.match(f.errors.at(-1),/could not find Git/);
+ assert.equal(f.startState.canRetry,false);
  assert.ok(f.calls.some(([id,uri])=>id==='openExternal'&&uri.value===(process.platform==='win32'?'https://git-scm.com/install/win':'https://git-scm.com/downloads/')));
 });
 

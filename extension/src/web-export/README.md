@@ -20,6 +20,24 @@ with a useful error. Framework adapter profiles are fingerprint checked. The
 engine never changes Java or resources. It adds only the narrow
 `/.zero/web-export/` Git ignore rule when missing.
 
+Ordinary input capture preflights at most 4,096 files, 64 MiB per file and
+256 MiB combined, with at most 16,384 directory entries and 64 nested levels.
+Diagnostics name the exceeded limit; move or reduce large inputs before retrying.
+Saved tooling and owned library artifacts retain their stricter existing limits.
+Traversal and 64 KiB chunk reads honor cancellation. Opened-file identity, size
+and modification/change times must still match the inventory before and after
+reading; replacing or editing a file invalidates capture.
+
+The internal compatibility-only capture streams application and authored-library
+resource bytes into the same sorted path/NUL/content/NUL SHA-256 calculation as
+full export. It retains only resource byte counts and individual hashes, while
+Java, configuration and owned library artifacts keep the bytes needed for their
+existing validation. Library discovery reuses that bounded captured source rather
+than reopening Java files. Full export still retains exact source/resource bytes;
+the before/after checks reread current content instead of trusting cached stats.
+These limits are deliberately above the shared-game source/archive limits and
+do not increase those separate publication limits.
+
 Generated projects, Maven settings, dependency cache and diagnostic logs live
 outside the student project. Every build starts in a new directory. Its generated
 project and full Maven target are removed after success, failure or cancellation.

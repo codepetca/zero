@@ -208,6 +208,15 @@ test('timeout bounds fetch ignoring cancellation and discards its late response'
   await new Promise(resolve=>setImmediate(resolve)); assert.equal(canceled,true);
 });
 
+test('elapsed deadline classifies an inner failure before the timeout callback runs',async () => {
+  const read=createJamPagesBindingReader({timeoutMs:20,readDestinationBinding:async()=>{
+    // Block this turn past the deadline: the timer cannot set timedOut yet.
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,30);
+    throw Error('private inner destination failure');
+  },fetchImpl:transport()});
+  unverified(await read(saved,play),'timeout');
+});
+
 test('stalled body and stalled cancellation cannot outlive total timeout',async () => {
   let canceled=0;
   const body={getReader:()=>({read:()=>new Promise(()=>{}),cancel(){canceled++;return new Promise(()=>{});},releaseLock(){}})};

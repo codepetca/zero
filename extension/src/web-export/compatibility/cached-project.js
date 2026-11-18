@@ -11,24 +11,25 @@ const core=require('../../core-contract');
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const digest=files=>hash(Buffer.from(JSON.stringify(files.map(file=>({path:file.path,sha256:hash(file.bytes)})).sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0))));
 const cancel=signal=>{if(signal?.aborted)throw Object.assign(Error('Browser checks cancelled.'),{name:'AbortError'});};
-async function jdkIdentity(environment,projectRoot){
+async function jdkIdentity(environment,projectRoot,signal){
  if(!environment.JAVA_HOME||!path.isAbsolute(environment.JAVA_HOME))throw Error('A verified standalone JDK is unavailable.');
  const files=[];
  for(const name of ['bin/java'+(process.platform==='win32'?'.exe':''),'bin/javac'+(process.platform==='win32'?'.exe':''),'release']){
+  cancel(signal);
   const file=await fs.realpath(path.join(environment.JAVA_HOME,name));
   if(file===projectRoot||file.startsWith(projectRoot+path.sep))throw Error('Browser checks require a JDK outside the project.');
   const stat=await fs.stat(file);if(!stat.isFile()||stat.size>32*1024*1024)throw Error('Invalid standalone JDK input.');
-  files.push({path:name,bytes:await fs.readFile(file)});
+  files.push({path:name,bytes:await fs.readFile(file,{signal})});
  }
  return digest(files);
 }
 async function cachedCompatibilityIdentity({projectRoot,cacheRoot,env=process.env,signal}={}){
  cancel(signal);
- const captured=await snapshot.captureBuildInputs(projectRoot),selected=await snapshot.assertSelectedBuilder(projectRoot),profile=await compatibility.compatibilityProfile();
+ const captured=await snapshot.captureBuildInputs(projectRoot,{signal,metadataOnlyResources:true}),selected=await snapshot.assertSelectedBuilder(projectRoot,undefined,{signal}),profile=await compatibility.compatibilityProfile();
  const published=captured.libraries.some(library=>library.mode==='published');
  const cached=published?await createCacheOnlyFetcher(cacheRoot):null;
  const resolved=await resolveLibrarySources(projectRoot,captured,{signal,...(cached?{fetcher:cached.fetcher}:{})});
- const identity={sourceHash:captured.sourceHash,coreHash:digest(captured.files.filter(file=>file.path==='zero-core.json'||core.coreSourcePaths.includes(file.path))),librariesHash:hash(Buffer.from(JSON.stringify({libraries:captured.libraries,published:resolved.publishedLibraries,cacheFingerprint:cached?.fingerprint||null}))),profileHash:selected?.profileHash||await snapshot.buildProfileHash(),checkerHash:profile.checkerHash,contractHash:profile.contractHash,jdkHash:await jdkIdentity(env,projectRoot)};
+ const identity={sourceHash:captured.sourceHash,coreHash:digest(captured.files.filter(file=>file.path==='zero-core.json'||core.coreSourcePaths.includes(file.path))),librariesHash:hash(Buffer.from(JSON.stringify({libraries:captured.libraries,published:resolved.publishedLibraries,cacheFingerprint:cached?.fingerprint||null}))),profileHash:selected?.profileHash||await snapshot.buildProfileHash(undefined,{signal}),checkerHash:profile.checkerHash,contractHash:profile.contractHash,jdkHash:await jdkIdentity(env,projectRoot,signal)};
  cancel(signal);return {identity,captured,resolved};
 }
 async function checkCachedProject(options={}){

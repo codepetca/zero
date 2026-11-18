@@ -7,12 +7,13 @@ import { CodeBlock } from './CodeBlock';
 import { SidebarLayout } from './SidebarLayout';
 import Markdown from 'react-markdown';
 import { searchApiReference } from '@/lib/api-reference.mjs';
+import { apiSearchLabels } from '@/lib/api-search-labels.mjs';
 import './ApiReference.css';
 
 type Entry = {
   id: string; name: string; owner: string; signature: string; description: string;
   kind?: 'field';
-  parameters: { name: string; description: string }[];
+  parameters: { type: string; name: string; description: string }[];
   example?: string; note?: string; related: string[];
 };
 type Category = { id: string; title: string; description: string; notes: string; entries: Entry[] };
@@ -100,6 +101,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
   }, []);
   const results = useMemo(() => searchApiReference(categories, query), [categories, query]) as (Entry & { categoryId: string; categoryTitle: string })[];
   const searching = query.trim().length > 0;
+  const searchLabels = useMemo(() => apiSearchLabels(categories), [categories]);
 
   const reveal = useCallback((id: string) => {
     const target = aliases[id] ?? id;
@@ -169,7 +171,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
       </form>
       <button className="api-contents-toggle" aria-expanded={mobileOpen} aria-controls="api-contents" onClick={() => setMobileOpen(!mobileOpen)}>Contents<Icon name="chevron-down" /></button>
       <p className="api-search-status" role="status">{searching ? `${results.length} ${results.length === 1 ? 'method' : 'methods'} found` : ''}</p>
-      {searching ? <nav className="api-results" aria-label="Search results">{results.length ? results.map(entry => <div key={entry.id}>{methodLink(entry, `${entryLabel(entry)}${entry.id === 'image-scaled' ? ' — scaled' : ''}`)}<small>{entry.categoryTitle} · {entry.owner}</small></div>) : <p>No matching methods. Try “drawing”, “keyboard” or “image”.</p>}</nav> :
+      {searching ? <nav className="api-results" aria-label="Search results">{results.length ? results.map(entry => <div key={entry.id}>{methodLink(entry, searchLabels.get(entry.id))}<small>{entry.categoryTitle} · {entry.owner}</small></div>) : <p>No matching methods. Try “drawing”, “keyboard” or “image”.</p>}</nav> :
         <div className={`api-contents ${mobileOpen ? 'is-open' : ''}`} id="api-contents">
           <nav aria-label="Methods by category">{[...categories].sort((a, b) => a.title.localeCompare(b.title, 'en')).map(category => {
             const isOpen = expanded.includes(category.id);

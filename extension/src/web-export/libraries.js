@@ -16,9 +16,9 @@ function add(target,name,bytes,kind,originalPath=name) {
  if(target.some(entry=>entry.path.toLowerCase()===folded))fail(`${kind} collision: ${name}`);
  target.push({path:name,bytes,originalPath});
 }
-async function discoverBrowserLibraries(projectRoot,pomText) {
- const state=await fs.access(path.join(projectRoot,'zero-libraries.json')).then(()=>true,error=>{if(error.code==='ENOENT')return false;throw error;});
- const authored=state?(await discoverLibraries(projectRoot)).map(library=>({...library,source:'authored'})):[];
+async function discoverBrowserLibraries(projectRoot,pomText,{discovery,hasState}={}) {
+ const state=hasState===undefined?await fs.access(path.join(projectRoot,'zero-libraries.json')).then(()=>true,error=>{if(error.code==='ENOENT')return false;throw error;}):hasState;
+ const authored=state?(await discoverLibraries(projectRoot,discovery)).map(library=>({...library,source:'authored'})):[];
  const managed=pomText.includes('zero-sharing')?inspectManagedLibraryPins(pomText):[];
  const ids=new Set(authored.map(library=>library.identity.id));
  for(const library of managed) {

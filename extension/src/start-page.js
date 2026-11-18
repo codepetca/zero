@@ -17,7 +17,7 @@ const CLOUD = new Set(['new', 'clone']);
 
 // This view owns navigation only. The existing commands retain setup, account,
 // destination and project checks; recent entries come only from the host's list.
-function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], openRecent = async () => {}, report = () => {}, onDidChangeOpen = () => {}} = {}) {
+function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], openRecent = async () => {}, executeAction = command => vscode.commands.executeCommand(command), report = () => {}, onDidChangeOpen = () => {}} = {}) {
   let panel, disposed = false, ready = false, inFlight = false, revision = 0;
   let token, signature, choiceSignature, recentAccount, recent = [], recentState = 'empty', recentRequest = 0, loading;
   let failure, retry;
@@ -135,7 +135,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     try {
       // There is no await between the current-account check and invocation.
       if (choice) await openRecent({...choice.item}, accountId);
-      else await vscode.commands.executeCommand(COMMANDS[action]);
+      else await executeAction(COMMANDS[action]);
     } catch (error) {
       if (!current(target) || state().accountId !== accountId) return;
       failure = `Could not ${choice ? 'open this project' : ({tutorials:'open Zero Docs', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to Zero', connect:'connect to GitHub', setup:'check GitHub access'})[action]}. Try again.`;

@@ -7,7 +7,7 @@ const path = require('node:path');
 const zlib = require('node:zlib');
 const { exportForWeb, _test } = require('../src/web-export');
 const { zipFiles, crc32 } = require('../src/web-export/zip');
-const { generateProject } = require('../src/web-export/project');
+const { generateProject, validateResourcePaths } = require('../src/web-export/project');
 const lock = require('../src/web-export/toolchain-lock.json');
 async function temporary(t) {
   const root = await fs.realpath(
@@ -102,6 +102,34 @@ test('generated project uses pinned plugins and relative GWT directory overrides
     'utf8'
   );
   assert.match(html, /src="\.\/zero_web\.nocache\.js"/);
+});
+test('browser resource paths reject reserved and colliding names before generation', async t => {
+  const root = await temporary(t);
+  const adapted = {sources:{'demo/Main.java':'package demo; class Main {}'},mainClass:'demo.Main'};
+  const resource = name => ({path:name, bytes:Buffer.from('student')});
+  for (const names of [
+    ['INDEX.HTML'], ['Zero_Web.NoCache.Js'], ['LICENSES/text.txt'], ['DEV/WEBFX/a.png'],
+    ['Dev/other.png'], ['dev'], ['index.html/child'], ['images/a.png','Images/b.png'],
+    ['images','images/a.png'], ['images/a.png','images/A.png'],
+    ['café/a.png','cafe\u0301/b.png'], ['Σ/a.png','ς/b.png'], ['../outside']
+  ]) {
+    await assert.rejects(generateProject(path.join(root, 'build'), adapted, names.map(resource), root), /resource.*(?:reserved|collid|overlap|path)|reserved.*resource/i, names.join(', '));
+    await assert.rejects(fs.stat(path.join(root, 'build')), {code:'ENOENT'});
+  }
+  assert.doesNotThrow(() => validateResourcePaths(['images/a.png','images/b.png','café/a.png','日本語/b.png','dev/other.png'].map(resource)));
+});
+test('case-insensitive filesystem cannot let a resource overwrite generated runtime HTML', async t => {
+  const root = await temporary(t), probe = path.join(root, 'case-probe');
+  await fs.writeFile(probe, 'probe');
+  if (!await fs.stat(path.join(root, 'CASE-PROBE')).then(() => true, error => error.code === 'ENOENT' ? false : Promise.reject(error))) {
+    t.skip('Temporary filesystem is case-sensitive');return;
+  }
+  const output=path.join(root,'build'), html=path.join(output,'src/main/resources/public/index.html');
+  const adapted={sources:{'demo/Main.java':'package demo; class Main {}'},mainClass:'demo.Main'};
+  await generateProject(output,adapted,[],root);
+  const before=await fs.readFile(html);
+  await assert.rejects(generateProject(output,adapted,[{path:'INDEX.HTML',bytes:Buffer.from('student')}],root),/reserved/);
+  assert.deepEqual(await fs.readFile(html),before);
 });
 test(
   'failed Maven status stays failed even if its output says BUILD SUCCESS',
@@ -210,6 +238,38 @@ test('invalid project cannot overwrite a previous exported site or student Java'
     recursive: true,
     force: true
   });
+});
+
+test('cancelling saved-builder validation stops the initial export capture', async t => {
+  const root=await temporary(t),project=path.join(root,'student'),controller=new AbortController();
+  await fs.mkdir(path.join(project,'.zero-build'),{recursive:true});await fs.writeFile(path.join(project,'.zero-build/builder.json'),'{}');
+  const open=fs.open;t.after(()=>{fs.open=open;});let read=false;
+  fs.open=async(file,...args)=>{
+    const handle=await open(file,...args);
+    if(file===path.join(project,'.zero-build/builder.json')) {
+      const original=handle.read.bind(handle);
+      handle.read=async(...parameters)=>{const result=await original(...parameters);read=true;controller.abort();return result;};
+    }
+    return handle;
+  };
+  await assert.rejects(exportForWeb({projectRoot:project,cacheRoot:path.join(root,'cache'),signal:controller.signal}),{name:'AbortError'});
+  assert.equal(read,true);
+});
+
+test('reserved resource rejection preserves the previous exported site', async t => {
+  const root = await temporary(t), project = path.join(root, 'student');
+  await fs.mkdir(path.join(project, 'src/main/java'), {recursive:true});
+  await fs.mkdir(path.join(project, 'src/main/resources'), {recursive:true});
+  await fs.mkdir(path.join(project, '.mvn/wrapper'), {recursive:true});
+  await fs.mkdir(path.join(project, '.zero/web-export/site'), {recursive:true});
+  await fs.writeFile(path.join(project, 'src/main/java/Main.java'), 'public class Main {}');
+  await fs.writeFile(path.join(project, 'src/main/resources/INDEX.HTML'), 'student');
+  await fs.writeFile(path.join(project, 'pom.xml'), '<project/>');
+  const site=path.join(project, '.zero/web-export/site/index.html');
+  await fs.writeFile(site, 'previous success');
+  await assert.rejects(exportForWeb({projectRoot:project,cacheRoot:path.join(root,'cache')}), /reserved.*INDEX.HTML/);
+  assert.equal(await fs.readFile(site,'utf8'), 'previous success');
+  assert.equal(await fs.readFile(path.join(project,'src/main/resources/INDEX.HTML'),'utf8'), 'student');
 });
 
 test('missing compiler output cannot reuse an old successful site', () => {

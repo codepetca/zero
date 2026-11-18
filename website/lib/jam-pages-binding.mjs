@@ -136,7 +136,7 @@ export function createJamPagesBindingReader(options = {}) {
   const readDestination = options.readDestinationBinding ?? createJamDestinationBindingReader({fetchImpl,timeoutMs,maxConcurrent});
   let active = 0;
   return async function read(savedRepository, expectedPagesUrl, callOptions = {}) {
-    let controller, timer, abort, signal, admitted = false, timedOut = false;
+    let controller, timer, abort, signal, admitted = false, timedOut = false, startedAt;
     try {
       if (!object(callOptions) || Object.keys(callOptions).some(key => key !== 'signal')) throw failure('invalid');
       signal = callOptions.signal;
@@ -150,12 +150,12 @@ export function createJamPagesBindingReader(options = {}) {
       if (active >= maxConcurrent) return unverified('busy');
       active++; admitted = true;
       controller = new AbortController();
-      const start = performance.now();
+      startedAt = performance.now();
       abort = () => controller.abort();
       timer = setTimeout(() => {timedOut = true; controller.abort();},timeoutMs);
       signal?.addEventListener('abort',abort,{once:true});
       const check = () => {
-        if (performance.now() - start >= timeoutMs) {timedOut = true; controller.abort();}
+        if (performance.now() - startedAt >= timeoutMs) {timedOut = true; controller.abort();}
         if (signal?.aborted || controller.signal.aborted) throw failure('unavailable');
       };
       const observe = async () => {
@@ -186,7 +186,7 @@ export function createJamPagesBindingReader(options = {}) {
       return Object.freeze({status:'verified',pagesUrl:expectedUrl,repositoryId,ownerId:after.ownerId});
     } catch (error) {
       if (signal?.aborted) return unverified('canceled');
-      if (timedOut) return unverified('timeout');
+      if (timedOut || startedAt !== undefined && performance.now() - startedAt >= timeoutMs) return unverified('timeout');
       // Do not reflect arbitrary injected/provider errors, properties, bodies or abort reasons.
       const reason = internalReasons.get(error);
       return unverified(['not-found','rate-limited','identity-mismatch','invalid'].includes(reason) ? reason : 'unavailable');

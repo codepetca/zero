@@ -6,9 +6,18 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
-import {inventoryDeclarations,validateSignatureManifest,assertInventoryParity,validateEvidenceReceipts,createEvidenceRecorder,hash,nativeCases,browserCases,filterMavenEvidenceOutput,mavenPluginTools} from './api-evidence.mjs';
+import {inventoryDeclarations,validateSignatureManifest,assertInventoryParity,validateEvidenceReceipts,createEvidenceRecorder,hash,nativeCases,browserCases,filterMavenEvidenceOutput,mavenPluginTools,mappingSummary} from './api-evidence.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'framework/evidence/api-signatures.json'),'utf8'));
+test('checked-in source mapping summary matches the manifest without claiming executed outcomes',()=>{
+ const summary=JSON.parse(fs.readFileSync(path.join(root,'framework/evidence/coverage-gaps.json'),'utf8'));
+ assert.deepEqual(summary,mappingSummary(manifest),'Refresh the source summary with node scripts/api-evidence.mjs --write-summary');
+ assert.equal(summary.status,'mapping-only');assert.equal(Object.hasOwn(summary,'actualExecutedTargets'),false);
+ const unmapped=structuredClone(manifest);unmapped.signatures[0].evidence.native=[];
+ const changed=mappingSummary(unmapped);assert.equal(changed.unmappedDeclarations.native,1);
+ assert.equal(changed.mappedDeclarations.native,manifest.signatures.length-1);
+ assert.notEqual(changed.manifestSha256,summary.manifestSha256);
+});
 const jdk=path.join(os.homedir(),'Library/Application Support/Zero/runtime/jdk-3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998/jdk-21.0.12.1+1/Contents/Home');
 test('semantic inventory is exact across 18 owners and 194 source declarations',t=>{
  if(!fs.existsSync(path.join(jdk,'bin/java'))){t.skip('Verified cached JDK21 is unavailable; no download attempted.');return;}
@@ -198,7 +207,8 @@ test('every browser evidence family selects only Main with all shared non-entry 
   for(const source of manifest.sources)sources[source.path.slice('framework/src/main/java/'.length)]=fs.readFileSync(path.join(root,source.path),'utf8');
   for(const name of fs.readdirSync(path.join(root,'framework/evidence/java/evidence')).filter(name=>name.endsWith('.java')&&name!=='ApiNative.java'))sources['evidence/'+name]=fs.readFileSync(path.join(root,'framework/evidence/java/evidence',name),'utf8');
   if(relative==='framework/web-checks/Main.java')sources['GameApiChecks.java']=fs.readFileSync(path.join(root,'framework/web-checks/GameApiChecks.java'),'utf8');
-  const adapted=adaptSources({sources});assert.equal(adapted.mainClass,'zero.web.BrowserLauncher');assert.ok(!adapted.sources['zero/web/BrowserLauncher.java'].includes('__APPLICATION_CLASS__'));
+  // Synthetic selection for these known fixtures is not compiler evidence.
+  const adapted=adaptSources({sources,applicationClasses:[{file:'Main.java',className:'Main'}]});assert.equal(adapted.mainClass,'zero.web.BrowserLauncher');assert.ok(!adapted.sources['zero/web/BrowserLauncher.java'].includes('__APPLICATION_CLASS__'));
  }
 });
 test('target gate requires all of that target, rejects missing/stale, and permits other target gaps',async()=>{

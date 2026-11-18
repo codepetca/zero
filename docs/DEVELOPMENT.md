@@ -66,7 +66,11 @@ Java build and finite GUI checks are documented in
 project wrapper; do not require students to install Maven or Gradle globally.
 Packaging creates local artifacts in `dist/` and does not publish them.
 Guided setup is documented in [SETUP.md](SETUP.md). `npm test` includes launcher
-fake-tool tests; focused checks use `node --test setup/tests/setup.test.mjs` and
+fake-tool tests and the bounded API-evidence and saved-builder contract suites.
+Run those contracts directly with
+`node --test scripts/api-evidence.test.mjs scripts/prepare-project-builder.test.mjs`;
+collector unit tests do not establish native/browser framework execution.
+Focused setup checks use `node --test setup/tests/setup.test.mjs` and
 `node --test extension/test/setup.test.js extension/test/setup-ui.test.js`.
 Windows native setup contracts use `node --test setup/tests/windows-native.test.mjs`.
 Set `ZERO_TEST_PWSH` to an existing test PowerShell executable to run its parser and
@@ -324,7 +328,7 @@ Run `npm run check:tutorial-templates` to check recorded publication source
 evidence, or `node scripts/check-tutorial-templates.mjs game /pristine/template`
 to check a local draft's exact files/bytes/modes. All four templates were updated
 through reviewed PRs and their anonymous public archives passed exact-source
-verification on2026-11-03; publication records include the verified commit/tree
+verification most recently on2026-11-18; publication records include the verified commit/tree
 and scaffold digest. Future updates require the same separate authorization and
 verification before stamping evidence. This does not
 generate public website downloads or publish

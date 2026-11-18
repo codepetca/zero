@@ -1,10 +1,18 @@
-# Exact API evidence (execution pending)
+# Exact API evidence
 
-`api-signatures.json` records all 183 attributed source declarations, including
-protected hooks, constants and exact overloads. Every declaration now has a
-meaningful native and browser assertion mapping. `coverage-gaps.json` records
-zero unmapped declarations and **zero executed target outcomes**. All 366 actual
-outcomes remain pending until the selected real runs produce current receipts.
+`api-signatures.json` is the current attributed declaration inventory, including
+protected hooks, constants and exact overloads. `coverage-gaps.json` is a generated
+source-mapping summary bound to that manifest. It counts assertion mappings and
+required targets; it does not assess execution or claim that retained runs do not
+exist. Refresh it with `node scripts/api-evidence.mjs --write-summary` after an
+inventory/mapping update; the normal test suite checks parity.
+
+Assess actual execution separately with `--report --receipts <directory>` below.
+Reports remeasure retained receipts against current source and tools, so a dated
+completed run is not automatically current after a source change. Invoking
+`--report` without receipts produces an unfilled report, not proof that no real
+execution has occurred. Dated run receipts and limitations are recorded in
+[EVIDENCE](../../docs/EVIDENCE.md) and [VERIFICATION](../../docs/VERIFICATION.md).
 Source generation, compilation, attribution and unit tests count as no framework
 execution evidence.
 
@@ -69,8 +77,9 @@ protocol messages; these fixtures establish observed UI/frame/error behavior.
 
 The browser type contract permits Scene so an ordinary App.createScene override
 can name its advertised return type. No Scene constructor or member surface was
-added; a semantic regression still rejects Scene.getRoot. The core API remains
-183 declarations.
+added; a semantic regression still rejects Scene.getRoot. Permitting that return
+type adds no source declaration. The current inventory count comes from the
+generated mapping summary above.
 
 The default native verifier retains receipts in a unique ignored run directory.
 When all six emitting native cases are selected it requires zero native gaps.
