@@ -8,8 +8,8 @@
       "visibility": "public",
       "isTemplate": true,
       "defaultBranch": "main",
-      "commit": "7519d7c881722c12a35424119df931b81a5f22b7",
-      "tree": "13861f37d5afb4cec9c325b770dea35f6c06e801"
+      "commit": "32c4d56a706d8d677db0eecfea5b202ca1bee8ca",
+      "tree": "369608a5d9847148dc801b3b1e2499adcb00a767"
     },
     {
       "id": "hello-app",

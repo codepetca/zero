@@ -1,15 +1,15 @@
 {
-  "kitVersion": "0.5.79",
-  "sourceRevision": "c90bbfc1405b9a5658d6eae3d34f0a1af2cc9811",
-  "kitSha256": "1edefe2c174964946594d30ec1ccde3181b1d76fee82e7ef20d32a1162419ca2",
+  "kitVersion": "0.5.80",
+  "sourceRevision": "7ec896f719e2f4a4c550588d7091f34748556d32",
+  "kitSha256": "615700e2753bcd56d0bf07b2e9b193634ee2a1a62f712e74289a0b41bd4df43f",
   "publication": {
     "status": "published",
-    "tag": "windows-portable-pilot-v0.5.79"
+    "tag": "windows-portable-pilot-v0.5.80"
   },
   "asset": {
-    "filename": "Zero-0.5.79-windows-portable-pilot-staging-x64.zip",
-    "size": 5379330,
-    "sha256": "0c814d2639705a305c409f115f31202044348b68aefe10ca2021451cb2d11305",
-    "url": "https://github.com/codepetca/zero/releases/download/windows-portable-pilot-v0.5.79/Zero-0.5.79-windows-portable-pilot-staging-x64.zip"
+    "filename": "Zero-0.5.80-windows-portable-pilot-staging-x64.zip",
+    "size": 5419000,
+    "sha256": "af4600f1a1d0e45dde4c611340d1193b80126ec1674676eac93035bb74eb19da",
+    "url": "https://github.com/codepetca/zero/releases/download/windows-portable-pilot-v0.5.80/Zero-0.5.80-windows-portable-pilot-staging-x64.zip"
   }
 }
