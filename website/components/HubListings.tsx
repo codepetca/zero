@@ -1,20 +1,14 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {HubAccount, useHubGitHub} from './HubGitHub';
 import styles from '@/app/hub/hub.module.css';
 import {listingSlotsMessage} from '../lib/hub-listings-copy.mjs';
+import {requestListings, updateListing} from '../lib/hub-listings-client.mjs';
 
 type Listing = {repositoryId:string; title:string; pagesUrl:string; listed:boolean; protected:boolean};
 type Action = 'protect' | 'unprotect' | 'move' | 'unlist' | 'list';
 type Listings = {account:string; limit:number|null; projects:Listing[]; next:string|null};
-
-async function requestListings(before:string|null, signal?:AbortSignal) {
-  const query = before ? '?' + new URLSearchParams({before}) : '';
-  const response = await fetch('/api/hub/listings' + query, {cache:'no-store', redirect:'error', signal});
-  if (!response.ok) throw new Error('Your apps could not be loaded.');
-  return await response.json() as Listings;
-}
 
 function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
   const [data, setData] = useState<Listings|null>(null);
@@ -23,49 +17,61 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
   const [retry, setRetry] = useState(0);
   const [before, setBefore] = useState<string|null>(null);
   const [loading, setLoading] = useState(true);
+  const [stale, setStale] = useState(false);
+  const inFlight = useRef(false);
+  const pendingOutcome = useRef<{outcome:string;message:string}|null>(null);
+  const lifetime = useRef<AbortController|null>(null);
+  useEffect(() => {const controller = new AbortController(); lifetime.current = controller; return () => controller.abort();}, []);
 
   useEffect(() => {
     const controller = new AbortController();
     const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]);
-    void requestListings(before, signal).then(result => {
-      if (result.account !== account) throw new Error();
-      if (!controller.signal.aborted) setData(result);
+    void requestListings({before, account, signal}).then(result => {
+      if (!controller.signal.aborted) {
+        setData(result); setStale(false);
+        if (pendingOutcome.current) {
+          setMessage(pendingOutcome.current.outcome === 'uncertain'
+            ? 'Your apps were refreshed. A delayed change may still appear; check the list before acting.'
+            : pendingOutcome.current.message);
+          pendingOutcome.current = null;
+        }
+      }
     }).catch(() => {
-      if (!controller.signal.aborted) setMessage('Your apps could not be loaded.');
+      if (!controller.signal.aborted) setMessage(stale && pendingOutcome.current ? `${pendingOutcome.current.message} Your apps could not be refreshed. Try again.` : 'Your apps could not be loaded.');
     }).finally(()=>{if (!controller.signal.aborted) setLoading(false);});
     return () => controller.abort();
   }, [account, before, retry]);
 
   async function manage(project:Listing, action:Action) {
+    if (inFlight.current || stale || loading) return;
+    inFlight.current = true;
     setBusy(true);
     setMessage('');
+    const controller = lifetime.current;
     try {
-      const response = await fetch('/api/hub/listings', {
-        method:'POST', redirect:'error', cache:'no-store', signal:AbortSignal.timeout(15_000),
-        headers:{'Content-Type':'application/json', 'X-Hub-CSRF':csrfToken},
-        body:JSON.stringify({action, repositoryId:project.repositoryId})
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'The app listing could not be updated.');
-      const current = await requestListings(before, AbortSignal.timeout(10_000));
-      if (current.account !== account) throw new Error('Sign in again to see your apps.');
-      setData(current);
-      setMessage(result.status === 'unlisted'
-        ? result.reason === 'protected' ? 'Clear protection on your current app to add this app to ZeroHub.' : 'Free up an app slot to add this app to ZeroHub.'
-        : result.replaced ? `${project.title} replaced ${result.replaced} on ZeroHub.`
-        : action === 'move' ? `${project.title} moved to the back.`
-        : action === 'protect' ? `${project.title} is protected.`
-        : action === 'unprotect' ? `Protection cleared for ${project.title}.`
-        : action === 'unlist' ? `${project.title} removed from ZeroHub.` : `${project.title} added to ZeroHub.`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'The app listing could not be updated.');
+      const result = await updateListing({csrfToken, project, action,
+        signal:AbortSignal.any([controller!.signal, AbortSignal.timeout(15_000)])});
+      if (controller?.signal.aborted) return;
+      setMessage(result.message);
+      if (result.outcome === 'rejected') return;
+      pendingOutcome.current = result;
+      setStale(true);
+      if (result.outcome === 'uncertain') return;
+      try {
+        const current = await requestListings({before, account,
+          signal:AbortSignal.any([controller!.signal, AbortSignal.timeout(10_000)])});
+        if (!controller?.signal.aborted) {setData(current); setStale(false); pendingOutcome.current = null;}
+      } catch {
+        if (!controller?.signal.aborted) setMessage(`${result.message} Your apps could not be refreshed.`);
+      }
     } finally {
-      setBusy(false);
+      inFlight.current = false;
+      if (!controller?.signal.aborted) setBusy(false);
     }
   }
 
   function action(project:Listing, name:Action, label:string, disabled=false) {
-    return <button className={styles.retry} type="button" disabled={loading || busy || disabled}
+    return <button className={styles.retry} type="button" disabled={loading || busy || stale || disabled}
       aria-label={`${label} ${project.title}`} onClick={()=>void manage(project, name)}>{label}</button>;
   }
   function changePage(cursor:string|null) {
@@ -82,6 +88,8 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
   return <>
     <p>{listingSlotsMessage(active.length, data.limit)}</p>
     <p role="status" aria-live="polite">{message}</p>
+    {stale && <button type="button" className={styles.retry} disabled={loading || busy}
+      onClick={()=>{setLoading(true);setRetry(value=>value+1);}}>Refresh your apps</button>}
     {active.length > 0 && <ol aria-label="Replacement queue">{active.map((project, index)=><li key={project.repositoryId}>
       <a href={project.pagesUrl}>{project.title}</a> {project.protected && <span>· Protected</span>}
       <div className="resource-links">
@@ -95,8 +103,8 @@ function MyListings({account, csrfToken}:{account:string; csrfToken:string}) {
       <a href={project.pagesUrl}>{project.title}</a> {action(project,'list','Add to ZeroHub',data.limit === null)}
     </li>)}</ul></>}
     {(before || data.next) && <div className="resource-links">
-      {before && <button className={styles.retry} disabled={loading || busy} type="button" onClick={()=>changePage(null)}>First page of apps</button>}
-      {data.next && <button className={styles.retry} disabled={loading || busy} type="button" onClick={()=>changePage(data.next)}>More apps</button>}
+      {before && <button className={styles.retry} disabled={loading || busy || stale} type="button" onClick={()=>changePage(null)}>First page of apps</button>}
+      {data.next && <button className={styles.retry} disabled={loading || busy || stale} type="button" onClick={()=>changePage(data.next)}>More apps</button>}
     </div>}
   </>;
 }

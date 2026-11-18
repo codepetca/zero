@@ -18,6 +18,10 @@ function apply(source, edits) {
   return source;
 }
 function fail(file, detail) { throw new Error(`Web export: ${file}: ${detail}`); }
+function validApplicationClassName(name) {
+  return typeof name === 'string' && name.length <= 4096 && name.split('.').every(part =>
+    /^[$_\p{L}\p{Nl}\p{Sc}\p{Pc}][$_\p{L}\p{Nl}\p{Sc}\p{Pc}\p{Mn}\p{Mc}\p{Nd}\p{Cf}]*$/u.test(part));
+}
 const {helperHashes} = require('../../core-contract');
 function overlay(file, source) {
   const expected = helperHashes[file];
@@ -179,10 +183,9 @@ function readRuntime(directory, result = {}) {
   }
   return result;
 }
-function adaptSources({ sources, resourcePaths = [], urlReferences, originalPaths = {} }) {
+function adaptSources({ sources, resourcePaths = [], urlReferences, originalPaths = {}, applicationClasses, applicationMainClass }) {
   if (!sources || typeof sources !== 'object' || Array.isArray(sources)) throw new TypeError('Web export needs a source path/string map.');
   const output = {}, sourceMap = {}, changes = [], warnings = [];
-  const apps = [];
   for (const [file, original] of Object.entries(sources).sort()) {
     if (typeof original !== 'string' || !file.endsWith('.java') || file.includes('\\') || file.startsWith('/') || file.split('/').includes('..')) fail(file, 'invalid Java source path or content.');
     if (file.startsWith('zero/web/') || file.startsWith('zero/exported/')) fail(file, 'package is reserved for the browser export copy.');
@@ -194,10 +197,25 @@ function adaptSources({ sources, resourcePaths = [], urlReferences, originalPath
     if (output[destination]) fail(file, `duplicate exported source ${destination}`);
     output[destination] = adapted.source;
     sourceMap[destination] = { originalPath: originalPaths[file] || file, lineOffset: adapted.lineOffset };
-    const ts = tokens(source);
-    for (let i = 0; i < ts.length - 3; i++) if (ts[i].text === 'class' && !ts.slice(Math.max(0, i - 3), i).some(token => token.text === 'abstract') && ts[i + 2].text === 'extends' && ['GameApp', 'App', 'Application'].includes(ts[i + 3].text)) apps.push(`${adapted.pkg}.${ts[i + 1].text}`);
   }
-  if (apps.length !== 1) fail('Main.java', `expected one application extending GameApp, App or Application; found ${apps.length}.`);
+  if (!Array.isArray(applicationClasses)) fail('Main.java', 'application selection requires original-source compiler attribution. Run the browser compatibility check first.');
+  const apps = new Map();
+  for (const candidate of applicationClasses) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)
+        || Object.keys(candidate).sort().join(',') !== 'className,file'
+        || typeof candidate.file !== 'string' || !Object.hasOwn(sources, candidate.file) || helperHashes[candidate.file]
+        || !validApplicationClassName(candidate.className)
+        || apps.has(candidate.className)) fail('Main.java', 'invalid original-source application attribution.');
+    apps.set(candidate.className, candidate.className.includes('.') ? candidate.className : 'zero.exported.' + candidate.className);
+  }
+  let selected;
+  if (applicationMainClass !== null && applicationMainClass !== undefined) {
+    if (typeof applicationMainClass !== 'string' || !apps.has(applicationMainClass)) fail('pom.xml', 'app.mainClass must name an attributed public, concrete top-level application with a public no-argument constructor. Available applications: ' + ([...apps.keys()].join(', ') || 'none') + '.');
+    selected = apps.get(applicationMainClass);
+  } else {
+    if (apps.size !== 1) fail('Main.java', `expected one attributed public, concrete application with a public no-argument constructor; found ${apps.size}. Set app.mainClass in pom.xml to select one. Candidates: ${[...apps.keys()].join(', ') || 'none'}.`);
+    selected = apps.values().next().value;
+  }
   const resources = [...new Set(resourcePaths)].sort();
   for (const resource of resources) if (typeof resource !== 'string' || resource.startsWith('/') || resource.includes('\\') || resource.split('/').some(x => !x || x === '..' || x === '.')) fail(String(resource), 'invalid packaged resource path.');
   const images = resources.filter(file => /\.(png|jpe?g|gif|webp|bmp|svg|avif|ico)$/i.test(file));
@@ -207,9 +225,9 @@ function adaptSources({ sources, resourcePaths = [], urlReferences, originalPath
     output[file] = source;
   }
   output['zero/web/PackagedResources.java'] = `package zero.web;\nfinal class PackagedResources {\n    static final String[] ALL = {${resources.map(x => JSON.stringify('/' + x)).join(', ')}};\n    static final String[] IMAGES = {${images.map(x => JSON.stringify('/' + x)).join(', ')}};\n}\n`;
-  output['zero/web/BrowserLauncher.java'] = output['zero/web/BrowserLauncher.java'].replaceAll('__APPLICATION_CLASS__', apps[0]);
+  output['zero/web/BrowserLauncher.java'] = output['zero/web/BrowserLauncher.java'].replaceAll('__APPLICATION_CLASS__', () => selected);
   warnings.push('Browser effects overlap with up to 32 active/preparing voices per Sound. Blocked autoplay requests coalesce to one pending effect.');
   warnings.push('Browser audio requires a user gesture. Blocked playback is retried on the next click or key press; media failures are shown in the browser and console.');
   return { sources: output, mainClass: 'zero.web.BrowserLauncher', sourceMap, changes, warnings };
 }
-module.exports = { adaptSources, helperHashes };
+module.exports = { adaptSources, helperHashes, validApplicationClassName };

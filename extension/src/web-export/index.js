@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const https = require('node:https');
 const { spawn } = require('node:child_process');
 const { acquireBuildLock } = require('./build-lock');
-const { generateProject } = require('./project');
+const { generateProject, validateResourcePaths } = require('./project');
 const { zipFiles } = require('./zip');
 const { assertSelectedBuilder, captureBuildInputs, buildProfileHash, boundSourceHash } = require('./snapshot');
 const { resolveLibrarySources, assertApplicationNamespaces } = require('./libraries');
@@ -384,7 +384,7 @@ async function exportForWeb(options = {}) {
     throw new Error('Choose a Zero project before exporting for web.');
   const projectRoot = await fs.realpath(path.resolve(options.projectRoot));
   await noSymlinks(projectRoot);
-  await assertSelectedBuilder(projectRoot);
+  await assertSelectedBuilder(projectRoot,undefined,{signal});
   if (!(await exists(projectRoot))?.isDirectory())
     throw new Error('The Zero project folder does not exist.');
   const cacheRoot = await canonicalPath(
@@ -415,8 +415,8 @@ async function exportForWeb(options = {}) {
   try {
     await noSymlinks(logPath);
     onProgress('Checking Java sources and resources');
-    const profileHash = await buildProfileHash();
-    const captured = await captureBuildInputs(projectRoot);
+    const profileHash = await buildProfileHash(undefined,{signal});
+    const captured = await captureBuildInputs(projectRoot,{signal});
     const libraries=captured.libraries;
     const javaFiles = captured.files.filter(file => file.path.startsWith('src/main/java/')).map(file => ({ ...file, originalPath:file.path,path: file.path.slice('src/main/java/'.length) }));
     const resources = captured.files.filter(file => file.path.startsWith('src/main/resources/')).map(file => ({ ...file, originalPath:file.path,path: file.path.slice('src/main/resources/'.length) }));
@@ -426,16 +426,6 @@ async function exportForWeb(options = {}) {
       if (!file.path.endsWith('.java'))
         throw new Error(
           `Keep application assets in src/main/resources: ${file.path}`
-        );
-    for (const file of resources)
-      if (
-        file.path === 'index.html' ||
-        file.path === 'zero_web.nocache.js' ||
-        file.path.startsWith('licenses/') ||
-        file.path.startsWith('dev/webfx/')
-      )
-        throw new Error(
-          'Resource path is reserved by the browser runtime: ' + file.path
         );
     for (const file of resources)
       if (
@@ -457,9 +447,9 @@ async function exportForWeb(options = {}) {
       javaFiles.push(file);
     }
     for(const file of libraryInputs.resources) {
-      if(resources.some(existing=>existing.path.toLowerCase()===file.path.toLowerCase()))throw new Error('Browser resource collision: '+file.path);
       resources.push(file);
     }
+    validateResourcePaths(resources);
     const sourceOrigins=Object.fromEntries(javaFiles.map(file=>[file.path,file.originalPath]));
     const wrapper = path.join(
       projectRoot,
@@ -496,6 +486,8 @@ async function exportForWeb(options = {}) {
       ),
       resourcePaths: resources.map((file) => file.path),
       urlReferences: compatibility.resourceUrlReferences,
+      applicationClasses: compatibility.applicationClasses,
+      applicationMainClass: compatibility.applicationMainClass,
       originalPaths:sourceOrigins
     });
     if (!/^(?:[a-zA-Z_$][\w$]*\.)+[a-zA-Z_$][\w$]*$/.test(adapted.mainClass))
@@ -562,9 +554,9 @@ async function exportForWeb(options = {}) {
           'The browser build did not preserve resource: ' + resource.path
         );
     }
-    if ((await captureBuildInputs(projectRoot)).sourceHash !== captured.sourceHash)
+    if ((await captureBuildInputs(projectRoot,{signal,metadataOnlyResources:true})).sourceHash !== captured.sourceHash)
       throw new Error('Java sources, resources or build settings changed during export. Run App again to build the saved version.');
-    if ((await buildProfileHash()) !== profileHash)
+    if ((await buildProfileHash(undefined,{signal})) !== profileHash)
       throw new Error('The browser compiler or compatibility contract changed during export. Run App again.');
     const notices = await readTree(path.join(__dirname, 'notices'));
     for (const file of notices)

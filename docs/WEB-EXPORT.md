@@ -43,6 +43,27 @@ compares all build inputs against the reviewed uploaded commit, including files
 Git status might hide as ignored. Standard CRLF/LF equivalence is allowed only
 for Java/known textual Maven inputs; resources must match the commit exactly.
 
+Current local browser tooling selects public concrete application classes from
+javac's resolved inheritance information. Qualified Zero superclasses and
+abstract intermediate base classes are supported. The existing POM
+`app.mainClass` selects the application when several are present; without it,
+exactly one eligible application is required. Selection does not execute student
+code or replace the resolved-API compatibility gate.
+
+The current local builder validates resource paths before writing browser output,
+including case and Unicode-normalization collisions with runtime files. Ordinary
+input capture is bounded to64MiB per file,256MiB total,4,096 files,16,384 directory
+entries and64 folder levels. Diagnostics ask students to reduce or move excessive
+inputs. Saved builder closures and owned libraries retain their stricter existing
+limits. Cancellation stops traversal and chunked reads. Compatibility and final
+identity checks stream resource bytes into the same exact-content digest without
+retaining duplicate asset buffers; compilation captures retain the bytes they
+need. These source changes do not update existing student projects' saved tooling.
+
+Publishing saves dirty build-input documents for the selected project. Unrelated
+workspace files, project notes and untitled editors are left alone. A new dirty
+build input still prevents opening a stale published app after final verification.
+
 Unreleased preservation implementation: newly assembled projects track their
 complete browser builder in `.zero-build`, alongside `zero-core.json`, Java
 source and Maven setup. A newer editor reads bounded metadata on open and leaves

@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const https = require('node:https');
 const { spawn } = require('node:child_process');
 const { parseXml, single, value, allNodes } = require('../../project-pom');
-const { helperHashes } = require('../adapters');
+const { helperHashes, validApplicationClassName } = require('../adapters');
 const contract = require('./contract.json');
 const mavenArtifacts = require('./maven-artifacts.json');
 const digest = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex');
@@ -152,7 +152,16 @@ async function checkCompatibility({ sources, pom, libraries=[], sourceOrigins={}
   });
   abort(signal);
   const resourceUrlReferences=Object.create(null);
+  const applicationClasses=[];
+  const applicationNames=new Set();
   for(const line of checkerOutput.split(/\r?\n/)) {
+    if(line.startsWith('ZERO_APP\t')) {
+      const match=/^ZERO_APP\t([A-Za-z0-9+/]+=*)\t([A-Za-z0-9+/]+=*)$/.exec(line);
+      if(!match)throw new Error('Invalid browser application-attribution record.');
+      const file=Buffer.from(match[1],'base64').toString('utf8'),className=Buffer.from(match[2],'base64').toString('utf8');
+      if(!Object.hasOwn(sources,file)||trusted.includes(file)||!validApplicationClassName(className)||applicationNames.has(className))throw new Error('Invalid browser application-attribution record.');
+      applicationNames.add(className);applicationClasses.push({file,className});continue;
+    }
     if(!line.startsWith('ZERO_URL\t'))continue;
     const match=/^ZERO_URL\t([A-Za-z0-9+/]+=*)\t(\d+)\t(\d+)$/.exec(line);
     if(!match)throw new Error('Invalid browser type-attribution record.');
@@ -160,6 +169,9 @@ async function checkCompatibility({ sources, pom, libraries=[], sourceOrigins={}
     if(!Object.hasOwn(sources,file)||!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start<0||end<=start||end>sources[file].length||trusted.includes(file))throw new Error('Invalid browser type-attribution range.');
     (resourceUrlReferences[file] ||= []).push({start,end});
   }
-  return { ...profile, status: 'passed', sourceCount: Object.keys(sources).length, trustedHelpers: trusted.sort().map(file => ({ file, sha256: helperHashes[file] })), resourceUrlReferences, ...dependencyProfile };
+  const properties=single(parseXml(pom),'properties',true);
+  const configured=properties&&single(properties,'app.mainClass',true);
+  const applicationMainClass=configured?value(configured):null;
+  return { ...profile, status: 'passed', sourceCount: Object.keys(sources).length, trustedHelpers: trusted.sort().map(file => ({ file, sha256: helperHashes[file] })), resourceUrlReferences, applicationClasses, applicationMainClass, ...dependencyProfile };
 }
 module.exports = { checkCompatibility, compatibilityProfile, validateDependencies, prepareArtifacts, readCachedArtifacts, verifyArtifactInventory, validateWrapperInputs };

@@ -79,7 +79,43 @@ function browserRuntimeBootstrap() {
   emit('startup', 'startup', 'STARTING');
 }
 const runtimeBootstrap = '(' + browserRuntimeBootstrap.toString() + ')();';
+// Validate the complete output namespace before writing anything. Normalize for
+// filesystems that treat Unicode forms and letter case as the same name.
+function validateResourcePaths(resources) {
+  // Upper/lower folding also catches non-ASCII variants such as final sigma.
+  const fold = value => value.normalize('NFC').toUpperCase().toLowerCase().normalize('NFC');
+  const prefixes = new Map([['dev', 'dev'], ['dev/webfx', 'dev/webfx']]), files = new Map();
+  const reserve = ['index.html', 'zero_web.nocache.js', 'licenses', 'dev/webfx'];
+  for (const resource of resources) {
+    const name = resource?.path;
+    if (typeof name !== 'string' || !name || name.includes('\\') || name.includes('\0') ||
+        name.split('/').some(part => !part || part === '.' || part === '..') || path.posix.isAbsolute(name) || path.win32.isAbsolute(name) || name.includes(':'))
+      throw new Error('Invalid browser resource path: ' + String(name));
+    const key = fold(name);
+    if (reserve.some(item => key === item || key.startsWith(item + '/') || item.startsWith(key + '/')))
+      throw new Error('Resource path is reserved by the browser runtime: ' + name);
+    const parts = name.split('/');
+    for (let length = 1; length <= parts.length; length++) {
+      const prefix = parts.slice(0, length).join('/'), folded = fold(prefix);
+      const previous = prefixes.get(folded);
+      if (previous !== undefined && previous !== prefix)
+        throw new Error(`Browser resource paths collide: ${previous} and ${prefix}`);
+      prefixes.set(folded, prefix);
+    }
+    if (files.has(key)) throw new Error(`Browser resource paths collide: ${files.get(key)} and ${name}`);
+    files.set(key, name);
+  }
+  for (const [key, name] of files) {
+    const parts = key.split('/');
+    while (parts.length > 1) {
+      parts.pop();
+      const parent = files.get(parts.join('/'));
+      if (parent !== undefined) throw new Error(`Browser resource file and directory overlap: ${parent} and ${name}`);
+    }
+  }
+}
 async function generateProject(root, adapted, resources, artifactRoot) {
+  validateResourcePaths(resources);
   const put = async (relative, content) => {
     const file = path.join(root, relative);
     await fs.mkdir(path.dirname(file), { recursive: true });
@@ -179,4 +215,4 @@ async function generateProject(root, adapted, resources, artifactRoot) {
 <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-install-plugin</artifactId><version>3.1.0</version></plugin><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-deploy-plugin</artifactId><version>3.1.1</version></plugin><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-clean-plugin</artifactId><version>3.2.0</version></plugin></plugins></build></project>`
   );
 }
-module.exports = { generateProject, runtimeBootstrap };
+module.exports = { generateProject, runtimeBootstrap, validateResourcePaths };

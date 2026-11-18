@@ -421,3 +421,24 @@ test("primary pointer overloads have Zero-only examples and distinct anchors", (
     assert.equal(entry(method).parameters[0].type, "MouseButton");
   }
 });
+
+test('search labels distinguish real overload parameter types and retain their anchors', async () => {
+  const {apiSearchLabels} = await import('../lib/api-search-labels.mjs');
+  const labels = apiSearchLabels(categories);
+  const actorImages = searchApiReference(categories, 'setImage').filter(item => item.owner === 'Actor');
+  assert.deepEqual(actorImages.map(item => [item.id, labels.get(item.id)]), [
+    ['actor-setImage', 'setImage(Image)'],
+    ['actor-setImage-region', 'setImage(ImageRegion)'],
+    ['actor-setImage-animation', 'setImage(SpriteAnimation)'],
+    ['actor-setImage-source', 'setImage(AnimationSource)'],
+  ]);
+  assert.equal(new Set(actorImages.map(item => labels.get(item.id))).size, 4);
+  const images = searchApiReference(categories, 'image()').filter(item => item.owner === 'GameApp' && item.name === 'image');
+  assert.equal(new Set(images.map(item => labels.get(item.id))).size, images.length);
+  assert.equal(labels.get('image-scaled'), 'image(Image, double, double, double, double)');
+  assert.equal(labels.get('circle'), 'circle()');
+  for (const item of [...actorImages, ...images]) {
+    assert.equal(entry(item.id), categories.flatMap(category => category.entries).find(candidate => candidate.id === item.id));
+    assert.ok(item.categoryTitle && item.owner);
+  }
+});

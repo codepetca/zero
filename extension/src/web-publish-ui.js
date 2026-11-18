@@ -1,7 +1,42 @@
 'use strict';
 const path = require('node:path');
+const fs = require('node:fs');
 const {createGitHubPagesPublisher} = require('./web-publish-github');
 const {safePagesUrl}=require('./web-pages-verification');
+
+// Keep the final browser-dispatch guard synchronous. Resolve existing parents
+// too, so a new unsaved file and a workspace alias have the same project scope.
+function canonicalDocumentPath(filename) {
+  let current=path.resolve(filename),suffix=[];
+  while(true) {
+    try {return path.join(fs.realpathSync.native(current),...suffix);}
+    catch(error) {
+      if(error.code!=='ENOENT')throw error;
+      const parent=path.dirname(current);if(parent===current)throw error;
+      suffix.unshift(path.basename(current));current=parent;
+    }
+  }
+}
+function dirtyBuildDocuments(vscode,root) {
+  const projectPath=canonicalDocumentPath(root);
+  const input=filename=>{
+    const relative=path.relative(projectPath,filename).split(path.sep).join('/');
+    return ['pom.xml','mvnw','mvnw.cmd','zero-core.json','zero-libraries.json'].includes(relative) ||
+      /^(?:src\/main\/(?:java|resources)|\.mvn|\.zero-build|libraries|zero-dependencies)\/.+/.test(relative);
+  };
+  return (vscode.workspace.textDocuments||[]).filter(document=>{
+    if(!document.isDirty||document.uri?.scheme!=='file'||!document.uri.fsPath)return false;
+    const filename=document.uri.fsPath;
+    try {return input(canonicalDocumentPath(filename))||input(path.join(canonicalDocumentPath(path.dirname(filename)),path.basename(filename)));}
+    catch(error) {
+      // An unrelated inaccessible editor must not prevent publishing. A path
+      // within this project's inputs still fails closed instead of being missed.
+      const relative=path.relative(path.resolve(root),path.resolve(filename));
+      if(relative!==''&&relative!=='..'&&!relative.startsWith('..'+path.sep)&&!path.isAbsolute(relative))throw error;
+      return false;
+    }
+  });
+}
 
 function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,listPublication,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,recheckDispatch=false,lastLive;
@@ -31,6 +66,14 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
   async function stillPublishable(expected) {
     await stillCurrent(expected);
     assertPublishCurrentNow(expected);
+  }
+  async function saveBuildDocuments(expected) {
+    for(const document of dirtyBuildDocuments(vscode,expected)) {
+      await stillPublishable(expected);
+      if(!await document.save())throw Error('Save your project before publishing its browser app.');
+      await stillPublishable(expected);
+    }
+    if(dirtyBuildDocuments(vscode,expected).length)throw Error('Save your project before publishing its browser app.');
   }
   async function uploadForPublish(expected,review,expectedPlan) {
     await stillPublishable(expected);
@@ -133,7 +176,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
       onCurrent:verified=>{
         stage('opening');progress('Opening in browser…');
         assertPublishCurrentNow(expected);
-        if(vscode.workspace.textDocuments?.some(document=>document.isDirty))throw Error('Your app changed while publishing. Choose Publish & open app again.');
+        if(dirtyBuildDocuments(vscode,expected).length)throw Error('Your app changed while publishing. Choose Publish & open app again.');
         opening=vscode.env.openExternal(vscode.Uri.parse(verified.url));
       }
     });
@@ -235,10 +278,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
     }
     if(!result) {
       if(recovering)return;
-      if(vscode.workspace.textDocuments?.some(document=>document.isDirty)) {
-        if(!await vscode.workspace.saveAll(false))throw Error('Save your project before publishing its browser app.');
-        await stillCurrent(expected);
-      }
+      await saveBuildDocuments(expected);
       await stillPublishable(expected);
       const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
       if(reuse && previous && publisher.verifyUnchanged) {

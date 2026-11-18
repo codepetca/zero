@@ -17,5 +17,5 @@ export function copyProjectBuilderFixture(destination, sourceRoot) {
   }
   for (const name of ['extension/src/web-export','framework/project-builder',
     ...snapshot.browserExternalFiles.map(name => 'extension/src/' + name),
-    'release/sharing.json','student-template/pom.xml']) copy(name);
+    'release/sharing.json','student-template/pom.xml','LICENSE']) copy(name);
 }

@@ -13418,3 +13418,212 @@ One independent review of `95811bf7b..c37a8632c` used GPT-6.1 Terra at medium
 reasoning as requested and found no actionable issues. It covered the opening
 and comparison paths, stale selections, deleted files and menu conditions.
 The change was verified locally.
+
+
+## Product and architecture audit — 2026-11-17
+
+The [working-copy audit](FULL-AUDIT-2026-11-17.md) records eleven prioritized
+findings, screenshot coverage, source references and a staged remediation plan
+against branch `codex/jam-page-themes`, base `6bdcfa7cc8e4ba7282d11aa2b3c9bf09844adc40`
+plus its existing local edits. Three read-only workers inspected framework,
+editor and website/service boundaries. Requested models were Sol/high and two
+Terra/high workers; effective model and token telemetry are unknown.
+
+Coordinator verification reproduced case-insensitive browser resource overwrite
+and qualified/inherited entry-point rejection. `npm run check` passed. The focused
+builder/evidence/API suite passed55 and failed1 because the minimal fixture omits
+LICENSE; the report retains that failure. Worker extension tests passed57 with3
+skips; website tests passed27 with1 actual-Postgres skip. Eleven current screenshots
+were inspected and retained under ignored `.verification/full-audit-2026-11-17/`.
+Editor captures are renderer fixtures; true320px/zoom, native editor, physical
+Windows, authenticated flows and live service acceptance remain unverified.
+Only the audit report and this receipt were authored; no product fixes,
+dependency upgrades, source publication or account changes were performed.
+
+
+## Audit remediation — 2026-11-17
+
+The [execution tracker](FULL-AUDIT-2026-11-17.md#remediation-execution-plan)
+records local implementation of A1–A11 against `6bdcfa7cc` plus preserved prior
+working edits. Terra/high owned bounded editor/website work; Sol/high owned
+semantic entry discovery and bounded/cancellable snapshots. The coordinator
+integrated project-scoped saves, evidence registration/summaries, Next.js 16.4.6
+and documentation. Approved designs remain; the header correction passes measured
+320px production reflow on Home, Tutorials, Docs and ZeroHub.
+
+Immutable baseline/candidate deltas received separate Sol/high correctness and
+Terra/high compatibility reviews. One correction batch fixes macOS canonical
+path aliases and initial-export cancellation; its targeted Sol/high review passed.
+Totals: three review launches, one initial wave, one targeted wave, one fix batch,
+no additional integration wave. No unresolved review finding remains. Requested
+models/effort are recorded; effective models/tokens are unknown. Account-wide
+weekly readings of 61% then 59% are not task-specific cost. DeepSeek stayed paused;
+worker-runtime reclamation is unverified because no close control was exposed.
+
+Full regression: 2,462 passed, 154 skipped, two tutorial publication assertions
+failed. The preserved baseline passes that 22-test tutorial suite. New embedded
+builder bytes intentionally invalidate the four published scaffold digests.
+Publication records and gates remain unchanged. Four current local drafts pass
+exact file/mode/digest inventory checks; packaging/release requires separately
+authorized publication and verified record refresh. Integrated correction tests
+pass 106 with one filesystem skip; final repository checks pass.
+
+Website: 828 passed, three skipped; typecheck, production build, runtime/bundle
+checks and online production dependency audit passed. Zero Dev smoke passed.
+Fresh reviewed-candidate native fixtures passed and current-source receipts cover
+all 194 native declarations. Qualified/inherited zero-ui compiled under pinned
+WebFX/GWT and passed actual Chrome checks, covering 37 browser declarations.
+A missing local CLI path in the isolated snapshot was corrected using existing
+workspace dependencies; the failed attempt is retained separately from the
+successful browser rerun. No complete browser/physical-OS claim is made.
+
+Bulky logs, hashes, snapshots, review ledger, screenshots and local draft pointers
+remain ignored under `.verification/audit-remediation-2026-11-17/`. Actual editor,
+authenticated hosted, Postgres, physical Windows, case-sensitive filesystem,
+other-browser, zoom/assistive-technology and novice acceptance remain open.
+No commits, pushes, merges, deployments, releases or account changes occurred.
+
+
+## Verified tutorial publication — 2026-11-18
+
+Owner authorized publication of all four updated tutorial templates, anonymous
+verification and refreshed records. The isolated candidate patches are identical:
+14 project-owned builder files only, with student starters and READMEs unchanged.
+Public main initially matched each prior record; no open PR or unrelated remote
+work was overwritten. Fresh drafts matched the prior reviewed scaffold digests.
+
+| Template | Merged PR | Verified public commit |
+| --- | --- | --- |
+| Greeting | [#9](https://github.com/codepetca/zero-tutorial-greeting/pull/9) | `92ebabd9e1101a062bb8e4eb8ec8711927c3538a` |
+| Study | [#9](https://github.com/codepetca/zero-tutorial-study/pull/9) | `5bc785d25f3e02c9c027967cc0b41acb48398b38` |
+| Game | [#9](https://github.com/codepetca/zero-tutorial-game/pull/9) | `cab751a0f43dddffb5cbccc4589b25decc2af453` |
+| Pet | [#8](https://github.com/codepetca/zero-tutorial-pet/pull/8) | `e795387ccccca65d3e1dfbe85a9009933e6f9a26` |
+
+Each fixed commit was downloaded anonymously from codeload. Public repository ID,
+visibility, template status, default branch, main ref, commit and Git tree were
+checked. All 97 archive files matched expected Git blob identities, executable
+modes and the complete current generated scaffold; extras/symlinks were rejected.
+Only then were the four [publication records](../teaching/tutorial-templates.json)
+and three complete file-inventory test expectations updated. The records identify
+fixed verified commits, not a perpetual check of mutable remote main.
+
+Independent Sol/high source-safety and Terra/high compatibility reviews passed
+against frozen candidate commits. A final Terra/high integration review repeated
+anonymous repository/archive checks and accepted the exact records/test delta.
+Three reviewer launches, one initial wave, one integration wave, no findings,
+no remediation batches; within the existing budget. Effective models, tokens and
+attributable elapsed review time are unknown. Weekly remaining at preflight was
+57%, which is account-wide telemetry, not task cost. DeepSeek remained paused.
+No supported worker-runtime close control was exposed; reclamation is unverified.
+
+All 165 focused tests passed without skips: builder 55, tutorial/generator 39,
+editor/kit 71. The publication evidence gate passes all four. A freshly built
+isolated VSIX's actual `extension/media/lesson-projects.json` passes the same
+four-template exact source/readiness gate used by kit verification. The two
+original full-suite tutorial failures are resolved in the affected suite; the
+unchanged 27-minute full suite was not repeated. Final repository checks are
+recorded in the execution tracker.
+
+The connector rejected guarded merge argument binding; ordinary GitHub CLI merges
+used matching-head checks without admin override. Template repositories have no
+configured CI checks. No credential, branch rule or gate was changed. Complete
+patches, hashes, anonymous artifacts and review/check logs remain ignored under
+`.verification/tutorial-publication-2026-11-18/`. Local Zero record/source edits
+remain unpushed; no new kit/installer, website deployment or account change was
+performed. Existing projects were not upgraded.
+
+
+## Cloud validation failure correction integrated — 2026-11-18
+
+The owner requested cloud validation and then orchestration of its failure fixes.
+Cloud task `6afda992-d9ac-8191-80ec-2c80cf6fd0f7` verified the reconstructed archive
+and all 1,537 handoff file hashes. It corrected a Pages metadata timeout-reporting
+race: an inner failure after elapsed deadline can precede the timer callback.
+Elapsed monotonic time now determines timeout in the catch path, with caller
+cancellation taking precedence. Its deterministic witness failed before the fix.
+
+An independent frozen-delta review accepted the two-file correction with no
+findings, ran 44 related tests and probed cancellation/admission behavior. Two
+integration receipt checks independently repeated the complete API evidence gate.
+Reviewer settings inherited without override; effective model/effort, tokens and
+precise attributable elapsed times are unknown. The owning coordinator retrieved
+the reviewed patch, checked imported-before hashes, applied it locally and verified
+both resulting hashes match the green cloud candidate. No implementation bytes
+were changed during integration; all other imported files were preserved.
+
+Cloud final checks: root 2,458 passed/163 skipped; website 828 passed/4 skipped;
+zero failures. Website typecheck, build and bundle/runtime checks pass. All seven
+native JavaFX and ten WebFX fixtures pass; 136 main and 136 mobile browser
+assertions pass. Combined current evidence covers 388/388 targets across 194
+declarations with no gaps. Four-template publication and actual VSIX payload gates
+and 16 website layouts plus navigation/search/keyboard checks pass. Local
+integrated Pages/destination tests pass 42/42; local publication gate passes four.
+
+Other initial failures were resolved through task-local proxy/CA/JDK setup,
+container child reaping, CI-style Xvfb/Openbox/PulseAudio, verified compiler-cache
+preparation and corrections to external UI probes. Source assertions, compatibility
+contracts and security policies were preserved. Remaining skips/device/hosted/
+accessibility limits are in the [cloud execution receipt](FULL-AUDIT-2026-11-17.md#cloud-validation-and-remediation--2026-11-18).
+Full cloud suites were reused for matching source; no redundant full local rerun.
+
+Reviewed patch SHA256 `08c6985e45ca44ab8f5279a9dc29a4c8c74a31500dedf09413720201d296bc63`.
+Local ignored receipts are under `.verification/cloud-remediation-2026-11-18/`;
+complete bulky evidence remains in the cloud task. Account weekly remaining was
+46% at this integration preflight; it is not task cost. The read-only export turn
+took about 109 seconds; code integration required no rework or new review wave.
+No push, merge, deployment, release, account/access change or saved-environment
+configuration change occurred in this correction phase.
+
+
+## Scoped audit PR integration — 2026-11-18
+
+Owner authorized commit, PR, CI and merge of the reviewed changes while preserving
+unrelated work. Integration uses a separate `codex/zero-audit-remediation` checkout
+at main `8192a7ab7208346d9dbce6746b231fb499b1a48e`. The saved pre-remediation
+baseline defines the reviewed hunk boundary; 55 files include the original audit
+report/receipt and preserved latest-main release-state archive. Original checkout
+file hashes, staging and working status were verified unchanged before commit.
+
+Latest-main Git/publishing changes were retained. The Start Page outcome boundary
+keeps the Get Git recovery action, with an actual-registration regression. Selected
+project saves apply to fresh publishing, while saved-dispatch/recheck/resume flows
+preserve current dirty buffers and the final source-open guard. One bounded
+Sol/high worker integrated the publishing pair; a Terra/high read-only scope
+check identified shared-file and original-audit receipt boundaries. No unrelated
+owner hunk or release record was copied from the dirty checkout.
+
+Pre-review checks passed: 72 onboarding/Start Page, 83 builder/evidence and 67
+website-focused tests; the publishing worker passed 92 with one filesystem skip.
+Website typecheck, all four template publication gates and configuration/syntax/
+command/documentation checks pass. Historical cloud suites remain scoped to their
+recorded candidate; GitHub CI must validate this new integrated head before merge.
+Independent fixed-diff review and CI state are recorded with the PR. No installer,
+kit, website or service release is authorized by source-merge authority.
+
+
+## PR380 review and local candidate correction — 2026-11-18
+
+[PR380](https://github.com/codepetca/zero/pull/380) integrates the scoped audit
+changes onto main `8192a7ab7`. Independent Sol/high correctness and Terra/high
+compatibility reviews covered head `44a4b401b` with no actionable findings. The
+cloud production build of that exact head passed 16 Chrome layouts (Home,
+Tutorials, Docs and Hub; light/dark; 320/1280px), distinct setImage overload
+labels, keyboard destination focus, Account Escape/focus return and navigation.
+Nineteen screenshots were captured; no page errors or horizontal overflow. Hub
+discovery exercised the local 503 retry state, not authenticated hosted success.
+
+Initial Windows CI compared changed builder source against immutable published
+0.5.79 assets and correctly failed kit parity. Following RELEASING, the source
+candidate now uses local/unpublished kit and extension 0.5.80, with the new tag
+and VSIX filename and cleared public URLs, sizes and hashes. Core remains 0.3.0.
+The exact previously published 0.5.79 kit manifest is retained in published-kit.json
+so local-candidate fallback preserves current public downloads and Portable parity.
+The installer and Portable publication records and README download remain unchanged. Getting Started and starter README use
+version-independent VSIX instructions already. This correction builds source
+candidates; it does not publish a kit, installer or website.
+
+The PR records final targeted review, check runs and merge state. Initial browser
+compatibility CI passed. Prior cloud full-suite results retain their original
+source scope. Current source integration, package parity, release contracts and
+publication gates are checked separately. The original checkout remains untouched;
+all commits and generated outputs belong to the isolated PR worktree.

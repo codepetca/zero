@@ -3,7 +3,6 @@ import evidence.ApiSignatureChecks;
 import evidence.ApiCompletionChecks;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import zero.GameApp;
 import zero.Color;
 import zero.Key;
 import zero.ui.Button;
@@ -13,7 +12,7 @@ import zero.ui.TextField;
 import zero.ui.Row;
 
 /** Real-browser behavior probe for the small Zero-owned UI surface. */
-public final class Main extends GameApp {
+public final class Main extends BrowserNavigationBase {
     private final Label status = new Label("Before");
     private int clicks, frames, draws;
     private boolean firstPlay = true, expectZero, deferView, deferredDraw;
@@ -230,3 +229,7 @@ public final class Main extends GameApp {
     }
     public static void main(String[] args) { launch(args); }
 }
+
+// Exercise resolved inherited/qualified application selection in the maintained
+// real WebFX/browser fixture, without changing the behavior or evidence probes.
+abstract class BrowserNavigationBase extends zero.GameApp { }

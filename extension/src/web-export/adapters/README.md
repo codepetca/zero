@@ -1,11 +1,25 @@
 # Browser source adapters
 
-`adaptSources({ sources, resourcePaths })` receives Java source paths relative to
+`adaptSources({ sources, resourcePaths, applicationClasses, applicationMainClass })` receives Java source paths relative to
 `src/main/java` and resource paths relative to `src/main/resources`. It returns
 copied/adapted Java, the `zero.web.BrowserLauncher` entry class, per-file original
 paths/line offsets, change notes and browser limitations. It never writes student
 files. The engine must compile every returned source using the pinned WebFX/GWT
 compiler and publish output only after that complete compile succeeds.
+
+Application selection requires the original-source compatibility check's
+`applicationClasses` records: `{file, className}`, with source-relative file paths
+and original qualified Java names. Javac resolves inheritance and includes only
+public, concrete top-level JavaFX Application subclasses with a public no-argument
+constructor. Qualified superclass names and abstract intermediate bases work
+without extending the supported API contract. Nested, local, abstract and
+non-instantiable classes are not launch candidates. The existing POM property
+`app.mainClass`, returned as `applicationMainClass`, selects an exact candidate;
+without that property exactly one candidate is required. Missing or invalid
+attribution and ambiguous/missing selections stop export; there is no token-parser
+fallback. The adapter relocates default-package selections only in its copied
+launcher and retains source mappings. Isolated adapter unit tests supply explicit
+synthetic selection records; they are not compiler or browser execution evidence.
 
 Default-package Java moves to `zero.exported` in the export copy. Ordinary game
 classes otherwise retain their source. The small lexer excludes comments and

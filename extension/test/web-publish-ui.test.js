@@ -1,6 +1,11 @@
 'use strict';
 const test=require('node:test');const assert=require('node:assert/strict');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
+function dirtyDocument({file='/student/src/main/java/Main.java',scheme='file',save}={}) {
+  const document={isDirty:true,uri:{scheme,fsPath:file}};
+  document.save=save||async function(){document.isDirty=false;return true;};
+  return document;
+}
 function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError,beforeBuildReview,listPublication}={}) {
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,upgrade=false,uploaded=0,sha='a'.repeat(40);
   const progress=[],messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
@@ -173,7 +178,7 @@ test('restart routes uncertain and legacy staged receipts to recovery without sa
     const h=fixture(t);
     const staged={root:'/student',value:original};
     h.stored.set('zero.webPublish.staging',staged);
-    h.vscode.workspace.textDocuments=[{isDirty:true}];
+    h.vscode.workspace.textDocuments=[dirtyDocument({save:()=>assert.fail('Recovering an existing attempt must not save buffers')})];
     h.vscode.workspace.saveAll=()=>assert.fail('Recovering an existing attempt must not save buffers');
     h.publisher.restoreDispatch=async(root,value)=>{assert.equal(root,'/student');assert.deepEqual(value,original);return uncertainAction;};
     h.choices.push('Open GitHub Actions');
@@ -187,6 +192,7 @@ test('rechecking an uncertain deployment saves its identified run and never publ
   const h=fixture(t),checked=deferred();
   h.stored.set('zero.webPublish.staging',{root:'/student',value:uncertainStage});
   h.sha='c'.repeat(40);
+  h.vscode.workspace.textDocuments=[dirtyDocument({save:()=>assert.fail('Rechecking an existing attempt must not save buffers')})];
   let attempts=0;
   const value={runId:41,repository:uncertainStage.repository,sha:uncertainStage.sha,staging:uncertainStage.staging};
   h.publisher.restoreDispatch=async(_root,_saved,{onPending})=>{
@@ -240,12 +246,86 @@ test('failure to save recovered run keeps the staging receipt for another check'
   assert.deepEqual(h.calls,[]);assert.equal(h.stored.has('zero.webPublish.pending'),false);
 });
 test('unsaved project documents must save before source review; cancelled saves do not publish',async t=>{
-  const h=fixture(t);h.vscode.workspace.textDocuments=[{isDirty:true}];let saved=0;h.vscode.workspace.saveAll=async()=>{saved++;return false;};
+  const h=fixture(t);let saved=0;h.vscode.workspace.textDocuments=[dirtyDocument({save:async()=>{saved++;return false;}})];
   await assert.rejects(h.api.publish(),/Save your project/);assert.equal(saved,1);assert.equal(h.reviewed,0);assert.equal(h.published,0);
   h.simulation=true;await h.api.publish();assert.equal(saved,1,'Simulation never saves editor buffers');
 });
+test('publishing ignores unrelated files and untitled notes without saving them',async t=>{
+  for(const open of [false,true]) {
+    const h=fixture(t),neverSave=()=>assert.fail('Publishing must not save an unrelated editor');
+    const unrelated=[dirtyDocument({file:'/other/src/main/java/Main.java',save:neverSave}),
+      dirtyDocument({file:'/student/notes.md',save:neverSave}),
+      dirtyDocument({file:'Untitled-1',scheme:'untitled',save:neverSave})];
+    h.vscode.workspace.textDocuments=unrelated;h.vscode.workspace.saveAll=neverSave;
+    h.choices.push('Publish app');
+    const result=await(open?h.api.publishAndOpen():h.api.publish());
+    assert.equal(result.status,'live');assert.equal(h.published,1);assert.equal(h.opened.length,open?1:0);
+    assert.ok(unrelated.every(document=>document.isDirty));
+  }
+});
+test('publishing saves only selected project build inputs before review',async t=>{
+  const h=fixture(t),saved=[];
+  const paths=['/student/src/main/java/New.java','/student/src/main/resources/theme.css',
+    '/student/pom.xml','/student/zero-libraries.json','/student/libraries/score/src/main/java/Score.java'];
+  const documents=paths.map(file=>{const document=dirtyDocument({file});document.save=async()=>{
+    assert.equal(h.reviewed,0);saved.push(file);document.isDirty=false;return true;
+  };return document;});
+  h.vscode.workspace.textDocuments=documents;h.choices.push('Publish app');
+  assert.equal((await h.api.publishAndOpen()).status,'live');assert.deepEqual(saved,paths);
+});
+test('an unrelated editor dirtied at final verification does not block opening',async t=>{
+  const h=fixture(t);h.choices.push('Publish app');const verify=h.publisher.verifyCurrent;
+  h.publisher.verifyCurrent=(review,saved,options)=>verify(review,saved,{...options,onCurrent:live=>{
+    h.vscode.workspace.textDocuments=[dirtyDocument({file:'Untitled-2',scheme:'untitled'})];options.onCurrent(live);
+  }});
+  assert.equal((await h.api.publishAndOpen()).status,'live');assert.equal(h.opened.length,1);
+});
+test('a source file opened through a workspace alias is still saved before publishing',async t=>{
+  if(process.platform==='win32'){t.skip('Creating a directory symlink requires separate Windows privileges');return;}
+  const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+  const base=await fs.mkdtemp(path.join(os.tmpdir(),'zero-publish-inputs-'));t.after(()=>fs.rm(base,{recursive:true,force:true}));
+  const root=path.join(base,'student'),alias=path.join(base,'alias');
+  await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'class Main {}');
+  await fs.symlink(root,alias,'dir');
+  const h=fixture(t);h.active=root;let saved=0;const document=dirtyDocument({file:path.join(alias,'src/main/java/Main.java')});
+  document.save=async()=>{saved++;document.isDirty=false;return true;};h.vscode.workspace.textDocuments=[document];h.choices.push('Publish app');
+  assert.equal((await h.api.publishAndOpen()).status,'live');assert.equal(saved,1);
+});
 
 // Removing the second setup confirmation must not approve a different destination.
+test('case aliases of existing and new build inputs save and remain guarded at final dispatch',async t=>{
+  const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+  const base=await fs.mkdtemp(path.join(os.tmpdir(),'zero-publish-case-'));t.after(()=>fs.rm(base,{recursive:true,force:true}));
+  const root=path.join(base,'student'),alias=path.join(base,'STUDENT');
+  await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'pom.xml'),'<project/>');
+  if(!await fs.stat(path.join(root,'POM.XML')).then(()=>true,error=>{if(error.code==='ENOENT')return false;throw error;})) {
+    t.skip('Temporary filesystem is case-sensitive');return;
+  }
+  for(const file of [path.join(alias,'POM.XML'),path.join(alias,'SRC/MAIN/JAVA/New.java')]) {
+    const h=fixture(t);h.active=root;let saves=0;const document=dirtyDocument({file});
+    document.save=async()=>{saves++;document.isDirty=false;return true;};
+    h.vscode.workspace.textDocuments=[document];h.choices.push('Publish app');
+    assert.equal((await h.api.publishAndOpen()).status,'live');assert.equal(saves,1,file);
+  }
+  const h=fixture(t);h.active=root;h.choices.push('Publish app');const verify=h.publisher.verifyCurrent;
+  h.publisher.verifyCurrent=(review,saved,options)=>verify(review,saved,{...options,onCurrent:live=>{
+    h.vscode.workspace.textDocuments=[dirtyDocument({file:path.join(alias,'POM.XML')})];options.onCurrent(live);
+  }});
+  await assert.rejects(h.api.publishAndOpen(),/app changed while publishing/);assert.equal(h.opened.length,0);
+});
+test('case-distinct projects on a case-sensitive filesystem stay unrelated',async t=>{
+  const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+  const base=await fs.mkdtemp(path.join(os.tmpdir(),'zero-publish-distinct-case-'));t.after(()=>fs.rm(base,{recursive:true,force:true}));
+  const root=path.join(base,'student'),other=path.join(base,'STUDENT');await fs.mkdir(root);
+  if(await fs.stat(other).then(()=>true,error=>{if(error.code==='ENOENT')return false;throw error;})) {
+    t.skip('Temporary filesystem is case-insensitive');return;
+  }
+  await fs.mkdir(other);await fs.writeFile(path.join(other,'pom.xml'),'<project/>');
+  const h=fixture(t);h.active=root;h.choices.push('Publish app');
+  h.vscode.workspace.textDocuments=[dirtyDocument({file:path.join(other,'pom.xml'),save:()=>assert.fail('Unrelated case-distinct project must not save')})];
+  assert.equal((await h.api.publishAndOpen()).status,'live');assert.equal(h.opened.length,1);
+});
+
 test('setup rejects destination and account drift before or after upload',async t=>{
   for(const phase of [2,3])for(const [field,value] of Object.entries({repository:'https://github.com/student/other',account:'other',publicUrl:'https://student.github.io/other/',needsPages:true})) {
     await t.test(`${field} at review ${phase}`,async t=>{
@@ -364,7 +444,7 @@ test('change branches and unrelated review errors do not invoke the uploader',as
   await assert.rejects(h.api.publish(),/Merge to main/);assert.equal(h.uploaded,0);assert.equal(h.published,0);
 });
 test('disabling live mode during save prevents upload and deployment',async t=>{
-  const h=fixture(t);h.vscode.workspace.textDocuments=[{isDirty:true}];h.vscode.workspace.saveAll=async()=>{h.simulation=true;return true;};
+  const h=fixture(t);h.vscode.workspace.textDocuments=[dirtyDocument({save:async()=>{h.simulation=true;return true;}})];
   await assert.rejects(h.api.publish(),/Live publishing was disabled/);assert.equal(h.reviewed,0);assert.equal(h.uploaded,0);assert.equal(h.published,0);
 });
 
@@ -382,8 +462,8 @@ test('publish and open publishes a first version, opens only verified live outpu
 });
 test('publish and open updates a stale version and saves buffers before checking freshness',async t=>{
   const h=fixture(t);h.choices.push('Publish app');await h.api.publish();
-  const doc={isDirty:true};h.vscode.workspace.textDocuments=[doc];let saves=0;
-  h.vscode.workspace.saveAll=async()=>{saves++;doc.isDirty=false;h.sha='b'.repeat(40);return true;};
+  const doc=dirtyDocument();h.vscode.workspace.textDocuments=[doc];let saves=0;
+  doc.save=async()=>{saves++;doc.isDirty=false;h.sha='b'.repeat(40);return true;};
   const result=await h.api.publishAndOpen();assert.equal(saves,1);assert.equal(result.sha,'b'.repeat(40));assert.equal(h.published,2);assert.equal(h.opened.length,1);
 });
 test('publish and open never opens on cancel, failure, pending, simulation, untrusted or unsaved work',async t=>{
@@ -393,7 +473,7 @@ test('publish and open never opens on cancel, failure, pending, simulation, untr
     if(mode==='pending')h.publisher.check=async value=>({status:'pending',resume:value,message:'Waiting'});
     if(mode==='simulation')h.simulation=true;
     if(mode==='untrusted')h.vscode.workspace.isTrusted=false;
-    if(mode==='save'){h.vscode.workspace.textDocuments=[{isDirty:true}];h.vscode.workspace.saveAll=async()=>false;}
+    if(mode==='save'){h.vscode.workspace.textDocuments=[dirtyDocument({save:async()=>false})];}
     if(['untrusted','save'].includes(mode))await assert.rejects(h.api.publishAndOpen(),/Trust|Save/);else await h.api.publishAndOpen();
     assert.deepEqual(h.opened,[],mode);assert.equal(h.busy,false,mode);
   }
@@ -403,6 +483,19 @@ test('a resumed older deployment must publish the newer source before opening',a
   h.stored.set('zero.webPublish.pending',{root:'/student',account:'1',value:{runId:41,sha:old,repository:'https://github.com/student/game'}});
   h.publisher.restore=async(_root,value)=>({status:'live',url:'https://student.github.io/game/',sha:old,resume:value});
   const result=await h.api.publishAndOpen();assert.equal(result.sha,'b'.repeat(40));assert.equal(h.published,1);assert.equal(h.opened.length,1);assert.equal(h.stored.get('zero.webPublish.lastLive').sha,'b'.repeat(40));
+});
+test('resuming a known run keeps dirty source unsaved and blocks opening current output',async t=>{
+  for(const open of [false,true]) {
+    const h=fixture(t),sha='a'.repeat(40);
+    h.stored.set('zero.webPublish.pending',{root:'/student',account:'1',value:{runId:41,sha,repository:'https://github.com/student/game'}});
+    const document=dirtyDocument({save:()=>assert.fail('Resuming a run must not save current source')});
+    h.vscode.workspace.textDocuments=[document];
+    h.publisher.restore=async(_root,value)=>({status:'live',url:'https://student.github.io/game/',sha,resume:value});
+    if(open)await assert.rejects(h.api.publishAndOpen(),/app changed while publishing/);
+    else assert.equal((await h.api.publish()).status,'live');
+    assert.equal(document.isDirty,true);assert.equal(h.published,0);assert.equal(h.uploaded,0);assert.deepEqual(h.opened,[]);
+    assert.equal(h.stored.get('zero.webPublish.lastLive').sha,sha);
+  }
 });
 test('continued editing is bounded and never opens an outdated page',async t=>{
   const h=fixture(t);h.choices.push('Publish app');h.publisher.verifyCurrent=async()=>({status:'stale'});
@@ -434,7 +527,7 @@ test('saved source drift during final project resolution prevents browser dispat
 });
 test('dirty buffers at the final verified dispatch stop the browser',async t=>{
   const h=fixture(t);h.choices.push('Publish app');await h.api.publish();
-  const verify=h.publisher.verifyCurrent;h.publisher.verifyCurrent=(review,saved,options)=>verify(review,saved,{...options,onCurrent:live=>{h.vscode.workspace.textDocuments=[{isDirty:true}];options.onCurrent(live);}});
+  const verify=h.publisher.verifyCurrent;h.publisher.verifyCurrent=(review,saved,options)=>verify(review,saved,{...options,onCurrent:live=>{h.vscode.workspace.textDocuments=[dirtyDocument()];options.onCurrent(live);}});
   await assert.rejects(h.api.publishAndOpen(),/app changed/);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);
 });
 
@@ -467,7 +560,7 @@ test('all publishing exits clear active progress, including timeout, browser rej
     if(mode==='simulation')h.simulation=true;
     if(mode==='build')h.publisher.publish=async(_review,{onStage})=>{onStage('building');throw Error('Build failed');};
     if(mode==='access')h.publisher.review=async()=>{throw Error('Access removed');};
-    if(mode==='source'){requireUploadOnce(h);h.vscode.workspace.saveAll=async()=>false;h.vscode.workspace.textDocuments=[{isDirty:true}];}
+    if(mode==='source'){requireUploadOnce(h);h.vscode.workspace.textDocuments=[dirtyDocument({save:async()=>false})];}
     if(['browser','build','access','source'].includes(mode))await assert.rejects(h.api.publishAndOpen());else await h.api.publishAndOpen();
     assert.equal(h.progress.at(-1),undefined,mode);assert.equal(h.busy,false,mode);
     if(mode==='pending')assert.match(h.states.at(-1),/Choose Publish & open app again/);
@@ -509,7 +602,7 @@ test('published-app receipt restores after restart and malformed saved values fa
 });
 test('opening a published app with newer local dirty code is read-only and keeps progress through browser launch',async t=>{
   const h=fixture(t);h.choices.push('Publish app');await h.api.publish();const saved=h.stored.get('zero.webPublish.lastLive'),oldSha=saved.sha;
-  h.sha='b'.repeat(40);h.vscode.workspace.textDocuments=[{isDirty:true}];h.vscode.workspace.saveAll=()=>assert.fail('Historical opening never saves source');
+  h.sha='b'.repeat(40);h.vscode.workspace.textDocuments=[dirtyDocument({save:()=>assert.fail('Historical opening never saves source')})];
   const before={published:h.published,uploaded:h.uploaded,reviewed:h.reviewed},verifying=deferred(),verification=deferred(),opening=deferred(),opened=deferred();
   h.publisher.verifyLink=async(root,record,options)=>{assert.equal(root,'/student');assert.equal(record.sha,oldSha);assert.equal(options.cleanup,undefined);verifying.resolve();return verification.promise;};
   h.vscode.env.openExternal=uri=>{assert.equal(uri,saved.url);opening.resolve();return opened.promise;};
@@ -560,7 +653,7 @@ test('fast reuse failure preserves the old publication without opening or deploy
       if(kind==='pending')return {status:'pending',message:'Page unavailable'};
       if(kind==='network')throw Error('Offline');
       if(kind==='project')h.active='/other';
-      if(kind==='dirty')h.vscode.workspace.textDocuments=[{isDirty:true}];
+      if(kind==='dirty')h.vscode.workspace.textDocuments=[dirtyDocument()];
       await options.beforeFinalCheck();const live={status:'live',url:saved.url};options.onCurrent(live);return live;
     };
     if(kind==='pending')assert.equal((await h.api.publishAndOpen()).status,'pending');else await assert.rejects(h.api.publishAndOpen());
@@ -570,7 +663,7 @@ test('fast reuse failure preserves the old publication without opening or deploy
 
 test('View published app opens the saved site immediately despite dirty edits and unavailable GitHub',async t=>{
  const h=fixture(t);h.choices.push('Publish app');await h.api.publish();const saved=h.stored.get('zero.webPublish.lastLive'),before={reviewed:h.reviewed,published:h.published,uploaded:h.uploaded,checks:h.checks};
- h.sha='b'.repeat(40);h.vscode.workspace.textDocuments=[{isDirty:true}];h.vscode.workspace.saveAll=()=>assert.fail('Viewing must not save');
+ h.sha='b'.repeat(40);h.vscode.workspace.textDocuments=[dirtyDocument({save:()=>assert.fail('Viewing must not save')})];
  h.auth.capture=()=>assert.fail('Viewing must not authenticate');h.auth.assertCurrent=()=>assert.fail('Viewing must not authenticate');h.auth.assertCurrentNow=()=>assert.fail('Viewing must not authenticate');
  h.publisher.verifyLink=()=>assert.fail('Viewing must not check the public site');h.publisher.verifyUnchanged=()=>assert.fail('Viewing must not check local source');
  const result=await h.api.commands['zero.viewPublishedWeb']();assert.equal(result.status,'opened');assert.deepEqual(h.opened,[saved.url]);assert.deepEqual(h.stored.get('zero.webPublish.lastLive'),saved);assert.deepEqual({reviewed:h.reviewed,published:h.published,uploaded:h.uploaded,checks:h.checks},before);assert.equal(h.busy,false);assert.equal(h.progress.at(-1),undefined);

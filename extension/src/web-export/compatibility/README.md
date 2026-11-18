@@ -19,13 +19,23 @@ are language features, not external APIs. Enhanced for, boxing and string
 concatenation are compiler language lowering; their implicit implementation is
 covered by the pinned GWT compiler and positive ordinary-Java fixtures.
 
-The sixteen canonical helper **bodies** have a narrow exemption only at their exact
+The canonical helper **bodies**, listed in the [core inventory](../../core-contract.js), have a narrow exemption only at their exact
 source paths and reviewed adapter SHA-256 after CRLF normalization; their public
 and protected members are still explicit contract entries. Editing a helper,
 spoofing its qualified identity at another path, adding helpers in `zero`, or
 subclassing an approved class never gives student code that exemption. Runtime
 and interop source namespaces and student native/JSNI methods are prohibited.
 Ordinary application packages and additional ordinary `zero` helpers are allowed.
+
+The same original-source attribution emits `applicationClasses` records with
+source-relative `file` and original qualified `className`. Candidates are public,
+concrete top-level subclasses of JavaFX Application with a public no-argument
+constructor. Inheritance is resolved by javac, including qualified parents and
+abstract intermediate bases; no lexical class-name matching determines the launch
+target. `applicationMainClass` retains the existing `app.mainClass` POM property,
+or null when absent. The adapter requires these records, validates the selected
+candidate and rejects ambiguity unless that property selects an exact candidate.
+This discovery never generates classes or runs application/constructor code.
 
 Resource reflection is restricted to `ClassName.class.getResource(...)` and
 unqualified `getClass().getResource(...)`, which the adapter maps to packaged

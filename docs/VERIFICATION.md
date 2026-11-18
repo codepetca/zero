@@ -5956,3 +5956,153 @@ and fsmonitor. Disposable Git tests cover disappearing branch names, incoming
 authority changes, and clean filter suppression. The batch also updates the
 Files and Commit fixtures and the starter’s branch deletion instructions. The
 PR records the corrected head, targeted review and final CI results.
+
+
+## Audit remediation — 2026-11-17
+
+[Plan, review and complete results](FULL-AUDIT-2026-11-17.md#remediation-execution-plan)
+cover eleven locally implemented fixes, preserving the initial dirty checkout.
+Independent fixed-delta Sol/high and Terra/high reviews plus one targeted Sol/high
+correction review are complete; three launches and one fix batch. Effective model
+and token telemetry are unknown.
+
+The full candidate-v1 suite passed 2,462, skipped 154 and failed two published
+scaffold assertions. The preserved baseline passes the 22 tutorial tests. New
+project-owned builder bytes require all four tutorial templates to be republished
+and their actual commit/tree/digest records refreshed under separate owner
+approval; expected hashes were not changed to bypass this gate. Four local drafts
+pass exact source inventory checks. Packaging/release remains blocked.
+
+The integrated four-file reviewed correction passes 106 tests with one
+case-sensitive-filesystem skip. Final configuration/syntax/contracts/documentation
+checks and diff whitespace pass. Website tests pass 828 with three skips;
+typecheck, Next.js 16.4.6 production build, runtime/bundle checks and online
+production audit pass. Zero Dev smoke passes. Fresh reviewed native receipts
+validate against current source for all 194 declarations; the qualified/inherited
+zero-ui fixture passes pinned WebFX/GWT plus actual Chrome, with 37 browser
+declarations covered. Full browser coverage is not claimed. Production Home,
+Tutorials, Docs and ZeroHub pass measured 320 CSS-pixel reflow; API overload search,
+keyboard deep links and Account Escape/focus checks pass.
+
+Full-suite repetition after the bounded correction was not performed; affected
+unit tests and fresh native/browser proof were used. Physical Windows, actual
+VS Code host, authenticated hosted recovery, Postgres concurrency, case-sensitive
+filesystem, other browser engines, zoom, assistive technology and novice
+acceptance remain unverified. No source publication, release or account change
+was performed. Detailed ignored receipts are under
+`.verification/audit-remediation-2026-11-17/`.
+
+
+## Tutorial publication gates cleared — 2026-11-18
+
+Owner-authorized template PRs Greeting9, Study9, Game9 and Pet8 merged. Their
+[canonical records](../teaching/tutorial-templates.json) now identify the actual
+public fixed commits, Git trees and scaffold digests. The coordinator and an
+independent reviewer each fetched anonymous repository metadata and archives;
+all 97 files and executable modes per archive matched the reviewed candidate
+and current generator. Readiness gates were preserved; no local-only digest
+was stamped as publication proof.
+
+Validation: 55 builder tests, 39 tutorial/generator tests and 71 editor/kit tests
+passed, with no failures or skips. `npm run check:tutorial-templates` passes four.
+An actual isolated VSIX was built and its tutorial bundle passes
+`checkPackagedTutorialTemplates`, the same gate called by `verify:kit`.
+The two original full-suite publication failures pass in the affected suite;
+the whole full suite was not rerun after these record/inventory-only updates.
+
+Two initial frozen-diff reviews (Sol/high source safety and Terra/high
+compatibility) and one final Terra/high records/public-provenance review passed
+with no actionable findings. Three launches, zero fix batches; effective model,
+per-turn token and precise attributable elapsed telemetry are unknown. Source
+patches are identical across the four repos and no source changed after review.
+Detailed receipts are ignored under `.verification/tutorial-publication-2026-11-18/`;
+the [execution tracker](FULL-AUDIT-2026-11-17.md#authorized-tutorial-publication--2026-11-18)
+links PRs and preserves the original failures as historical evidence.
+
+These gates establish current tutorial-source publication and packaged payload
+parity. Native editor, physical Windows, authenticated hosted, other-engine,
+zoom/assistive-technology and novice acceptance remain scoped to earlier evidence.
+No new Zero kit/installer or website release was performed; the local Zero
+publication-record edits were not pushed.
+
+
+## Cloud failure remediation and exact local integration — 2026-11-18
+
+The [cloud receipt](FULL-AUDIT-2026-11-17.md#cloud-validation-and-remediation--2026-11-18)
+records source import proof, the one product correction, environment diagnoses,
+review and final check results. The elapsed-deadline correction in
+`website/lib/jam-pages-binding.mjs` preserves caller cancellation precedence and
+source authorization. A deterministic regression and independent fixed-delta
+review pass. The coordinator imported the reviewed production/test patch only
+after matching before hashes, then matched both final hashes to the tested cloud
+candidate. Local related tests pass 42/42, with no skips; the publication gate
+passes all four templates. Other source and preexisting owner changes are preserved.
+
+Final cloud: 2,458 root tests passed/163 skipped, 828 website tests passed/4
+skipped, zero failures. Website typecheck/build/bundle/runtime checks pass. Seven
+native and ten pinned WebFX fixtures pass; actual Chrome main/mobile checks pass
+136 assertions each. Combined source-current evidence covers 388/388 targets with
+zero gaps and was independently rechecked. Publication and actual VSIX tutorial
+payload gates pass four templates; website 16-layout and interaction checks pass.
+
+The initial process/native/compiler/probe issues were resolved in task-local
+runtime setup or external probes without changing source assertions or compatibility
+contracts. Local exact-byte integration reuses the cloud full-suite proof; a second
+complete local run was not performed. Actual physical installations/devices, VS Code
+hosting, authenticated hosted recovery, Postgres concurrency, other browser engines,
+zoom/assistive technology and novice acceptance remain unverified. No new push,
+merge, deployment, release, account/access or saved Default configuration change.
+
+
+## Scoped audit PR integration — 2026-11-18
+
+Owner authorized commit, PR, CI and merge of the reviewed changes while preserving
+unrelated work. Integration uses a separate `codex/zero-audit-remediation` checkout
+at main `8192a7ab7208346d9dbce6746b231fb499b1a48e`. The saved pre-remediation
+baseline defines the reviewed hunk boundary; 55 files include the original audit
+report/receipt and preserved latest-main release-state archive. Original checkout
+file hashes, staging and working status were verified unchanged before commit.
+
+Latest-main Git/publishing changes were retained. The Start Page outcome boundary
+keeps the Get Git recovery action, with an actual-registration regression. Selected
+project saves apply to fresh publishing, while saved-dispatch/recheck/resume flows
+preserve current dirty buffers and the final source-open guard. One bounded
+Sol/high worker integrated the publishing pair; a Terra/high read-only scope
+check identified shared-file and original-audit receipt boundaries. No unrelated
+owner hunk or release record was copied from the dirty checkout.
+
+Pre-review checks passed: 72 onboarding/Start Page, 83 builder/evidence and 67
+website-focused tests; the publishing worker passed 92 with one filesystem skip.
+Website typecheck, all four template publication gates and configuration/syntax/
+command/documentation checks pass. Historical cloud suites remain scoped to their
+recorded candidate; GitHub CI must validate this new integrated head before merge.
+Independent fixed-diff review and CI state are recorded with the PR. No installer,
+kit, website or service release is authorized by source-merge authority.
+
+
+## PR380 review and local candidate correction — 2026-11-18
+
+[PR380](https://github.com/codepetca/zero/pull/380) integrates the scoped audit
+changes onto main `8192a7ab7`. Independent Sol/high correctness and Terra/high
+compatibility reviews covered head `44a4b401b` with no actionable findings. The
+cloud production build of that exact head passed 16 Chrome layouts (Home,
+Tutorials, Docs and Hub; light/dark; 320/1280px), distinct setImage overload
+labels, keyboard destination focus, Account Escape/focus return and navigation.
+Nineteen screenshots were captured; no page errors or horizontal overflow. Hub
+discovery exercised the local 503 retry state, not authenticated hosted success.
+
+Initial Windows CI compared changed builder source against immutable published
+0.5.79 assets and correctly failed kit parity. Following RELEASING, the source
+candidate now uses local/unpublished kit and extension 0.5.80, with the new tag
+and VSIX filename and cleared public URLs, sizes and hashes. Core remains 0.3.0.
+The exact previously published 0.5.79 kit manifest is retained in published-kit.json
+so local-candidate fallback preserves current public downloads and Portable parity.
+The installer and Portable publication records and README download remain unchanged. Getting Started and starter README use
+version-independent VSIX instructions already. This correction builds source
+candidates; it does not publish a kit, installer or website.
+
+The PR records final targeted review, check runs and merge state. Initial browser
+compatibility CI passed. Prior cloud full-suite results retain their original
+source scope. Current source integration, package parity, release contracts and
+publication gates are checked separately. The original checkout remains untouched;
+all commits and generated outputs belong to the isolated PR worktree.

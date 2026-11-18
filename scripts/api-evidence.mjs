@@ -11,6 +11,16 @@ const require=createRequire(import.meta.url);
 const core=require('../extension/src/core-contract');
 const repositoryRoot=fileURLToPath(new URL('../',import.meta.url));
 export const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+export function mappingSummary(manifest) {
+ validateSignatureManifest(manifest);
+ const targets=['native','browser'];
+ const unmapped=manifest.signatures.flatMap(entry=>targets.filter(target=>!entry.evidence[target].length).map(target=>({signatureId:entry.id,target})));
+ const unmappedDeclarations=Object.fromEntries(targets.map(target=>[target,unmapped.filter(entry=>entry.target===target).length]));
+ return {schema:2,status:'mapping-only',manifestSha256:hash(JSON.stringify(manifest)),declarations:manifest.signatures.length,
+  mappedDeclarations:Object.fromEntries(targets.map(target=>[target,manifest.signatures.length-unmappedDeclarations[target]])),
+  unmappedDeclarations,requiredExecutedTargets:manifest.signatures.length*targets.length,
+  note:'Source assertion mappings only. Assess actual execution separately with --report --receipts and retained source-current receipts.',unmapped};
+}
 export const nativeCases=Object.freeze(['ActorCheck','AudioCheck','GameHelpersCheck','NavigationCheck','UiCheck','SmokeLauncher','PaddingLauncher'].map(name=>({id:'native/'+name,target:'native',fixture:'framework/checks/zero/'+name+'.java',harness:'scripts/verify-framework.mjs'})));
 export const browserCases=Object.freeze([
  {id:'browser/helpers',target:'browser',fixture:'framework/web-checks/Main.java',harness:'scripts/web-browser-checks.js'},
@@ -430,11 +440,13 @@ export function validateEvidenceReceipts({manifest,receipts=[],expectedIdentitie
  return {schema:1,status:gaps.length?'pending':'complete',declarations:manifest.signatures.length,requiredTargets:manifest.signatures.length*2,coveredTargets:covered,gaps};
 }
 async function main(args){
- const flags=new Set(['--report','--require-complete','--write']);let javaHome=process.env.JAVA_HOME,cacheRoot,receiptsDirectory;
+ const flags=new Set(['--report','--require-complete','--write','--write-summary']);let javaHome=process.env.JAVA_HOME,cacheRoot,receiptsDirectory;
  for(let index=0;index<args.length;index++){if(args[index]==='--java-home'){javaHome=args[++index];if(!javaHome)fail('missing --java-home');}else if(args[index]==='--cache'){cacheRoot=args[++index];if(!cacheRoot)fail('missing --cache');}else if(args[index]==='--receipts'){receiptsDirectory=args[++index];if(!receiptsDirectory)fail('missing --receipts');}else if(!flags.has(args[index]))fail('unknown argument '+args[index]);}
  const filename=path.join(repositoryRoot,'framework/evidence/api-signatures.json');
- if(args.includes('--write')){const actual=mapJavaProbeAssertions(inventoryDeclarations({javaHome,cacheRoot}));fs.writeFileSync(filename,JSON.stringify(actual,null,2)+'\n');console.log('Recorded '+actual.signatures.length+' semantic declarations; Java assertion mappings are pending actual execution.');return;}
+ const writeSummary=manifest=>fs.writeFileSync(path.join(repositoryRoot,'framework/evidence/coverage-gaps.json'),JSON.stringify(mappingSummary(manifest),null,2)+'\n');
+ if(args.includes('--write')){const actual=mapJavaProbeAssertions(inventoryDeclarations({javaHome,cacheRoot}));fs.writeFileSync(filename,JSON.stringify(actual,null,2)+'\n');writeSummary(actual);console.log('Recorded '+actual.signatures.length+' semantic declarations and source assertion mappings; assess execution with source-current receipts.');return;}
  const manifest=assertManifestSources(JSON.parse(fs.readFileSync(filename,'utf8')));
+ if(args.includes('--write-summary')){writeSummary(manifest);console.log('Recorded source mapping summary for '+manifest.signatures.length+' declarations; execution status was not assessed.');return;}
  const report=validateEvidenceReceipts(receiptsDirectory?loadJavaEvidence(receiptsDirectory,{manifest}):{manifest});console.log(JSON.stringify(report,null,2));if(args.includes('--require-complete')&&report.status!=='complete')process.exitCode=1;
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))main(process.argv.slice(2)).catch(error=>{console.error(error.message);process.exitCode=1;});

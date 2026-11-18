@@ -69,13 +69,13 @@ async function execute(request, controller) {
   const before = await readClosure();
   const projectRoot = path.resolve(request.projectRoot || path.dirname(root));
   const snapshot = require('./src/web-export/snapshot');
-  const selected = await snapshot.assertSelectedBuilder(projectRoot, path.join(root, 'src/web-export'));
+  const selected = await snapshot.assertSelectedBuilder(projectRoot, path.join(root, 'src/web-export'),{signal:controller.signal});
   if (request.operation === 'inspect') return {protocol: 1, closureSha256: before.manifest.closureSha256, files: before.manifest.files.length, runtime: before.runtime};
   const environment = sanitizeEnvironment();
   if (request.operation !== 'capture') {
     try {checkRuntimes(before.runtime, environment, {needsJava: request.operation !== 'validate'});} catch(error) {if(request.operation==='compatibilityCached')return {status:'unavailable',identity:null,diagnostics:[{code:'RUNTIME_UNAVAILABLE',message:String(error.message).slice(0,8192)}]};throw error;}
   }
-  const captured = await snapshot.captureBuildInputs(projectRoot);
+  const captured = await snapshot.captureBuildInputs(projectRoot,{signal:controller.signal,metadataOnlyResources:request.operation!=='capture'});
   if (request.operation === 'capture') return {sourceHash: captured.sourceHash, inputs: snapshot.commitInputMetadata(captured.files), profileHash: selected.profileHash, closureSha256: before.manifest.closureSha256};
   const cacheBase = request.cacheRoot || path.join(os.homedir(), '.cache', 'zero', 'project-builder');
   const cacheRoot = path.join(cacheBase, before.manifest.closureSha256);
@@ -101,7 +101,7 @@ async function execute(request, controller) {
     finally {await fs.rm(workRoot, {recursive: true, force: true});}
   }
   if ((await readClosure()).manifest.closureSha256 !== before.manifest.closureSha256) throw new Error('Saved browser tooling changed during the operation.');
-  if ((await snapshot.captureBuildInputs(projectRoot)).sourceHash !== captured.sourceHash) throw new Error('Project inputs changed during the operation.');
+  if ((await snapshot.captureBuildInputs(projectRoot,{signal:controller.signal,metadataOnlyResources:true})).sourceHash !== captured.sourceHash) throw new Error('Project inputs changed during the operation.');
   return result;
 }
 async function main() {
