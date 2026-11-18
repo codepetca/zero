@@ -6078,3 +6078,30 @@ command/documentation checks pass. Historical cloud suites remain scoped to thei
 recorded candidate; GitHub CI must validate this new integrated head before merge.
 Independent fixed-diff review and CI state are recorded with the PR. No installer,
 kit, website or service release is authorized by source-merge authority.
+
+
+## PR380 review and local candidate correction — 2026-11-18
+
+[PR380](https://github.com/codepetca/zero/pull/380) integrates the scoped audit
+changes onto main `8192a7ab7`. Independent Sol/high correctness and Terra/high
+compatibility reviews covered head `44a4b401b` with no actionable findings. The
+cloud production build of that exact head passed 16 Chrome layouts (Home,
+Tutorials, Docs and Hub; light/dark; 320/1280px), distinct setImage overload
+labels, keyboard destination focus, Account Escape/focus return and navigation.
+Nineteen screenshots were captured; no page errors or horizontal overflow. Hub
+discovery exercised the local 503 retry state, not authenticated hosted success.
+
+Initial Windows CI compared changed builder source against immutable published
+0.5.79 assets and correctly failed kit parity. Following RELEASING, the source
+candidate now uses local/unpublished kit and extension 0.5.80, with the new tag
+and VSIX filename and cleared public URLs, sizes and hashes. Core remains 0.3.0.
+The existing public-kit fallback, installer and Portable publication records and
+README public download remain unchanged. Getting Started and starter README use
+version-independent VSIX instructions already. This correction builds source
+candidates; it does not publish a kit, installer or website.
+
+The PR records final targeted review, check runs and merge state. Initial browser
+compatibility CI passed. Prior cloud full-suite results retain their original
+source scope. Current source integration, package parity, release contracts and
+publication gates are checked separately. The original checkout remains untouched;
+all commits and generated outputs belong to the isolated PR worktree.
