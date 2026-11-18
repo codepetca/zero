@@ -104,6 +104,21 @@ function observeProjectHistory(listener:()=>void) {
 }
 const isHistoryRestore=()=>typeof window!=='undefined'&&restoredLocation!==undefined&&restoredLocation===window.location.href;
 
+function ProjectPlaceholders() {
+  return Array.from({length:4},(_,index)=><div key={index} className={styles.projectPlaceholder} aria-hidden="true" />);
+}
+
+export function HubProjectsFallback() {
+  return <section className={styles.catalog} aria-labelledby="sharing-heading">
+    <h1 id="sharing-heading">Projects</h1>
+    <div className={styles.searchPlaceholder} aria-hidden="true" />
+    <p className="sr-only" role="status">Loading projects…</p>
+    <div className={`${styles.cards} ${styles.projectCards} ${styles.compactProjectCards}`} aria-busy="true">
+      <ProjectPlaceholders/>
+    </div>
+  </section>;
+}
+
 export function HubDiscovery({enforceJamVisibility=true, showListings=false, libraryOwnerId, paginatedProjects=false, initialProjects}: {
   enforceJamVisibility?:boolean;showListings?:boolean;libraryOwnerId?:string;paginatedProjects?:boolean;initialProjects?:unknown;
 }) {
@@ -120,7 +135,6 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const [search, setSearch] = useState('');
   const [pageCursors, setPageCursors] = useState<string[]>([]);
   const heading = useRef<HTMLHeadingElement>(null);
-  const previousCardCount = useRef(0);
   const revalidating = useRef(false);
   const pageQuery = new URLSearchParams({q:search.trim()});
   const pageCursor = pageCursors.at(-1);
@@ -215,7 +229,6 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const metricIds = showDiscoveryCards ? '' : [...(projectPage?projects:visibleProjects).map(project=>project.id),
     ...(projectPage?releases:visibleReleases).filter(release=>release.status==='available').map(release=>release.id)].join(',');
   const playRefs = projectPage ? [...new Set([...projects,...releases,...listings].map(item=>item.playRef).filter(validPlayRef))].join(',') : '';
-  if (projectPage&&discovery) previousCardCount.current=visibleProjects.length+visibleReleases.length+visibleListings.length;
   useEffect(()=>{
     const leave=()=>{leftPage.current=true;};
     const refresh=()=>{
@@ -397,10 +410,9 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
       {!id && !version && <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label={libraryOwnerId?'Search my libraries':'Search ZeroHub'} value={search} onChange={event=>{setSearch(event.target.value);if(projectPage)setPageCursors([]);}} maxLength={200} placeholder={libraryOwnerId?'Search my libraries':'search zerohub'} /></div>}
     {practiceOnly && <p className="hub-note">These CreditsBadge libraries are copied tutorial work. Similar copies are expected, and each repository keeps its own library identity. Periodic cleanup may remove libraries from the catalog. Your source and any copies already added to projects stay available.</p>}
     {(id || version) && <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {label}</Link></p>}
-    {projectPage&&!discovery&&!error&&<p className={styles.progress} role="status">Fetching…</p>}
+    {projectPage&&!discovery&&!error&&<p className="sr-only" role="status">Loading projects…</p>}
     <div className={gridClassName} aria-busy={projectPage&&!discovery&&!error||undefined}>
-    {projectPage&&!discovery&&!error&&Array.from({length:previousCardCount.current},(_,index)=>
-      <div key={index} className={styles.projectPlaceholder} aria-hidden="true" />)}
+    {projectPage&&!discovery&&!error&&<ProjectPlaceholders/>}
     {visibleProjects.map(project => {
       const launch=projectPage?cardPlay(project.playRef):{site:undefined,playHref:showDiscoveryCards?undefined:maintainedPlayLink(project)};
       const {site,...playProps}=launch;
