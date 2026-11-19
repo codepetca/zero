@@ -166,6 +166,7 @@ function createProblemReporter(vscode, context, {
     return chain;
   }
   function clear() {
+    const hadStoredReports = queue.length > 0 || context.globalState?.get(KEY) !== undefined;
     consentGeneration++;
     clearTimeout(timer);
     timer = undefined;
@@ -173,7 +174,7 @@ function createProblemReporter(vscode, context, {
     queue = [];
     failures.clear();
     queueScopes.clear();
-    void persist();
+    if (hadStoredReports) void persist();
   }
   function settingChanged() {
     if (!enabled()) clear();

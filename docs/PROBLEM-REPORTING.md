@@ -55,7 +55,8 @@ of the same report must keep one occurrence. A reported recovery describes a
 later matching operation and does not establish that a released fix caused it.
 The initial recovery hook covers publishing in the same editor session, after
 the server accepts its failure and the same project reaches verified live
-publication and confirmed browser opening. Other operation types currently
+publication, with confirmed browser opening additionally required for an
+opening-stage failure. Other operation types currently
 report failures without recovery transitions. Native task launch alone cannot
 establish that an app recovered.
 

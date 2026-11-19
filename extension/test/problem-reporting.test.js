@@ -14,6 +14,15 @@ function fixture({enabled=true,telemetry=true,stored,send,timeoutMs=30,project}=
 }
 const tick=()=>new Promise(resolve=>setTimeout(resolve,10));
 const bad=()=>Object.assign(new Error('secret /Users/student project https://github.com/a/b token'),{code:'WEB_PUBLISH_DEPLOYMENT_FAILED'});
+test('disabled reporting leaves an untouched editor profile without a queue record',async()=>{
+  const f=fixture({enabled:false,send:async()=>{throw Error('Unexpected submission');}});
+  await tick();
+  assert.equal(f.store,undefined);
+  f.reporter.failure(bad(),'publish','deploying');
+  await tick();
+  assert.equal(f.store,undefined);
+  f.reporter.dispose();
+});
 test('classification rejects expected and untrusted generic failures',()=>{
   assert.equal(classify(bad()),'WEB_PUBLISH_DEPLOYMENT_FAILED');
   assert.equal(classify(new TypeError('secret')),'ZERO_INTERNAL_TYPE_ERROR');
