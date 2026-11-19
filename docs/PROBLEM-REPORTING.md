@@ -30,8 +30,7 @@ project code. The initial collector can read the bounded framework coordinate
 record and explicit Windows launcher distribution markers. Java and browser
 builder release versions remain `unknown` because the current operation hooks
 do not supply those observed versions. macOS product version and unmarked
-distributions also remain `unknown`; kernel version is not labeled as a macOS
-product release.
+distributions also remain `unknown` pending observed values from supported host tooling.
 
 The shared [report contract](../extension/src/problem-report-contract.js) rejects
 unrecognized fields. Automatic payloads contain no raw error messages, stacks,
@@ -97,8 +96,7 @@ reconciliation when GitHub accepted a write but its response was lost. A timeout
 must retain an uncertain delivery state. Retrying must reconcile that state
 before creating another issue. Operator configuration and schema initialization
 are required before enabling the endpoint. Preview deployments refuse production
-reporting credentials. The database pins its destination repository identity;
-changing configuration cannot silently reuse its issue bindings for another
+reporting credentials. The database pins its destination repository identity. Changing configuration cannot silently reuse its issue bindings for another
 repository.
 
 Apply [the reporting schema](../website/sql/problem-reports.sql) explicitly to a
@@ -108,7 +106,7 @@ dedicated database, then configure these server-only values.
 | --- | --- |
 | `ZERO_REPORTS_ENABLED` | `true` enables configured service handling |
 | `ZERO_REPORTS_ENVIRONMENT` | `production` for deployed service, `development` for isolated local verification |
-| `ZERO_REPORTS_DATABASE_URL` | Bare PostgreSQL connection URL with no query or fragment; production verifies TLS |
+| `ZERO_REPORTS_DATABASE_URL` | Bare PostgreSQL connection URL with no query or fragment, with verified TLS in production |
 | `ZERO_REPORTS_GITHUB_APP_ID` | Dedicated GitHub App numeric ID |
 | `ZERO_REPORTS_GITHUB_INSTALLATION_ID` | Installation authorized for the private inbox |
 | `ZERO_REPORTS_GITHUB_PRIVATE_KEY` | Server-only RSA private key |
@@ -129,8 +127,7 @@ server configuration available securely in the environment. The default is
 read-only aggregate status. Add `--apply` to explicitly attempt delivery. Output
 contains only status and counts. A create whose outcome is uncertain and whose
 marker cannot be found remains `needsAttention`. Inspect the private repository
-and retained delivery state before resolving it; the service never blindly
-creates a second issue. The scheduler also refreshes delivered groups in bounded
+and retained delivery state before resolving it. Automatic delivery preserves the original issue creation attempt. The scheduler also refreshes delivered groups in bounded
 round-robin order to repair late aggregate-count updates.
 
 Service requests are bounded by payload size, request deadlines and durable
@@ -143,7 +140,7 @@ connection metadata separately from the report payload.
 The database schema supplies no automatic report deletion. Private issues and
 delivery records remain until the operator removes them. After confirmed issue
 binding, the service removes the optional manual description from its database
-payload; the private issue retains it. Set and verify the operating retention
+payload. The private issue retains it. Set and verify the operating retention
 policy and provider backup limits at activation. The report receipt is not an
 identity record or a promise of complete deletion.
 

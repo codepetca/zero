@@ -1,17 +1,32 @@
 # Automatic problem reporting — 2026-11-18
 
-Local implementation and activation are distinct. See [reporting operation and
-acceptance](PROBLEM-REPORTING.md). Automatic reporting defaults off and requires
-both the Zero setting and VS Code telemetry permission. The private service also
-requires explicit configuration and a pinned private destination. No release,
-reporting repository, credentials or production collection was activated here.
+Reviewed source `2aad43a5d4bfe74a886b351a0e301941b4721476`, based on `d098d0d2f`.
+See [operation and activation](PROBLEM-REPORTING.md) and
+[review receipts](EVIDENCE.md#automatic-problem-reporting-implementation--2026-11-18).
+Automatic collection defaults off and requires both the Zero setting and VS Code
+telemetry permission. The service requires a verified private destination and
+explicit server configuration.
 
-Pre-review verification covers real isolated PostgreSQL concurrency and failure
-injection with fake GitHub, strict payload validation, editor opt-out/retries and
-manual-review context, source checks and website typecheck. The browser sidebar
-fixture displays its report action. The dedicated native source extension host
-activated successfully; its actual manual dialog walkthrough remains unverified.
-Full-suite/build results and independent review are pending final integration.
+| Evidence | Result and limits |
+| --- | --- |
+| Schema, collector, native/browser context and service | All 57 cases are covered on final source or unchanged reviewed code and pass. The collector's final 17-case run includes consent epochs, retry identities and disabled startup. |
+| Service concurrency and failure injection | 7 cases, actual temporary socket-only PostgreSQL, fake GitHub. Includes private destination/permission refusal, delivery ambiguity, orphan recovery rejection and read-only health. |
+| Existing startup behavior | Both affected onboarding cases pass with no default profile write. |
+| Sidebar gallery | 10 cases pass after adding the fixture's report state. Actual browser view shows Report a problem beside local error guidance. |
+| Publishing | New failed-result/browser-open UI cases and actual GitHub conclusion fixture pass. Expected cancelled/action-required/skipped outcomes stay unreported. |
+| Git regressions | All 31 cases across branch-status UI, network-denied cleanup and saved-commit synchronization pass sequentially on final source. |
+| Website suite | 873 passed, 2 timing failures, 3 skipped in the broad run. Both affected unchanged files then pass 37/37. |
+| Source checks and website | Configuration/syntax/local links and typecheck pass. Production build succeeds with both new API routes. Guard-only corrections reuse build coverage with current focused/typecheck evidence. |
+| Broad source run | Interrupted after 25 minutes because it spanned intermediate fixes and remained nongreen. Its failing files were corrected or rerun successfully. No complete green full-source/hosted-CI run is established. |
+| Native and external acceptance | Dedicated source extension host activated. Actual report-dialog walkthrough, physical Windows and live GitHub/App/private service remain unverified. |
+| Independent review | Security and compatibility complete, 5 review turns / 2 correction batches, no remaining source blockers at the reviewed source. |
+
+Source implementation does not activate production collection. The private
+repository/App, dedicated PostgreSQL schema/credentials, scheduler enablement,
+full hosted CI and an authorized editor release remain rollout work. Reports
+carry bounded technical evidence. Java and builder release versions, macOS
+product version and unmarked distributions can remain `unknown`. Initial
+recovery transitions cover matching publishing operations in the same session.
 
 # Verification
 

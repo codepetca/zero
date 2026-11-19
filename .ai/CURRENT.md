@@ -1,25 +1,29 @@
-# Automatic problem reporting — 2026-11-18
+# Automatic problem reporting prepared locally — 2026-11-18
 
-Owner approved implementation of minimal automatic error reports after opt-in,
-a reviewed manual fallback and a private GitHub issue inbox. Work is isolated on
-`codex/automatic-error-reporting`, based on `d098d0d2f` from main. The owner's
-primary checkout and the separate 0.5.81 preparation worktree retain their work.
+Owner approved opt-in automatic reports, reviewed manual reports and a private
+GitHub issue inbox. Branch `codex/automatic-error-reporting`, base `d098d0d2f`,
+reviewed source `2aad43a5d4bfe74a886b351a0e301941b4721476`. This worktree is
+attached to the reporting chat. The primary checkout and separate 0.5.81 release
+preparation retain their work.
 
-The coordinator owns the shared schema, documentation, integration and acceptance.
-Sol/high owns the service, PostgreSQL coordination and GitHub delivery. Terra/high
-owns editor collection, settings, manual reporting and focused editor checks.
-Automatic reports exclude raw local diagnostics and identifying project/account
-fields. Student compiler/runtime errors are manual-only where ambiguous. Reports
-remain untrusted evidence for reproduction and review.
+Source implementation and independent reviews are complete. Sol/high reviewed
+security/correctness and compatibility, with five review turns, two correction
+batches and no remaining source blockers. The [reporting guide](../docs/PROBLEM-REPORTING.md)
+records activation, bounded payloads, unknown metadata and publishing-only recovery.
 
-Implementation and verification are in progress. Next complete source checks,
-real isolated PostgreSQL/GitHub-fake failure injection and independent security
-and compatibility reviews. See [problem reporting](../docs/PROBLEM-REPORTING.md)
-for the product contract and operational setup. Service activation, account and
-credential changes, pushes, merge, deployment and an editor release are pending
-separate applicable owner authorization. No live report delivery is established.
+Verification covers 57 focused reporting/native/browser/service cases (including
+actual isolated PostgreSQL), 2 startup cases, 10 gallery cases and 31 real-Git
+regression cases. The website suite had 873 passes, 2 timing failures and 3 skips;
+the two affected files then passed all 37 cases. Source checks, typecheck and
+production build pass within the [recorded scope](../docs/VERIFICATION.md).
+The broad source run spanned corrections and was interrupted; no complete green
+full-suite/hosted-CI result is claimed. The native dialog, physical Windows and
+live GitHub/App service remain unverified.
 
-The public 0.5.80 release remains recorded in the
-[release ledger](../docs/RELEASE-LEDGER.md#zero-0580--2026-11-18). Preserve immutable
-assets, approved designs, ordinary Java and student ownership. **Learn to Build**
-/ **Starting from zero** remains the positioning.
+Next obtain applicable publication authority, push a reviewed draft PR and run
+full CI. Service activation requires the dedicated private repository/App,
+PostgreSQL schema, server credentials and explicitly enabled scheduler. Automatic
+reporting defaults off. No live reporting collection or new editor release has
+been activated. The [0.5.80 release ledger](../docs/RELEASE-LEDGER.md#zero-0580--2026-11-18)
+retains public release state. **Learn to Build** / **Starting from zero** remains
+the positioning.

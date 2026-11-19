@@ -1,28 +1,58 @@
 # Automatic problem reporting implementation — 2026-11-18
 
-Owner approved opt-in automatic reporting, reviewed manual reports and a private
-GitHub issue inbox. Branch `codex/automatic-error-reporting`, base `d098d0d2f`.
-Implementation workers used Sol/high for service correctness and Terra/high for
-editor integration. Effective model/token attribution is unavailable. Initial
-weekly remaining was 32%; storage was healthy with 175 GB available. Work stayed
-in a separate checkout and reused dependencies, then installed the website's
-pinned dependencies locally when Turbopack rejected an external dependency link.
+Owner approved minimal automatic reports after opt-in, reviewed manual reports
+and a private GitHub issue inbox. Branch `codex/automatic-error-reporting`, base
+`d098d0d2f`, reviewed source `2aad43a5d4bfe74a886b351a0e301941b4721476`.
+Implementation used requested Sol/high for the service and Terra/high for the
+editor. Requested Sol/high independently reviewed security and compatibility.
+Effective model and per-worker token attribution are unavailable. Initial weekly
+remaining was 32%. Storage checks remained healthy with about 175 GB available.
 
-The shared contract rejects raw diagnostic/identity fields. Collector tests
-exercise opt-out, bounded queue/retries, matching-scope recovery, reviewed manual
-retry identity and failure classification. The service's actual socket-only
-PostgreSQL tests exercise concurrent idempotency, rejected/orphan recoveries,
-private destination verification, uncertain writes and scheduled reconciliation.
-All GitHub provider calls use local fakes. No live reports or account changes.
+The shared schema rejects raw diagnostics, paths, source and account/project
+identifiers. Global opt-in/telemetry changes cancel and clear automatic delivery.
+Reviewed manual retries retain their original ID. Actual PostgreSQL with a
+socket-only temporary cluster proves idempotency, concurrent delivery, matching
+failure/recovery, destination pinning and ambiguous provider reconciliation.
+GitHub calls use local fakes. Live acceptance requires operator setup.
+The default operator health path is SELECT-only. Scheduled delivery is prepared
+behind an explicit repository variable and dedicated secret.
 
-Pre-review source checks, website typecheck, 8 contract tests, service 7 tests and
-editor-focused checks pass. The actual browser sidebar fixture shows Report a
-problem beside the useful local error. The source extension activated in an
-isolated native Dev host; native dialog walkthrough is unverified because the
-computer-use surface selected another Code process and could not capture the
-task's window. Broad checks are still running. The initial broad run exposed a
-missing gallery fixture variable, now corrected and verified by 10 gallery tests.
-Independent security and compatibility review follows on a fixed revision.
+Independent review inspected initial source `f30969080401` and corrected source
+`6e9559f3de98`, then final source `2aad43a5d4bf`. The ledger is 5 review turns,
+1 initial wave with 2 reviewers, 2 targeted waves, 1 integration wave and 2 fix batches.
+Three unique initial findings were accepted and fixed. These covered the consent revocation race,
+expected tooling guidance reported automatically, and stale manual runtime
+context. A later broad-test finding about disabled startup writing an empty
+queue was fixed and reviewed. No source blockers remain. Reviewer elapsed time
+and tokens were not measured. A reviewer independently reproduced the consent
+race and verified both suppression of revoked work and delivery under new consent.
+
+Accepted current evidence includes 57 focused schema/collector/native/browser/
+service checks, 2 existing startup checks, 10 gallery checks, the two new publishing
+UI cases and the publisher conclusion case. The 3 previously failing Git files
+passed 31 cases sequentially in 261.7 seconds. The website suite recorded 873 passes,
+2 timing failures and 3 skips. Both affected unchanged files then passed 37/37.
+The initial source run spanned intermediate corrections and was interrupted
+after 25 minutes. Its gallery and startup regressions were corrected, and failed
+Git files passed on the final source. A fresh full CI result remains required
+before merge. Configuration/syntax/local-links and website typecheck pass.
+The production website build includes both reporting routes. Subsequent source
+corrections were collector guards/manual-context handling and SELECT-only health,
+with current focused tests and typecheck evidence retained.
+
+Actual browser verification shows Report a problem next to a local sidebar error.
+The isolated native Dev host activated the source extension. Its report-dialog
+walkthrough remains unverified because computer use targeted another Code process
+and could not capture the dedicated window. Physical Windows, live GitHub App/
+private repository and hosted database/service acceptance remain separate.
+
+The owner checkout and 0.5.81 preparation worktree retain their edits. Website
+pinned dependencies were installed locally after Turbopack refused a dependency
+symlink outside the worktree. No dependency pins changed. No push, merge,
+reporting repository/App creation, credential change, deployment or new editor
+release occurred. The [reporting guide](PROBLEM-REPORTING.md) records the exact
+operator configuration and rollout requirements. Automatic collection defaults
+off. Private GitHub issues hold untrusted evidence for future AI investigation.
 
 # ZeroHub Projects responsiveness — 2026-11-18
 
