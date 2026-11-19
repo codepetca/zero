@@ -23,6 +23,60 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
+## Zero 0.5.81 local preparation — 2026-11-18
+
+Owner authorized preparation only. No source push, merge, tag, public release,
+website promotion or Store submission occurred. Source branch is
+`codex/prepare-zero-081`, based on main `d098d0d2f`. Publishing recovery is
+`66ca2c587`; release metadata is `8691ae6bc`; a native-run test fixture correction
+is `51808415f`. Core remains 0.3.0. Report a problem is not implemented; that
+discussion was handed to the always-on improvements chat.
+
+An explicit browser build/publish can offer **Update Browser Tools**, preserve
+old tools, update only `.zero-build` and continue. Java/assets/framework stay
+unchanged. Cancelling ends quietly; incomplete full-project recovery still
+blocks browser actions. Missing Git revisions receive clearer guidance, without
+claiming that all previously reported merge errors have been reproduced/fixed.
+
+Public starter commit `32c4d56a706d8d677db0eecfea5b202ca1bee8ca`, tree
+`369608a5d9847148dc801b3b1e2499adcb00a767`, matches the candidate source and modes.
+The actual 0.5.81 VSIX passed compatibility, unedited native UI, Sam/Ada native
+Greeting and Chrome157 WebFX Greeting checks. It installed in an isolated Mac
+VS Code profile. The template did not need an update.
+
+The Mac candidate was built cleanly at `51808415fc3207afd639fa8784c3910e43539335`
+and sealed at `60a822be2251a9b086518ba05e230fae9fb9b0fe` after protected-source
+equivalence. Apple accepted submission `47226a05-b83b-4792-8c27-d738b5e6c325`.
+Staple, actual app/DMG Gatekeeper and Developer ID signature/payload checks passed.
+The sealed build80 update feed advances public build79 without changing keys.
+Both Portable candidates were built cleanly at `8691ae6bc` and embed the exact
+same kit ZIP; the complete archive passed launcher, runtime, editor and Java
+extension integrity checks. Its build source precedes only the test fixture and
+measured Mac manifest changes.
+
+The ignored, independently checksummed local set is
+`dist/candidates/release-0.5.81-60a822be2251/` (25 files), including the canonical
+Mac seal and corresponding Git source archives, both Portable candidates,
+Project → New receipt and explicit preparation limits. It is not a source-bound
+GitHub Actions release run. Preserve these bytes and all published 0.5.80 bytes.
+Generated Portable promotion metadata contains intended future URLs, not live
+publication evidence.
+
+| Local artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| zero-bootstrap.zip | 5,110,868 | `d05df0ee867a057c602fb0084ded92585a83baf7cdc64972b8a931f0b2dd0d4a` |
+| zero-starter.zip | 2,778,887 | `a08e667601bf4f6dbcbe1bf2597137503fc641281f373cb82ee81ad778496f60` |
+| zero-0.5.81.vsix | 2,307,016 | `d58657241c4492d2d83d485b09eb18920c6f823c03ef698fa310c2226a9e4a4a` |
+| Zero-0.5.81-macos.dmg | 12,355,550 | `757ef6a398d62904925d77e65b3974427ddb508c1c4dc6c78d5c81fd510ef0c8` |
+| Zero-0.5.81-windows-portable-pilot-staging-x64.zip | 5,419,388 | `aeed8634d3aad2ca47bb37caa7893bb4dcd30a43a78ee1a922365b2a2312e505` |
+| Zero-0.5.81-windows-portable-bundled-x64.zip | 605,973,247 | `98f59f4c1c82f388c9f249e4207a3f27b097d138d4a890a411c221b4f8a1e9de` |
+
+Hosted source/release CI and complete-ZIP Windows cold/warm acceptance remain
+required before full publication. Windows Store MSIX 0.5.81 is not built or
+submitted; retain the separate 0.5.80 submission. Physical school computers,
+authenticated Pages upload and live updater delivery remain unverified.
+See [evidence](EVIDENCE.md) for checks and review.
+
 ## Zero 0.5.80 — 2026-11-18
 
 Owner authorized the full 0.5.80 website release. It includes the reviewed audit

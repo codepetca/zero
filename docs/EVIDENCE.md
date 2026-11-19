@@ -1,3 +1,34 @@
+# Zero 0.5.81 local release preparation — 2026-11-18
+
+See the [release ledger](RELEASE-LEDGER.md#zero-0581-local-preparation--2026-11-18)
+for exact source commits, measured artifacts, notarization and remaining gates.
+The local set at `dist/candidates/release-0.5.81-60a822be2251/` passed all25
+checksums. The canonical Mac seal independently proved archive/source parity,
+Developer ID signatures, staple, Gatekeeper and signed build80 feed/archive.
+The public starter and packaged VSIX passed real JavaFX and Chrome157 Greeting;
+the VSIX installed into an isolated editor profile. Both Portable ZIPs embed the
+same measured kit; the complete ZIP passed archive/runtime integrity checks.
+
+Checks: configuration/syntax/links, packaging, kit verification and diff checks
+passed. Release tests102/102, installer tests17/17, Mac preparation tests2/2,
+update tests11 passed/2 skipped. The native-run fixture was corrected to mock the
+new browser-tools planner after the full matrix exposed an unbounded wait;
+its targeted test passes1/1 in3.2s. The original matrix reported2562 passed,155 skipped and3 failed, including
+that terminated fixture. A complete logged rerun is in progress to identify
+and resolve the remaining failures; do not claim a clean full-suite result.
+
+Independent Terra/medium reviewed metadata `8691ae6bc` and targeted fixture
+`51808415f`, with no actionable findings in either wave. It verified the exact
+published kit snapshot, unchanged public native/feed/Portable records, build80
+ordering and point-in-time absence of tag/releasev0.5.81. Source behavior reuses
+the prior two Sol/high reviews below. Independent Sol/high review at `60a822be2251` found no actionable findings.
+It verified all15 Mac checksums, both Portable checksums, six candidate sizes/hashes,
+every protected source path, embedded VSIX/kit parity, Ed25519 feed/archive
+signatures, build ordering and actual DMG codesign/staple/Gatekeeper. It also
+checked the exact Project → New receipt and unchanged public records.
+Effective model, tokens and task cost were not exposed; no DeepSeek was used.
+No publication, Store upload, source push or merge occurred.
+
 # Browser publishing recovery — 2026-11-18
 
 On `98ab09c64`, an explicit browser build or publish can offer **Update Browser
