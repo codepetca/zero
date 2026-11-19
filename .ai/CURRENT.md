@@ -1,23 +1,24 @@
-# Zero 0.5.82 released — 2026-11-19
+# AI report triage and fixing flow — 2026-11-19
 
-Owner-authorized full release: [source PR392](https://github.com/codepetca/zero/pull/392),
-[promotion PR393](https://github.com/codepetca/zero/pull/393), merge `6638d24d2`.
-Core remains 0.3.0. All 12 promotion checks passed at `1b7cf8995`; independent
-security/compatibility reviews and one targeted fixture correction are clean.
+Owner asked to orchestrate AI triage and fixing with false-positive/regression
+safeguards. Isolated branch `codex/ai-report-triage`, base `df864c666`. Preserve
+the original dirty checkout. No student runtime, reporting service, credentials,
+public assets or released 0.5.82 metadata change.
 
-The canonical kit, signed/notarized Mac setup, small and complete Windows Portable
-ZIPs and source companions are public and anonymously hash-verified. Exact public
-Portable cold/warm opening passed. Mac feed is signed build 81. Microsoft Partner
-Center confirms submission 17 / package 1.5.82.0 is live in Store.
+The pure intake verifies numeric provenance and exact generated structured bodies;
+private SQLite supplies leases, fenced state, bounded attempts and a draft outbox.
+Root owns CLI/reproduction/policy/guides; Terra delivered intake/state and owns
+only the new runner/proposal tests during this phase. No overlapping writers.
 
-Production deployment `dpl_BqrdVB6pyBEi6fiSG5ZhdENcimGz` reached READY with the
-canonical alias. Live Mac/Store/Portable links, DMG and signed feed match the seal.
-Reporting ships in the installed 0.5.82 VSIX: one explicit first-run public choice,
-default off, silent eligible errors after consent and direct manual reporting.
-The service and hourly recovery are enabled; actual scheduled reconciliation passed.
+The [maintainer flow](../docs/AI-TRIAGE.md) is draft-only: real baseline assertion
+failure/fixed pass, unchanged existing tests, independent review, selected CI and
+a human merge/release decision. Initial source allowlist is four presentation
+helpers, with three investigations and one draft attempt per UTC day. Other
+changes require owner direction. No report content grants instructions or authority.
 
-The next phase is evidence-based AI issue triage and bounded proposed fixes; that
-runner is not activated by this release. Physical school devices and interactive
-updater acceptance remain separate. Preserve the original dirty checkout and
-immutable public assets. See [release ledger](../docs/RELEASE-LEDGER.md) and
-[evidence](../docs/EVIDENCE.md).
+Focused synthetic/negative cases (32), source checks, website typecheck, actionlint
+and live empty-inbox acceptance pass. Next: two independent consequential-boundary
+reviews; final-head CI and
+reviewed integration; then activate one four-hour local Codex heartbeat attached
+to this chat. No scheduler is active yet. The local worker needs Codex/Mac running.
+Released 0.5.82 remains verified; see [release ledger](../docs/RELEASE-LEDGER.md).

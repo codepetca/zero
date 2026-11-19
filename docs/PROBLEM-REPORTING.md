@@ -38,10 +38,10 @@ Hourly reconciliation is enabled at minute17 UTC. The first hosted dispatch
 exposed the platform's empty request stream versus a null-only check; PR390
 corrected it. Exact-source production deployment and authenticated manual
 workflow44537092433 passed with four delivered groups, zero pending and zero
-needing attention. A future schedule-triggered event remains unobserved.
-A reporting-enabled editor release is still separate; existing published installers
-do not acquire the new collector from a website deployment. Physical Windows
-installer acceptance for the new collector remains separate.
+needing attention. Actual scheduled run44542889224 subsequently passed. The
+reporting-enabled0.5.82 editor is now released; a website deployment alone still
+does not upgrade an installed editor. Physical school-device collector acceptance
+remains separate. See [the completed release record](RELEASE-LEDGER.md).
 
 ## Student flow
 
@@ -105,6 +105,15 @@ Do not describe them as fully anonymous or promise that all possible correlation
 are prevented. Direct GitHub comments have their own public posting context.
 
 ## Classification and investigation
+
+The [maintainer AI workflow](AI-TRIAGE.md) adds verified structured intake, private
+durable attempts/leases, real reproduction checks and a bounded draft-PR outbox.
+The initial rollout polls through local Codex every four hours, with no merge or
+release authority. Public report content cannot modify its permissions. Generic
+manual reports need additional evidence; no AI changes a project or suppresses
+errors merely because an issue exists. The worker receives no report database or
+reporting-App credential. Its activation and live-run evidence are recorded
+separately from these implementation instructions.
 
 The sidebar is a presentation surface. Capture reports at operation boundaries
 where Zero still knows the command, stage and result. A red message alone does

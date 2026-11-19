@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "identity": {
+    "repository": "codepetca/zero-reports",
+    "repositoryId": 1463652567,
+    "appId": 5827621,
+    "appSlug": "codepet-zero-reports",
+    "botLogin": "codepet-zero-reports[bot]",
+    "botUserId": 358573807,
+    "ownerId": 116690057
+  },
+  "source": {"repository": "codepetca/zero", "repositoryId": 1409613370, "branch": "main"},
+  "limits": {
+    "pages": 3,
+    "issuesPerPage": 30,
+    "runSeconds": 1200,
+    "leaseSeconds": 1500,
+    "investigationsPerDay": 3,
+    "draftAttemptsPerDay": 1,
+    "changedFiles": 4,
+    "changedLines": 200,
+    "proposalCommits": 3,
+    "reproductionMilliseconds": 90000
+  },
+  "draftSourcePaths": [
+    "extension/src/explorer-labels.js",
+    "extension/src/publish-progress.js",
+    "extension/src/sidebar-icons.js",
+    "extension/src/ui-controls.js"
+  ],
+  "mergeAllowed": false,
+  "releaseAllowed": false
+}
