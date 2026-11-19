@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
@@ -59,17 +60,18 @@ jobs:
           node --test extension/test/managed-java.test.js
           node --test extension/test/process-specification.test.js
           node --test scripts/test-windows-javafx.test.mjs
-          node --test scripts/windows-wack-report.test.mjs scripts/windows-editor-window.test.mjs
+          node --test scripts/windows-wack-report.test.mjs scripts/windows-editor-window.test.mjs scripts/verify-published-kit.test.mjs
           node --test setup/tests/windows-checkout.test.mjs
       - name: Build measured development installer
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           if ((Get-Content 'release/kit.json' -Raw | ConvertFrom-Json).publication.status -eq 'published') {
             node scripts/prepare-portable-kit.mjs
+            node scripts/verify-published-kit.mjs
           } else {
             npm run package
+            npm run verify:kit
           }
-          npm run verify:kit
           node scripts/build-installers.mjs --platform windows
           node scripts/verify-installers.mjs --platform windows
       - name: Build source-bound Store MSIX with the Windows SDK
@@ -203,7 +205,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
@@ -219,10 +221,11 @@ jobs:
           npm ci
           if ((Get-Content 'release/kit.json' -Raw | ConvertFrom-Json).publication.status -eq 'published') {
             node scripts/prepare-portable-kit.mjs
+            node scripts/verify-published-kit.mjs
           } else {
             npm run package
+            npm run verify:kit
           }
-          npm run verify:kit
       - name: Prepare the exact promoted ZIP or build a new candidate
         shell: pwsh
         env:
