@@ -112,7 +112,7 @@ test('manual uncertainty retries the identical reviewed report and can copy it l
   const sent=[];let count=0;const f=fixture({enabled:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return ++count===1?{status:503}:response();}});
   f.answers.push('Send report','Copy report');await f.reporter.manual();
   assert.equal(sent.length,1);assert.equal(Object.hasOwn(sent[0],'description'),false);assert.deepEqual(JSON.parse(f.copied[0]),sent[0]);
-  f.answers.push('Retry');await f.reporter.manual();assert.equal(sent.length,2);assert.deepEqual(sent[1],sent[0]);f.reporter.dispose();
+  f.answers.push('Retry','Send report');await f.reporter.manual();assert.equal(sent.length,2);assert.deepEqual(sent[1],sent[0]);f.reporter.dispose();
 });
 test('manual disposal aborts an in-flight send',async()=>{
   let aborted=false,started;const startedPromise=new Promise(resolve=>{started=resolve;});
@@ -253,4 +253,46 @@ test('workspace-only settings do not authorize automatic or direct manual report
   await r.manual();
   assert.ok(f.notifications.some(args=>args[0]==='Send this problem report?'));
   assert.deepEqual(f.deliveries,[]);assert.deepEqual(f.writes,[]);r.dispose();
+});
+
+test('revoked consent requires public confirmation before a retained draft is retried',async()=>{
+  const sent=[];let count=0;
+  const f=fixture({enabled:true,send:async(_,options)=>{sent.push(JSON.parse(options.body));return ++count===1?{status:503}:response();}});
+  f.reporter.recordManual('publish','deploying','WEB_PUBLISH_DEPLOYMENT_FAILED');
+  await f.reporter.manual();assert.equal(sent.length,1);
+  f.setEnabled(false);f.answers.push('Retry');await f.reporter.manual();
+  assert.equal(sent.length,1,'Dismissing the public notice must not retry');
+  const notice=f.notifications.at(-1);assert.equal(notice[0],'Send this problem report?');
+  assert.match(notice[1].detail,/GitHub Pages deployment failed/);assert.match(notice[1].detail,/public GitHub issue/);
+  f.answers.push('Retry','Send report');await f.reporter.manual();
+  assert.equal(sent.length,2);assert.deepEqual(sent[1],sent[0]);f.reporter.dispose();
+});
+
+test('revoking consent during a send requires public confirmation before retry',async()=>{
+  const sent=[];let release;
+  const first=new Promise(resolve=>{release=resolve;});
+  const f=fixture({enabled:true,timeoutMs:1000,send:async(_,options)=>{sent.push(JSON.parse(options.body));return sent.length===1?first:response();}});
+  f.reporter.recordManual('publish','deploying','WEB_PUBLISH_DEPLOYMENT_FAILED');
+  const attempt=f.reporter.manual();for(let i=0;i<30&&!sent.length;i++)await tick();assert.equal(sent.length,1);
+  f.setEnabled(false);f.answers.push('Retry');release({status:503});await attempt;
+  assert.equal(sent.length,1);assert.match(f.notifications.at(-1)[1].detail,/public GitHub issue/);
+  f.answers.push('Retry','Send report');await f.reporter.manual();
+  assert.equal(sent.length,2);assert.equal(sent[1].reportId,sent[0].reportId);f.reporter.dispose();
+});
+
+test('revocation while a retry prompt is open is checked before transmission',async()=>{
+  const sent=[];let finishRetry,openedRetry;
+  const retryOpened=new Promise(resolve=>{openedRetry=resolve;});
+  const pendingRetry=new Promise(resolve=>{finishRetry=resolve;});
+  const f=fixture({enabled:true,send:async(_,options)=>{sent.push(JSON.parse(options.body));return sent.length===1?{status:503}:response();}});
+  f.reporter.recordManual('publish','deploying','WEB_PUBLISH_DEPLOYMENT_FAILED');
+  f.vscode.window.showInformationMessage=async(...args)=>{
+    f.notifications.push(args);
+    if(args[0]==='Problem report could not be confirmed.'){openedRetry();return pendingRetry;}
+    return f.answers.shift();
+  };
+  const attempt=f.reporter.manual();await retryOpened;f.setEnabled(false);finishRetry('Retry');await attempt;
+  assert.equal(sent.length,1);assert.match(f.notifications.at(-1)[1].detail,/public GitHub issue/);
+  f.answers.push('Retry','Send report');await f.reporter.manual();
+  assert.equal(sent.length,2);assert.deepEqual(sent[1],sent[0]);f.reporter.dispose();
 });

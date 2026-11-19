@@ -411,9 +411,22 @@ function createProblemReporter(vscode, context, {
       if (!disposed) await vscode.window.showInformationMessage('Problem report could not be copied.');
     }
   }
+  async function confirmManualReport(report) {
+    const summary = report.code === 'MANUAL_REPORT' ? 'Report a problem in Zero.' : REPORT_CODES[report.code];
+    const detail = [
+      summary,
+      'Version information, the failed action and recent operation steps will be published in a public GitHub issue.'
+    ].filter(Boolean).join('\n\n');
+    return vscode.window.showInformationMessage(
+      'Send this problem report?',
+      {modal:true, detail},
+      'Send report'
+    );
+  }
   async function manual() {
     if (disposed || manualBusy) return;
     manualBusy = true;
+    let freshDraft = false;
     try {
       if (manualDraft && !publicConsent()) {
         const choice = await vscode.window.showInformationMessage(
@@ -436,22 +449,20 @@ function createProblemReporter(vscode, context, {
           {operation:'manual', stage:'manual', code:'MANUAL_REPORT'};
         const report = await makeReport('manual', snapshot.operation, snapshot.stage, snapshot.code, root);
         if (!report || disposed) return;
-        const summary = report.code === 'MANUAL_REPORT' ? 'Report a problem in Zero.' : REPORT_CODES[report.code];
-        const detail = [
-          summary,
-          'Version information, the failed action and recent operation steps will be published in a public GitHub issue.'
-        ].filter(Boolean).join('\n\n');
-        if (!publicConsent()) {
-          const answer = await vscode.window.showInformationMessage(
-            'Send this problem report?',
-            {modal:true, detail},
-            'Send report'
-          );
-          if (answer !== 'Send report' || disposed) return;
-        }
         manualDraft = report;
+        freshDraft = true;
       }
       while (!disposed && manualDraft) {
+        // Consent can change while an earlier send or Retry prompt is pending.
+        // Without it, each transmission needs an explicit public disclosure.
+        if (!publicConsent()) {
+          const answer = await confirmManualReport(manualDraft);
+          if (answer !== 'Send report' || disposed) {
+            if (freshDraft) manualDraft = undefined;
+            return;
+          }
+        }
+        freshDraft = false;
         const controller = new AbortController();
         activeManual = controller;
         const result = await transmit(manualDraft, controller);
