@@ -1,33 +1,40 @@
 # Zero 0.5.81 local release preparation — 2026-11-18
 
-See the [release ledger](RELEASE-LEDGER.md#zero-0581-local-preparation--2026-11-18)
-for exact source commits, measured artifacts, notarization and remaining gates.
-The local set at `dist/candidates/release-0.5.81-60a822be2251/` passed all25
-checksums. The canonical Mac seal independently proved archive/source parity,
-Developer ID signatures, staple, Gatekeeper and signed build80 feed/archive.
-The public starter and packaged VSIX passed real JavaFX and Chrome157 Greeting;
-the VSIX installed into an isolated editor profile. Both Portable ZIPs embed the
-same measured kit; the complete ZIP passed archive/runtime integrity checks.
+The [release ledger](RELEASE-LEDGER.md#zero-0581-local-preparation--2026-11-18)
+records source, measured artifacts and limits. The final local set is
+`dist/candidates/release-0.5.81-965b8438e0c9/`; all 25 checksums pass. Its canonical
+Mac seal proves source/archive parity, Developer ID signatures, accepted Apple
+notarization, staple, actual app/DMG Gatekeeper and signed build 80 feed/archive.
+The public starter and exact VSIX passed native JavaFX and Chrome 157 Greeting;
+the VSIX installed in an isolated editor profile. Both Portable ZIPs embed the
+same kit; the complete ZIP passed launcher/runtime/editor/Java integrity checks.
 
-Checks: configuration/syntax/links, packaging, kit verification and diff checks
-passed. Release tests102/102, installer tests17/17, Mac preparation tests2/2,
-update tests11 passed/2 skipped. The native-run fixture was corrected to mock the
-new browser-tools planner after the full matrix exposed an unbounded wait;
-its targeted test passes1/1 in3.2s. The original matrix reported2562 passed,155 skipped and3 failed, including
-that terminated fixture. A complete logged rerun is in progress to identify
-and resolve the remaining failures; do not claim a clean full-suite result.
+Configuration/syntax/links, packaging, kit verification and diff checks pass.
+Release tests: 102 passed; installer: 17; Mac preparation: 2; updater: 11 passed,
+2 conditional skips. Full matrix runs took 20.3 and 19.6 minutes. The first
+exposed a stale native-run planner mock, corrected at `51808415f` and retested
+1/1 in 3.2s. The logged rerun completed 2,720 cases: 2,562 passed, 155 skipped,
+3 failed (two reminder subcases plus their parent in one fake-Git fixture).
+Background identity setup logged an unrelated warning after the expected
+receipt message. Fixture isolation at `0984de1e5` fixes this; its entire file
+passes 54/54, and real identity/onboarding tests pass 62/62. No production change
+was needed. No other failures appeared. A complete clean invocation after that
+last fixture correction remains for normal hosted CI; do not label the logged
+matrix itself green. Logs are ignored under `.verification/release-081/`.
 
-Independent Terra/medium reviewed metadata `8691ae6bc` and targeted fixture
-`51808415f`, with no actionable findings in either wave. It verified the exact
-published kit snapshot, unchanged public native/feed/Portable records, build80
-ordering and point-in-time absence of tag/releasev0.5.81. Source behavior reuses
-the prior two Sol/high reviews below. Independent Sol/high review at `60a822be2251` found no actionable findings.
-It verified all15 Mac checksums, both Portable checksums, six candidate sizes/hashes,
-every protected source path, embedded VSIX/kit parity, Ed25519 feed/archive
-signatures, build ordering and actual DMG codesign/staple/Gatekeeper. It also
-checked the exact Project → New receipt and unchanged public records.
-Effective model, tokens and task cost were not exposed; no DeepSeek was used.
-No publication, Store upload, source push or merge occurred.
+Independent Terra/medium reviewed release metadata and both fixture corrections
+in three waves, with no actionable findings. Prior Sol/high source reviews are
+recorded below. Sol/high artifact review and its final targeted wave verified
+all 15 Mac seal checksums, protected-source equivalence, embedded VSIX/kit,
+Ed25519 signatures, notarization and unchanged public records. Final Mac build
+source is `0984de1e5`; preparation is `965b8438e0c9`. The rebuild changes no
+production inputs or kit/starter/VSIX/Portable bytes. The earlier local seal is
+retained and superseded. Effective models, tokens and task cost were not exposed.
+
+No publication, source push, merge or Store submission occurred. Hosted release
+preparation, exact-ZIP Windows cold/warm acceptance and Store/MSIX checks remain.
+Physical devices, authenticated Pages upload and live updater delivery remain
+unverified. Report a problem is not included; its discussion was handed off.
 
 # Browser publishing recovery — 2026-11-18
 

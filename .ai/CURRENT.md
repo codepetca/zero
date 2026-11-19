@@ -2,26 +2,25 @@
 
 Owner authorized preparation only. Branch `codex/prepare-zero-081` is based on
 main `d098d0d2f`. Kit/extension are 0.5.81; core stays 0.3.0; signed Mac update
-build80 advances public79. Public 0.5.80 downloads/feed/Portable metadata remain
+build 80 advances public 79. Public 0.5.80 download/feed/Portable records remain
 unchanged. No source push, merge, tag, release or Store submission occurred.
 
-Local set: `dist/candidates/release-0.5.81-60a822be2251/` (25 checked files).
-It contains the kit, VSIX, starter, sealed Developer ID signed/notarized/stapled
-Mac candidate and feed, Git source archives and both Portable candidates.
-Public starter matches; actual JavaFX/Chrome157 Greeting and isolated VSIX
-installation passed. Portable runtime/archive checks passed. Independent
-Terra/medium metadata+fixture and Sol/high artifact reviews are clean.
-See [release ledger](../docs/RELEASE-LEDGER.md#zero-0581-local-preparation--2026-11-18)
-and [evidence](../docs/EVIDENCE.md) for commits, hashes and remaining checks.
+Final set: `dist/candidates/release-0.5.81-965b8438e0c9/` (25 checked files).
+Kit/VSIX/starter, signed/notarized/stapled Mac and feed, Git source archives and
+both Portable candidates are prepared. Actual JavaFX/Chrome Greeting, isolated
+VSIX install, Portable integrity and independent reviews passed. The final Mac
+was built at `0984de1e5`, sealed/reviewed at `965b8438e0c9`; earlier local set is
+superseded. See [release ledger](../docs/RELEASE-LEDGER.md#zero-0581-local-preparation--2026-11-18)
+and [evidence](../docs/EVIDENCE.md) for source, hashes, test results and limits.
 
-Browser build/publish offers a confirmed `.zero-build`-only update, preserves
-old tools and continues. Java/assets/core stay unchanged; Cancel ends quietly.
-Full project upgrade/recovery remain disabled. Report a problem is proposed,
-not implemented; its discussion belongs to “Design an Always-On Improvement Loop”.
+Two stale fixtures were corrected and reviewed. The broad matrix completed with
+only the old identity fixture failures; the corrected whole file passes 54/54.
+A fresh clean full invocation remains for hosted CI. Next requires separately
+authorized source push and normal source/manual release CI, then exact-ZIP
+Windows cold/warm acceptance. Store 0.5.81 is not built/submitted. Physical school
+devices, authenticated Pages upload and live updater delivery remain unverified.
 
-Full local test matrix is finishing after fixing an outdated native-run mock;
-targeted rerun passed. Next delivery needs separately authorized source push and
-normal hosted source/manual preparation CI, plus exact-ZIP Windows cold/warm
-acceptance. Windows Store 0.5.81 is not built/submitted. Physical school devices,
-authenticated Pages upload and live updater delivery remain unverified.
-Preserve the separate Zero Dev watcher and original owner dirty checkout.
+Browser build/publish offers a confirmed tools-only update with backup. Full
+project upgrade/recovery stay disabled. Report a problem remains a proposal
+owned by “Design an Always-On Improvement Loop”. Preserve the separate Zero Dev
+watcher and original owner dirty checkout.

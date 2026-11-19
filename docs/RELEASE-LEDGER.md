@@ -29,7 +29,7 @@ Owner authorized preparation only. No source push, merge, tag, public release,
 website promotion or Store submission occurred. Source branch is
 `codex/prepare-zero-081`, based on main `d098d0d2f`. Publishing recovery is
 `66ca2c587`; release metadata is `8691ae6bc`; a native-run test fixture correction
-is `51808415f`. Core remains 0.3.0. Report a problem is not implemented; that
+is `51808415f`; commit/reminder fixture isolation is `0984de1e5`. Core remains 0.3.0. Report a problem is not implemented; that
 discussion was handed to the always-on improvements chat.
 
 An explicit browser build/publish can offer **Update Browser Tools**, preserve
@@ -44,30 +44,31 @@ The actual 0.5.81 VSIX passed compatibility, unedited native UI, Sam/Ada native
 Greeting and Chrome157 WebFX Greeting checks. It installed in an isolated Mac
 VS Code profile. The template did not need an update.
 
-The Mac candidate was built cleanly at `51808415fc3207afd639fa8784c3910e43539335`
-and sealed at `60a822be2251a9b086518ba05e230fae9fb9b0fe` after protected-source
-equivalence. Apple accepted submission `47226a05-b83b-4792-8c27-d738b5e6c325`.
+The Mac candidate was built cleanly at `0984de1e5ac101470d9f87141da81b590d77f1c4`
+and sealed at `965b8438e0c9b2459e8c37e2093acb2a4197ff69` after protected-source
+equivalence. Apple accepted submission `0694438f-9894-4643-885f-aa9c3192e743`.
 Staple, actual app/DMG Gatekeeper and Developer ID signature/payload checks passed.
 The sealed build80 update feed advances public build79 without changing keys.
 Both Portable candidates were built cleanly at `8691ae6bc` and embed the exact
 same kit ZIP; the complete archive passed launcher, runtime, editor and Java
-extension integrity checks. Its build source precedes only the test fixture and
+extension integrity checks. Its build source precedes test-fixture corrections, documentation and
 measured Mac manifest changes.
 
 The ignored, independently checksummed local set is
-`dist/candidates/release-0.5.81-60a822be2251/` (25 files), including the canonical
+`dist/candidates/release-0.5.81-965b8438e0c9/` (25 files), including the canonical
 Mac seal and corresponding Git source archives, both Portable candidates,
 Project → New receipt and explicit preparation limits. It is not a source-bound
 GitHub Actions release run. Preserve these bytes and all published 0.5.80 bytes.
 Generated Portable promotion metadata contains intended future URLs, not live
-publication evidence.
+publication evidence. The earlier local `60a822be2251` set is retained but
+superseded by this final preparation.
 
 | Local artifact | Bytes | SHA256 |
 | --- | ---: | --- |
 | zero-bootstrap.zip | 5,110,868 | `d05df0ee867a057c602fb0084ded92585a83baf7cdc64972b8a931f0b2dd0d4a` |
 | zero-starter.zip | 2,778,887 | `a08e667601bf4f6dbcbe1bf2597137503fc641281f373cb82ee81ad778496f60` |
 | zero-0.5.81.vsix | 2,307,016 | `d58657241c4492d2d83d485b09eb18920c6f823c03ef698fa310c2226a9e4a4a` |
-| Zero-0.5.81-macos.dmg | 12,355,550 | `757ef6a398d62904925d77e65b3974427ddb508c1c4dc6c78d5c81fd510ef0c8` |
+| Zero-0.5.81-macos.dmg | 12,355,557 | `06ff83d79f41543b81c624b33270cac319414e8a8bce53940bd451bb15b13ab5` |
 | Zero-0.5.81-windows-portable-pilot-staging-x64.zip | 5,419,388 | `aeed8634d3aad2ca47bb37caa7893bb4dcd30a43a78ee1a922365b2a2312e505` |
 | Zero-0.5.81-windows-portable-bundled-x64.zip | 605,973,247 | `98f59f4c1c82f388c9f249e4207a3f27b097d138d4a890a411c221b4f8a1e9de` |
 
