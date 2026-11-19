@@ -1,3 +1,20 @@
+# Zero0.5.82 measured Mac candidate — 2026-11-19
+
+Owner-authorized full release. Developer ID app/DMG verification, Apple accepted
+notarization `180b53f9-c43e-4757-b70c-81c1c76df87f`, staple validation and both
+Gatekeeper assessments passed. Original clean build source `a37ba4a229a30550441291803e0e531e17f5d07b`;
+measured DMG 12362920bytes / `186370fce89e577404330c6e33abbbff4cb5171ee1c8877ae7f65d6ec3ce84ab`.
+The local Mac kit is 5120670bytes / `71e92fe3cf30df2b3002a31bb04a62da0b00d579b15af576ad6fa40093fb603a` and remains
+separate from the forthcoming canonical Linux preparation bytes. Core0.3.0;
+Mac updatebuild81. Public0.5.81 fallback/feed records remain unchanged.
+
+The actual installed0.5.82VSIX in isolated VSCode1.147 showed one first-run choice,
+decline/default-off, explicit settings opt-in, direct successful report while
+VSCode telemetry was off, and remembered choice on reload. Receipt
+9d79fbe7-b402-4d12-8a5b-d8fcabcf6711 produced bot issue5, labelled activation-test
+and closed. Detailed proof remains ignored in the source preparation worktree.
+Signing/sealing and independent artifact reviews follow before publication.
+
 # Zero0.5.82 full-release preparation — 2026-11-19
 
 Owner explicitly authorized the full reporting-enabled release. Preparation starts
