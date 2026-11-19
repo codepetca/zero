@@ -1,40 +1,44 @@
-# Zero 0.5.81 local release preparation — 2026-11-18
+# Hosted Zero 0.5.81 preparation — 2026-11-18
 
-The [release ledger](RELEASE-LEDGER.md#zero-0581-local-preparation--2026-11-18)
-records source, measured artifacts and limits. The final local set is
-`dist/candidates/release-0.5.81-965b8438e0c9/`; all 25 checksums pass. Its canonical
-Mac seal proves source/archive parity, Developer ID signatures, accepted Apple
-notarization, staple, actual app/DMG Gatekeeper and signed build 80 feed/archive.
-The public starter and exact VSIX passed native JavaFX and Chrome 157 Greeting;
-the VSIX installed in an isolated editor profile. Both Portable ZIPs embed the
-same kit; the complete ZIP passed launcher/runtime/editor/Java integrity checks.
+Owner authorized source push/draft PR and hosted checks after local preparation.
+[PR385](https://github.com/codepetca/zero/pull/385) remains draft. At reviewed
+source `ae18259ca607d7ce464e21a21d83ecf60182ac9b`, all 12 PR checks passed.
+[Manual preparation44447511514](https://github.com/codepetca/zero/actions/runs/44447511514)
+and [Windows preparation44447514534](https://github.com/codepetca/zero/actions/runs/44447514534)
+passed. Both fresh hosted full matrices had2,557 passed, 163 skipped, 0 failed;
+this resolves the local stale-fixture caveat. Website 867 passed/4 skipped with
+successful build; 27 GUI examples, native game/framework and lesson checks passed.
+[Browser44447460456](https://github.com/codepetca/zero/actions/runs/44447460456)
+passed 414 contracts (4 skipped) and real WebFX compiles/browser behavior.
 
-Configuration/syntax/links, packaging, kit verification and diff checks pass.
-Release tests: 102 passed; installer: 17; Mac preparation: 2; updater: 11 passed,
-2 conditional skips. Full matrix runs took 20.3 and 19.6 minutes. The first
-exposed a stale native-run planner mock, corrected at `51808415f` and retested
-1/1 in 3.2s. The logged rerun completed 2,720 cases: 2,562 passed, 155 skipped,
-3 failed (two reminder subcases plus their parent in one fake-Git fixture).
-Background identity setup logged an unrelated warning after the expected
-receipt message. Fixture isolation at `0984de1e5` fixes this; its entire file
-passes 54/54, and real identity/onboarding tests pass 62/62. No production change
-was needed. No other failures appeared. A complete clean invocation after that
-last fixture correction remains for normal hosted CI; do not label the logged
-matrix itself green. Logs are ignored under `.verification/release-081/`.
+Downloaded canonical kit/starter/VSIX and small Portable assets match SOURCE.txt,
+run/commit, exact source files, licenses, hashes and the shared embedded kit.
+Project → New binds the exact VSIX to the unchanged public starter, native
+UI_READY/Sam/Ada and Chrome157.0.8103.50 Sam/Ada. Complete ZIP size/hash, clean-source, exact-kit, launcher/runtime/editor/Java
+and0.5.81 source-notice verification passed. See the [ledger](RELEASE-LEDGER.md#zero-0581-preparation--2026-11-18)
+for measured artifacts and remaining promotion gates. All logs/downloads are
+ignored under `.verification/release-081/hosted/`.
 
-Independent Terra/medium reviewed release metadata and both fixture corrections
-in three waves, with no actionable findings. Prior Sol/high source reviews are
-recorded below. Sol/high artifact review and its final targeted wave verified
-all 15 Mac seal checksums, protected-source equivalence, embedded VSIX/kit,
-Ed25519 signatures, notarization and unchanged public records. Final Mac build
-source is `0984de1e5`; preparation is `965b8438e0c9`. The rebuild changes no
-production inputs or kit/starter/VSIX/Portable bytes. The earlier local seal is
-retained and superseded. Effective models, tokens and task cost were not exposed.
+Windows MSIX 1.5.81.0 hash 835b0013… was independently checked after download,
+including identity, x64 payload, exact embedded kit and every block-map hash.
+The receipt binds its unchanged unsigned bytes to a successfully installed,
+separately test-signed copy, with first run and cleanup passed. Real standalone
+setup/private Git/editor reopening and private-Java JavaFX/offline rebuild passed.
+The measured Windows-built Portable ZIP passed cold/warm reopening; it is a
+different archive from the canonical Linux-run complete ZIP. Store certification,
+physical school devices, authenticated Pages upload and live updater remain
+unverified. No merge, publication or Store submission occurred.
 
-No publication, source push, merge or Store submission occurred. Hosted release
-preparation, exact-ZIP Windows cold/warm acceptance and Store/MSIX checks remain.
-Physical devices, authenticated Pages upload and live updater delivery remain
-unverified. Report a problem is not included; its discussion was handed off.
+Independent source Sol/high reviews, Terra/medium metadata+fixture reviews and
+Sol/high artifact/final-delta review are reused for unchanged production inputs.
+The final local Mac seal at 965b8438e0c9, built 0984de1e5, verifies source equivalence,
+all 15 hashes, notarization, signatures, staple, Gatekeeper and Ed25519 feed/DMG.
+The two local full runs (20.3/19.6min) exposed stale fixtures, corrected/reviewed
+at 51808415f and 0984de1e5; affected tests 55/55 and identity/onboarding 62/62 passed.
+One Mac rebuild was required by the protected test path. No production correction
+was needed for hosted CI. Effective models/tokens/task cost remain unknown.
+Portable corresponding sources reuse verified public 0.5.80 bytes: pinned tools
+are unchanged and all 68 archive hashes/mappings were checked again.
 
 # Browser publishing recovery — 2026-11-18
 
