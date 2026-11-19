@@ -1,32 +1,31 @@
 {
   "schema": 1,
-  "kitVersion": "0.5.80",
+  "kitVersion": "0.5.81",
   "publication": {
-    "status": "published",
+    "status": "local",
     "repository": "codepetca/zero",
-    "tag": "setup-v0.5.80"
+    "tag": "setup-v0.5.81"
   },
-  "sourceRevision": "7ec896f719e2f4a4c550588d7091f34748556d32",
+  "sourceRevision": "51808415fc3207afd639fa8784c3910e43539335",
   "kit": {
     "filename": "zero-bootstrap.zip",
-    "size": 5110459,
-    "sha256": "01f48d99beccb54c6796dda1e6841ebcc8c5ae69ee8ecc63f7fba169cf4eae93"
+    "size": 5110868,
+    "sha256": "d05df0ee867a057c602fb0084ded92585a83baf7cdc64972b8a931f0b2dd0d4a"
   },
   "asset": {
-    "filename": "Zero-0.5.80-macos.dmg",
+    "filename": "Zero-0.5.81-macos.dmg",
     "platform": "macos",
     "architectures": [
       "arm64",
       "x86_64"
     ],
     "minimumOS": "12.0",
-    "size": 12353838,
-    "sha256": "a66680ecf6d9b4c502ca764cd62ad3b4911fb2d2d32564a28aa60f87a6992487",
-    "url": "https://github.com/codepetca/zero/releases/download/setup-v0.5.80/Zero-0.5.80-macos.dmg"
+    "size": 12355550,
+    "sha256": "757ef6a398d62904925d77e65b3974427ddb508c1c4dc6c78d5c81fd510ef0c8"
   },
   "signing": {
     "identitySha1": "ACE8EE40F3615C5062CBBD5F085E299E049BAE08",
     "teamIdentifier": "88FT6QZJP8"
   },
-  "notarizationSubmissionId": "6b6ada03-8433-41c2-b516-f92c549f561a"
+  "notarizationSubmissionId": "47226a05-b83b-4792-8c27-d738b5e6c325"
 }
