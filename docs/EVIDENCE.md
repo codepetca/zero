@@ -3,7 +3,8 @@
 Owner selected public GitHub issues containing structured technical data only.
 The sidebar keeps concise local errors. Manual reporting confirms a short issue
 summary and a public-submission notice without requesting text or showing JSON.
-The current source delta is based on `ddbbcc0cc` on the reporting feature branch.
+The reviewed source is `65580f1093661b3d9d62cca4163d99cc3dac2edb`, based on
+`ddbbcc0cc` on the reporting feature branch.
 
 Schema version 2 rejects free text and unknown fields for every source. The
 server also rejects version 1 and revalidates stored samples before provider
@@ -17,11 +18,16 @@ from structured records. Maintainer notes belong in comments. Public marker
 copies made by humans or unrelated bots cannot authorize an update. Live App
 attribution and destination acceptance remain operator verification work.
 
-Current focused evidence includes 34 contract, collector and actual PostgreSQL
-service checks, plus 101 editor/native/browser/onboarding checks before the
-schema-version bump. Source configuration/syntax/link checks and website
-typecheck pass. Independent review of the public-policy delta is next. All
-GitHub provider calls are local fakes and no public report was submitted.
+The final consolidated run passes all 116 contract, collector, native/browser,
+onboarding and service cases in 4.6 seconds. Actual isolated PostgreSQL is
+included. Source configuration/syntax/link checks, website typecheck and the
+current production build pass. Independent Sol/high security and compatibility
+reviews both inspected the complete 22-file public-policy delta and immediate
+dependencies, with no actionable blockers. This public-policy review session used
+one initial wave with two reviewers and no remediation wave. Requested model and
+effort are recorded, while effective provider configuration and token attribution
+remain unknown. All GitHub calls use local fakes and no public report was sent.
+The native dialog and actual GitHub App attribution remain live acceptance work.
 
 # Automatic problem reporting implementation — 2026-11-18
 

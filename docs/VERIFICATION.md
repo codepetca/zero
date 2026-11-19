@@ -5,10 +5,12 @@ Schema version 2 rejects legacy requests, free text and extra fields. A separate
 public opt-in and queue prevent private-consent carryover. The server validates
 stored payloads, public visibility and canonical App-bot issue authorship.
 
-34 focused boundary cases pass, including actual isolated PostgreSQL and fake
-GitHub provenance/visibility/legacy payload checks. The editor worker's 101-case
-reporter/native/browser/onboarding suite passes. Source checks and website
-typecheck pass. Fixed-revision independent reviews follow before acceptance.
+Reviewed source `65580f1093661b3d9d62cca4163d99cc3dac2edb` passes all 116
+consolidated schema, reporter, native/browser, onboarding and service cases.
+Actual isolated PostgreSQL and fake GitHub cover provenance, visibility and
+legacy payload checks. Source checks, website typecheck and the current
+production build pass. Independent security and compatibility reviews found no
+actionable blockers in the complete public-policy delta.
 Live GitHub App attribution, repository provisioning, deployment and native
 report-dialog acceptance remain separate. See [the current reporting guide](PROBLEM-REPORTING.md).
 
