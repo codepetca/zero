@@ -1,3 +1,14 @@
+# Zero 0.5.82 release completed — 2026-11-19
+
+Promotion PR393 merged `6638d24d2` after all 12 final-head checks passed.
+Independent promotion reviews and the single fixture correction are clean.
+All kit/native/Portable public assets pass anonymous size/hash checks; the exact
+public complete Portable ZIP passes hosted cold/warm opening. Store submission 17
+is live with the validated 1.5.82.0 package. Installed-VSIX consent/reporting and
+actual hourly recovery are verified. Production deployment `dpl_BqrdVB6pyBEi6fiSG5ZhdENcimGz`
+is READY from the exact merge; live links, public DMG and signed feed match the seal. The AI runner, physical school devices and interactive updater delivery
+remain separate. See [final evidence](EVIDENCE.md) and [release ledger](RELEASE-LEDGER.md).
+
 # Zero 0.5.82 release verification — 2026-11-19
 
 Source PR392 passed all 12 checks; canonical preparation 44550447823 and Windows
