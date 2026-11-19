@@ -1,24 +1,27 @@
-# AI report triage and fixing flow — 2026-11-19
+# AI report triage active — 2026-11-19
 
-Owner asked to orchestrate AI triage and fixing with false-positive/regression
-safeguards. Isolated branch `codex/ai-report-triage`, base `df864c666`. Preserve
-the original dirty checkout. No student runtime, reporting service, credentials,
-public assets or released 0.5.82 metadata change.
+[PR396](https://github.com/codepetca/zero/pull/396) merged `8d87dcd3c` after
+independent security/compatibility review and all 12 final-head checks passed.
+The [maintainer flow](../docs/AI-TRIAGE.md) and reviewed policy/prompt in `triage/`
+are implemented. No student runtime or released 0.5.82 artifact changed.
 
-The pure intake verifies numeric provenance and exact generated structured bodies;
-private SQLite supplies leases, fenced state, bounded attempts and a draft outbox.
-Root owns CLI/reproduction/policy/guides; Terra delivered intake/state and owns
-only the new runner/proposal tests during this phase. No overlapping writers.
+The existing-chat Codex heartbeat `zero-report-triage-and-draft-fixes` is ACTIVE
+every four hours locally; Codex and the Mac must be running. Use the dedicated
+clean control worktree at `/Users/stew/.codex/worktrees/zero-ai-triage/zero` and
+refresh only it to reviewed origin/main. Preserve the dirty original checkout.
+Operational state and logs remain private outside Git; use CLI health/scan.
 
-The [maintainer flow](../docs/AI-TRIAGE.md) is draft-only: real baseline assertion
-failure/fixed pass, unchanged existing tests, independent review, selected CI and
-a human merge/release decision. Initial source allowlist is four presentation
-helpers, with three investigations and one draft attempt per UTC day. Other
-changes require owner direction. No report content grants instructions or authority.
+Future proposals remain draft-only: reproduce, preserve existing tests, independently
+review and pass selected CI; human decisions control ready/merge/release. Initial
+allowlist is four presentation helpers, four files/200 lines, three investigations
+and one draft attempt per UTC day. Other changes require owner direction.
 
-Focused synthetic/negative cases (32), source checks, website typecheck, actionlint
-and live empty-inbox acceptance pass. Next: two independent consequential-boundary
-reviews; final-head CI and
-reviewed integration; then activate one four-hour local Codex heartbeat attached
-to this chat. No scheduler is active yet. The local worker needs Codex/Mac running.
-Released 0.5.82 remains verified; see [release ledger](../docs/RELEASE-LEDGER.md).
+First real report6 is classified insufficient-evidence: builder-unavailable has
+multiple expected/environment causes, and no actual defect is reproduced. No fix
+or issue edit occurred. Its run is ended, with no outbox or active lease. Do not
+reinterpret counts as users, a confirmed defect or proof of recovery.
+
+Production privacy disclosure is live. A scheduled wake and real defect-to-draft
+publication are not yet exercised. Follow [evidence](../docs/EVIDENCE.md) and
+[verification](../docs/VERIFICATION.md); released 0.5.82 remains verified in the
+[release ledger](../docs/RELEASE-LEDGER.md). No release work is pending here.

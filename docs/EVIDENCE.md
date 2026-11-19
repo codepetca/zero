@@ -1,47 +1,65 @@
-# Bounded AI report triage implementation — 2026-11-19
+# AI report triage activated — 2026-11-19
 
-Owner requested orchestration of AI triage and fixing with false-positive and
-regression safeguards. Isolated branch `codex/ai-report-triage`, base `df864c666`;
-the original dirty checkout and all 0.5.82 artifacts/runtime inputs are preserved.
-The maintainer flow is documented in [AI triage](AI-TRIAGE.md) with reviewed policy
-and an exact scheduled prompt in `triage/`. No new credentials, student data fields,
-report-App permissions or hosted model/database service are introduced.
+[PR396](https://github.com/codepetca/zero/pull/396) merged as
+`8d87dcd3c67305918d6116d139129c5ca99024da`. All 12 checks passed on reviewed head
+`398962e8b323f9935f5b5d39517014d716cb5fd7`:
+[source 44591240309](https://github.com/codepetca/zero/actions/runs/44591240309),
+[browser 44591240429](https://github.com/codepetca/zero/actions/runs/44591240429) and
+[Windows 44591240314](https://github.com/codepetca/zero/actions/runs/44591240314).
+This includes the real WebFX/browser lane and Windows installer/Portable checks.
+Local validation passed 37 focused triage/legal cases, source checks through
+`devq --source codex` job12, website typecheck/build and actionlint.
 
-Strict provenance and canonical structured parsing exclude arbitrary issue prose,
-comments, forged identities, manual-unverifiable fingerprints, stale/recovered
-context and activation tests. Private SQLite supplies transactional leases,
-action deadlines, snapshot deduplication, daily caps, pause and a durable draft
-reservation. Actual assertion-fail/fixed-pass reproduction, unchanged existing
-tests and restricted diffs supplement independent semantic review. These are not
-an OS sandbox or an independent attestation from stored metadata. Drafts cannot
-become merge/release authority; uncertain provider writes are read-reconciled.
+The [maintainer flow](AI-TRIAGE.md) verifies numeric provenance and canonical
+structured reports, uses private transactional leases/deadlines and bounded
+attempts, and requires actual baseline assertion failure/fixed pass, unchanged
+existing tests and independent semantic review before a draft proposal. It does
+not give generated fixes ready/merge/release/deployment authority. Initial scope
+is four presentation helpers, four files/200 changed lines, three investigations
+and one draft attempt per UTC day. Broader changes need an owner decision.
+No reporting-App/database credential or student project is given to the worker.
+Zero 0.5.82 runtime, release bytes and the reporting service remain unchanged.
 
-Focused triage and legal disclosure cases pass (32 tests), including actual
-isolated Git baseline/fix executions. Configuration/syntax/local links, website
-typecheck and actionlint pass. A live read-only scan verified the public repository,
-App and numeric bot user and returned no-action with zero open reports/jobs/outbox
-reservations and no active lease. Synthetic fixtures prove machinery, not an actual
-student bug fix. No public issue, branch or PR was created by that scan.
+Independent review receipts (requested Sol/high; effective configuration and
+per-turn elapsed/token costs were not exposed):
 
-Terra/high handled bounded mapping, pure intake, state and integration tests;
-root integration refined canonical digests, queue refresh, action fencing and
-cross-run reconciliation. Effective model/time/tokens were not exposed. The full
-consequential-boundary independent review, final-head CI and scheduled activation
-remain pending. The initial four-hour worker is local to Codex on the Mac.
-Ignored receipts are under `.verification/ai-triage/`; operational state is private
-outside Git. The source release record below remains historical evidence.
+- `security-initial`, `df864c666..fa901920f`: complete assigned boundary;
+  accepted P1 hidden intermediate history and P2 in-flight cancellation findings.
+- `compatibility-initial`, same delta: complete assigned boundary;
+  accepted P2 attached-proposal reuse and corrected-head proof-log collisions.
+- `security-remediation1`, `fa901920f..398962e8b`: complete nine-file correction
+  and immediate interactions; no remaining blockers; five independent regressions pass.
+- `compatibility-integration`, `df864c666..398962e8b`: complete cumulative
+  integration using initial 20-file coverage; no remaining blockers; 19 independent
+  state/proposal tests pass, including actual red/green and cancellation execution.
 
-The initial independent Sol/high security and compatibility wave covered
-`df864c666..fa901920f` completely. It found four accepted blockers: one P1 hidden
-intermediate-history publication gap, and P2s for in-flight pause/deadline handling,
-attached-proposal reuse after a source change, and corrected-head proof log collisions.
-One correction batch requires a single clean proposal commit, fences/cancels proof
-children throughout execution, preserves immutable per-head logs and suppresses
-replacement proposals across source snapshots. Regression fixtures include actual
-child cancellation and retained canary-history rejection. All 37 focused cases pass
-(19 state/proposal plus 18 intake/runner/legal). The queued source check passed via
-`devq` job12; earlier website typecheck/build and actionlint coverage remains valid.
-Targeted re-review and final integration coverage follow before activation.
+One batched correction requires a single clean proposal commit with the public
+baseline as sole parent, cancels proof child groups on pause/deadline, preserves
+immutable per-head logs and prevents replacement proposals across snapshots.
+Review session: four turns, initial/targeted/integration waves, one fix batch,
+26.3 minutes wall time. CI queue/run time is separate. Terra/high delivered bounded
+intake/state/test work; root integrated and verified it. DeepSeek remained paused;
+account-wide allowance is not task cost. Bulky receipts remain ignored under
+`.verification/ai-triage/`; operational records remain private outside Git.
+
+The existing-chat Codex heartbeat `zero-report-triage-and-draft-fixes` was enabled
+and read back ACTIVE, with the reviewed prompt unchanged, every four hours locally.
+Codex and the Mac must be running. Production deployment
+`dpl_A3cRpXqDFZAP1TGhSzE9d63AvFk6` is READY from the merge; the public privacy page
+returns 200 and discloses OpenAI Codex processing of public structured reports.
+A scheduled wake itself and an actual defect-to-draft publication remain unproven.
+
+The post-merge scan found [report6](https://github.com/codepetca/zero-reports/issues/6):
+five `ZERO_BUILDER_UNAVAILABLE` publish failures on Windows Store 0.5.82. The same
+code intentionally covers incomplete/changed saved tooling and unavailable runtime
+conditions. The maintained missing/undeclared/linked/unsupported tooling test
+passes unchanged. With Java/builder versions unknown, this does not establish a
+Zero defect or distinct affected users. The first real triage outcome is
+**insufficient evidence**; its precise missing reproduction evidence is private.
+No Windows reproduction, source change, draft reservation, issue edit/closure or
+student-project access occurred. No inference is made about who generated it.
+The run ended with no active lease, pending outbox or proposed PR. Counts alone
+do not retrigger the same investigation.
 
 # Zero 0.5.82 full release — 2026-11-19
 
