@@ -1,3 +1,29 @@
+# Automatic problem reporting implementation — 2026-11-18
+
+Owner approved opt-in automatic reporting, reviewed manual reports and a private
+GitHub issue inbox. Branch `codex/automatic-error-reporting`, base `d098d0d2f`.
+Implementation workers used Sol/high for service correctness and Terra/high for
+editor integration. Effective model/token attribution is unavailable. Initial
+weekly remaining was 32%; storage was healthy with 175 GB available. Work stayed
+in a separate checkout and reused dependencies, then installed the website's
+pinned dependencies locally when Turbopack rejected an external dependency link.
+
+The shared contract rejects raw diagnostic/identity fields. Collector tests
+exercise opt-out, bounded queue/retries, matching-scope recovery, reviewed manual
+retry identity and failure classification. The service's actual socket-only
+PostgreSQL tests exercise concurrent idempotency, rejected/orphan recoveries,
+private destination verification, uncertain writes and scheduled reconciliation.
+All GitHub provider calls use local fakes. No live reports or account changes.
+
+Pre-review source checks, website typecheck, 8 contract tests, service 7 tests and
+editor-focused checks pass. The actual browser sidebar fixture shows Report a
+problem beside the useful local error. The source extension activated in an
+isolated native Dev host; native dialog walkthrough is unverified because the
+computer-use surface selected another Code process and could not capture the
+task's window. Broad checks are still running. The initial broad run exposed a
+missing gallery fixture variable, now corrected and verified by 10 gallery tests.
+Independent security and compatibility review follows on a fixed revision.
+
 # ZeroHub Projects responsiveness — 2026-11-18
 
 Draft based on `8192a7ab`. The first Projects page is resolved on the server.

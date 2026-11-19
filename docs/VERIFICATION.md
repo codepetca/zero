@@ -1,3 +1,18 @@
+# Automatic problem reporting — 2026-11-18
+
+Local implementation and activation are distinct. See [reporting operation and
+acceptance](PROBLEM-REPORTING.md). Automatic reporting defaults off and requires
+both the Zero setting and VS Code telemetry permission. The private service also
+requires explicit configuration and a pinned private destination. No release,
+reporting repository, credentials or production collection was activated here.
+
+Pre-review verification covers real isolated PostgreSQL concurrency and failure
+injection with fake GitHub, strict payload validation, editor opt-out/retries and
+manual-review context, source checks and website typecheck. The browser sidebar
+fixture displays its report action. The dedicated native source extension host
+activated successfully; its actual manual dialog walkthrough remains unverified.
+Full-suite/build results and independent review are pending final integration.
+
 # Verification
 
 ## ZeroHub publish guide — 2026-11-17

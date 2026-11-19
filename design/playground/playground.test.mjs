@@ -79,6 +79,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(ready,/id="files-menu-button"[^>]*>New[\s\S]*?<\/button>/);
   assert.doesNotMatch(ready,/data-command="zero.recovery"/);
   assert.match(ready,/<div id="file-actions" class="file-actions">[\s\S]*id="files-menu-button"/);
+  assert.doesNotMatch(ready, /data-command="zero.reportProblem"/);
   assert.doesNotMatch(ready,/data-command="zero.copyImportedAssetPaths"/);
   const empty = sidebarSource('empty');
   assert.doesNotMatch(empty,/id="files-menu-button"|data-command="zero.recovery"/);
@@ -87,6 +88,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   const error = sidebarSource('error');
   assert.match(error,/Main.java, line 8: add a semicolon/);
   assert.match(error,/zero.showProblems/);
+  assert.match(error, /data-command="zero.reportProblem"/);
   const practice = sidebarSource('practice');
   assert.match(practice,/zero.browseZeroHub/);
   assert.match(practice,/id="files-menu-button"/);

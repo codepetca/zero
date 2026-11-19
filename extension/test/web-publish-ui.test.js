@@ -6,7 +6,7 @@ function dirtyDocument({file='/student/src/main/java/Main.java',scheme='file',sa
   document.save=save||async function(){document.isDirty=false;return true;};
   return document;
 }
-function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError,beforeBuildReview,listPublication}={}) {
+function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError,beforeBuildReview,listPublication,onReportFailure,onReportStage,onReportSuccess}={}) {
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,upgrade=false,uploaded=0,sha='a'.repeat(40);
   const progress=[],messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
@@ -27,7 +27,7 @@ function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/s
     if(reviewed.sha!==sha)throw Error('The app changed while checking its published version.');
     const live=await publisher.check();if(live.status==='live')onCurrent?.(live);return live;
   };
-  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),connectedRepository,assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,beforeBuildReview,listPublication,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);assert.equal(options.expectedPlan,uploadPlan);assert.equal(options.expectedAccount,'1');await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
+  const api=createWebPublishCommands(vscode,{onReportFailure,onReportStage,onReportSuccess,project:resolveProject || (async()=>active),connectedRepository,assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,beforeBuildReview,listPublication,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);assert.equal(options.expectedPlan,uploadPlan);assert.equal(options.expectedAccount,'1');await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {api,auth,progress,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
@@ -745,4 +745,23 @@ test('desktop listing checks availability before acquiring or sending its token'
   assert.equal(calls[2].url,'https://zero.codepet.ca/api/hub/listings');
   assert.equal(JSON.parse(calls[2].options.body).pagesUrl,saved.url);
   assert.equal(calls[2].options.redirect,'error');
+});
+test('deployment result reports only the stable failure code and suppresses cancellation',async t=>{
+  const reports=[],stages=[];
+  const h=fixture(t,{onReportFailure:(error,root)=>reports.push({code:error.code,root,message:error.message}),onReportStage:stage=>stages.push(stage)});
+  h.choices.push('Publish app');
+  h.publisher.check=async()=>({status:'failed',reportCode:'WEB_PUBLISH_DEPLOYMENT_FAILED',message:'Private GitHub details'});
+  assert.equal((await h.api.publish()).status,'failed');
+  assert.deepEqual(reports,[{code:'WEB_PUBLISH_DEPLOYMENT_FAILED',root:'/student',message:''}]);
+  assert.equal(stages.at(-1),'deploying');
+  reports.length=0;h.choices.push('Publish app');
+  h.publisher.check=async()=>({status:'failed',message:'Cancelled'});
+  assert.equal((await h.api.publish()).status,'failed');assert.deepEqual(reports,[]);
+});
+test('browser dispatch failure reports opening and cannot claim recovery',async t=>{
+  const reports=[],successes=[],stages=[];
+  const h=fixture(t,{onReportFailure:(error,root)=>reports.push({code:error.code,root}),onReportStage:stage=>stages.push(stage),onReportSuccess:(root,stage)=>successes.push({root,stage})});
+  h.choices.push('Publish app');h.vscode.env.openExternal=async()=>false;
+  const result=await h.api.publishAndOpen();assert.equal(result.opened,false);
+  assert.deepEqual(reports,[{code:'WEB_PUBLISH_OPEN_FAILED',root:'/student'}]);assert.equal(stages.at(-1),'opening');assert.deepEqual(successes,[]);
 });

@@ -1,20 +1,25 @@
-# Full Zero0.5.80 release — 2026-11-18
+# Automatic problem reporting — 2026-11-18
 
-Owner authorized full publication. Audited fixes and progressive ZeroHub loading
-are on main. [Release ledger](../docs/RELEASE-LEDGER.md#zero-0580--2026-11-18)
-records source, artifacts and limits; [PR383](https://github.com/codepetca/zero/pull/383) is authoritative for final
-review, CI and merge. Prior integration state is
-[archived](archive/current-before-release-080-2026-11-18.md).
+Owner approved implementation of minimal automatic error reports after opt-in,
+a reviewed manual fallback and a private GitHub issue inbox. Work is isolated on
+`codex/automatic-error-reporting`, based on `d098d0d2f` from main. The owner's
+primary checkout and the separate 0.5.81 preparation worktree retain their work.
 
-Manual preparation44339762972 passed exact source7ec896f7, public starter32c4d56,
-native Greeting and real Chrome/WebFX checks. Kit metadata uses PR382. Full release
-records include Mac0.5.80, signed update build79, both Portable0.5.80 downloads,
-retained published-kit fallback and refreshed starter identity. Original owner
-checkout files/staging remain untouched.
+The coordinator owns the shared schema, documentation, integration and acceptance.
+Sol/high owns the service, PostgreSQL coordination and GitHub delivery. Terra/high
+owns editor collection, settings, manual reporting and focused editor checks.
+Automatic reports exclude raw local diagnostics and identifying project/account
+fields. Student compiler/runtime errors are manual-only where ambiguous. Reports
+remain untrusted evidence for reproduction and review.
 
-The kit, native and small Portable public downloads match their measured bytes. Complete Portable draft downloads are checked against all five sealed files. Final acceptance on the promotion PR additionally requires all five anonymous downloads, the exact-ZIP Windows cold/warm trial and live download/feed read-back.
+Implementation and verification are in progress. Next complete source checks,
+real isolated PostgreSQL/GitHub-fake failure injection and independent security
+and compatibility reviews. See [problem reporting](../docs/PROBLEM-REPORTING.md)
+for the product contract and operational setup. Service activation, account and
+credential changes, pushes, merge, deployment and an editor release are pending
+separate applicable owner authorization. No live report delivery is established.
 
-Preserve immutable assets, approved designs, ordinary Java and student ownership.
-Store and standalone Windows delivery remain separate; physical school devices
-and interactive Sparkle acceptance retain documented limits. No next local version,
-credential or account-setting change is authorized by this release.
+The public 0.5.80 release remains recorded in the
+[release ledger](../docs/RELEASE-LEDGER.md#zero-0580--2026-11-18). Preserve immutable
+assets, approved designs, ordinary Java and student ownership. **Learn to Build**
+/ **Starting from zero** remains the positioning.

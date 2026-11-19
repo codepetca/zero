@@ -8,6 +8,11 @@ work. Keep one writer per component and inspect changes before integration.
 Follow [AI workflow](AI-WORKFLOW.md) for delegation/review and recovery.
 Record compact durable delivery evidence in [EVIDENCE.md](EVIDENCE.md).
 
+[Problem reporting](PROBLEM-REPORTING.md) describes the opt-in editor collector,
+private GitHub inbox, service configuration and failure-injection acceptance.
+Local development needs no reporting credentials. Keep test submissions on local
+fake providers and isolated databases until live activation is authorized.
+
 ## Default iteration loop
 
 Owner preference,2026-10-22: use Zero Dev for routine UI/framework/game changes.

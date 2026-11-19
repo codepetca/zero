@@ -1,5 +1,12 @@
 # Framework reliability: catch failures automatically
 
+Current reporting work, 2026-11-18. [Problem reporting](PROBLEM-REPORTING.md)
+implements a separate, opt-in bounded editor channel to private GitHub issues.
+It constructs its own remote payload and keeps local diagnostic records local.
+PostHog remains an evaluated optional sink. The dated source audit below records
+the earlier reliability baseline; consult current source and verification for
+implemented local runtime behavior and reporting acceptance.
+
 Proposed acceptance system for the [framework architecture](FRAMEWORK-ARCHITECTURE.md),
 2026-10-23. Source audit at9502440e; this document does not install telemetry,
 activate alerts, change Run behavior or claim new runtime detection exists.

@@ -8,7 +8,7 @@ export default function Privacy() {
   return <LearnTheme active="">
     <main id="page-content" tabIndex={-1} className="legal-page">
       <h1>Privacy</h1>
-      <p>Codepet Inc. · Last updated November 13, 2026</p>
+      <p>Codepet Inc. · Last updated November 18, 2026</p>
       <div className="legal-summary">
         <h2>The essentials</h2>
         <p>You can browse Zero’s learning material without connecting GitHub. Connecting GitHub lets Zero process your account identity and credentials for the features you choose to use. Your GitHub password is entered on GitHub, not into Zero.</p>
@@ -27,6 +27,7 @@ export default function Privacy() {
           <li><strong>Public sharing:</strong> publication requests submitted through GitHub issues, and shared catalog records and artifacts, can include your GitHub identity, repository, source commit, files, title, description, license and project details. They are used to check, publish, attribute and discover the work you choose to share. Public material can be copied by others.</li>
           <li><strong>ZeroHub app listings:</strong> when enabled, publishing through Zero sends your GitHub access token and publishing details to verify ownership and the deployed app. Zero stores the account, repository, public links and queue order. Removing an app from ZeroHub takes its card out of public discovery. The app record stays available in My Projects.</li>
           <li><strong>Project counts:</strong> when enabled, clicking Play sends the project identifier to increment an aggregate count stored through Upstash. The application counter does not store a visitor profile or send an account ID, IP address or your GitHub credentials to the counter store. This counts link activations, including repeats; it does not measure unique people or gameplay. Hosting infrastructure still receives the request. Library-use summaries are derived from declared dependencies in shared project records.</li>
+          <li><strong>Problem reports:</strong> editor versions offering automatic reporting start with it off and respect VS Code’s telemetry preference. When you enable it and the reporting service is available, Zero sends bounded technical versions, operating system and distribution details, the operation and stage, a stable error code, a random retry identifier and a short structured operation history to help investigate failures. Automatic reports exclude source, raw logs and error messages, filesystem paths, repository URLs, account identifiers and credentials. Manual reports show the submitted technical details for review and can include an optional description sent as written. Keep personal information and secrets out of that description. Reports are stored in a private GitHub repository with service records in a separate database for delivery, grouping and abuse limits. Hosting infrastructure also receives normal connection information.</li>
           <li><strong>Support and privacy requests:</strong> if you contact Codepet, we receive what you send and the contact information needed to respond. Send only what is needed; do not send passwords, access tokens or private student records.</li>
         </ul>
       </section>
@@ -39,6 +40,7 @@ export default function Privacy() {
           <li><strong>Documentation:</strong> your last visited tutorial or docs page and section are saved in that browser’s local storage so Zero Docs can reopen it. Query parameters are not saved. The entry has no automatic expiry and can be removed by clearing site data.</li>
           <li><strong>Local preparation previews:</strong> development-only preparation screens can keep draft form values and retry identifiers in the current browser tab’s session storage. Saving a draft there does not submit it. ZeroJams participation is not enabled on the production site.</li>
           <li><strong>Desktop credentials and history:</strong> Zero uses VS Code SecretStorage for GitHub credentials, including refresh credentials where provided. Recent-project history can retain up to twenty local project paths, timestamps and repository links per GitHub account in the editor’s local state. Projects, Git history, settings and diagnostic output also remain on your device. Local history has no automatic time-based expiry; expired credentials can remain stored until cleared or replaced.</li>
+          <li><strong>Problem reporting:</strong> the automatic-reporting choice and a bounded retry queue are stored in the editor. Turning automatic reporting off clears its pending automatic reports. Manual reporting asks you to review the submitted content. A report receipt identifies a submission and does not require sending your GitHub identity.</li>
         </ul>
         <p>Aggregate counts and operational logs are separate from saved preferences. Hosting providers and independently visited sites also process information under their own policies.</p>
       </section>
@@ -51,6 +53,7 @@ export default function Privacy() {
       <section id="retention">
         <h2>5. Retention and deletion limits</h2>
         <p>Sign-in expiry is not a deletion schedule for every related record. Browser preferences and local editor history persist as described above. Aggregate Play counters have no automatic expiry. Public sharing records, releases, source history and copies made by others can remain available after an entry is removed from ZeroHub.</p>
+        <p>Private problem reports and their delivery records have separate retention from the editor’s retry queue. Clearing a local queue does not delete a report already received. Include the report receipt in an access or deletion request where available. The applicable operator configuration and provider limits determine retained copies and backups.</p>
         <p>Hosting logs, provider backups and security records follow the applicable provider configuration and legal requirements; this notice does not promise a fixed deletion period for them. Ask us for the retention information applicable to a specific record. Information may need to be retained to address security incidents, disputes or legal obligations. When considering a deletion request, we will explain relevant limits, including records controlled by another provider.</p>
         <p>Possible data loss is not permission to disregard legal duties to safeguard personal information or respond to privacy requests.</p>
       </section>

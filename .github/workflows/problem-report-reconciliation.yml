@@ -1,0 +1,28 @@
+name: Reconcile private problem reports
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: zero-problem-report-reconciliation
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: vars.ZERO_REPORTS_RECONCILE_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Resume durable report delivery
+        env:
+          ZERO_REPORTS_RECONCILE_SECRET: ${{ secrets.ZERO_REPORTS_RECONCILE_SECRET }}
+        run: |
+          test -n "$ZERO_REPORTS_RECONCILE_SECRET"
+          curl --fail --silent --show-error --max-time 45 \
+            --request POST \
+            --header "Authorization: Bearer $ZERO_REPORTS_RECONCILE_SECRET" \
+            https://zero.codepet.ca/api/problem-reports/reconcile

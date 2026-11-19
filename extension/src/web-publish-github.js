@@ -455,7 +455,12 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
       // The durable pending receipt and exact run now settle the same attempt.
       if(resume.dispatchTag&&sameStage(unresolvedStages.get(state.root),resume))unresolvedStages.delete(state.root);
     }
-    if(run.conclusion!=='success')return {status:'failed',resume,message:'Publishing failed. Open the GitHub run for details, then choose Publish & open app to try again.',action:{url:state.plan.page+'/actions/runs/'+resume.runId,message:'Open publishing run'}};
+    if(run.conclusion!=='success')return {
+      status:'failed',resume,
+      ...(['failure','timed_out','startup_failure'].includes(run.conclusion) ? {reportCode:'WEB_PUBLISH_DEPLOYMENT_FAILED'} : {}),
+      message:'Publishing failed. Open the GitHub run for details, then choose Publish & open app to try again.',
+      action:{url:state.plan.page+'/actions/runs/'+resume.runId,message:'Open publishing run'}
+    };
     onStage('verifying');
     const pages=await api(state,'GET','/pages',null,{signal,tracking:true});
     const {url}=assertDestination(pages,resume.destination);

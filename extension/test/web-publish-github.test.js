@@ -156,7 +156,14 @@ test('unrelated runs, old public version and failed deployment never claim Live'
   const h=await fixture(t),review=await h.publisher.review(h.root);
   const pending=await h.publisher.publish(review);h.run.head_sha='a'.repeat(40);await assert.rejects(h.publisher.check(pending.resume),/different publishing run/);h.run.head_sha=h.head;
   h.marker=h.head+'\n41\n';assert.equal((await h.publisher.check(pending.resume)).status,'pending');h.marker=h.head+'\n42\n';h.publicStatus=404;assert.equal((await h.publisher.check(pending.resume)).status,'pending');
-  h.run.conclusion='failure';assert.equal((await h.publisher.check(pending.resume)).status,'failed');
+  for(const conclusion of ['failure','timed_out','startup_failure']) {
+    h.run.conclusion=conclusion;const result=await h.publisher.check(pending.resume);
+    assert.equal(result.status,'failed');assert.equal(result.reportCode,'WEB_PUBLISH_DEPLOYMENT_FAILED');
+  }
+  for(const conclusion of ['cancelled','action_required','skipped']) {
+    h.run.conclusion=conclusion;const result=await h.publisher.check(pending.resume);
+    assert.equal(result.status,'failed');assert.equal(result.reportCode,undefined);
+  }
 });
 test('an accepted dispatch waits for the exact Actions run without resending the POST',async t=>{
   for(const kind of ['not yet visible','title delayed','temporary server error','never visible'])await t.test(kind,async t=>{

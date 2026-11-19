@@ -23,7 +23,9 @@
     "onCommand:zero.cloneRepository",
     "onCommand:zero.openLocalProject",
     "onWebviewPanel:zero.tutorials",
-    "onWebviewPanel:zero.startPage"
+    "onWebviewPanel:zero.startPage",
+    "onCommand:zero.reportProblem",
+    "onCommand:zero.configureProblemReports"
   ],
   "scripts": {
     "test": "node --test",
@@ -479,6 +481,14 @@
         "command": "zero.collapseStudentExplorer",
         "title": "Collapse All",
         "category": "Zero"
+      },
+      {
+        "command": "zero.reportProblem",
+        "title": "Zero: Report a Problem"
+      },
+      {
+        "command": "zero.configureProblemReports",
+        "title": "Zero: Configure Automatic Problem Reports"
       }
     ],
     "views": {
@@ -589,6 +599,12 @@
           "default": "",
           "scope": "machine",
           "markdownDescription": "Operator-configured reviewed policy revision, stamped by an accepted kit release. Blank keeps publication forms disabled."
+        },
+        "zero.automaticProblemReports": {
+          "type": "boolean",
+          "default": false,
+          "scope": "machine",
+          "markdownDescription": "Send sanitized unexpected Zero operation failures to Zero to help fix problems. Requires VS Code telemetry to be enabled. Reports do not include logs, paths, project URLs, or credentials. You can also choose Zero Help → Report a Problem to review and send a report manually."
         }
       }
     },
@@ -807,6 +823,16 @@
           "command": "zero.collapseStudentExplorer",
           "when": "view == zero.studentProject",
           "group": "1_project@3"
+        },
+        {
+          "command": "zero.reportProblem",
+          "when": "view == zero.controls",
+          "group": "zero-help@4"
+        },
+        {
+          "command": "zero.reportProblem",
+          "when": "view == zero.studentControls",
+          "group": "zero-help@4"
         }
       ],
       "view/item/context": [
