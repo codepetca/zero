@@ -6,7 +6,7 @@
     "repository": "codepetca/zero",
     "tag": "setup-v0.5.81"
   },
-  "sourceRevision": "51808415fc3207afd639fa8784c3910e43539335",
+  "sourceRevision": "0984de1e5ac101470d9f87141da81b590d77f1c4",
   "kit": {
     "filename": "zero-bootstrap.zip",
     "size": 5110868,
@@ -20,12 +20,12 @@
       "x86_64"
     ],
     "minimumOS": "12.0",
-    "size": 12355550,
-    "sha256": "757ef6a398d62904925d77e65b3974427ddb508c1c4dc6c78d5c81fd510ef0c8"
+    "size": 12355557,
+    "sha256": "06ff83d79f41543b81c624b33270cac319414e8a8bce53940bd451bb15b13ab5"
   },
   "signing": {
     "identitySha1": "ACE8EE40F3615C5062CBBD5F085E299E049BAE08",
     "teamIdentifier": "88FT6QZJP8"
   },
-  "notarizationSubmissionId": "47226a05-b83b-4792-8c27-d738b5e6c325"
+  "notarizationSubmissionId": "0694438f-9894-4643-885f-aa9c3192e743"
 }
