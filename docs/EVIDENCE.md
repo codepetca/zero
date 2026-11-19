@@ -7,8 +7,12 @@
 [preparation](https://github.com/codepetca/zero/actions/runs/44550447823) and
 [Windows preparation](https://github.com/codepetca/zero/actions/runs/44550453843) passed.
 The source review was clean (Terra/high, one turn); four artifact review turns
-(Sol/high) were clean, with zero remediation batches. Two final promotion reviews
-have not yet started.
+(Sol/high) were clean, with zero artifact remediation batches. Two independent
+Sol/high promotion reviews covered `8e754368a..9d8c57a3f`: security/correctness was
+clean; compatibility found one stale 0.5.81 published-kit test fixture. One batched
+correction pins all exact 0.5.82 version/name/size/hash/URL assertions and passes
+all 7 fixture cases; targeted independent re-review is pending. Review budget:
+2 initial turns, 1 correction batch, no unresolved production metadata finding.
 
 The canonical kit's three files, signed/notarized Mac setup and both Mac Git source
 archives, and small Portable ZIP passed anonymous public download verification.
@@ -38,8 +42,11 @@ Ignored receipts: `zero/.verification/release-082/canonical-verification.json`,
 in the corresponding sibling worktrees. These are evidence, not published assets.
 
 Local promotion checks passed configuration/syntax/command/link validation,
-website typecheck and all 102 release tests. Website tests/build and final-head
-hosted gates remain in progress. No runtime code or credentials change here.
+website typecheck and all 102 release tests. With pinned local dependencies,
+website build, function-bundle audit and runtime checks pass. The initial broad
+website run had deadline failures during host contention plus the stale fixture;
+failed-file serial reruns and final-head hosted gates remain in progress. No
+runtime code or credentials change here.
 
 # Zero0.5.82 measured Mac candidate — 2026-11-19
 
