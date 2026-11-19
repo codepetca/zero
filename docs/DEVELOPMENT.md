@@ -9,7 +9,7 @@ Follow [AI workflow](AI-WORKFLOW.md) for delegation/review and recovery.
 Record compact durable delivery evidence in [EVIDENCE.md](EVIDENCE.md).
 
 [Problem reporting](PROBLEM-REPORTING.md) describes the opt-in editor collector,
-private GitHub inbox, service configuration and failure-injection acceptance.
+public structured-only GitHub inbox, service configuration and failure-injection acceptance.
 Local development needs no reporting credentials. Keep test submissions on local
 fake providers and isolated databases until live activation is authorized.
 

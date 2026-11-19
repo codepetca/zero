@@ -8,6 +8,33 @@ Keep a manual report available for problems the editor cannot detect. Reports ar
 proposed change still needs reproduction, meaningful verification, independent
 review and the owner's applicable publication authority.
 
+## Provisioned backend
+
+Verified 2026-11-18. The dedicated App `codepet-zero-reports` (ID `5827621`,
+installation `183555907`) has issues-write/metadata-read access to the public inbox
+only, with no subscribed events. Vercel provisioned the Free Neon `zero-reports`
+resource (project `crimson-silence-47818786`, store `store_mqf7HZUM4YAt47xY`).
+The direct endpoint is `ep-rapid-butterfly-bc3cz34p.c-16.us-east-1.aws.neon.tech`,
+database `neondb`. Auth, Realtime and automatic deployment branches are disabled.
+
+The SQL-created `zero_reports_runtime` role owns no schema or tables, has no admin
+flags/memberships or CREATE/TEMP privileges, and receives CONNECT, schema USAGE
+and SELECT/INSERT/UPDATE/DELETE on the four reporting tables. Runtime uses a bare
+direct DSN with verified TLS. Keep database-owner credentials outside the website
+runtime. The automatic Marketplace owner-secret binding was removed after
+provisioning; the resource is still managed through Vercel and Zero uses its
+restricted `ZERO_REPORTS_DATABASE_URL` instead.
+
+All nine canonical server variables are staged for Vercel production only;
+`ZERO_REPORTS_ENABLED=false`. The DB URL, private key and reconciliation secret
+are sensitive. No reporting credentials are supplied to preview/development
+builds. Local backend acceptance used these dedicated providers with the current
+collector and real HTTP receiver. Its VS Code interaction was a controlled API
+fixture. Synthetic test issues are labelled `activation-test` and closed. See
+[acceptance evidence](EVIDENCE.md#reporting-appdatabase-live-acceptance--2026-11-18).
+Production route/scheduler acceptance, native-dialog/physical Windows checks,
+retention and backup limits, source merge and an editor release remain pending.
+
 ## Student flow
 
 Automatic public reporting starts disabled. The machine-scoped setting

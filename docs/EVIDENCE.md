@@ -1,3 +1,76 @@
+# Reporting App/database live acceptance — 2026-11-18
+
+Owner authorized dedicated GitHub App/database setup and end-to-end testing,
+with Neon provisioned through Vercel. The resource was created on its existing
+Free installation with Auth/Realtime disabled and no deployment branches.
+
+| Resource | Verified configuration |
+| --- | --- |
+| Public inbox | `codepetca/zero-reports`, immutable ID `1463652567`, issues enabled |
+| Dedicated App | `codepet-zero-reports`, ID `5827621`, installation `183555907`, selected repository only, issues-write and metadata-read, no webhook events |
+| Vercel-managed Neon | `zero-reports`, project `crimson-silence-47818786`, store `store_mqf7HZUM4YAt47xY`, Free, AWS US East1 |
+| Direct connection | `ep-rapid-butterfly-bc3cz34p.c-16.us-east-1.aws.neon.tech`, `neondb`, client TLS1.3 encrypted and authorized |
+| Runtime | SQL-created `zero_reports_runtime`; no elevated flags, role memberships, schema/database CREATE or TEMP; CONNECT/USAGE and DML on four report tables only |
+| Vercel production | Nine canonical variables, `ZERO_REPORTS_ENABLED=false`; DB URL, App key and reconciliation secret sensitive; no preview/development reporting variables |
+
+The database was verified empty before applying the existing reporting schema.
+Session advisory locks survive a committed transaction. The temporary native
+Marketplace project binding was removed after provisioning to remove its owner
+credentials from Zero. The resource remains Vercel-managed; Zero receives the
+restricted runtime DSN through `ZERO_REPORTS_DATABASE_URL`. Other database
+resources/bindings and production deployments were untouched. Production-only
+credentials were not exposed through CLI API readback. Owner passkey verification
+permitted scoped credential access. Operator files are protected outside Git;
+private directory mode700 and credential files mode600. No secret was committed.
+
+At source `d41f4582bfd09878ecb87a59041e6d127ddd1b0c`, the actual collector with a
+controlled VS Code API fixture sent through a real loopback HTTP receiver using
+current service code, the real Neon database and dedicated App. Acceptance passed:
+fresh public consent; legacy queue retirement; automatic delivery; same-ID receipt
+and issue deduplication; matching recovery; manual public confirmation; free-text
+and schema-v1 rejection; synthetic privacy canary absent from payload, stored rows
+and issue bodies; canonical App-bot authorship; two fully delivered issue bindings.
+The automatic issue shows one report, one failure and one recovery. The synthetic
+[automatic issue1](https://github.com/codepetca/zero-reports/issues/1) and
+[manual issue2](https://github.com/codepetca/zero-reports/issues/2) are labelled
+`activation-test` and closed as not planned, excluding them from bug triage.
+
+Read-only health reports delivered2/pending0/needsAttention0/attempted0. The actual
+local reconciliation handler rejects an invalid secret with401; an authenticated
+body-free invocation returns200 and refreshes both groups successfully. This is
+local route acceptance with real providers, not a hosted scheduler run. Ignored
+receipts/scripts are `.verification/reporting-live-e2e-result.json`,
+`reporting-live-reconcile-result.json`, `reporting-live-e2e.mjs` and
+`provision-reporting-db.mjs`. The public inbox README records backend acceptance
+and pending production activation.
+
+Independent activation review session: requested Sol/high security and integration
+reviewers, two initial turns plus one targeted environment-verification turn;
+no remediation batches or source corrections. Security independently verified
+TLS, exact endpoint, role ACL, destination pin, Bot authorship and private file
+permissions. Its final metadata check verified all nine Vercel variables target
+production only, the three secrets are sensitive, collection is false and the
+provisioning-owner binding is absent. Integration review covered main sync and
+E2E evidence. No blockers remain in reviewed setup. Effective model, per-turn
+elapsed time and tokens are unavailable. Unchanged reporting-source review and
+128 focused cases remain applicable; native dialogs were controlled fixtures.
+
+Hosted source [44460217594](https://github.com/codepetca/zero/actions/runs/44460217594)
+and browser [44460217701](https://github.com/codepetca/zero/actions/runs/44460217701)
+checks pass. Windows [44460217622](https://github.com/codepetca/zero/actions/runs/44460217622)
+is blocked by a source/artifact verification mismatch after 0.5.81 publication:
+it downloads the published kit, whose extension.js is349,720 bytes, then compares
+it to the newer reporting-enabled checkout at352,656 bytes. Both packaging jobs
+fail at `scripts/verify-kit.mjs:47`; later missing artifacts are consequential.
+Keep strict current-source verification for newly built candidates. Published-kit
+verification must bind the reviewed published manifest and original release
+source, with separate current-source Windows coverage. No verifier was bypassed
+and no version/release was invented to suppress this failure.
+
+Production collection and deployment remain disabled/unperformed. Source merge,
+hosted endpoint and scheduler acceptance, actual native-dialog/physical Windows,
+retention/provider-backup decisions and an editor release remain activation work.
+
 # Public reporting PR and integration acceptance — 2026-11-18
 
 [Draft PR386](https://github.com/codepetca/zero/pull/386) targets main from

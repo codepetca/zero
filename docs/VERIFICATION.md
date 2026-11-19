@@ -1,3 +1,18 @@
+# Reporting live backend acceptance — 2026-11-18
+
+Source `d41f4582bfd09878ecb87a59041e6d127ddd1b0c`: real collector/local HTTP receiver
+with real Neon and GitHub App passes automatic/manual delivery, same-ID dedup,
+recovery, legacy/free-text rejection and privacy-canary exclusion. Two bot-authored
+public test issues are labelled and closed. Read-only health and authenticated
+local reconciliation pass with no pending groups. Independent security/integration
+setup reviews and final Vercel environment isolation verification are clean.
+
+Hosted source and browser checks pass. Windows packaging is blocked by comparing
+the already published 0.5.81 kit to newer PR source; preserve strict verification
+and bind published-artifact checks to its release source. Production collection
+is staged disabled. Native UI, hosted route/scheduler, physical Windows and release
+acceptance remain pending. See [the complete receipt](EVIDENCE.md#reporting-appdatabase-live-acceptance--2026-11-18).
+
 # Reporting integration acceptance — 2026-11-18
 
 Source `118409a91d1f6526802519e1b3bf51d53d9c979b` passes 128 focused cases and

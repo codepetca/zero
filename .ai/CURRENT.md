@@ -1,29 +1,32 @@
-# Public structured reporting — 2026-11-18
+# Public reporting backend acceptance — 2026-11-18
 
-Owner authorized pushing `codex/automatic-error-reporting`, opening a PR and
-creating the public reporting inbox. [codepetca/zero-reports](https://github.com/codepetca/zero-reports)
-is public with issues enabled, numeric repository ID `1463652567`. Its README
-explains the structured-only contract and pending activation.
+Owner authorized branch push/PR, public inbox, dedicated App/database setup and
+end-to-end testing; Neon provisioning must go through Vercel. [PR386](https://github.com/codepetca/zero/pull/386)
+remains draft and unmerged. Source `d41f4582b` integrates main's published 0.5.81
+records; reporting/editor code is unchanged from the reviewed integration.
 
-The sidebar stays concise. Manual reporting confirms submission without a text
-field or JSON preview. Schema version 2 rejects free text and unknown fields.
-Public opt-in and queue are separate from the legacy private policy. The server
-revalidates stored samples and authenticates a public destination and App bot.
+[codepetca/zero-reports](https://github.com/codepetca/zero-reports) is public,
+ID `1463652567`. App `codepet-zero-reports` (`5827621`), installation `183555907`,
+has issues-write/metadata-read access to that repository only. Vercel Free Neon
+`zero-reports` is project `crimson-silence-47818786`, store `store_mqf7HZUM4YAt47xY`.
+Its direct endpoint and restricted `zero_reports_runtime` role are configured.
+Zero production has nine server variables; collection remains disabled. Its
+three credentials are sensitive, with no reporting credentials in previews or
+provisioning-owner binding. Private operator files remain outside Git.
 
-Reviewed source `65580f1093661b3d9d62cca4163d99cc3dac2edb` passed two independent
-public-policy reviews, 116 focused cases with actual isolated PostgreSQL/fake
-GitHub, source checks, website typecheck and production build. Current work
-integrates main `b61d160d3` (0.5.81), preserving browser-tool cancellation before
-report capture. Targeted integration review found no blockers; all 128 focused cases and
-source checks pass. [Draft PR386](https://github.com/codepetca/zero/pull/386)
-is pushed and mergeable. Hosted CI has started; its final result is pending.
+Live acceptance passed: controlled editor API fixture → actual local HTTP
+receiver → verified-TLS Neon → App-authored public issues. Automatic/manual,
+deduplication, recovery, schema rejection and privacy canary checks passed.
+[Issues1](https://github.com/codepetca/zero-reports/issues/1) and
+[2](https://github.com/codepetca/zero-reports/issues/2) are closed activation tests.
+Read-only health and authenticated local reconciliation pass. Two independent
+setup reviews and a final environment-isolation verification are clean.
 
-Owner now authorizes dedicated App/database setup and end-to-end testing.
-Created App `codepet-zero-reports` (5827621) and Vercel-provisioned Free Neon
-`zero-reports` (`crimson-silence-47818786`, store `store_mqf7HZUM4YAt47xY`),
-connected to Zero production only under `ZERO_REPORTS_NEON`. App key download and
-Vercel identity verification await the owner. Runtime SQL schema/role, end-to-end
-acceptance, scheduler enablement and an editor release remain pending. Native report-dialog,
-live App attribution and physical Windows acceptance remain unverified. No source merge or release is authorized. Preserve the original dirty checkout and separate
-0.5.81 preparation worktree. See [reporting operation](../docs/PROBLEM-REPORTING.md),
-[evidence](../docs/EVIDENCE.md) and [release ledger](../docs/RELEASE-LEDGER.md).
+Hosted source and browser checks pass at `d41f4582b`. Windows packaging checks
+fail because they compare the immutable published 0.5.81 kit against newer PR
+source. Preserve the strict verifier; see [evidence](../docs/EVIDENCE.md) for the
+required source-bound workflow correction. Hosted/native-dialog/physical Windows
+acceptance, retention/backup limits, scheduler execution and editor release remain
+pending. No merge, production deployment or global collection was performed.
+Preserve the original dirty checkout and other Zero worktrees. See
+[operation](../docs/PROBLEM-REPORTING.md) and [release ledger](../docs/RELEASE-LEDGER.md).
