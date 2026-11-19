@@ -1,3 +1,63 @@
+# Windows reporting gate and native walkthrough — 2026-11-19
+
+Owner requested the Windows packaging CI correction and native-editor walkthrough
+so reporting can merge and be enabled after checks. Installer publication is not
+part of this phase. Current reviewed source is `7a929a131de87c98f8616da79a227dac9e3adeb9`.
+
+The published-kit path now binds committed published manifests, the recorded
+release tag/source revision and all three asset sizes/hashes. It snapshots that
+Git source and runs maintained structural/source checks without executing the
+downloaded Maven wrapper. New candidate kits retain strict current-source parity
+and extracted Maven compilation. Both Windows jobs fetch the necessary history.
+Actual public 0.5.81 artifacts pass against source `ae18259ca607d7ce464e21a21d83ecf60182ac9b`.
+The changed PR extension is not claimed to be installed by packaging that old kit.
+
+Local focused verifier/release/kit tests:24 passed. Actionlint and source checks
+pass. Independent Sol/high security and compatibility turns reviewed the complete
+`4bc06e894..afe345ef0` delta with no actionable blockers. Security's initial
+blob-line-ending concern was withdrawn after independent actual-archive testing:
+Git archive reproduces the reviewed CRLF attributes. Compatibility also verified
+Setup.cmd1516 bytes and mvnw.cmd8481 bytes against actual public kit bytes.
+
+Hosted [Windows44524210779](https://github.com/codepetca/zero/actions/runs/44524210779)
+passed the original published-kit verifier and reached installer acceptance. The
+Portable job then exposed an absent `.verification` parent. Batch1 adds one
+PowerShell parent-directory creation before the downloader, keeping its exclusive
+new destination and size/hash checks. Targeted compatibility review of
+`afe345ef0..7a929a131` is clean; actionlint/diff checks pass. Session ledger:2initial
+reviewers plus1targeted turn,1remediation batch, no unresolved source findings.
+Effective model/tokens/elapsed seconds are unavailable. Final hosted runs follow.
+
+The actual installed VS Code 1.147 host now runs the current source extension in
+a separate `Zero Reporting Walkthrough` profile and development window. It shares
+only the already-running application process; existing project windows were kept.
+The real command opens the native Send this problem report sheet, with a concise
+summary/public notice and no input field or JSON. Cancel closes it. The native
+settings control starts unchecked, can be explicitly enabled, and was restored
+to unchecked. A confirmed send before deployment fails gracefully with Retry,
+Copy report and Cancel; cancelling retains the reviewed draft for live retry.
+No public report was created by these pre-deployment UI checks. Screenshots are
+ignored under `.verification/native-report-confirmation.png`,
+`native-report-opt-in-default.png` and `native-report-disabled-service.png`.
+Earlier attempts to target a separate Code process or a locally isolated app
+copy were unsuccessful; the completed check uses the installed unmodified editor.
+No modified editor copy is shipped.
+
+The Neon console Settings→Postgres shows the reporting project's History window
+slider at its maximum six-hour setting. Free plan history is separately capped at
+1GB of changes, per current provider documentation. This is a restore-history
+limit, not report expiry, guaranteed recovery or deletion assurance. Initial
+operating retention remains no automatic deletion: report/receipt/group records
+and public issues persist until operator removal, and public copies are outside
+operator control. No restore exercise was performed. Hosting/provider logs retain
+their own policies; this setup makes no unverified purge deadline promise.
+
+Pending: final stable-head hosted checks; native receipt after exact-source
+production deployment; authenticated hosted reconciliation. Collection remains
+disabled until those phase gates. The existing public-policy and live backend
+reviews apply to unchanged reporting code. Release/physical Windows acceptance
+for a future reporting-enabled installer remains separate from service activation.
+
 # Reporting App/database live acceptance — 2026-11-18
 
 Owner authorized dedicated GitHub App/database setup and end-to-end testing,

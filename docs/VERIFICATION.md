@@ -1,3 +1,17 @@
+# Reporting merge/activation gate — 2026-11-19
+
+Reviewed Windows source `7a929a131`: published assets bind original release source
+and hashes; new candidate parity/compilation remains strict. 24 focused cases,
+actionlint and source checks pass. Two independent full-delta reviewers plus one
+targeted parent-directory correction review are clean. Final hosted CI is pending.
+
+Actual installed VS Code/current extension in a separate walkthrough profile
+verifies the concise public confirmation, Cancel, default-off opt-in and safe
+Retry/Copy fallback while the service is not deployed. Final native success is
+pending production deployment. The reporting Neon project's history window is
+verified at6h; records/public issues have no automatic expiry. See
+[the complete receipt](EVIDENCE.md#windows-reporting-gate-and-native-walkthrough--2026-11-19).
+
 # Reporting live backend acceptance — 2026-11-18
 
 Source `d41f4582bfd09878ecb87a59041e6d127ddd1b0c`: real collector/local HTTP receiver

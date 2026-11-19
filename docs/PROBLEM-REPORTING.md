@@ -32,8 +32,10 @@ builds. Local backend acceptance used these dedicated providers with the current
 collector and real HTTP receiver. Its VS Code interaction was a controlled API
 fixture. Synthetic test issues are labelled `activation-test` and closed. See
 [acceptance evidence](EVIDENCE.md#reporting-appdatabase-live-acceptance--2026-11-18).
-Production route/scheduler acceptance, native-dialog/physical Windows checks,
-retention and backup limits, source merge and an editor release remain pending.
+The installed editor now verifies native confirmation/cancellation, default-off
+opt-in and safe retry/copy fallback. Hosted/native-success and scheduler acceptance,
+source merge and a future reporting-enabled editor release remain pending.
+Physical Windows installer acceptance for the new collector remains separate.
 
 ## Student flow
 
@@ -196,8 +198,13 @@ connection metadata separately from the report payload.
 
 The database schema supplies no automatic report deletion. Public issues and
 delivery records remain until the operator removes them. Public issues can be
-copied or referenced by others. Set and verify the operating retention policy
-and provider backup limits at activation. A receipt identifies a submission and
+copied or referenced by others. Initial operating policy is retention until operator removal, with no automatic
+deletion. The reporting project’s Neon History window was verified at six hours
+on 2026-11-19. The Free plan caps change history at1GB, which can shorten effective
+restore coverage. This history limit is not report expiry, guaranteed recovery or
+a deletion assurance. No restore exercise has been performed. See the provider’s
+[history-window documentation](https://neon.com/docs/postgres/backup-restore/history-window)
+and [Free-plan limits](https://neon.com/docs/introduction/plans). A receipt identifies a submission and
 does not establish who sent it or guarantee removal of public copies.
 
 The desktop setting controls automatic collection. Deploying the service,
