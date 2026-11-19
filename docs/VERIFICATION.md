@@ -1,3 +1,22 @@
+# AI triage operational acceptance — 2026-11-19
+
+PR396 merged `8d87dcd3c`; all 12 checks pass on reviewed `398962e8b`.
+Independent initial security/compatibility, targeted correction and cumulative
+integration reviews are clear after one batched fix. Local 37-case validation,
+queued source check, website typecheck/build and actionlint pass. Hosted source,
+real WebFX/browser and Windows installer/Portable lanes pass; see [evidence](EVIDENCE.md).
+
+The four-hour local Codex heartbeat was enabled and read back ACTIVE with the
+reviewed prompt. Production privacy disclosure is live (HTTP200, exact merge's
+READY deployment). Actual post-merge intake/investigation recorded report6 as
+insufficient-evidence, ended the run and left zero active leases, outbox entries
+or proposals. The unchanged expected missing-tooling guard test passes.
+
+This proves intake and a conservative real triage outcome, not a Windows bug
+reproduction, scheduled wake, defect fix or live draft publication. No existing
+issue was edited/closed, and no student project or reporting credential was read.
+The worker remains draft-only and requires Codex/Mac running.
+
 # Zero 0.5.82 release completed — 2026-11-19
 
 Promotion PR393 merged `6638d24d2` after all 12 final-head checks passed.
