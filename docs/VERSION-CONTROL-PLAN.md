@@ -52,9 +52,19 @@ also be seen in a fresh clone. Merge keeps the local and GitHub feature branch.
 On clean main, the branch menu offers **Delete merged local branch…**.
 Deletion confirms the selected branch and checks that its reviewed tip is
 already included in main.
-Supported updates remain available. Stale main and unsupported divergent updates
-offer **Open Source Control** and preserve the existing files and commits. An
-existing managed conflict can still use the guarded completion action once it has
+When GitHub main has advanced independently, **Update from main** can preview a
+conflict-free merge into a clean feature branch in a standalone repository with
+ordinary Git refs and supported Git tooling. Review the update, then run the app
+before selecting **Merge** again. If GitHub main already includes the exact
+feature tip and all local main commits, **Merge** offers **Switch to updated
+main**. Accepting updates and selects local main at the reviewed GitHub commit
+and keeps the feature branch. This operation performs only local changes and
+remote reads.
+
+Conflicts and unsupported divergent updates offer **Open Source Control** and
+preserve the existing files and commits. GitHub squash and rebase merges can change
+commit identity, so proof for switching requires ancestry of the exact feature
+commit. An existing managed conflict can still use the guarded completion action once it has
 been resolved in Source Control and the index has been verified.
 
 Zero's custom added-file removal is disabled in both development and installed

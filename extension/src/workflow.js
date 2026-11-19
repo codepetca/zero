@@ -11,7 +11,7 @@ const {assertShareable} = require('./lesson-projects');
 const {prepareUpload, assertNoUrlRewrites, validBranch} = require('./github');
 const {finishMessage,readFinishedBranch,validFinishedBranch}=require('./finished-change-marker');
 const {mergeGitDiagnostic} = require('./merge-git-diagnostic');
-const {updateDirectMain,checkoutDirectMain,preflightDirectMain,attachSameTreeMain,deleteDirectFeature}=require('./direct-main-transaction');
+const {updateDirectMain,checkoutDirectMain,updateCheckedOutFeature,preflightDirectMain,attachSameTreeMain,deleteDirectFeature}=require('./direct-main-transaction');
 // Only equal-tree, ref-only fast-forwards may use this path.
 const ENABLE_REFTABLE_REF_ONLY = true;
 const plans = new WeakSet();
@@ -43,7 +43,7 @@ const mergeGitRunner = run => safeRunner(run, true);
 // Finish graph and tree reads must agree with the no-replacement view used by
 // the locked transaction, including when callers supply an isolated env.
 function finishRunner(run) {
-  return (root,args,options)=>run(root,args,{...options,env:{...(options?.env||process.env),GIT_NO_REPLACE_OBJECTS:'1'}});
+  return (root,args,options)=>run(root,args,{...options,env:{...(options?.env||process.env),GIT_NO_REPLACE_OBJECTS:'1',GIT_NO_LAZY_FETCH:'1',GIT_ALLOW_PROTOCOL:''}});
 }
 async function refuseFinishReplacements(expected,run) {
   if(Object.keys(process.env).some(key=>/^(?:GIT_REPLACE_REF_BASE|GIT_GRAFT_FILE)$/i.test(key)))throw new Error('Git replacement objects or grafts require native Source Control for this merge.');
@@ -185,8 +185,8 @@ async function recheck(expected, run, {full = false,localOnly=false} = {}) {
   if (!same(expected, current) || full && expected.fingerprint !== current.fingerprint) throw drift();
   return current;
 }
-async function advanceMain(expected,next,previous,opts,action) {
-  try {const allowReftable=opts.refStorage==='reftable';const format=await preflightDirectMain(expected.root,expected.gitDir,{run:opts.run,allowReftable});if(opts.refStorage&&format!==opts.refStorage)throw drift();await updateDirectMain(expected.root,next,previous,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);if(await preflightDirectMain(expected.root,expected.gitDir,{run,allowReftable,skipProbe:true})!==format)throw drift();},checkNow:opts.beforeMutationNow||(()=>{})});}
+async function advanceMain(expected,next,previous,opts,action,{beforeAdvance}={}) {
+  try {const allowReftable=opts.refStorage==='reftable';const format=await preflightDirectMain(expected.root,expected.gitDir,{run:opts.run,allowReftable});if(opts.refStorage&&format!==opts.refStorage)throw drift();await updateDirectMain(expected.root,next,previous,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);if(await preflightDirectMain(expected.root,expected.gitDir,{run,allowReftable,skipProbe:true})!==format)throw drift();await beforeAdvance?.(run);},checkNow:opts.beforeMutationNow||(()=>{})});}
   catch(error){error.message+=` Could not safely ${action}.`;throw error;}
 }
 async function checkFinishStorage(expected,opts,{probe=false}={}) {
@@ -198,9 +198,9 @@ async function checkFinishStorage(expected,opts,{probe=false}={}) {
 async function attachFinishedMain(expected,opts) {
  await attachSameTreeMain(expected.root,expected.mainHead,expected.branch,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);await refuseFinishReplacements(expected,run);if(await preflightDirectMain(expected.root,expected.gitDir,{run,allowReftable:true,skipProbe:true})!=='reftable')throw drift();const [featureTree,mainTree]=await Promise.all([run(expected.root,['rev-parse',`${expected.head}^{tree}`]),run(expected.root,['rev-parse',`${expected.mainHead}^{tree}`])]);if(featureTree!==mainTree)throw new Error('The completed main has different files. Keep this feature and inspect Source Control.');},checkNow:opts.beforeMutationNow||(()=>{})});
 }
-async function checkoutMain(expected,opts) {
+async function checkoutMain(expected,opts,{beforeCheckout}={}) {
   await preflightDirectMain(expected.root,expected.gitDir,{run:opts.run});
-  return checkoutDirectMain(expected.root,expected.mainHead,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);await preflightDirectMain(expected.root,expected.gitDir,{run});},checkNow:opts.beforeMutationNow||(()=>{}),perform:env=>local(opts.run,expected.root,['-c','core.fsmonitor=false','-c',`core.hooksPath=${os.devNull}`,'checkout','--no-overwrite-ignore','main'],'switch to completed main',{env})});
+  return checkoutDirectMain(expected.root,expected.mainHead,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);await preflightDirectMain(expected.root,expected.gitDir,{run});await beforeCheckout?.(run);},checkNow:opts.beforeMutationNow||(()=>{}),perform:env=>local(opts.run,expected.root,['-c','core.fsmonitor=false','-c',`core.hooksPath=${os.devNull}`,'-c','submodule.recurse=false','checkout','--no-overwrite-ignore','main'],'switch to completed main',{env})});
 }
 function networkRequired(networkRun) {
   if (typeof networkRun !== 'function') throw new Error('Sign in to Zero and review this step using the native GitHub connection.');
@@ -344,7 +344,7 @@ async function matchingFeature(current, pending, run) {
 }
 // Retired candidates are hints, not authority: accept only exact, direct
 // object-named refs with a valid boundary for this feature and both histories.
-async function archivedFinishIn(current, descendant, run, {includeOnMain = false} = {}) {
+async function archivedFinishIn(current, descendant, run, {includeOnMain = false, confirmIncluded = false} = {}) {
   const rows = (await run(current.root, ['for-each-ref', '--format=%(refname) %(objectname) %(symref)', 'refs/zero/retired-finish/'])).split('\n').filter(Boolean);
   const matches = [];
   for (const row of rows) {
@@ -357,7 +357,7 @@ async function archivedFinishIn(current, descendant, run, {includeOnMain = false
         await run(current.root, ['rev-parse', `${id}^{tree}`]) !== await run(current.root, ['rev-parse', `${parents[2]}^{tree}`]) ||
         !(await ancestor(run, current.root, parents[1], parents[2])) || !(await ancestor(run, current.root, parents[2], current.head)) ||
         !(await ancestor(run, current.root, id, descendant))) continue;
-    if (await ancestor(run, current.root, id, current.mainHead) &&
+    if (!confirmIncluded && await ancestor(run, current.root, id, current.mainHead) &&
         !(includeOnMain && (current.head === parents[2] || current.head === descendant))) continue;
     matches.push({id, feature:parents[2]});
   }
@@ -417,8 +417,7 @@ async function prepareFinish(project, options = {}) {
   await assertNoArchivedFinishAhead(current, run);
   const pending = await pendingFinish(current, run);
   const base = pending ? pending.base : current.mainHead;
-  if (!(await ancestor(run, current.root, base, current.head))) throw new Error('Local main contains changes missing from this feature. Merge main into your feature with native Source Control, then review Merge to main again.');
-  if (base === current.head) throw new Error('This change has no commits to finish.');
+  if (pending && base === current.head) throw new Error('This change has no commits to finish.');
   const remoteMainHead=await protectedNetwork(current,opts,()=>remoteMain(current,opts.networkRun));
   if(!remoteMainHead)throw Object.assign(new Error('GitHub main is missing. Check the repository before merging; local commits are preserved.'),{kind:'behind'});
   if(pending){if(remoteMainHead!==pending.base&&remoteMainHead!==pending.id)throw Object.assign(new Error('GitHub main no longer matches the reviewed merge base. The pending merge is kept. Check GitHub and update from main before retrying.'),{kind:'behind'});}
@@ -426,12 +425,25 @@ async function prepareFinish(project, options = {}) {
     if(remoteMainHead!==current.mainHead){
       await protectedNetwork(current,opts,()=>fetchMain({...current,remoteMainHead,remoteBranch:'main'},opts),{full:true});
     }
-    if(!await ancestor(run,current.root,current.mainHead,remoteMainHead)||!await ancestor(run,current.root,remoteMainHead,current.head))throw Object.assign(new Error('GitHub main is not included in the reviewed feature or has moved behind local main. Update from main and review the merge again.'),{kind:'behind',nativeUpdateHandoff:true});
-    if(remoteMainHead===current.head)throw new Error('GitHub main already contains this feature head. There are no newer feature commits to merge.');
+    if (!await ancestor(run,current.root,current.mainHead,remoteMainHead)) {
+      if (base === current.head) throw new Error('This change has no commits to finish.');
+      throw nativeUpdateHandoff('Local main contains commits missing from GitHub main. Review main in Source Control before merging.');
+    }
+    if (await ancestor(run,current.root,current.head,remoteMainHead)) {
+      if (refStorage !== 'files') throw nativeUpdateHandoff('GitHub main already includes this branch. Use Source Control to update local main for this Git reference format.');
+      await checkAlreadyMerged(current, remoteMainHead, run);
+      const archive = await archivedFinishIn(current, remoteMainHead, run, {confirmIncluded:true});
+      await recheck(current, run, {full:true});
+      return planFor('finish', current, {refStorage, remoteMainHead, alreadyMerged:true, confirmedArchive:archive?.id});
+    }
+    if (!await ancestor(run,current.root,remoteMainHead,current.head)) {
+      throw nativeUpdateHandoff('This branch is missing changes from GitHub main. Choose Update from main, run the app, then merge again.');
+    }
   }
+  const mergeBase = pending ? base : remoteMainHead;
   const [paths,commitCount]=await Promise.all([
-    run(current.root,['diff','--name-only','-z',base,current.head]),
-    run(current.root,['rev-list','--count',`${base}..${current.head}`])
+    run(current.root,['diff','--name-only','-z',mergeBase,current.head]),
+    run(current.root,['rev-list','--count',`${mergeBase}..${current.head}`])
   ]);
   const changedPaths=Object.freeze(paths.split('\0').filter(Boolean));
   // Compare the full snapshot after the read-only GitHub lookup and before
@@ -446,6 +458,109 @@ async function protectedNetwork(expected, options, operation, {full = false} = {
   await recheck(expected, options.run);
   return result;
 }
+const foldGitPath = value => value.normalize('NFC').toUpperCase().toLowerCase().normalize('NFC');
+async function inspectUpdateTarget(current, target, run) {
+  await refuseUnsafeUpdateConversions(current.root, current.head, target, run);
+  const index = await run(current.root, ['ls-files','-v','-z']);
+  if (index.split('\0').some(entry => /^[a-zS] /.test(entry))) {
+    throw nativeUpdateHandoff('Git index flags can hide local changes. Review them in Source Control before updating.');
+  }
+  const entries = await run(current.root, ['ls-tree','-r','-t','-z',target]);
+  const names = new Set(), files = [];
+  for (const entry of entries.split('\0').filter(Boolean)) {
+    const match = /^(\d{6}) (blob|tree|commit) ([a-f0-9]{40}|[a-f0-9]{64})\t([\s\S]+)$/.exec(entry);
+    if (!match || match[4].includes('\ufffd')) throw nativeUpdateHandoff('Git could not verify the update paths. Review them in Source Control.');
+    const [, mode, type, , name] = match;
+    if (mode === '160000') throw nativeUpdateHandoff('This update contains a Git submodule. Review it in Source Control.');
+    const key = foldGitPath(name);
+    if (names.has(key)) throw nativeUpdateHandoff('The update contains paths that differ only by letter case or Unicode spelling. Review them in Source Control.');
+    names.add(key);
+    if (type !== 'tree') files.push(key);
+  }
+  await preserveIgnored(current, target, run, {paths:files, normalize:foldGitPath});
+}
+async function checkAlreadyMerged(current, remoteHead, run) {
+  await refuseFinishReplacements(current, run);
+  await requireCompleteUpdateHistory(current, run);
+  await assertNoPendingFinish(current.root, current.gitDir, run, 'Resolve the pending merge before switching to updated main.');
+  if (!await ancestor(run,current.root,current.mainHead,remoteHead) || !await ancestor(run,current.root,current.head,remoteHead)) throw drift();
+  await inspectUpdateTarget(current, remoteHead, run);
+}
+async function requireCompleteUpdateHistory(current, run) {
+  const partial = await run(current.root, ['config','--get-regexp','^(extensions\\.partialclone|remote\\..*\\.promisor)$']).catch(error => {
+    if (error.code === 1) return '';
+    throw error;
+  });
+  if (partial || await run(current.root, ['rev-parse','--is-shallow-repository']) !== 'false') {
+    throw nativeUpdateHandoff('This update needs complete Git history. Review it in Source Control.');
+  }
+}
+async function mergePreviewTree(current, remoteHead, run) {
+  const objects = path.join(current.gitDir, 'objects');
+  const info = await fs.lstat(objects);
+  if (!info.isDirectory() || info.isSymbolicLink() || await fs.realpath(objects) !== objects) {
+    throw nativeUpdateHandoff('This project has a nonstandard Git object directory. Review the update in Source Control.');
+  }
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'zero-merge-review-'));
+  const env = {...switchEnvironment(), GIT_CONFIG_NOSYSTEM:'1', GIT_CONFIG_GLOBAL:os.devNull, GIT_NO_REPLACE_OBJECTS:'1', GIT_OPTIONAL_LOCKS:'0'};
+  try {
+    // The preview reads committed attributes but cannot load a merge driver
+    // from the project's configuration, even if the config changes mid-review.
+    await run(temporary, ['init','--bare','--template=',`--object-format=${current.head.length === 64 ? 'sha256' : 'sha1'}`], {env});
+    return await run(temporary, ['-c',`core.attributesFile=${os.devNull}`,`--attr-source=${current.head}`,'merge-tree','--write-tree',current.head,remoteHead],
+      {env:{...env, GIT_OBJECT_DIRECTORY:objects}});
+  } finally {
+    await fs.rm(temporary, {recursive:true, force:true});
+  }
+}
+async function previewCleanMerge(current, remoteHead, run) {
+  await refuseFinishReplacements(current, run);
+  await requireCompleteUpdateHistory(current, run);
+  await assertNoPendingFinish(current.root, current.gitDir, run, 'Resolve the pending merge before updating from main.');
+  if (await archivedFinishIn(current, remoteHead, run)) {
+    throw nativeUpdateHandoff('An earlier merge needs attention. Review it in Source Control before updating from main.');
+  }
+  if (!await ancestor(run,current.root,current.mainHead,remoteHead)) {
+    throw nativeUpdateHandoff('Local main contains commits missing from GitHub main. Review main in Source Control before updating the feature.');
+  }
+  const bases = await run(current.root, ['merge-base','--all',current.head,remoteHead]).catch(error => {
+    if (error.code === 1) throw nativeUpdateHandoff('GitHub main and this branch have unrelated histories. Review them in Source Control.');
+    throw error;
+  });
+  if (!shaPattern.test(bases)) throw nativeUpdateHandoff('This branch has more than one merge base. Review the update in Source Control.');
+  await refuseUnsafeUpdateConversions(current.root,current.head,bases,run);
+  await refuseUnsafeUpdateConversions(current.root,current.head,remoteHead,run);
+  const customMerge = await run(current.root, ['config','--name-only','--get-regexp',
+    '^(core\\.attributesfile|merge\\.(default|renames|renamelimit|directoryrenames|renormalize)|diff\\.(renames|renamelimit))$']).catch(error => {
+    if (error.code === 1) return '';
+    throw error;
+  });
+  const customConfiguration = () => nativeUpdateHandoff('This project has custom Git merge settings or attributes. Review the update in Source Control.');
+  if (customMerge) throw customConfiguration();
+  const attributePaths = await Promise.all(['GIT_ATTR_SYSTEM','GIT_ATTR_GLOBAL'].map(name=>run(current.root,['var',name]))).catch(() => {
+    throw nativeUpdateHandoff('This Git version cannot verify merge attributes. Review the update in Source Control.');
+  });
+  for (const filename of [...attributePaths, path.join(current.gitDir,'info','attributes')]) {
+    if (!path.isAbsolute(filename) || /[\r\n]/.test(filename)) throw customConfiguration();
+    try {
+      const info = await fs.lstat(filename);
+      if (!info.isFile() || info.size) throw customConfiguration();
+    } catch (error) {if (error.code !== 'ENOENT') throw error;}
+  }
+  let tree;
+  try {
+    // Git computes the proposed tree without changing HEAD, the index or files.
+    tree = await mergePreviewTree(current, remoteHead, run);
+  } catch (error) {
+    if (error.nativeUpdateHandoff) throw error;
+    if (error.code === 1) throw nativeUpdateHandoff('This branch and GitHub main have merge conflicts. Resolve them in Source Control.');
+    throw nativeUpdateHandoff('Git could not preview this update safely. Review it in Source Control.');
+  }
+  if (!shaPattern.test(tree) || tree.length !== current.head.length) throw drift();
+  await inspectUpdateTarget(current, tree, run);
+  const paths = await run(current.root, ['diff','--no-ext-diff','--no-textconv','--no-renames','--name-only','-z',current.head,tree,'--']);
+  return Object.freeze({tree, changedPaths:paths.split('\0').filter(Boolean).length});
+}
 async function prepareSync(project, options = {}) {
   const opts = {beforeNetwork: async () => {}, onProgress:()=>{}, ...options, run: finishRunner(guardedRunner(safeRunner(options.run || core.git)))};
   networkRequired(opts.networkRun);
@@ -459,7 +574,19 @@ async function prepareSync(project, options = {}) {
   const remoteBranchName = target === 'branch' ? current.branch : 'main';
   const remoteHead = await protectedNetwork(current, opts, () => remoteBranch(current, remoteBranchName, opts.networkRun));
   if (!remoteHead) throw new Error(`GitHub ${remoteBranchName} has no completed commit to update from.`);
-  let filesAncestryReviewed=false;if(refStorage==='files'&&remoteHead!==current.head){await protectedNetwork(current,opts,()=>fetchMain({...current,remoteMainHead:remoteHead,remoteBranch:remoteBranchName},opts),{full:true});await refuseFinishReplacements(current,opts.run);if(!await ancestor(opts.run,current.root,current.head,remoteHead)&&!await ancestor(opts.run,current.root,remoteHead,current.head))throw nativeUpdateHandoff('This branch and GitHub have different commits. Zero cannot update them automatically.');filesAncestryReviewed=true;}
+  let filesAncestryReviewed = false, cleanMerge;
+  if (refStorage === 'files' && remoteHead !== current.head) {
+    await protectedNetwork(current,opts,()=>fetchMain({...current,remoteMainHead:remoteHead,remoteBranch:remoteBranchName},opts),{full:true});
+    await refuseFinishReplacements(current,opts.run);
+    if (!await ancestor(opts.run,current.root,current.head,remoteHead) && !await ancestor(opts.run,current.root,remoteHead,current.head)) {
+      if (opts.fastForwardOnly || target !== 'main' || current.branch === 'main') {
+        throw nativeUpdateHandoff('This branch and GitHub have different commits. Zero cannot update them automatically.');
+      }
+      cleanMerge = await previewCleanMerge(current, remoteHead, opts.run);
+      await recheck(current, opts.run, {full:true});
+    }
+    filesAncestryReviewed = true;
+  }
   let reftableArchived,reftableUpdate,reftableNoop,reftableRefOnly,mergeCandidate,preview;if(refStorage==='reftable'){
     if(retired)throw nativeUpdateHandoff('Updating files in this Git reference format is temporarily unavailable. Your files and commits are kept.');
     if(!retired&&remoteHead===current.head)reftableNoop=true;
@@ -470,7 +597,7 @@ async function prepareSync(project, options = {}) {
     }await refuseUnsafeUpdateConversions(current.root,current.head,updateHead,opts.run);await preserveIgnored(current,updateHead,opts.run);preview=await require('./reftable-switch-capture').previewReftableUpdate({root:current.root,branch:current.branch,feature:current.head,main:current.mainHead,target:updateHead,beforeMutation:opts.beforeNetwork,beforeMutationNow:opts.beforeMutationNow||(()=>{})});reftableUpdate=true;}
     else {await protectedNetwork(current,opts,()=>fetchMain({...current,remoteMainHead:remoteHead,remoteBranch:'main'},opts),{full:true});let pending=false;try{await opts.run(current.root,['rev-parse','--verify',pendingFinishRef]);pending=true;}catch(error){if(error.code!==128)throw error;}if(pending)throw new Error('This update is not supported for this Git reference storage while a merge is pending. Your commits are preserved.');reftableArchived=await archivedFinishIn(current,remoteHead,opts.run,{includeOnMain:true});if(!reftableArchived||![reftableArchived.feature,remoteHead].includes(current.head)||!(await ancestor(opts.run,current.root,current.mainHead,remoteHead)))throw new Error('This update is not supported for this Git reference storage. Your files and commits are preserved.');await refuseUnsafeUpdateConversions(current.root,current.head,remoteHead,opts.run);await preserveIgnored(current,remoteHead,opts.run);preview=await require('./reftable-switch-capture').previewReftableSwitch({root:current.root,branch:current.branch,feature:current.head,main:current.mainHead,target:remoteHead,beforeMutation:opts.beforeNetwork,beforeMutationNow:opts.beforeMutationNow||(()=>{})});}
   }
-  return planFor('sync', current, {target,refStorage,filesAncestryReviewed,reftableArchived,reftableUpdate,reftableNoop,reftableRefOnly,mergeCandidate,preview, remoteBranch: remoteBranchName, remoteMainHead: remoteHead, summary: `Download and merge GitHub ${remoteBranchName} into ${current.branch}, preserving your local commits.`});
+  return planFor('sync', current, {target,refStorage,filesAncestryReviewed,cleanMerge,reftableArchived,reftableUpdate,reftableNoop,reftableRefOnly,mergeCandidate,preview, remoteBranch: remoteBranchName, remoteMainHead: remoteHead, summary: `Download and merge GitHub ${remoteBranchName} into ${current.branch}, preserving your local commits.`});
 }
 async function fetchMain(expected, options) {
   const remoteBranch=expected.remoteBranch||'main';
@@ -484,10 +611,10 @@ async function fetchMain(expected, options) {
   const commit = await local(options.run, expected.root, ['rev-parse', '--verify', `${expected.remoteMainHead}^{commit}`], 'inspect the fetched branch commit');
   if (commit !== expected.remoteMainHead) throw new Error(`GitHub ${remoteBranch} did not resolve to the reviewed commit. Review this step again.`);
 }
-async function preserveIgnored(expected, target, run) {
-  const ignored = (await run(expected.root, ['ls-files', '--others', '--ignored', '--exclude-standard', '-z'])).split('\0').filter(Boolean);
+async function preserveIgnored(expected, target, run, {paths, normalize=value=>value}={}) {
+  const ignored = (await run(expected.root, ['ls-files', '--others', '--ignored', '--exclude-standard', '-z'])).split('\0').filter(Boolean).map(normalize);
   if (!ignored.length) return;
-  const paths = (await run(expected.root, ['ls-tree', '-r', '--name-only', '-z', target])).split('\0').filter(Boolean);
+  paths ??= (await run(expected.root, ['ls-tree', '-r', '--name-only', '-z', target])).split('\0').filter(Boolean);
   if (ignored.some(file => paths.some(tracked => file === tracked || file.startsWith(`${tracked}/`) || tracked.startsWith(`${file}/`)))) throw new Error('The incoming main would overwrite a local ignored file. Move that file safely outside the project, then review again.');
 }
 function executorOptions(plan, kind, options) {
@@ -572,12 +699,53 @@ async function startPrepared(plan, options = {}) {
   plans.delete(plan);
   return Object.freeze({branch: plan.name, head: plan.head, page: plan.page, postCheckoutChanged, activeUncertain, checkoutWarning});
 }
+async function applyReviewedCleanMerge(plan, current, opts) {
+  const {root, head, remoteMainHead} = plan;
+  const run = opts.run;
+  const observed = await protectedNetwork(current, opts, () => remoteMain(current, opts.networkRun), {full:true});
+  if (observed !== remoteMainHead) throw drift();
+  await opts.beforeMutation();
+  await recheck(current, run, {full:true});
+  const preview = await previewCleanMerge(current, remoteMainHead, run);
+  if (preview.tree !== plan.cleanMerge.tree || preview.changedPaths !== plan.cleanMerge.changedPaths) throw drift();
+  const candidate = await local(run,root,['-c','commit.gpgSign=false','commit-tree',preview.tree,'-p',head,'-p',remoteMainHead,'-m','Update from main'],'record the reviewed update');
+  if (!shaPattern.test(candidate) ||
+      await run(root, ['rev-list','--parents','-n','1',candidate]) !== `${candidate} ${head} ${remoteMainHead}` ||
+      await run(root, ['rev-parse',`${candidate}^{tree}`]) !== preview.tree) throw drift();
+  const latest = await protectedNetwork(current, opts, () => remoteMain(current, opts.networkRun), {full:true});
+  if (latest !== remoteMainHead) throw drift();
+  opts.onProgress(`Applying the reviewed update to ${current.branch}…`);
+  // Git locks HEAD, the feature and main. The two-tree read changes only
+  // the index and worktree, then the ref transaction advances the feature.
+  await updateCheckedOutFeature(root, current.mainHead, head, candidate, {
+    verify: async env => {
+      const lockedRun = (cwd,args,options) => run(cwd,args,{...options,env});
+      await opts.beforeMutation();
+      await recheck(current, lockedRun, {full:true});
+      await assertDirectMain(root, lockedRun);
+      await assertNoPendingFinish(root, current.gitDir, lockedRun, 'Resolve the pending merge before updating from main.');
+      await requireCompleteUpdateHistory(current, lockedRun);
+      await inspectUpdateTarget(current, candidate, lockedRun);
+    },
+    checkNow:opts.beforeMutationNow || (()=>{}),
+    perform:env=>run(root,['-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false','-c','submodule.recurse=false',
+      'read-tree','-m','-u','--no-sparse-checkout',head,candidate],{env})
+  });
+  try {
+    const final = await state(root, run, {full:true});
+    if (!same({...current, head:candidate}, final)) throw drift();
+  } catch {
+    throw new Error('Zero could not confirm the local update. Check the current branch and files in Source Control before retrying.');
+  }
+  plans.delete(plan);
+  return Object.freeze({synced:true, updated:true, branch:current.branch, head:candidate, page:plan.page, remote:plan.remote, remoteBranch:'main', remoteHead:remoteMainHead});
+}
 async function syncPrepared(plan, options = {}) {
   const opts = executorOptions(plan, 'sync', options);
   if(plan.refStorage==='reftable'&&(plan.reftableUpdate||plan.reftableArchived))throw nativeUpdateHandoff('Updating files in this Git reference format is temporarily unavailable. Your files and commits are kept.');
   if(plan.refStorage==='files'&&plan.head!==plan.remoteMainHead&&!plan.filesAncestryReviewed)throw new Error('Review this update again before changing the project. Your files and commits are kept.');
   if(plan.reftableRefOnly){if(!ENABLE_REFTABLE_REF_ONLY||!options.refOnlyIntent||typeof opts.beforeMutationNow!=='function')throw drift();const current=await recheck(plan,finishRunner(guardedRunner(opts.run)),{full:true});const observed=await protectedNetwork(current,opts,()=>remoteBranch(current,plan.remoteBranch,opts.networkRun),{full:true});if(observed!==plan.remoteMainHead)throw drift();const outcome=await require('./reftable-ref-only').fastForwardEqualTree({root:plan.root,branch:plan.branch,head:plan.head,main:plan.mainHead,target:plan.remoteMainHead,beforeMutation:opts.beforeMutation,beforeMutationNow:opts.beforeMutationNow,intent:options.refOnlyIntent});plans.delete(plan);return Object.freeze({synced:true,updated:true,branch:plan.branch,head:plan.remoteMainHead,page:plan.page,remote:plan.remote,remoteBranch:plan.remoteBranch,remoteHead:observed,refOnlyOutcome:outcome});}
-  opts.run = plan.refStorage==='reftable'?finishRunner(guardedRunner(opts.run)):guardedRunner(opts.run);
+  opts.run = plan.refStorage==='reftable'||plan.cleanMerge?finishRunner(guardedRunner(opts.run)):guardedRunner(opts.run);
   if(plan.refStorage==='reftable'){if(typeof opts.beforeMutationNow!=='function')throw drift();if(plan.reftableArchived)require('./commit-provenance').assertReftableSwitchOwner(opts.ownedSwitch,plan.root);else if(plan.reftableUpdate)require('./commit-provenance').assertReftableUpdateOwner(opts.ownedUpdate,plan.root);else if(!plan.reftableNoop)throw drift();}
   if(plan.reftableNoop){await assertShareable(plan.root);await require('./reftable-update-evidence').assertNoRetiredUpdateEvidence(plan.root);const current=await recheck(plan,opts.run,{full:true});if(current.head!==plan.remoteMainHead)throw drift();const observed=await protectedNetwork(current,opts,()=>remoteBranch(current,plan.remoteBranch,opts.networkRun),{full:true});if(observed!==plan.remoteMainHead)throw drift();await require('./reftable-update-evidence').assertNoRetiredUpdateEvidence(plan.root);await opts.beforeMutation();await recheck(current,opts.run,{full:true});const finalAuthority=opts.beforeMutationNow();if(finalAuthority&&typeof finalAuthority.then==='function')throw drift();plans.delete(plan);return Object.freeze({synced:true,updated:false,noTracking:true,branch:current.branch,head:current.head,page:plan.page,remote:plan.remote,remoteBranch:plan.remoteBranch,remoteHead:observed});}
   await assertShareable(plan.root);
@@ -586,6 +754,10 @@ async function syncPrepared(plan, options = {}) {
   let current = await recheck(plan, opts.run, {full: true});
   const format=await preflightDirectMain(current.root,current.gitDir,{run:opts.run,allowReftable:plan.refStorage==='reftable'});if(plan.refStorage&&format!==plan.refStorage)throw drift();
   const remoteHead = plan.remoteMainHead;
+  if (plan.cleanMerge) {
+    if (opts.fastForwardOnly || plan.target !== 'main' || current.branch === 'main' || format !== 'files') throw drift();
+    return applyReviewedCleanMerge(plan, current, opts);
+  }
   await refuseUnsafeUpdateConversions(plan.root, current.head, plan.mergeCandidate?.candidate||remoteHead, opts.run);
   if(plan.refStorage==='reftable'&&plan.reftableUpdate){
     const observed=await protectedNetwork(current,opts,()=>remoteBranch(current,plan.remoteBranch,opts.networkRun),{full:true});if(observed!==remoteHead)throw drift();
@@ -739,6 +911,35 @@ async function syncPrepared(plan, options = {}) {
   plans.delete(plan);
   return Object.freeze({synced: true, updated: final.head !== current.head, branch: final.branch, head: final.head, page: plan.page, remote: plan.remote, remoteBranch: plan.remoteBranch, remoteHead, ...(confirmedFinish ? {confirmedFinish} : {}),...(confirmedMerge?{confirmedMerge}:{})});
 }
+async function switchToAlreadyMergedMain(plan, current, opts) {
+  const observed = await protectedNetwork(current, opts, () => remoteMain(current, opts.networkRun), {full:true});
+  if (observed !== plan.remoteMainHead) throw drift();
+  const {root, branch, head} = current;
+  const checkedTarget = expected => async run => {
+    await checkAlreadyMerged(expected, observed, run);
+    const archive = await archivedFinishIn(current, observed, run, {confirmIncluded:true});
+    if (archive?.id !== plan.confirmedArchive) throw drift();
+  };
+  opts.onProgress('Switching to the reviewed GitHub main…');
+  try {
+    if (current.mainHead !== observed) {
+      await advanceMain(current, observed, current.mainHead, opts, 'update local main', {beforeAdvance:checkedTarget(current)});
+    }
+    const completed = {...current, mainHead:observed};
+    await checkoutMain(completed, opts, {beforeCheckout:checkedTarget(completed)});
+    const final = await state(root, opts.run, {full:true});
+    if (!same({...completed, branch:'main', head:observed}, final) ||
+        await opts.run(root, ['rev-parse','--verify',`refs/heads/${branch}^{commit}`]) !== head) throw drift();
+  } catch (error) {
+    keepMergeDiagnostic(error, error.cause);
+    error.message += ' GitHub main already includes this branch. Check local main and the active branch before retrying.';
+    throw error;
+  }
+  plans.delete(plan);
+  const confirmedMerge = plan.confirmedArchive && Object.freeze({branch, head:plan.confirmedArchive});
+  return Object.freeze({finished:true, alreadyMerged:true, branch:'main', head:observed, featureHead:head, page:plan.page, finishedBranch:branch, remote:plan.remote,
+    ...(confirmedMerge ? {confirmedMerge} : {})});
+}
 async function finishPrepared(plan, options = {}) {
   const opts = executorOptions(plan, 'finish', options);
   opts.run=finishRunner(opts.run);
@@ -746,9 +947,10 @@ async function finishPrepared(plan, options = {}) {
   await assertShareable(plan.root);
   await opts.beforeMutation();
   let current = await recheck(plan, opts.run, {full: true});
-  const cleanupLayout = await core.inspectGitLayout(plan.root, opts.run);
   await checkFinishStorage(current,opts,{probe:true});
   await assertNoArchivedFinishAhead(current, opts.run);
+  if (plan.alreadyMerged) return switchToAlreadyMergedMain(plan, current, opts);
+  const cleanupLayout = await core.inspectGitLayout(plan.root, opts.run);
   let candidate = plan.pending;
   if (candidate) {
     const checked = await pendingFinish(current, opts.run);
@@ -905,8 +1107,8 @@ async function cleanupState(root, run, expectedLayout) {
   if (current.branch !== 'main' || current.head !== current.mainHead) throw new Error('Switch to clean main before deleting a finished local feature.');
   return {current, layout};
 }
-async function assertNoPendingFinish(root,gitDir,run) {
-  const pending=()=>new Error('Resolve the pending merge before deleting a local branch.');
+async function assertNoPendingFinish(root,gitDir,run,message='Resolve the pending merge before deleting a local branch.') {
+  const pending=()=>new Error(message);
   // Listing refs can omit a dangling symbolic ref or a broken loose ref.
   try {
     await fs.lstat(path.join(gitDir,pendingFinishRef));
