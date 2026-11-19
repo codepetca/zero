@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.",
-  "version": "0.5.80",
+  "version": "0.5.81",
   "publisher": "zero",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
@@ -268,19 +268,19 @@
       },
       {
         "command": "zero.newClass",
-        "title": "Zero: New class\u2026"
+        "title": "Zero: New class…"
       },
       {
         "command": "zero.newFile",
-        "title": "Zero: New file\u2026"
+        "title": "Zero: New file…"
       },
       {
         "command": "zero.newFolder",
-        "title": "Zero: New folder\u2026"
+        "title": "Zero: New folder…"
       },
       {
         "command": "zero.importAssets",
-        "title": "Zero: New asset\u2026"
+        "title": "Zero: New asset…"
       },
       {
         "command": "zero.copyImportedAssetPaths",
@@ -288,7 +288,7 @@
       },
       {
         "command": "zero.recovery",
-        "title": "Zero: Review or restore changes\u2026"
+        "title": "Zero: Review or restore changes…"
       },
       {
         "command": "zero.newProject",
@@ -345,7 +345,7 @@
       },
       {
         "command": "zero.newPackage",
-        "title": "Zero: New package\u2026"
+        "title": "Zero: New package…"
       },
       {
         "command": "zero.previewStudentExplorer",
@@ -409,27 +409,27 @@
       },
       {
         "command": "zero.explorerNewClass",
-        "title": "New class\u2026",
+        "title": "New class…",
         "category": "Zero"
       },
       {
         "command": "zero.explorerNewPackage",
-        "title": "New package\u2026",
+        "title": "New package…",
         "category": "Zero"
       },
       {
         "command": "zero.explorerNewFile",
-        "title": "New file\u2026",
+        "title": "New file…",
         "category": "Zero"
       },
       {
         "command": "zero.explorerNewFolder",
-        "title": "New folder\u2026",
+        "title": "New folder…",
         "category": "Zero"
       },
       {
         "command": "zero.explorerImportAssets",
-        "title": "Import assets\u2026",
+        "title": "Import assets…",
         "category": "Zero"
       },
       {
@@ -442,32 +442,32 @@
       },
       {
         "command": "zero.projectNewClass",
-        "title": "New class\u2026",
+        "title": "New class…",
         "category": "Zero"
       },
       {
         "command": "zero.projectNewPackage",
-        "title": "New package\u2026",
+        "title": "New package…",
         "category": "Zero"
       },
       {
         "command": "zero.projectNewFile",
-        "title": "New file\u2026",
+        "title": "New file…",
         "category": "Zero"
       },
       {
         "command": "zero.projectNewFolder",
-        "title": "New folder\u2026",
+        "title": "New folder…",
         "category": "Zero"
       },
       {
         "command": "zero.projectImportAssets",
-        "title": "Import assets\u2026",
+        "title": "Import assets…",
         "category": "Zero"
       },
       {
         "command": "zero.explorerRenameFile",
-        "title": "Rename file\u2026",
+        "title": "Rename file…",
         "category": "Zero"
       },
       {
