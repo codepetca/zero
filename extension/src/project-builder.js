@@ -84,6 +84,14 @@ async function locateRuntimes({runtime,projectRoot,environment=process.env,platf
  const pins=runtime.pins.filter(pin=>pin.platform===platform+'-'+arch);
  return {node,javaHome,env,evidence:{nodeVersion,javaVersion,platform:platform+'-'+arch,testedPins:pins.map(({tool,version})=>({tool,version})),matchesTestedVersions:pins.length>0&&pins.every(pin=>pin.version.replace(/^v/,'').split('+')[0]===(pin.tool==='node'?nodeVersion:javaVersion||'unavailable'))}};
 }
+async function canonicalCacheBase(filename) {
+ const parent = path.dirname(filename);
+ try {return await fs.realpath(filename);}
+ catch (error) {
+  if (error.code !== 'ENOENT' || parent === filename) throw error;
+  return path.join(await canonicalCacheBase(parent), path.basename(filename));
+ }
+}
 async function readOperationLog(filename,expectedLogPath){
  if(typeof filename!=='string'||filename.length>4096||!expectedLogPath||filename!==expectedLogPath)throw unavailable('builder returned an invalid diagnostic log path.');
  const before=await ordinary(filename,{maxBytes:16*1024*1024});let handle;
@@ -182,9 +190,15 @@ function createProjectBuilder({isTrusted=()=>false,environment=process.env,platf
   try {
    for(const file of before.files){const target=path.join(frozen,...file.path.split('/'));await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,file.bytes,{flag:'wx',mode:0o600});}
    if((await readSavedBuilder(projectRoot)).profileHash!==before.profileHash)throw unavailable('saved tooling changed before execution.');await requireCurrent(projectRoot,before);authorize(options,operation);
-   const cacheBase=path.resolve(options.cacheRoot||path.join(temporaryBase,'zero-web-cache')),identity=before.manifest.closureSha256+'-'+format.sha256(before.files.find(file=>file.path==='runtime-lock.json').bytes),cacheRoot=path.join(cacheBase,identity);
-   if(cacheRoot===projectRoot||cacheRoot.startsWith(projectRoot+path.sep))throw unavailable('the browser cache must be outside the project.');
-   const result=await runProtocol({node:runtime.node,entrypoint:path.join(frozen,'run.cjs'),request:{protocol:1,operation,projectRoot,cacheRoot},env:runtime.env,signal:options.signal,onProgress:options.onProgress,deadlineMs,spawn,platform,expectedLogPath:path.join(cacheRoot,before.manifest.closureSha256,'logs',format.sha256(projectRoot)+'.log')});
+   // Match the exporter's canonical paths without trusting any path from its response.
+   const cacheBase = await canonicalCacheBase(path.resolve(options.cacheRoot || path.join(temporaryBase, 'zero-web-cache')));
+   const identity = before.manifest.closureSha256+'-'+format.sha256(before.files.find(file=>file.path==='runtime-lock.json').bytes);
+   const cacheRoot = path.join(cacheBase, identity);
+   const canonicalProjectRoot = await fs.realpath(projectRoot);
+   if(cacheRoot===canonicalProjectRoot||cacheRoot.startsWith(canonicalProjectRoot+path.sep))throw unavailable('the browser cache must be outside the project.');
+   const expectedLogPath = path.join(cacheRoot, before.manifest.closureSha256, 'logs', format.sha256(canonicalProjectRoot)+'.log');
+   authorize(options,operation);
+   const result=await runProtocol({node:runtime.node,entrypoint:path.join(frozen,'run.cjs'),request:{protocol:1,operation,projectRoot,cacheRoot},env:runtime.env,signal:options.signal,onProgress:options.onProgress,deadlineMs,spawn,platform,expectedLogPath});
    authorize(options,operation);if((await readSavedBuilder(projectRoot)).profileHash!==before.profileHash)throw unavailable('saved tooling changed during execution.');await requireCurrent(projectRoot,before);
    if(operation==='compatibility'||operation==='compatibilityCached')return {...result,runtimeEvidence:runtime.evidence};
    if(options.result?.buildId&&result?.buildId!==options.result.buildId)throw unavailable('the browser build was replaced.');

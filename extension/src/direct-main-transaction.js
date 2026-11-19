@@ -97,9 +97,18 @@ async function preflightDirectMain(root,gitDir,{run=core.git,allowReftable=false
  if(ambient()!==environment||anchor(root)!==identity)throw new Error('The project Git environment changed. Review the operation again.');
  return format;
 }
-async function transaction(root,next,previous,{verify,checkNow=()=>{},perform,attachBranch,deleteBranch,refStorage,probeOnly=false,timeoutMs=30000}={}) {
- if(!path.isAbsolute(root)||!oid(previous)||(next!==null&&(!oid(next)||next.length!==previous.length))||typeof verify!=='function'||typeof checkNow!=='function'||(next===null&&!attachBranch&&!deleteBranch&&typeof perform!=='function')||(attachBranch&&(!core.validBranchName(attachBranch)||attachBranch==='main'||next!==null))||!Number.isSafeInteger(timeoutMs)||timeoutMs<1)throw new Error('The local main update could not be reviewed safely.');
+async function transaction(root,next,previous,{verify,checkNow=()=>{},perform,attachBranch,deleteBranch,updateFeature,adoptFeature,refStorage,probeOnly=false,timeoutMs=30000}={}) {
+ if(!path.isAbsolute(root)||!oid(previous)||(next!==null&&(!oid(next)||next.length!==previous.length))||typeof verify!=='function'||typeof checkNow!=='function'||(next===null&&!attachBranch&&!deleteBranch&&!adoptFeature&&typeof perform!=='function')||(attachBranch&&(!core.validBranchName(attachBranch)||attachBranch==='main'||next!==null))||!Number.isSafeInteger(timeoutMs)||timeoutMs<1)throw new Error('The local main update could not be reviewed safely.');
  if(deleteBranch&&(!core.validBranchName(deleteBranch.branch)||deleteBranch.branch==='main'||!oid(deleteBranch.head)||deleteBranch.head.length!==previous.length||next!==null||attachBranch||perform))throw new Error('The local feature deletion could not be reviewed safely.');
+ if (updateFeature && (!oid(updateFeature.head) || !oid(updateFeature.next) ||
+     updateFeature.head.length!==previous.length || updateFeature.next.length!==previous.length ||
+     updateFeature.next===updateFeature.head || next!==null || attachBranch || deleteBranch || adoptFeature || probeOnly)) {
+  throw new Error('The local feature update could not be reviewed safely.');
+ }
+ if (adoptFeature && (!core.validBranchName(adoptFeature) || adoptFeature==='main' ||
+     attachBranch || deleteBranch || (!probeOnly && typeof perform!=='function'))) {
+  throw new Error('The switch to the reviewed main could not be verified.');
+ }
  const initialAmbient=ambient(),initialAnchor=anchor(root),verifyNow=()=>{if(ambient()!==initialAmbient||anchor(root)!==initialAnchor)throw new Error('The project Git environment changed. Review the operation again.');const result=checkNow();if(result&&typeof result.then==='function')throw new Error('The local authority check must be synchronous.');};
  const initialRefs=deleteBranch?cleanupRefStorage(root,deleteBranch.branch,refStorage):null;
  const verifyCleanupRefs=()=>{
@@ -111,7 +120,8 @@ async function transaction(root,next,previous,{verify,checkNow=()=>{},perform,at
   for(const [file,identity] of initialRefs)if(current.get(file)!==identity)throw unsafeCleanupRefs();
  };
  const env=isolatedEnv();
- const child=spawn(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','update-ref','--stdin'],{cwd:root,env,stdio:['pipe','pipe','pipe']});
+ const reflogMessage = adoptFeature ? 'Switch to updated main' : updateFeature ? 'Update from main' : undefined;
+ const child=spawn(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','update-ref',...(reflogMessage?['-m',reflogMessage]:[]),'--stdin'],{cwd:root,env,stdio:['pipe','pipe','pipe']});
  let pending='',terminal,prepared=false,commitSent=false,performStarted=false,performCompleted=false,stderrSize=0,stdoutSize=0;const lines=[],waiters=[];let rejectStopped;const stopped=new Promise((_,reject)=>{rejectStopped=reject;});stopped.catch(()=>{});
  const failure=message=>new Error(message);
  const settle=(error)=>{if(terminal)return;terminal=error;rejectStopped(error);while(waiters.length)waiters.shift().reject(error);};
@@ -133,25 +143,41 @@ async function transaction(root,next,previous,{verify,checkNow=()=>{},perform,at
     await write(`verify HEAD ${previous}`);
     await write('option no-deref');await write(`delete refs/heads/${deleteBranch.branch} ${deleteBranch.head}`);
   } else {
+    // Dereferencing HEAD locks its exact target and HEAD itself. The caller
+    // verifies the selected feature under those locks before touching files.
+    if (updateFeature) await write(`update HEAD ${updateFeature.next} ${updateFeature.head}`);
     await write('option no-deref');await write(next===null?`verify refs/heads/main ${previous}`:`update refs/heads/main ${next} ${previous}`);
     if(attachBranch){await write('option no-deref');await write(`symref-update HEAD refs/heads/${probeOnly?attachBranch:'main'} ref refs/heads/${attachBranch}`);}
+    if (adoptFeature) {
+      // A second command naming the checked-out ref would also lock HEAD
+      // through its reflog and Git rejects that as a duplicate. Verify the
+      // feature tip in the callback while Git holds HEAD's lock.
+      await write('option no-deref');await write(`symref-update HEAD refs/heads/main ref refs/heads/${adoptFeature}`);
+    }
   }
   verifyCleanupRefs();await write('prepare');await expect('prepare: ok');prepared=true;
   verifyCleanupRefs();
   await Promise.race([Promise.resolve().then(()=>verify(env)),stopped]);
   verifyNow();
   verifyCleanupRefs();
-  if((attachBranch||deleteBranch)&&probeOnly){releaseSent=true;await write('abort');await expect('abort: ok');child.stdin.end();const result=await exited;if(result.code!==0||result.signal)throw failure('Git did not confirm the capability check.');return;}
-  if(next===null&&!attachBranch&&!deleteBranch){
+  if((attachBranch||deleteBranch||adoptFeature)&&probeOnly){releaseSent=true;await write('abort');await expect('abort: ok');child.stdin.end();const result=await exited;if(result.code!==0||result.signal)throw failure('Git did not confirm the capability check.');return;}
+  if(adoptFeature||(next===null&&!attachBranch&&!deleteBranch)){
     // Do not release the ref lock while a dispatched checkout is still active.
     // The caller's Git runner supplies its own bounded process timeout.
     clearTimeout(timer);performStarted=true;const work=Promise.resolve().then(()=>perform(env));let result;try{result=await Promise.race([work,stopped]);performCompleted=true;}catch(error){await work.catch(()=>{});timer=arm();throw error;}
-    timer=arm();releaseSent=true;await write('abort');await expect('abort: ok');child.stdin.end();const closed=await exited;if(closed.code!==0||closed.signal)throw failure('Git did not confirm release of the main-ref transaction.');return result;
+    timer=arm();
+    if (!updateFeature && !adoptFeature) {
+      releaseSent=true;await write('abort');await expect('abort: ok');child.stdin.end();const closed=await exited;if(closed.code!==0||closed.signal)throw failure('Git did not confirm release of the main-ref transaction.');return result;
+    }
   }
   commitSent=true;await write('commit');await expect('commit: ok');child.stdin.end();const result=await exited;if(result.code!==0||result.signal)throw failure('Git did not confirm the local main transaction.');
  } catch(error) {
   if(prepared&&!commitSent&&!releaseSent&&!terminal){try{await write('abort');await expect('abort: ok');child.stdin.end();await exited;}catch{await stop();error.message+=' Git transaction cleanup could not be confirmed; inspect Git locks.';}}
   else await stop();
+  if (performStarted && (updateFeature || adoptFeature)) {
+    const action = adoptFeature ? 'switch to main' : 'local update';
+    throw new Error(`Zero could not confirm the ${action}. Check the current branch, staged files and Git locks in Source Control before retrying.`, {cause:error});
+  }
   if(performStarted){const uncertain=new Error(performCompleted?'The checkout completed, but the main-ref lock release could not be confirmed. Inspect the project and Git locks before continuing.':'The checkout may have started. Inspect the current branch, project files and Git locks before continuing.',{cause:error});uncertain.checkoutCompleted=performCompleted;uncertain.checkoutMayHaveCompleted=true;throw uncertain;}
   if(commitSent){const message=deleteBranch?'The local feature deletion may have completed. Inspect the feature branch in Source Control before continuing.':attachBranch?'The switch to main may have completed. Inspect the current branch and Source Control before continuing.':'The local main update may have completed. Inspect main and Source Control before continuing.';const uncertain=new Error(message,{cause:error});uncertain.refOutcomeUncertain=true;if(attachBranch)uncertain.headOutcomeUncertain=true;throw uncertain;}
   throw error;
@@ -159,6 +185,8 @@ async function transaction(root,next,previous,{verify,checkNow=()=>{},perform,at
 }
 const updateDirectMain=(root,next,previous,options)=>transaction(root,next,previous,options);
 const checkoutDirectMain=(root,previous,options)=>transaction(root,null,previous,options);
+const updateCheckedOutFeature=(root,main,head,next,options)=>transaction(root,null,main,{...options,updateFeature:{head,next}});
+const adoptReviewedMain=(root,main,next,branch,options)=>transaction(root,next===main?null:next,main,{...options,adoptFeature:branch});
 const attachSameTreeMain=(root,main,branch,options)=>transaction(root,null,main,{...options,attachBranch:branch});
 const deleteDirectFeature=(root,main,branch,head,options)=>transaction(root,null,main,{...options,deleteBranch:{branch,head}});
-module.exports={updateDirectMain,checkoutDirectMain,preflightDirectMain,attachSameTreeMain,deleteDirectFeature};
+module.exports={updateDirectMain,checkoutDirectMain,updateCheckedOutFeature,adoptReviewedMain,preflightDirectMain,attachSameTreeMain,deleteDirectFeature};

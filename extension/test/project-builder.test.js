@@ -71,6 +71,34 @@ test('adapter preserves a bounded ordinary compiler log only at this operationâ€
  }
 });
 
+test('adapter preserves the compiler error when the editor cache has an aliased parent', async t => {
+ const projectRoot = await saved(t);
+ const builder = await readSavedBuilder(projectRoot);
+ const runtime = await fakeRuntime(t);
+ const storage = await root(t);
+ const canonicalParent = path.join(storage, 'canonical');
+ const alias = path.join(storage, 'alias');
+ await fs.mkdir(canonicalParent);
+ await fs.symlink(canonicalParent, alias, 'junction');
+ const cacheRoot = path.join(alias, 'new-cache');
+ const response = {protocol:1, ok:false, error:{code:'failed', message:'No Java sources found in src/main/java.'}};
+ const adapter = createProjectBuilder({isTrusted:()=>true, platform:'linux', ...runtime, spawn:childFactory(response, {code:1, onRequest:request=>{
+  const sync = require('node:fs');
+  // The exporter canonicalizes the cache before writing and reporting its log.
+  const logs = path.join(request.cacheRoot, builder.manifest.closureSha256, 'logs');
+  sync.mkdirSync(logs, {recursive:true});
+  response.error.logPath = path.join(sync.realpathSync(logs), format.sha256(projectRoot)+'.log');
+  sync.writeFileSync(response.error.logPath, 'Build diagnostic');
+ }})});
+ await assert.rejects(adapter.ensureValidatedExport({projectRoot, cacheRoot, explicitAction:true}), error=>{
+  assert.equal(error.code, 'ZERO_BUILDER_OPERATION_FAILED');
+  assert.equal(error.message, response.error.message);
+  assert.equal(error.logText, 'Build diagnostic');
+  assert.equal(error.logPath, response.error.logPath);
+  return true;
+ });
+});
+
 test('private Zero Node discovery and owned hint work without global Node or leaked preload variables',async t=>{
  const dir=await root(t),runtime={requirements:{nodeMajor:22,javaMajor:21},pins:[]},home=path.join(dir,'home'),privateNode=path.join(home,'Library/Application Support/Zero/runtime','node-'+'a'.repeat(64),'node-v22.23.4-darwin-arm64/bin/node'),hint=path.join(dir,'owned/bin/node');
  for(const file of [privateNode,hint]){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,'fake fixture only');}

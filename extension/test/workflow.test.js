@@ -224,7 +224,11 @@ for (const mode of ['finish','pending recovery','archived recovery']) test(`work
   if(mode==='finish')await workflow.finishPrepared(await workflow.prepareFinish(f.root,options),options);
   else await workflow.syncPrepared(await workflow.prepareSync(f.root,options),options);
   assert.equal(await core.git(f.root,['branch','--show-current']),'main');assert.equal(calls.length,1);
-  assert.deepEqual(calls[0].slice(0,5),['-c','core.fsmonitor=false','-c',`core.hooksPath=${os.devNull}`,'checkout']);await assert.rejects(fs.stat(marker),{code:'ENOENT'});
+  const flags = calls[0].slice(0, calls[0].indexOf('checkout'));
+  for (const setting of ['core.fsmonitor=false', `core.hooksPath=${os.devNull}`]) {
+    assert.ok(flags.some((value, index) => value === '-c' && flags[index + 1] === setting));
+  }
+  await assert.rejects(fs.stat(marker),{code:'ENOENT'});
 });
 async function remoteChange(f, filename, content) {
   const other = path.join(f.parent, 'other');
@@ -345,17 +349,141 @@ test('explicit Sync fast-forwards a clean main to pinned newer remote main', asy
   assert.deepEqual(f.calls.find(args => args[0] === 'fetch'), ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, updated]);
   await assert.rejects(fs.access(path.join(f.root, '.git', 'FETCH_HEAD')));
 });
-test('diverged main hands off without changing the feature or local main', async t => {
-  const f = await fixture(t); await start(f);
+test('Update from main merges clean divergence on the feature, then Finish pushes the reviewed main', async t => {
+  const f = await fixture(t);
+  const {head: base} = await start(f);
   const feature = await commit(f.root, 'Score.java', 'class Score {}');
   const remoteHead = await remoteChange(f, 'Remote.java', 'class Remote {}');
-  const localMain = await core.git(f.root, ['rev-parse', 'refs/heads/main']);
-  await assert.rejects(sync(f), /different commits.*cannot update/);
+  await core.git(f.root, ['config', 'branch.add-score.mergeOptions', '--squash']);
+  let refLocksChecked = false;
+  const run = async (cwd, args, options) => {
+    if (cwd === f.root && args.includes('read-tree') && args.includes('-u')) {
+      await assert.rejects(core.git(cwd, ['symbolic-ref', 'HEAD', 'refs/heads/main']), /lock/i);
+      await assert.rejects(core.git(cwd, ['update-ref', 'refs/heads/add-score', base, feature]), /lock/i);
+      refLocksChecked = true;
+    }
+    return f.run(cwd, args, options);
+  };
+  const options = {...f.options, target:'main', run};
+  const refs = await core.git(f.root, ['show-ref']);
+  const plan = await workflow.prepareSync(f.root, options);
+  assert.equal(plan.remoteMainHead, remoteHead);
+  assert.ok(Object.isFrozen(plan.cleanMerge));
+  assert.equal(plan.cleanMerge.changedPaths, 1);
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
+  const updated = await workflow.syncPrepared(plan, options);
+  assert.equal(refLocksChecked, true);
+  assert.equal(updated.branch, 'add-score');
+  assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD^{tree}']), plan.cleanMerge.tree);
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'add-score');
-  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
-  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), localMain);
+  assert.deepEqual((await core.git(f.root, ['rev-list', '--parents', '-1', 'HEAD'])).split(' '), [updated.head, feature, remoteHead]);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), base);
   assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), remoteHead);
   assert.equal(await fs.readFile(path.join(f.root, 'Score.java'), 'utf8'), 'class Score {}');
+  assert.equal(await fs.readFile(path.join(f.root, 'Remote.java'), 'utf8'), 'class Remote {}');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+
+  const review = await workflow.prepareFinish(f.root, f.options);
+  assert.equal(review.remoteMainHead, remoteHead);
+  assert.deepEqual(review.changedPaths, ['Score.java']);
+  const finished = await workflow.finishPrepared(review, f.options);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+  assert.deepEqual((await core.git(f.root, ['rev-list', '--parents', '-1', 'HEAD'])).split(' '), [finished.head, remoteHead, updated.head]);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), finished.head);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/add-score']), updated.head);
+  assert.deepEqual(f.calls.filter(args => args[0] === 'push'), [['push', remote, `${finished.head}:refs/heads/main`]]);
+});
+test('Update from main accepts MinGit system diff attributes and hands off custom merge attributes', async t => {
+  const f = await fixture(t);
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  const remoteHead = await remoteChange(f, 'Remote.java', 'remote');
+  const systemAttributes = path.join(f.parent, 'system-attributes');
+  const stockRules = ['doc', 'DOC', 'pdf', 'PDF'].map(ext => `*.${ext}\tdiff=astextplain\n`).join('');
+  const run = (cwd, args, options) => {
+    if (cwd === f.root && args.at(-2) === 'var' && args.at(-1) === 'GIT_ATTR_SYSTEM') return systemAttributes;
+    return f.run(cwd, args, options);
+  };
+  const options = {...f.options, run, target:'main'};
+  await fs.writeFile(systemAttributes, stockRules + '*.java merge=union\n');
+  await assert.rejects(workflow.prepareSync(f.root, options), {nativeUpdateHandoff:true});
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
+
+  await fs.writeFile(systemAttributes, stockRules);
+  const plan = await workflow.prepareSync(f.root, options);
+  assert.equal(plan.cleanMerge.changedPaths, 1);
+  const result = await workflow.syncPrepared(plan, options);
+  assert.deepEqual((await core.git(f.root, ['rev-list', '--parents', '-1', 'HEAD'])).split(' '), [result.head, feature, remoteHead]);
+  assert.equal(await fs.readFile(path.join(f.root, 'Remote.java'), 'utf8'), 'remote');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('A reviewed clean merge preserves a feature edit made before applying it', async t => {
+  const f = await fixture(t);
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  const remoteHead = await remoteChange(f, 'Remote.java', 'remote');
+  const options = {...f.options, target:'main'};
+  const plan = await workflow.prepareSync(f.root, options);
+  assert.ok(plan.cleanMerge);
+  await write(f.root, 'Score.java', 'student edit');
+  const refs = await core.git(f.root, ['show-ref']);
+  await assert.rejects(workflow.syncPrepared(plan, options), /changed after review/);
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), remoteHead);
+  assert.equal(await fs.readFile(path.join(f.root, 'Score.java'), 'utf8'), 'student edit');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('A reviewed clean merge preserves a local edit hidden by a Git index flag', async t => {
+  const f = await fixture(t);
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  const remoteHead = await remoteChange(f, 'Main.java', 'incoming main');
+  const options = {...f.options, target:'main'};
+  const plan = await workflow.prepareSync(f.root, options);
+  assert.ok(plan.cleanMerge);
+  await core.git(f.root, ['update-index', '--assume-unchanged', 'Main.java']);
+  await write(f.root, 'Main.java', 'hidden student edit');
+  assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
+  const refs = await core.git(f.root, ['show-ref']);
+  await assert.rejects(workflow.syncPrepared(plan, options), /index flags|changed after review/);
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), remoteHead);
+  assert.equal(await fs.readFile(path.join(f.root, 'Main.java'), 'utf8'), 'hidden student edit');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('Current-branch and fast-forward-only updates still hand off clean divergence', async t => {
+  const f = await fixture(t);
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  const remoteFeature = await remoteChange(f, 'Remote.java', 'remote');
+  await core.git(f.bare, ['branch', 'add-score', remoteFeature]);
+  const refs = await core.git(f.root, ['show-ref']);
+  for (const options of [{target:'branch'}, {target:'main', fastForwardOnly:true}]) {
+    await assert.rejects(workflow.prepareSync(f.root, {...f.options, ...options}), {nativeUpdateHandoff:true});
+  }
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('Update from main preserves unpublished local main commits while a feature is selected', async t => {
+  const f = await fixture(t);
+  const localMain = await commit(f.root, 'Local.java', 'unpublished main');
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  const remoteHead = await remoteChange(f, 'Remote.java', 'remote');
+  const refs = await core.git(f.root, ['show-ref']);
+  await assert.rejects(workflow.prepareSync(f.root, {...f.options, target:'main'}), {nativeUpdateHandoff:true});
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), localMain);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), remoteHead);
+  assert.equal(await fs.readFile(path.join(f.root, 'Local.java'), 'utf8'), 'unpublished main');
   assert.ok(!f.calls.some(args => args[0] === 'push'));
 });
 test('conflicting main changes hand off before starting a merge', async t => {
@@ -363,13 +491,307 @@ test('conflicting main changes hand off before starting a merge', async t => {
   const feature = await commit(f.root, 'Main.java', 'class Main { int score; }\n');
   const initialMain = await core.git(f.root, ['rev-parse', 'refs/heads/main']);
   const remoteHead = await remoteChange(f, 'Main.java', 'class Main { int lives; }\n');
-  await assert.rejects(sync(f), /different commits.*cannot update/);
+  const refs = await core.git(f.root, ['show-ref']);
+  await assert.rejects(workflow.prepareSync(f.root, {...f.options, target:'main'}), {nativeUpdateHandoff:true});
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'add-score');
   assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
   assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), initialMain);
   assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), remoteHead);
   assert.equal(await fs.readFile(path.join(f.root, 'Main.java'), 'utf8'), 'class Main { int score; }\n');
   await assert.rejects(core.git(f.root, ['rev-parse', '--verify', 'MERGE_HEAD']));
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('Finish recognizes the exact feature tip on external main without a push or merge marker', async t => {
+  const f = await fixture(t);
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  await core.git(f.root, ['push', f.bare, `${feature}:refs/heads/main`]);
+  const objects = ['cat-file', '--batch-all-objects', '--batch-check=%(objecttype) %(objectname)'];
+  const before = await core.git(f.root, objects);
+  const plan = await workflow.prepareFinish(f.root, f.options);
+  assert.equal(plan.alreadyMerged, true);
+  assert.equal(plan.remoteMainHead, feature);
+  const result = await workflow.finishPrepared(plan, f.options);
+  assert.equal(result.finished, true);
+  assert.equal(result.alreadyMerged, true);
+  assert.equal(result.head, feature);
+  assert.throws(() => workflow.consumeFinishedBranchCleanup(f.root, result), /exact confirmed merge/);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/add-score']), feature);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.equal(await core.git(f.root, ['for-each-ref', '--format=%(refname)', 'refs/zero/']), '');
+  assert.equal(await core.git(f.root, objects), before, 'Adopting the exact tip creates no new objects, including dangling commits');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+async function interruptExternalSwitch(f, plan) {
+  const refs = await core.git(f.root, ['show-ref']);
+  const active = await core.git(f.root, ['symbolic-ref', 'HEAD']);
+  let interrupted = false;
+  const run = (cwd, args, options) => {
+    if (cwd === f.root && args.includes('read-tree') && args.includes('-u')) {
+      interrupted = true;
+      throw new Error('Interrupted before updating the worktree');
+    }
+    return f.run(cwd, args, options);
+  };
+  await assert.rejects(workflow.finishPrepared(plan, {...f.options, run}), /could not confirm the switch to main/i);
+  assert.equal(interrupted, true);
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['symbolic-ref', 'HEAD']), active);
+  assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
+}
+test('An interrupted switch retries an already-integrated exact feature tip without a second merge', async t => {
+  const f = await fixture(t);
+  const {head:base} = await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  await core.git(f.root, ['push', f.bare, `${feature}:refs/heads/main`]);
+  const plan = await workflow.prepareFinish(f.root, f.options);
+  await interruptExternalSwitch(f, plan);
+  await core.git(f.root, ['update-ref', 'refs/heads/main', feature, base]);
+  const retry = await workflow.prepareFinish(f.root, f.options);
+  assert.equal(retry.alreadyMerged, true);
+  const result = await workflow.finishPrepared(retry, f.options);
+  assert.equal(result.head, feature);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/add-score']), feature);
+  assert.equal(await core.git(f.root, ['for-each-ref', '--format=%(refname)', 'refs/zero/']), '');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('Finish keeps the project when a later external main commit removes zero.json', async t => {
+  const f = await fixture(t);
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  await core.git(f.root, ['push', f.bare, `${feature}:refs/heads/main`]);
+  await remoteChange(f, 'Later.java', 'added after the merge');
+  const other = path.join(f.parent, 'other');
+  await core.git(other, ['rm', 'zero.json']);
+  await core.git(other, ['commit', '-m', 'Remove project marker']);
+  await core.git(other, ['push', f.bare, 'HEAD:refs/heads/main']);
+  const refs = await core.git(f.root, ['show-ref']);
+  await assert.rejects(workflow.prepareFinish(f.root, f.options), {nativeUpdateHandoff:true, message:/missing a regular zero\.json/});
+  assert.equal(await core.git(f.root, ['symbolic-ref', 'HEAD']), 'refs/heads/add-score');
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await fs.readFile(path.join(f.root, 'zero.json'), 'utf8'), '{}\n');
+  assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('An external merge refuses incoming paths that collide by case', async t => {
+  const f = await fixture(t);
+  const {head:base} = await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  await core.git(f.root, ['push', f.bare, `${feature}:refs/heads/main`]);
+  await remoteChange(f, 'Remote.java', 'remote');
+  const other = path.join(f.parent, 'other');
+  // Create both names in Git's index even on a case-insensitive filesystem.
+  const blob = await core.git(other, ['rev-parse', 'HEAD:Score.java']);
+  await core.git(other, ['-c', 'core.ignoreCase=false', 'update-index', '--add', '--cacheinfo', `100644,${blob},score.java`]);
+  await core.git(other, ['commit', '-m', 'Add lowercase name']);
+  await core.git(other, ['push', f.bare, 'HEAD:refs/heads/main']);
+  const refs = await core.git(f.root, ['show-ref']);
+  await assert.rejects(workflow.prepareFinish(f.root, f.options), /differ only by letter case or Unicode spelling/);
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), base);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.equal(await fs.readFile(path.join(f.root, 'Score.java'), 'utf8'), 'score');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('An interrupted external adoption confirms the same archived merge after local main advances', async t => {
+  const f = await fixture(t);
+  const {head:base} = await start(f);
+  const finishedFeature = await commit(f.root, 'Score.java', 'score');
+  const tree = await core.git(f.root, ['rev-parse', 'HEAD^{tree}']);
+  const archived = await core.git(f.root, ['commit-tree', tree, '-p', base, '-p', finishedFeature, '-m',
+    'Zero: finish add-score\n\nZero-Finished-Change: 1\nZero-Change-Branch: add-score']);
+  await core.git(f.root, ['update-ref', `refs/zero/retired-finish/${archived}`, archived]);
+  await core.git(f.root, ['push', f.bare, `${archived}:refs/heads/main`]);
+  const feature = await commit(f.root, 'More.java', 'more on feature');
+  await remoteChange(f, 'Other.java', 'independent main');
+  const other = path.join(f.parent, 'other');
+  await core.git(other, ['fetch', f.root, 'refs/heads/add-score']);
+  await core.git(other, ['merge', '--no-ff', '-m', 'Merge additional feature work', 'FETCH_HEAD']);
+  const remoteMain = await remoteChange(f, 'Later.java', 'after both merges');
+  const plan = await workflow.prepareFinish(f.root, f.options);
+  assert.equal(plan.alreadyMerged, true);
+  assert.equal(plan.confirmedArchive, archived);
+  await interruptExternalSwitch(f, plan);
+  await core.git(f.root, ['update-ref', 'refs/heads/main', remoteMain, base]);
+  const retry = await workflow.prepareFinish(f.root, f.options);
+  assert.equal(retry.confirmedArchive, archived);
+  const result = await workflow.finishPrepared(retry, f.options);
+  assert.equal(result.head, remoteMain);
+  assert.equal(result.confirmedMerge.head, archived);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/add-score']), feature);
+  assert.equal(await core.git(f.root, ['rev-parse', `refs/zero/retired-finish/${archived}`]), archived);
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('Finish adopts an external merge plus later work while retaining the exact feature tip', async t => {
+  const f = await fixture(t);
+  const {head:base} = await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  const independentMain = await remoteChange(f, 'Remote.java', 'remote');
+  const other = path.join(f.parent, 'other');
+  await core.git(other, ['fetch', f.root, 'refs/heads/add-score']);
+  await core.git(other, ['merge', '--no-ff', '-m', 'Merge feature externally', 'FETCH_HEAD']);
+  const external = await remoteChange(f, 'Later.java', 'after external merge');
+  // Local main has previously received a commit that is absent from the feature.
+  await core.git(f.root, ['fetch', '--no-write-fetch-head', f.bare, independentMain]);
+  await core.git(f.root, ['update-ref', 'refs/heads/main', independentMain, base]);
+  await core.git(f.root, ['switch', '-c', 'editor-branch']);
+  const sibling = await commit(f.root, 'Other.java', 'only on the editor branch');
+  await core.git(f.root, ['switch', 'add-score']);
+  const plan = await workflow.prepareFinish(f.root, f.options);
+  assert.equal(plan.alreadyMerged, true);
+  assert.equal(plan.remoteMainHead, external);
+  let checkedLocks = false;
+  const run = async (cwd, args, options) => {
+    if (cwd === f.root && args.includes('read-tree') && args.includes('-u')) {
+      const index = path.join(cwd, '.git', 'index');
+      const before = await fs.readFile(index);
+      await assert.rejects(core.git(cwd, ['switch', 'editor-branch']), /index\.lock/i);
+      assert.deepEqual(await fs.readFile(index), before);
+      await assert.rejects(fs.access(path.join(cwd, 'Other.java')), {code:'ENOENT'});
+      await assert.rejects(core.git(cwd, ['update-ref', 'refs/heads/add-score', external, feature]), /cannot lock ref '(HEAD|refs\/heads\/add-score)'|HEAD\.lock/i);
+      await assert.rejects(core.git(cwd, ['update-ref', 'refs/heads/main', external, independentMain]), /cannot lock ref 'refs\/heads\/main'/i);
+      checkedLocks = true;
+    }
+    return f.run(cwd, args, options);
+  };
+  const result = await workflow.finishPrepared(plan, {...f.options, run});
+  assert.equal(checkedLocks, true);
+  assert.equal(result.finished, true);
+  assert.equal(result.alreadyMerged, true);
+  assert.equal(result.head, external);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), external);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/add-score']), feature);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/editor-branch']), sibling);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), external);
+  assert.equal(await fs.readFile(path.join(f.root, 'Score.java'), 'utf8'), 'score');
+  assert.equal(await fs.readFile(path.join(f.root, 'Later.java'), 'utf8'), 'after external merge');
+  await assert.rejects(fs.access(path.join(f.root, 'Other.java')), {code:'ENOENT'});
+  assert.equal(await core.git(f.root, ['write-tree']), await core.git(f.root, ['rev-parse', `${external}^{tree}`]));
+  assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
+  assert.equal(await core.git(f.root, ['for-each-ref', '--format=%(refname)', 'refs/zero/']), '');
+  assert.equal(await core.git(f.root, ['rev-list', '--count', '--grep=Zero-Finished-Change: 1', '--all']), '0');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('Finish applies the effective core.autocrlf setting to files received from external main', async t => {
+  const f = await fixture(t);
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score\n');
+  await core.git(f.root, ['push', f.bare, `${feature}:refs/heads/main`]);
+  const remoteHead = await remoteChange(f, 'Remote.java', 'class Remote {\n}\n');
+  const globalConfig = path.join(f.parent, 'gitconfig');
+  await fs.writeFile(globalConfig, '[core]\n\tautocrlf = true\n');
+  const run = (cwd, args, options) => {
+    // Model a user's global config. Transaction commands explicitly isolate theirs.
+    const env = {...(options?.env || process.env)};
+    if (env.GIT_ATTR_NOSYSTEM !== '1') env.GIT_CONFIG_GLOBAL = globalConfig;
+    return f.run(cwd, args, {...options, env});
+  };
+  const options = {...f.options, run};
+  const plan = await workflow.prepareFinish(f.root, options);
+  const expected = await core.git(f.root, ['-c', 'core.autocrlf=true', 'cat-file', '--filters', `${remoteHead}:Remote.java`], {encoding:'buffer'});
+  assert.deepEqual(expected, Buffer.from('class Remote {\r\n}\r\n'));
+  const finished = await workflow.finishPrepared(plan, options);
+  assert.equal(finished.head, remoteHead);
+  assert.deepEqual(await fs.readFile(path.join(f.root, 'Remote.java')), expected);
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('Finish hands off external main when a global attributes file controls Java line endings', async t => {
+  const f = await fixture(t);
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score\n');
+  await core.git(f.root, ['push', f.bare, `${feature}:refs/heads/main`]);
+  await remoteChange(f, 'Remote.java', 'class Remote {}\n');
+  const home = path.join(f.parent, 'git-home');
+  await fs.mkdir(home);
+  const attributes = path.join(home, 'attributes');
+  await fs.writeFile(attributes, '*.java text eol=crlf\n');
+  await core.git(f.root, ['config', '--file', path.join(home, '.gitconfig'), 'core.attributesFile', attributes]);
+  const run = (cwd, args, options) => {
+    const env = {...(options?.env || process.env), HOME:home, XDG_CONFIG_HOME:path.join(home, '.config')};
+    if (env.GIT_ATTR_NOSYSTEM !== '1') delete env.GIT_CONFIG_GLOBAL;
+    return f.run(cwd, args, {...options, env});
+  };
+  assert.equal(await run(f.root, ['check-attr', 'eol', '--', 'Remote.java']), 'Remote.java: eol: crlf');
+  assert.equal(await run(f.root, ['status', '--porcelain']), '');
+  const refs = await core.git(f.root, ['show-ref']);
+  const index = path.join(f.root, '.git', 'index');
+  const originalIndex = await fs.readFile(index);
+  const score = path.join(f.root, 'Score.java');
+  const originalScore = await fs.readFile(score);
+  await assert.rejects(workflow.prepareFinish(f.root, {...f.options, run}), {nativeUpdateHandoff:true});
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['symbolic-ref', 'HEAD']), 'refs/heads/add-score');
+  assert.deepEqual(await fs.readFile(index), originalIndex);
+  assert.deepEqual(await fs.readFile(score), originalScore);
+  await assert.rejects(fs.access(path.join(f.root, 'Remote.java')), {code:'ENOENT'});
+  assert.equal(await run(f.root, ['status', '--porcelain']), '');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+for (const drift of ['remote main', 'feature tip', 'worktree']) test(`Finish refuses an external merge review after ${drift} changes`, async t => {
+  const f = await fixture(t);
+  const {head:base} = await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  await core.git(f.root, ['push', f.bare, `${feature}:refs/heads/main`]);
+  const plan = await workflow.prepareFinish(f.root, f.options);
+  assert.equal(plan.alreadyMerged, true);
+  let expectedFeature = feature, expectedRemote = feature;
+  if (drift === 'remote main') expectedRemote = await remoteChange(f, 'Later.java', 'new main');
+  if (drift === 'feature tip') expectedFeature = await commit(f.root, 'More.java', 'new feature');
+  if (drift === 'worktree') await write(f.root, 'Score.java', 'student edit');
+  await assert.rejects(workflow.finishPrepared(plan, f.options), /changed after review/);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'add-score');
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/add-score']), expectedFeature);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), base);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), expectedRemote);
+  assert.equal(await fs.readFile(path.join(f.root, 'Score.java'), 'utf8'), drift === 'worktree' ? 'student edit' : 'score');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('Finish does not claim an externally merged feature from equal tree contents alone', async t => {
+  const f = await fixture(t);
+  const {head:base} = await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  const external = await remoteChange(f, 'Score.java', 'score');
+  assert.notEqual(feature, external);
+  await assert.rejects(workflow.prepareFinish(f.root, f.options), {nativeUpdateHandoff:true});
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD^{tree}']), await core.git(f.root, ['rev-parse', `${external}^{tree}`]));
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), base);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('External integration leaves a pending Zero finish available for recovery', async t => {
+  const f = await fixture(t);
+  const {head:base} = await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  f.setFailure(true);
+  await assert.rejects(finish(f), error => error.workflowRecovery?.operation === 'merge');
+  const pending = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
+  f.setFailure(false);
+  await core.git(f.root, ['push', f.bare, `${feature}:refs/heads/main`]);
+  const pushCount = f.calls.filter(args => args[0] === 'push').length;
+  await assert.rejects(workflow.prepareFinish(f.root, f.options), /pending merge is kept/);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']), pending);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), base);
+  assert.equal(f.calls.filter(args => args[0] === 'push').length, pushCount);
+});
+test('External integration preserves ignored student files that an incoming checkout would overwrite', async t => {
+  const f = await fixture(t);
+  const {head:base} = await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score');
+  await core.git(f.root, ['push', f.bare, `${feature}:refs/heads/main`]);
+  await remoteChange(f, '.gitignore', '');
+  await remoteChange(f, 'secret.txt', 'tracked on main');
+  await assert.rejects(finish(f), /ignored file/);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'add-score');
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), base);
+  assert.equal(await fs.readFile(path.join(f.root, 'secret.txt'), 'utf8'), 'kept locally');
   assert.ok(!f.calls.some(args => args[0] === 'push'));
 });
 test('failed push keeps local main and retries the same pending SHA', async t => {
@@ -392,7 +814,7 @@ test('remote racing the final push preserves the feature and hands off divergenc
   assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
   assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), remoteHead);
   const callsBefore=f.calls.filter(args=>args[0]==='push').length;
-  await assert.rejects(sync(f), /different commits.*cannot update/);
+  await assert.rejects(sync(f), /pending merge/);
   assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
   assert.equal(f.calls.filter(args=>args[0]==='push').length,callsBefore);
 });
@@ -524,7 +946,7 @@ test('Sync keeps locally ahead main and Merge refuses missing local or remote ma
   assert.equal((await sync(f)).updated, false);
   await start(f); await core.git(f.root, ['checkout', 'main']);
   await core.git(f.root, ['checkout', '-b', 'feature', 'HEAD~1']);
-  await assert.rejects(workflow.prepareFinish(f.root, f.options), /Local main contains changes/);
+  await assert.rejects(workflow.prepareFinish(f.root, f.options), /Local main contains/);
   const e = await fixture(t, {empty: true}); await start(e); await commit(e.root, 'Score.java', 'score');
   const feature = await core.git(e.root, ['rev-parse', 'HEAD']);
   await assert.rejects(finish(e), /GitHub main is missing/);
@@ -724,7 +1146,7 @@ test('Sync from main retires a validated pending finish included in newer remote
   await assert.rejects(core.git(f.root, ['rev-parse', '--verify', 'refs/zero/pending-finish']));
   assert.equal((await start(f, 'next-change')).branch, 'next-change');
 });
-test('Sync archives a rejected candidate and hands off divergent feature safely', async t => {
+test('Sync archives a rejected candidate before a clean feature update', async t => {
   const f = await fixture(t); await start(f); const feature = await commit(f.root, 'Score.java', 'score');
   f.setFailure(true); await assert.rejects(finish(f)); f.setFailure(false);
   const candidate = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
@@ -737,8 +1159,10 @@ test('Sync archives a rejected candidate and hands off divergent feature safely'
   await assert.rejects(core.git(f.root, ['rev-parse', '--verify', 'refs/zero/pending-finish']));
   await start(f, 'another-change');
   await core.git(f.root, ['checkout', 'add-score']);
-  await assert.rejects(sync(f), /different commits.*cannot update/);
-  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), feature);
+  const update = await sync(f);
+  assert.equal(update.branch, 'add-score');
+  assert.deepEqual((await core.git(f.root, ['rev-list', '--parents', '-1', 'HEAD'])).split(' '), [update.head, feature, remoteHead]);
+  assert.equal(f.calls.filter(args => args[0] === 'push').length, pushes);
   assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), remoteHead);
   assert.equal(await core.git(f.root, ['rev-parse', `refs/zero/retired-finish/${candidate}`]), candidate);
 });
@@ -936,10 +1360,18 @@ for (const afterCheckout of [false, true]) test(`Sync resumes after ${afterCheck
   assert.equal(await core.git(f.root, ['rev-list', '--count', '--grep=Zero-Finished-Change: 1', result.head]), '1');
   await assert.rejects(core.git(f.root, ['rev-parse', '--verify', 'refs/zero/pending-finish']));
 });
-test('empty change is rejected before push or pending ref creation', async t => {
-  const f = await fixture(t); await start(f);
-  await assert.rejects(workflow.prepareFinish(f.root, f.options), /no commits to finish/);
-  assert.equal(f.calls.length, 0);
+test('An empty feature already on GitHub main switches without a push or new commit', async t => {
+  const f = await fixture(t);
+  const {head:base} = await start(f);
+  const plan = await workflow.prepareFinish(f.root, f.options);
+  assert.equal(plan.alreadyMerged, true);
+  const result = await workflow.finishPrepared(plan, f.options);
+  assert.equal(result.head, base);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/add-score']), base);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), base);
+  assert.equal(await core.git(f.root, ['rev-list', '--count', '--all']), '1');
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
   await assert.rejects(core.git(f.root, ['rev-parse', '--verify', 'refs/zero/pending-finish']));
 });
 test('interruption after confirmed push and local main update retries without a second boundary', async t => {
@@ -956,7 +1388,7 @@ test('interruption after confirmed push and local main update retries without a 
   assert.equal(result.head, candidate); assert.equal(result.featureHead, feature);
   assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), candidate);
 });
-test('newer feature commits survive guided recovery and divergent-update handoff', async t => {
+test('newer feature commits survive guided recovery and a subsequent clean feature update', async t => {
   const f = await fixture(t); await start(f); await commit(f.root, 'Score.java', 'score'); f.setFailure(true);
   await assert.rejects(finish(f));
   const candidate = await core.git(f.root, ['rev-parse', 'refs/zero/pending-finish']);
@@ -971,8 +1403,12 @@ test('newer feature commits survive guided recovery and divergent-update handoff
   assert.equal(result.recovered, true); assert.equal(result.head, changed); assert.equal(result.finishedHead, candidate);
   assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), changed);
   assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), candidate);
-  await assert.rejects(sync(f), /different commits.*cannot update/);
-  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), changed);
+  const pushes = f.calls.filter(args => args[0] === 'push').length;
+  const update = await sync(f);
+  assert.equal(update.branch, 'add-score');
+  assert.deepEqual((await core.git(f.root, ['rev-list', '--parents', '-1', 'HEAD'])).split(' '), [update.head, changed, candidate]);
+  assert.equal(await fs.readFile(path.join(f.root, 'More.java'), 'utf8'), 'more');
+  assert.equal(f.calls.filter(args => args[0] === 'push').length, pushes);
   assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/main']), candidate);
 });
 test('guided recovery recognizes a successful unconfirmed push and keeps newer work', async t => {
@@ -992,7 +1428,7 @@ test('guided recovery leaves divergent remote for sync, preserving newer work', 
   const result = await workflow.recoverPendingFinish(await workflow.preparePendingFinishRecovery(f.root, f.options), f.options);
   assert.equal(result.needsSync, true); assert.equal(result.recovered, false);
   const refs = await core.git(f.root, ['show-ref']);
-  await assert.rejects(sync(f), /different commits.*cannot update/);
+  await assert.rejects(sync(f), /pending merge/);
   assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), changed);
   assert.equal(await core.git(f.root, ['show-ref']), refs);
 });
@@ -1111,7 +1547,7 @@ for(const archived of [false,true])test(`Sync preserves confirmed merge evidence
  if(archived){await core.git(f.root,['update-ref',`refs/zero/retired-finish/${candidate}`,candidate,'0'.repeat(candidate.length)]);await core.git(f.root,['update-ref','-d','refs/zero/pending-finish',candidate]);}
  const newer=await commit(f.root,'More.java','newer work'),pushes=f.calls.filter(args=>args[0]==='push').length;
  const before=await core.git(f.root,['show-ref']);
- await assert.rejects(sync(f),/different commits.*cannot update/);
+ await assert.rejects(sync(f),archived ? /earlier merge/ : /pending merge/);
  assert.equal(await core.git(f.root,['rev-parse','HEAD']),newer);assert.equal(await core.git(f.root,['show-ref']),before);
  assert.equal(f.calls.filter(args=>args[0]==='push').length,pushes);
 });

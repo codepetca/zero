@@ -1584,7 +1584,17 @@ function activate(context, services = {}) {
         if(!updating)selectMergeReminders(plan);
         if(!updating){
           if(!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(plan.remoteMainHead||''))throw new Error('GitHub main could not be reviewed. Check the connection before merging.');
-          if(await vscode.window.showWarningMessage(`Merge ${plan.branch} into main?`,{modal:true},'Merge')!=='Merge'){state='Merge cancelled';return;}
+          if (plan.alreadyMerged) {
+            const detail = `GitHub main in ${plan.page} already includes ${plan.branch}. Update local main to the reviewed commit and switch to it. Your feature branch stays available.`;
+            if (await vscode.window.showWarningMessage('Switch to updated main?', {modal:true, detail}, 'Switch to main') !== 'Switch to main') return;
+          } else if(await vscode.window.showWarningMessage(`Merge ${plan.branch} into main?`,{modal:true},'Merge')!=='Merge'){state='Merge cancelled';return;}
+        }
+        if (updating && plan.cleanMerge) {
+          if (quiet) throw Object.assign(new Error('Review the merge from the branch menu.'), {nativeUpdateHandoff:true});
+          const {changedPaths} = plan.cleanMerge;
+          const files = `${changedPaths} project file${changedPaths === 1 ? '' : 's'} will change`;
+          const detail = `Merge GitHub main from ${plan.page} into ${plan.branch}. ${files}. Zero will try to sync the updated feature to GitHub. Run your app before merging to main.`;
+          if (await vscode.window.showWarningMessage('Update from main?', {modal:true, detail}, 'Update') !== 'Update') return;
         }
         if(updating&&plan.refStorage==='reftable'&&plan.reftableArchived){const sample=Array.isArray(plan.preview.fileNames)?plan.preview.fileNames.map(name=>`• ${name}`).join('\n'):'',remaining=plan.preview.paths-(plan.preview.fileNames?.length||0);const detail=`GitHub main at review: ${plan.remoteMainHead}. Switch from ${plan.branch} to main and update ${plan.preview.paths} project file(s).${sample?`\n\n${sample}${remaining>0?`\n… and ${remaining} more`:''}\n`:''}\nThe local feature branch and recovery copies are kept. External editors and Git processes can still change files during the update; this operation is not atomic with those writers.`;if(await vscode.window.showWarningMessage('Update and switch to main?',{modal:true,detail},'Update')!=='Update')return;}
         if(updating&&plan.reftableRefOnly){const detail=`Advance ${plan.branch} from ${plan.head} to the reviewed GitHub ${plan.remoteBranch} commit ${plan.remoteMainHead}. The saved files do not change.${plan.branch==='main'?'':` Zero will check and try to sync this branch to ${plan.page}. If GitHub reports the branch missing, review branch creation first. The check and non-force push are not atomic, so a branch deleted between them could be recreated.`}`;if(await vscode.window.showWarningMessage('Update this branch?',{modal:true,detail},'Update')!=='Update')return;}
@@ -1613,9 +1623,14 @@ function activate(context, services = {}) {
           if (!tracking&&!quiet) void vscode.window.showWarningMessage('Updated from GitHub · Source Control tracking needs refresh; see Zero Output.');
           return;
         }
-        if(result.finished)await resolveConfirmedMerge(root,mergeReminderSnapshot,{branch:result.finishedBranch||plan.branch,head:result.head,remote:result.remote||plan.remote,accountId:ticket.session.accountId});
+        if(result.finished)await resolveConfirmedMerge(root,mergeReminderSnapshot,{branch:result.finishedBranch||plan.branch,head:result.confirmedMerge?.head||result.head,remote:result.remote||plan.remote,accountId:ticket.session.accountId});
         const tracking = await updateTracking(root,result.remote || plan.remote,'main',result.head);
         void refreshNativeGit(root);
+        if (result.alreadyMerged) {
+          report(tracking?'Switched to updated main':'Switched to main · tracking needs refresh',`GitHub main already included ${result.finishedBranch}. Local main now matches the reviewed GitHub commit. Your local feature branch was kept.`);
+          if(!tracking)void vscode.window.showWarningMessage('Switched to main · tracking needs refresh');
+          return;
+        }
         const message=tracking?'Merged to main':'Merged to main · tracking needs refresh';
         report(message,`Merged ${result.finishedBranch} to main and confirmed ${result.head} on GitHub. The local feature branch was kept.`);
         if(!tracking)void vscode.window.showWarningMessage(message);

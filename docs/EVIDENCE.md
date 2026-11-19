@@ -1,3 +1,66 @@
+# Git merge, sync, and browser diagnostic path — 2026-11-19
+
+On `8e754368a`, disposable clones reproduced a conflict-free split between
+main and a feature. Zero declined **Update from main**. Native Git merged the
+same commits and fast-forwarded local main to the resulting remote commit.
+After the external merge, Zero still asked to update the feature before
+merging, even though the remote main already contained its exact tip. This
+reproduces a route to the reported workaround. The original failure in the
+affected checkout remains unconfirmed.
+
+**Update from main** now reviews conflict-free divergence on supported feature
+branches. An isolated Git preview computes the exact two-parent merge tree.
+After confirmation, a Git transaction locks HEAD, the reviewed feature and
+main while Git applies the reviewed files. The existing guarded feature sync
+can then upload that exact commit. Conflicts, unavailable Git capabilities and
+unsafe paths hand off to Source Control. **Merge** can switch to reviewed
+GitHub main when both local tips are already included. This uses no push and
+keeps the feature branch. An interrupted checkout can retry against the
+same included history, including the verified SHA of an archived Zero merge.
+
+An Astra High tester exercised 25 selected real-Git workflow scenarios using
+disposable repositories. Five final checks reran the changed apply and retry
+paths, including attempts to move HEAD and the feature during application,
+branch squash configuration, case aliases, and archived merge recovery.
+The editor-command tests covered confirmation, cancellation, feature-only
+push and exact archived reminder resolution. A separate real-Git probe
+confirmed the handoff for default global attributes. Two Astra High reviews
+identified the initial concurrency and compatibility issues. Two focused
+follow-ups verified the changes to locking, checkout retry and archive
+matching. These checks used local remotes and mocked editor commands.
+
+The editor now resolves its compiler cache base before starting the saved
+browser builder. On macOS, the real saved builder with an aliased cache and
+missing Java sources reproduced `invalid diagnostic log path` on the base.
+With the fix, the same builder returned the original `No Java sources found`
+error and its bounded log. The editor still accepts only the exact expected
+ordinary log. Students' saved builder bytes need no update for this change.
+
+Builder adapter, browser tooling update and publish UI checks passed
+137 tests with one existing skip. `npm run check` passed. Astra High reviewed
+the local patch against `8e754368a`. One follow-up confirmed the fix for a test
+fixture that would fail on Windows. Physical Windows and the affected project
+were outside these checks.
+
+Two Astra High reviewers checked the opening diff for PR395.
+The correction locks HEAD and main through the catch-up file transition and
+checks the reviewed feature while those locks are held. It accepts the pinned
+MinGit installation's diff-only system attributes, preserves Git line-ending
+settings, and refuses a target that would lose a usable `zero.json`.
+The first source CI run exposed three brittle hook-test assertions and failures
+downloading Maven artifacts. The Windows and browser lanes passed that run.
+[Opening diff](https://github.com/codepetca/zero/pull/395/commits/d504d109ca4da187868944d2bb7e13d1c2e45caa) ·
+[Initial source CI](https://github.com/codepetca/zero/actions/runs/44587519187)
+
+The follow-up review found that a competing checkout could write the index
+before Git refused its HEAD change. Both update paths now hold the Git index
+lock while they materialize the reviewed tree through a temporary index and
+commit the refs. The worktree and staged tree are checked before the ref
+commit. A native checkout to a sibling with different files now stops before
+changing the real index or files. Catch-up also uses the same external
+attributes check as the feature update, with a real global CRLF rule covered
+by the handoff regression.
+
 # AI report triage activated — 2026-11-19
 
 [PR396](https://github.com/codepetca/zero/pull/396) merged as

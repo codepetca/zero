@@ -244,6 +244,58 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   finishDrift=true;warningChoice=undefined;await commands.get('zero.finishChange')();assert.equal(recoveryPushes,0,'Cancelling recovery does not push');assert.match(warningDetails.at(-1).options.detail,/bbbbbbbb.*github\.com\/student\/app/);warningChoice='Merge';await commands.get('zero.finishChange')();assert.equal(recoveryPushes,1,'Only explicit Merge retries the exact candidate');assert.equal(branch,'add-score','Recovery keeps newer work checked out');assert.match(webview.html,/Earlier merge confirmed/);finishDrift=false;
   const picksBeforeMerge=picks.length;warningChoice='Merge';const unrelatedMerge={isDirty:true,version:1,uri:{scheme:'file',fsPath:path.join(path.dirname(root),'unrelated-merge.txt')}};vscode.workspace.textDocuments=[unrelatedMerge];const mergeSaves=saved;const accessBeforeFinish=accesses.length,transportBeforeFinish=transportDispatches,logBeforeFinish=logs.length;await commands.get('zero.finishChange')();
   assert.equal(saved,mergeSaves);assert.equal(unrelatedMerge.isDirty,true);vscode.workspace.textDocuments=[];assert.equal(accesses.length,accessBeforeFinish+1,'Merge checks repository access once at push');assert.equal(transportDispatches,transportBeforeFinish+2,'Merge dispatches push and confirmation');assert.equal(deleted,0);assert.deepEqual(deletions,[],'Merge keeps the feature branch');assert.equal(picks.length,picksBeforeMerge,'Merge skips the cleanup picker');assert.equal(warnings.at(-1),'Merge add-score into main?');assert.deepEqual(warningDetails.at(-1).options,{modal:true});assert.equal(reviews.length,0);assert.match(webview.html,/main<\/span>/);assert.match(webview.html,/>Merged to main<\/p>/);assert.match(logs.slice(logBeforeFinish).join("\n"),/local feature branch was kept/);assert.ok(!notices.some(text=>/Started add-score|Merged change and pushed main|Main updates added/.test(text)),'Successful Git outcomes never toast');
+  {
+    const {prepareSync, syncPrepared, prepareFinish, finishPrepared} = workflow;
+    let updatesApplied = 0, switches = 0;
+    const remoteHead = 'a'.repeat(40);
+    branch = 'add-score';
+    workflow.prepareSync = async () => ({...plan(), refStorage:'files', filesAncestryReviewed:true, cleanMerge:{tree:'b'.repeat(40), changedPaths:2}});
+    workflow.syncPrepared = async (reviewed, options) => {
+      assert.ok(await fs.stat(phaseLock));
+      await options.beforeMutation();
+      options.beforeMutationNow();
+      updatesApplied++;
+      return {synced:true, updated:true, root, branch, head:currentHead, page:reviewed.page, remote, remoteBranch:'main', remoteHead};
+    };
+    syncUpdates = true;
+    const updateStart = transportCalls.length;
+    warningChoice = undefined;
+    await commands.get('zero.syncProject')();
+    assert.equal(updatesApplied, 0);
+    assert.equal(warnings.at(-1), 'Update from main?');
+    assert.match(warningDetails.at(-1).options.detail, /add-score.*2 project files.*Run your app/);
+    assert.equal(transportCalls.slice(updateStart).filter(args => args[0] === 'push').length, 0);
+    warningChoice = 'Update';
+    await commands.get('zero.syncProject')();
+    assert.equal(updatesApplied, 1);
+    assert.deepEqual(transportCalls.slice(updateStart).filter(args => args[0] === 'push'),
+      [['push',remote,`${currentHead}:refs/heads/add-score`]]);
+    assert.match(webview.html, /Updated add-score · synced to GitHub/);
+    syncUpdates = false;
+
+    workflow.prepareFinish = async () => ({...plan(), alreadyMerged:true});
+    workflow.finishPrepared = async (reviewed, options) => {
+      assert.ok(await fs.stat(phaseLock));
+      await options.beforeMutation();
+      options.beforeMutationNow();
+      switches++;
+      branch = 'main';
+      return {finished:true, alreadyMerged:true, branch, head:reviewed.remoteMainHead, finishedBranch:reviewed.branch, remote};
+    };
+    const switchStart = transportCalls.length;
+    warningChoice = undefined;
+    await commands.get('zero.finishChange')();
+    assert.equal(switches, 0);
+    assert.equal(warnings.at(-1), 'Switch to updated main?');
+    assert.deepEqual(warningDetails.at(-1).actions, ['Switch to main']);
+    warningChoice = 'Switch to main';
+    await commands.get('zero.finishChange')();
+    assert.equal(switches, 1);
+    assert.equal(transportCalls.slice(switchStart).filter(args => args[0] === 'push').length, 0);
+    assert.match(webview.html, /Switched to updated main/);
+    Object.assign(workflow, {prepareSync, syncPrepared, prepareFinish, finishPrepared});
+    warningChoice = 'Merge';
+  }
   publishedState={root,account:'1',resume:{repository:'https://github.com/student/app'}};provider.resolveWebviewView(candidate);
   assert.doesNotMatch(webview.html,/data-command="zero.openPublishedWeb"|data-command="zero.copyPublishedWebLink"/);
   assert.match(webview.html,/data-command="zero.publishAndOpenWeb"/);
@@ -423,7 +475,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
 
   // A guarded native no-op can confirm a retained merge boundary through
   // ancestry without issuing a new push. Resolve only that exact prior record.
-  for(const noPush of ['recover','sync']) {
+  for(const noPush of ['recover','sync','already merged']) {
     ledger.clear();storedPending=undefined;storedLocal=undefined;pendingRecovery=undefined;branch='add-score';gitStatus='';mode='live';accessFailure=undefined;syncError=undefined;finishError=undefined;
     const confirmedHead='b'.repeat(40),confirmed={id:`confirmed-${noPush}`,root,remote,page:'https://github.com/student/app',branch:'add-score',head:confirmedHead,operation:'merge',accountId:'1',kind:'network'},unrelated={...confirmed,id:`unrelated-${noPush}`,head:'d'.repeat(40)};
     ledger.set('zero.pendingSync.v1:'+confirmed.id,confirmed);ledger.set('zero.pendingSync.v1:'+unrelated.id,unrelated);
@@ -431,9 +483,20 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
     if(noPush==='recover'){
       finishDrift=true;workflow.preparePendingFinishRecovery=async()=>({...plan(),pending:{id:confirmedHead}});workflow.recoverPendingFinish=async()=>({recovered:true,branch:'add-score',finishedHead:confirmedHead,remoteHead:'c'.repeat(40),remote});
       await commands.get('zero.finishChange')();finishDrift=false;
-    }else{
+    }else if(noPush==='sync'){
       workflow.syncPrepared=async()=>{branch='main';return {updated:true,branch:'main',head:'c'.repeat(40),remoteHead:'c'.repeat(40),remoteBranch:'main',remote,confirmedFinish:{branch:'add-score',featureHead:'f'.repeat(40),head:confirmedHead}};};
       await commands.get('zero.syncProject')();
+    }else{
+      const {prepareFinish, finishPrepared} = workflow;
+      workflow.prepareFinish = async () => ({...plan(), alreadyMerged:true, confirmedArchive:confirmedHead});
+      workflow.finishPrepared = async () => {
+        branch = 'main';
+        return {finished:true, alreadyMerged:true, branch, head:'c'.repeat(40), finishedBranch:'add-score', remote,
+          confirmedMerge:{branch:'add-score', head:confirmedHead}};
+      };
+      warningChoice = 'Switch to main';
+      await commands.get('zero.finishChange')();
+      Object.assign(workflow, {prepareFinish, finishPrepared});
     }
     assert.equal(transportCalls.filter(args=>args[0]==='push').length,beforeNoPush);
     const confirmedMarkers=[...ledger.entries()].filter(([key,value])=>key.startsWith('zero.resolvedSync.v1:')&&value.reason==='confirmed').map(([,value])=>value.id);
