@@ -1,3 +1,12 @@
+# Reporting integration acceptance — 2026-11-18
+
+Source `118409a91d1f6526802519e1b3bf51d53d9c979b` passes 128 focused cases and
+`npm run check`. Independent targeted integration review is clean, with 32
+reviewer-run cases passing and unchanged public-policy coverage reused.
+[Draft PR386](https://github.com/codepetca/zero/pull/386) is pushed and mergeable;
+full hosted CI started and is pending. Website code retains its prior successful
+typecheck/build coverage. This receipt changes documentation only.
+
 # Public reporting repository — 2026-11-18
 
 GitHub readback verifies `codepetca/zero-reports` is public, numeric ID `1463652567`,

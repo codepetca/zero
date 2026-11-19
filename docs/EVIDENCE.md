@@ -1,3 +1,34 @@
+# Public reporting PR and integration acceptance — 2026-11-18
+
+[Draft PR386](https://github.com/codepetca/zero/pull/386) targets main from
+`codex/automatic-error-reporting`. Pushed integration source
+`118409a91d1f6526802519e1b3bf51d53d9c979b` is mergeable. Hosted browser
+[44457474401](https://github.com/codepetca/zero/actions/runs/44457474401), release
+checks [44457474380](https://github.com/codepetca/zero/actions/runs/44457474380)
+and Windows [44457474463](https://github.com/codepetca/zero/actions/runs/44457474463)
+started; their final results remain pending at this receipt.
+
+All 128 consolidated reporting/native/browser/onboarding/browser-tool update
+and service cases pass at integration source, with isolated PostgreSQL and fake
+GitHub. `npm run check` passes. Website source is unchanged from the previously
+successful typecheck and production build.
+
+Independent integration turn `review_reporting_compatibility/integration-1`,
+requested GPT-6.1 Sol/high, reviewed `55a2b4bcc..118409a91`, combined conflicts
+and immediate callers. No actionable blockers; 32 targeted cases passed. It
+confirmed expected browser-tool cancellation returns before report capture,
+unchanged consent/queue/service boundaries, correct native fixture and 0.5.81
+manifest version. Public session: 3 reviewer turns, initial two-reviewer wave
+plus one targeted integration turn, no public-policy remediation batches.
+Effective model, per-turn tokens and elapsed seconds are unavailable. Current
+weekly usage readback was 29% remaining; this is account-wide, not task cost.
+
+Repository setup was verified again through GitHub: public, issues enabled,
+README present, ID `1463652567`. Production configuration, live attribution,
+report-dialog and physical Windows acceptance remain pending. No merge, service
+activation, credentials, editor release or deployment was performed. The final
+receipt-only commit does not change reviewed source.
+
 # Public reporting publication preparation — 2026-11-18
 
 Owner authorized branch push, PR creation and the public reporting repository.

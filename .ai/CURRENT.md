@@ -14,7 +14,9 @@ Reviewed source `65580f1093661b3d9d62cca4163d99cc3dac2edb` passed two independen
 public-policy reviews, 116 focused cases with actual isolated PostgreSQL/fake
 GitHub, source checks, website typecheck and production build. Current work
 integrates main `b61d160d3` (0.5.81), preserving browser-tool cancellation before
-report capture. Targeted integration checks/review and hosted CI are next.
+report capture. Targeted integration review found no blockers; all 128 focused cases and
+source checks pass. [Draft PR386](https://github.com/codepetca/zero/pull/386)
+is pushed and mergeable. Hosted CI has started; its final result is pending.
 
 Production service activation, GitHub App credentials/installation, database,
 scheduler enablement and an editor release remain pending. Native report-dialog,
