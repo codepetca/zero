@@ -7,11 +7,11 @@ const {guardedRunner, refuseUnsafeUpdateConversions} = require('./git-filter-gua
 const os = require('node:os');
 const crypto = require('node:crypto');
 const {createReadStream,constants} = require('node:fs');
-const {assertShareable} = require('./lesson-projects');
+const {assertShareable, isLocalPracticeMarker} = require('./lesson-projects');
 const {prepareUpload, assertNoUrlRewrites, validBranch} = require('./github');
 const {finishMessage,readFinishedBranch,validFinishedBranch}=require('./finished-change-marker');
 const {mergeGitDiagnostic} = require('./merge-git-diagnostic');
-const {updateDirectMain,checkoutDirectMain,updateCheckedOutFeature,preflightDirectMain,attachSameTreeMain,deleteDirectFeature}=require('./direct-main-transaction');
+const {updateDirectMain,checkoutDirectMain,updateCheckedOutFeature,adoptReviewedMain,preflightDirectMain,attachSameTreeMain,deleteDirectFeature}=require('./direct-main-transaction');
 // Only equal-tree, ref-only fast-forwards may use this path.
 const ENABLE_REFTABLE_REF_ONLY = true;
 const plans = new WeakSet();
@@ -185,8 +185,8 @@ async function recheck(expected, run, {full = false,localOnly=false} = {}) {
   if (!same(expected, current) || full && expected.fingerprint !== current.fingerprint) throw drift();
   return current;
 }
-async function advanceMain(expected,next,previous,opts,action,{beforeAdvance}={}) {
-  try {const allowReftable=opts.refStorage==='reftable';const format=await preflightDirectMain(expected.root,expected.gitDir,{run:opts.run,allowReftable});if(opts.refStorage&&format!==opts.refStorage)throw drift();await updateDirectMain(expected.root,next,previous,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);if(await preflightDirectMain(expected.root,expected.gitDir,{run,allowReftable,skipProbe:true})!==format)throw drift();await beforeAdvance?.(run);},checkNow:opts.beforeMutationNow||(()=>{})});}
+async function advanceMain(expected,next,previous,opts,action) {
+  try {const allowReftable=opts.refStorage==='reftable';const format=await preflightDirectMain(expected.root,expected.gitDir,{run:opts.run,allowReftable});if(opts.refStorage&&format!==opts.refStorage)throw drift();await updateDirectMain(expected.root,next,previous,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);if(await preflightDirectMain(expected.root,expected.gitDir,{run,allowReftable,skipProbe:true})!==format)throw drift();},checkNow:opts.beforeMutationNow||(()=>{})});}
   catch(error){error.message+=` Could not safely ${action}.`;throw error;}
 }
 async function checkFinishStorage(expected,opts,{probe=false}={}) {
@@ -198,9 +198,9 @@ async function checkFinishStorage(expected,opts,{probe=false}={}) {
 async function attachFinishedMain(expected,opts) {
  await attachSameTreeMain(expected.root,expected.mainHead,expected.branch,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);await refuseFinishReplacements(expected,run);if(await preflightDirectMain(expected.root,expected.gitDir,{run,allowReftable:true,skipProbe:true})!=='reftable')throw drift();const [featureTree,mainTree]=await Promise.all([run(expected.root,['rev-parse',`${expected.head}^{tree}`]),run(expected.root,['rev-parse',`${expected.mainHead}^{tree}`])]);if(featureTree!==mainTree)throw new Error('The completed main has different files. Keep this feature and inspect Source Control.');},checkNow:opts.beforeMutationNow||(()=>{})});
 }
-async function checkoutMain(expected,opts,{beforeCheckout}={}) {
+async function checkoutMain(expected,opts) {
   await preflightDirectMain(expected.root,expected.gitDir,{run:opts.run});
-  return checkoutDirectMain(expected.root,expected.mainHead,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);await preflightDirectMain(expected.root,expected.gitDir,{run});await beforeCheckout?.(run);},checkNow:opts.beforeMutationNow||(()=>{}),perform:env=>local(opts.run,expected.root,['-c','core.fsmonitor=false','-c',`core.hooksPath=${os.devNull}`,'-c','submodule.recurse=false','checkout','--no-overwrite-ignore','main'],'switch to completed main',{env})});
+  return checkoutDirectMain(expected.root,expected.mainHead,{verify:async env=>{const run=(root,args,options)=>opts.run(root,['-c','core.fsmonitor=false',...args],{...options,env});await opts.beforeMutation();await recheck(expected,run,{full:true});await assertDirectMain(expected.root,run);await preflightDirectMain(expected.root,expected.gitDir,{run});},checkNow:opts.beforeMutationNow||(()=>{}),perform:env=>local(opts.run,expected.root,['-c','core.fsmonitor=false','-c',`core.hooksPath=${os.devNull}`,'checkout','--no-overwrite-ignore','main'],'switch to completed main',{env})});
 }
 function networkRequired(networkRun) {
   if (typeof networkRun !== 'function') throw new Error('Sign in to Zero and review this step using the native GitHub connection.');
@@ -433,6 +433,11 @@ async function prepareFinish(project, options = {}) {
       if (refStorage !== 'files') throw nativeUpdateHandoff('GitHub main already includes this branch. Use Source Control to update local main for this Git reference format.');
       await checkAlreadyMerged(current, remoteMainHead, run);
       const archive = await archivedFinishIn(current, remoteMainHead, run, {confirmIncluded:true});
+      try {
+        await adoptReviewedMain(current.root,current.mainHead,remoteMainHead,current.branch,{probeOnly:true,verify:()=>{}});
+      } catch {
+        throw nativeUpdateHandoff('Git could not lock the switch to updated main. Check the repository in Source Control.');
+      }
       await recheck(current, run, {full:true});
       return planFor('finish', current, {refStorage, remoteMainHead, alreadyMerged:true, confirmedArchive:archive?.id});
     }
@@ -467,15 +472,22 @@ async function inspectUpdateTarget(current, target, run) {
   }
   const entries = await run(current.root, ['ls-tree','-r','-t','-z',target]);
   const names = new Set(), files = [];
+  let projectMarker;
   for (const entry of entries.split('\0').filter(Boolean)) {
     const match = /^(\d{6}) (blob|tree|commit) ([a-f0-9]{40}|[a-f0-9]{64})\t([\s\S]+)$/.exec(entry);
     if (!match || match[4].includes('\ufffd')) throw nativeUpdateHandoff('Git could not verify the update paths. Review them in Source Control.');
-    const [, mode, type, , name] = match;
+    const [, mode, type, oid, name] = match;
     if (mode === '160000') throw nativeUpdateHandoff('This update contains a Git submodule. Review it in Source Control.');
     const key = foldGitPath(name);
     if (names.has(key)) throw nativeUpdateHandoff('The update contains paths that differ only by letter case or Unicode spelling. Review them in Source Control.');
     names.add(key);
     if (type !== 'tree') files.push(key);
+    if (name === 'zero.json' && /^100(?:644|755)$/.test(mode)) projectMarker = oid;
+  }
+  if (!projectMarker) throw nativeUpdateHandoff('The update is missing a regular zero.json project file. Review it in Source Control.');
+  const marker = await run(current.root, ['cat-file','blob',projectMarker], {encoding:'buffer'});
+  if (!Buffer.isBuffer(marker) || isLocalPracticeMarker(marker.toString('utf8'))) {
+    throw nativeUpdateHandoff('The updated zero.json would prevent GitHub actions for this project. Review it in Source Control.');
   }
   await preserveIgnored(current, target, run, {paths:files, normalize:foldGitPath});
 }
@@ -513,6 +525,16 @@ async function mergePreviewTree(current, remoteHead, run) {
     await fs.rm(temporary, {recursive:true, force:true});
   }
 }
+async function stockSystemAttributes(filename, info) {
+  if (info.size > 32 * 1024) return false;
+  const content = await fs.readFile(filename, 'utf8');
+  // Git for Windows ships only diff=astextplain mappings for these extensions.
+  // These mappings have no effect on the isolated merge or worktree conversion.
+  return content.split(/\r?\n/).every(line => {
+    const rule = line.trim();
+    return !rule || rule.startsWith('#') || /^\*\.[a-zA-Z0-9]+[ \t]+diff=astextplain$/.test(rule);
+  });
+}
 async function previewCleanMerge(current, remoteHead, run) {
   await refuseFinishReplacements(current, run);
   await requireCompleteUpdateHistory(current, run);
@@ -540,11 +562,12 @@ async function previewCleanMerge(current, remoteHead, run) {
   const attributePaths = await Promise.all(['GIT_ATTR_SYSTEM','GIT_ATTR_GLOBAL'].map(name=>run(current.root,['var',name]))).catch(() => {
     throw nativeUpdateHandoff('This Git version cannot verify merge attributes. Review the update in Source Control.');
   });
-  for (const filename of [...attributePaths, path.join(current.gitDir,'info','attributes')]) {
+  const [systemAttributes, globalAttributes] = attributePaths;
+  for (const [filename, isSystem] of [[systemAttributes,true],[globalAttributes,false],[path.join(current.gitDir,'info','attributes'),false]]) {
     if (!path.isAbsolute(filename) || /[\r\n]/.test(filename)) throw customConfiguration();
     try {
       const info = await fs.lstat(filename);
-      if (!info.isFile() || info.size) throw customConfiguration();
+      if (!info.isFile() || (info.size && (!isSystem || !await stockSystemAttributes(filename, info)))) throw customConfiguration();
     } catch (error) {if (error.code !== 'ENOENT') throw error;}
   }
   let tree;
@@ -699,6 +722,33 @@ async function startPrepared(plan, options = {}) {
   plans.delete(plan);
   return Object.freeze({branch: plan.name, head: plan.head, page: plan.page, postCheckoutChanged, activeUncertain, checkoutWarning});
 }
+function reviewedTreeUpdate(current, target, opts, verify) {
+  const {root, head} = current;
+  let lineEndings;
+  return {
+    verify: async env => {
+      const lockedRun = (cwd,args,options) => opts.run(cwd,args,{...options,env});
+      await opts.beforeMutation();
+      await recheck(current, lockedRun, {full:true});
+      await verify(lockedRun);
+      // Keep normal Git line endings while leaving executable configuration
+      // out of the ref transaction and the materialization command.
+      const settings = [['core.autocrlf',['true','false','input']],['core.eol',['native','lf','crlf']],['core.safecrlf',['true','false','warn']]];
+      const overrides = await Promise.all(settings.map(async ([key, allowed]) => {
+        const value = await opts.run(root,['config','--type=bool-or-str','--get',key]).catch(error => {
+          if (error.code !== 1) throw error;
+        });
+        if (value === undefined) return [];
+        if (!allowed.includes(value)) throw nativeUpdateHandoff('Check this project’s Git line-ending settings in Source Control before updating.');
+        return ['-c',`${key}=${value}`];
+      }));
+      lineEndings = overrides.flat();
+    },
+    checkNow:opts.beforeMutationNow || (()=>{}),
+    perform:env=>opts.run(root,[...lineEndings,'-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false',
+      '-c','submodule.recurse=false','read-tree','-m','-u','--no-sparse-checkout',head,target],{env})
+  };
+}
 async function applyReviewedCleanMerge(plan, current, opts) {
   const {root, head, remoteMainHead} = plan;
   const run = opts.run;
@@ -717,20 +767,11 @@ async function applyReviewedCleanMerge(plan, current, opts) {
   opts.onProgress(`Applying the reviewed update to ${current.branch}…`);
   // Git locks HEAD, the feature and main. The two-tree read changes only
   // the index and worktree, then the ref transaction advances the feature.
-  await updateCheckedOutFeature(root, current.mainHead, head, candidate, {
-    verify: async env => {
-      const lockedRun = (cwd,args,options) => run(cwd,args,{...options,env});
-      await opts.beforeMutation();
-      await recheck(current, lockedRun, {full:true});
-      await assertDirectMain(root, lockedRun);
-      await assertNoPendingFinish(root, current.gitDir, lockedRun, 'Resolve the pending merge before updating from main.');
-      await requireCompleteUpdateHistory(current, lockedRun);
-      await inspectUpdateTarget(current, candidate, lockedRun);
-    },
-    checkNow:opts.beforeMutationNow || (()=>{}),
-    perform:env=>run(root,['-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false','-c','submodule.recurse=false',
-      'read-tree','-m','-u','--no-sparse-checkout',head,candidate],{env})
-  });
+  await updateCheckedOutFeature(root, current.mainHead, head, candidate, reviewedTreeUpdate(current, candidate, opts, async lockedRun => {
+    await assertNoPendingFinish(root, current.gitDir, lockedRun, 'Resolve the pending merge before updating from main.');
+    await requireCompleteUpdateHistory(current, lockedRun);
+    await inspectUpdateTarget(current, candidate, lockedRun);
+  }));
   try {
     const final = await state(root, run, {full:true});
     if (!same({...current, head:candidate}, final)) throw drift();
@@ -915,20 +956,16 @@ async function switchToAlreadyMergedMain(plan, current, opts) {
   const observed = await protectedNetwork(current, opts, () => remoteMain(current, opts.networkRun), {full:true});
   if (observed !== plan.remoteMainHead) throw drift();
   const {root, branch, head} = current;
-  const checkedTarget = expected => async run => {
-    await checkAlreadyMerged(expected, observed, run);
-    const archive = await archivedFinishIn(current, observed, run, {confirmIncluded:true});
-    if (archive?.id !== plan.confirmedArchive) throw drift();
-  };
   opts.onProgress('Switching to the reviewed GitHub main…');
   try {
-    if (current.mainHead !== observed) {
-      await advanceMain(current, observed, current.mainHead, opts, 'update local main', {beforeAdvance:checkedTarget(current)});
-    }
-    const completed = {...current, mainHead:observed};
-    await checkoutMain(completed, opts, {beforeCheckout:checkedTarget(completed)});
+    const update = reviewedTreeUpdate(current, observed, opts, async run => {
+      await checkAlreadyMerged(current, observed, run);
+      const archive = await archivedFinishIn(current, observed, run, {confirmIncluded:true});
+      if (archive?.id !== plan.confirmedArchive) throw drift();
+    });
+    await adoptReviewedMain(root, current.mainHead, observed, branch, update);
     const final = await state(root, opts.run, {full:true});
-    if (!same({...completed, branch:'main', head:observed}, final) ||
+    if (!same({...current, branch:'main', mainHead:observed, head:observed}, final) ||
         await opts.run(root, ['rev-parse','--verify',`refs/heads/${branch}^{commit}`]) !== head) throw drift();
   } catch (error) {
     keepMergeDiagnostic(error, error.cause);

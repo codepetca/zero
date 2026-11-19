@@ -104,7 +104,9 @@ async function loadBundle(extensionPath) {
 }
 async function isLocalPractice(root) {
   const marker = await fs.readFile(path.join(root, 'zero.json'), 'utf8').catch(error => {if (error.code === 'ENOENT') return null; throw error;});
-  if (marker === null) return false;
+  return marker !== null && isLocalPracticeMarker(marker);
+}
+function isLocalPracticeMarker(marker) {
   let data; try {data = JSON.parse(marker);} catch {return true;}
   return isRecord(data) && (data.localOnly === true || PROJECT_LESSONS.has(data.practiceProjectId));
 }
@@ -158,4 +160,4 @@ async function createLessonProject(project, destination, {forbiddenRoots = []} =
     throw error;
   }
 }
-module.exports = {tutorialMarker,assertOriginalProject,assertContributionProject,validateTemplate,loadBundle,validateBundle,createLessonProject,isLocalPractice,assertShareable,LOCAL_MESSAGE};
+module.exports = {tutorialMarker,assertOriginalProject,assertContributionProject,validateTemplate,loadBundle,validateBundle,createLessonProject,isLocalPractice,isLocalPracticeMarker,assertShareable,LOCAL_MESSAGE};

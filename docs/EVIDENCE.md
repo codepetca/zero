@@ -42,6 +42,16 @@ the local patch against `8e754368a`. One follow-up confirmed the fix for a test
 fixture that would fail on Windows. Physical Windows and the affected project
 were outside these checks.
 
+Two Astra High reviewers checked the opening diff for PR395.
+The correction locks HEAD and main through the catch-up file transition and
+checks the reviewed feature while those locks are held. It accepts the pinned
+MinGit installation's diff-only system attributes, preserves Git line-ending
+settings, and refuses a target that would lose a usable `zero.json`.
+The first source CI run exposed three brittle hook-test assertions and failures
+downloading Maven artifacts. The Windows and browser lanes passed that run.
+[Opening diff](https://github.com/codepetca/zero/pull/395/commits/d504d109ca4da187868944d2bb7e13d1c2e45caa) ·
+[Initial source CI](https://github.com/codepetca/zero/actions/runs/44587519187)
+
 # Zero 0.5.82 full release — 2026-11-19
 
 [PR393](https://github.com/codepetca/zero/pull/393) merged as
