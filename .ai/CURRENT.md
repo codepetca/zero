@@ -3,7 +3,7 @@
 [PR386](https://github.com/codepetca/zero/pull/386) merged `c5c2d275a` after all12
 checks; [PR390](https://github.com/codepetca/zero/pull/390) merged `baf9fe48a` after
 all12 correction checks. Independent reporting, Windows, consent and hosted-body
-security/compatibility reviews are clean. Latest runtime deployment
+security/compatibility reviews are clean. Verified runtime deployment
 `dpl_6LMsgmHFrhXq9S2xLwEJtYC5t1KR` matches `baf9fe48a` and serves zero.codepet.ca.
 Collection is enabled; all9 server variables remain production-only.
 
