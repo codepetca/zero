@@ -7,12 +7,35 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.82](https://github.com/codepetca/zero/releases/tag/v0.5.82) is public; all three anonymous downloads match reviewed preparation 44550447823. | Combined website promotion is pending. |
-| Website | [PR387](https://github.com/codepetca/zero/pull/387) and [PR388](https://github.com/codepetca/zero/pull/388) promoted 0.5.81 downloads/feed; live links and signed bytes match. | Store button is the exact Microsoft listing. |
-| Mac installer | [0.5.82](https://github.com/codepetca/zero/releases/tag/setup-v0.5.82) DMG and both Git source archives match the reviewed seal and anonymous downloads. | Build 81 feed promotion and live read-back remain pending; build 80 stays public. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 16 / 0.5.81 is live. Submission 17 / 1.5.82.0 is in certification. | Verify certification and live availability. |
-| Windows Portable | [0.5.82 small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.82) is public and anonymously verified; [0.5.81 complete ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.81) remains public. | Complete 0.5.82 ZIP is public after authenticated verification; anonymous ZIP/source-TAR and exact-ZIP cold/warm proof are pending. |
+| GitHub manual kit | [Zero 0.5.82](https://github.com/codepetca/zero/releases/tag/v0.5.82) is public; all three anonymous downloads match reviewed preparation 44550447823. | Publication verified; preserve immutable bytes. |
+| Website | [PR393](https://github.com/codepetca/zero/pull/393) promoted all 0.5.82 downloads and build 81 feed. | Live Mac/Store/Portable links, DMG and signed feed verified at 2026-11-19T17:22:23Z. |
+| Mac installer | [0.5.82](https://github.com/codepetca/zero/releases/tag/setup-v0.5.82) DMG and both Git source archives match the reviewed seal and anonymous downloads. | Build 81 feed and public DMG match the seal and valid Ed25519 signatures. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 17 / package 1.5.82.0 is live. | Certification and normal ASAP publication complete. |
+| Windows Portable | [0.5.82 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.82) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.82) are public and anonymously verified; both embed canonical kit 79101796…. | Exact complete-ZIP cold/warm opening passed on hosted Windows. Verify actual school policy under a student login. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.82 release completed — 2026-11-19
+
+Promotion [PR393](https://github.com/codepetca/zero/pull/393) merged as
+`6638d24d266449c9fd09060f1c941bcf08709998`, with all 12 checks passing at
+`1b7cf8995`. Source/browser/Windows runs 44572656577 / 44572656487 / 44572656551
+passed; the exact public Portable ZIP passed cold/warm opening with canonical
+kit `79101796…`. Two initial Sol/high reviews and one targeted fixture re-review
+are clean after one correction batch. All public assets, including complete
+Portable checksum/index/README/source TAR, passed anonymous size/hash verification.
+Store submission 17 / 1.5.82.0 is live. Exact-merge production deployment
+`dpl_BqrdVB6pyBEi6fiSG5ZhdENcimGz` reached READY with the canonical alias. Live
+Mac/Store/Portable links, DMG bytes and the 1179-byte signed build 81 feed were
+verified at 2026-11-19T17:22:23Z. No previous asset was replaced; standalone preview stays 0.5.77.
+
+| Additional verified artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| Zero-0.5.82-windows-portable-bundled-x64.zip | 605,983,321 | `74f2de321cf8f9fe3ba6248ea2fc9cf08fe6a089e37d1c711f00f5d633da027b` |
+| Zero-0.5.82-windows-portable-sources.tar | 1,470,730,240 | `b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0` |
+| Zero-0.5.82-msix-store-x64.msix (submitted original) | 5,422,548 | `fa792d2bdff33769ba8991ecd8fa783b2cb9ce6659dfb3ebd4c26a16df07fe52` |
+
+See [final evidence](EVIDENCE.md). The dated preparation checkpoint below preserves
+its earlier pending observations; this completed receipt supersedes them.
 
 ## Zero 0.5.82 release in progress — 2026-11-19
 

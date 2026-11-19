@@ -1,3 +1,64 @@
+# Zero 0.5.82 full release — 2026-11-19
+
+[PR393](https://github.com/codepetca/zero/pull/393) merged as
+`6638d24d266449c9fd09060f1c941bcf08709998` after all 12 checks passed on
+`1b7cf8995c4fa828e905c21edc0fd1441258d1e5`:
+[source 44572656577](https://github.com/codepetca/zero/actions/runs/44572656577),
+[browser 44572656487](https://github.com/codepetca/zero/actions/runs/44572656487) and
+[Windows 44572656551](https://github.com/codepetca/zero/actions/runs/44572656551).
+Hosted extension/starter checks: 2604 passed, 163 skipped; website: 881 passed,
+5 skipped, with successful build. Source guards, native/framework/game/lesson
+checks and both platform gates passed. No public release asset was replaced.
+
+The canonical three-file kit, signed/notarized Mac DMG and both Git source archives,
+small Portable ZIP/checksum, and all five complete Portable assets passed exact
+anonymous public size/SHA256 checks. Native and Portable assets also passed
+authenticated draft downloads against their reviewed bytes. The complete
+ZIP is 605983321 bytes / `74f2de321cf8f9fe3ba6248ea2fc9cf08fe6a089e37d1c711f00f5d633da027b`.
+Its exact hosted cold/warm trial passed with canonical kit `79101796…` and source
+`8e754368a`; interactive JavaFX was not part of that Portable trial. The source TAR
+retains all 68 verified mappings, unchanged `b2ac3329…` bytes, and a new adjacent
+0.5.82 association and four-asset checksum. Resumable transfers retained prefixes
+and required the final whole-file hashes; they did not replace assets or weaken checks.
+
+Two independent Sol/high promotion reviews covered `8e754368a..9d8c57a3f`.
+Security/correctness was clean; compatibility found the stale published-kit fixture.
+One correction batch updated exact version/name/size/hash/URL assertions and retained
+all integrity checks. Sol/high targeted review of `9d8c57a3f..1b7cf8995` was clean,
+independently rerunning all 7 fixture cases. Promotion budget: 3 reviewer turns,
+1 initial wave, 1 targeted wave, 1 correction batch; no unresolved findings.
+Unchanged artifact review coverage was reused. Effective model/time/tokens are
+unknown where not exposed; account-wide allowance is not attributable task cost.
+Local configuration/typecheck, 102 release tests, website build and bundle/runtime
+audits pass. After resolving the ignored cross-worktree dependency symlinks, serial
+reruns of contention-affected website files passed 222 cases (1 skipped), plus the
+7 fixture cases. Hosted full website tests independently pass at the final head.
+
+Microsoft Partner Center's existing Codepet-profile SSO confirms submission 17
+(`1152921505702451016`) is live: “Your latest product is now available on Microsoft
+Store,” with Store presence explicitly naming submission 17. It contains the
+validated package 1.5.82.0, submitted as original unsigned MSIX SHA256 `fa792d2b…`; normal ASAP
+publication completed. This supersedes the earlier certification-pending snapshot.
+No new credentials, terms or capability changes were needed.
+
+Verified production deployment `dpl_BqrdVB6pyBEi6fiSG5ZhdENcimGz` is READY from
+merge `6638d24d2` and serves the canonical alias. At 2026-11-19T17:22:23Z, homepage
+Mac 0.5.82 and exact Store links, both Portable 0.5.82 links and their displayed
+606.0/5.4 MB sizes match. The public DMG is 12362920 bytes / `186370fc…`; the
+served appcast is the exact 1179 sealed bytes / `4972ddc9…`, build 81. Ed25519
+feed and DMG signatures pass. The maintained read-only publisher verification
+also confirms all three public kit assets, README and platform downloads.
+Installed-VSIX reporting and actual scheduled reconciliation proofs
+remain valid; the AI investigation runner, physical school devices, authenticated
+student Pages upload and interactive updater delivery remain separate.
+
+Ignored final proofs live in the promotion worktree under `.verification/release-082/`
+(`pr-393-ready.json`, `pr-393-runs.json`, `public-portable-smoke/report.json`,
+`promotion-source-ci.log`, `promotion-review.json`, `production-verified.json`,
+`live-download-verification.json`, `final-publisher-verification.log`), and in its sibling source
+worktree (`portable-drafts/complete-public/verification.json`,
+`store-live-observation.json`). Earlier preparation/seal evidence remains retained.
+
 # Zero 0.5.82 release progress — 2026-11-19
 
 [PR392](https://github.com/codepetca/zero/pull/392) merged `8e754368a6f23c36dc20111b3015c55ed68fc108` after all 12 checks, including

@@ -1,22 +1,23 @@
-# Zero 0.5.82 release promotion — 2026-11-19
+# Zero 0.5.82 released — 2026-11-19
 
-Owner authorized the full release. Source [PR392](https://github.com/codepetca/zero/pull/392)
-merged `8e754368a` after all 12 checks; canonical preparation
-[44550447823](https://github.com/codepetca/zero/actions/runs/44550447823) and
-[Windows 44550453843](https://github.com/codepetca/zero/actions/runs/44550453843) passed.
-Core remains 0.3.0. Preserve the original dirty checkout and existing public bytes.
+Owner-authorized full release: [source PR392](https://github.com/codepetca/zero/pull/392),
+[promotion PR393](https://github.com/codepetca/zero/pull/393), merge `6638d24d2`.
+Core remains 0.3.0. All 12 promotion checks passed at `1b7cf8995`; independent
+security/compatibility reviews and one targeted fixture correction are clean.
 
-The three-file [0.5.82 kit](https://github.com/codepetca/zero/releases/tag/v0.5.82),
-[Mac setup](https://github.com/codepetca/zero/releases/tag/setup-v0.5.82) and
-[small Portable ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.82)
-are public and anonymously verified. Mac seal `5ca6a5489` uses built source
-`a37ba4a22`, signed update build 81. Installed 0.5.82 VSIX reporting acceptance
-passed; the first scheduled reporting reconciliation also ran successfully.
+The canonical kit, signed/notarized Mac setup, small and complete Windows Portable
+ZIPs and source companions are public and anonymously hash-verified. Exact public
+Portable cold/warm opening passed. Mac feed is signed build 81. Microsoft Partner
+Center confirms submission 17 / package 1.5.82.0 is live in Store.
 
-Complete Portable release 451536778 is public after all five authenticated asset
-checks; anonymous ZIP/source-TAR transfers and exact public-ZIP cold/warm proof
-are still pending. Store submission 17, package 1.5.82.0, is in
-certification and is not yet live. Combined promotion review, hosted CI, merge and
-live website/feed verification remain pending. Physical school devices, interactive
-updater acceptance and the AI investigation runner remain separate. See
-[release ledger](../docs/RELEASE-LEDGER.md) and [evidence](../docs/EVIDENCE.md).
+Production deployment `dpl_BqrdVB6pyBEi6fiSG5ZhdENcimGz` reached READY with the
+canonical alias. Live Mac/Store/Portable links, DMG and signed feed match the seal.
+Reporting ships in the installed 0.5.82 VSIX: one explicit first-run public choice,
+default off, silent eligible errors after consent and direct manual reporting.
+The service and hourly recovery are enabled; actual scheduled reconciliation passed.
+
+The next phase is evidence-based AI issue triage and bounded proposed fixes; that
+runner is not activated by this release. Physical school devices and interactive
+updater acceptance remain separate. Preserve the original dirty checkout and
+immutable public assets. See [release ledger](../docs/RELEASE-LEDGER.md) and
+[evidence](../docs/EVIDENCE.md).
