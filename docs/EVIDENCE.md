@@ -37,8 +37,11 @@ disclosure. Batch1 (`f6b11ceca`) checks consent immediately before each manual
 transmission and requires the summary/public notice if consent is off, preserving
 the same report ID. Regressions cover retained drafts, in-flight revocation and
 revocation while Retry is open. Root and Terra/high worker each pass93 focused
-reporter/onboarding cases. Targeted security review follows; no further source
-changes are planned. Effective model/tokens/elapsed are unavailable.
+reporter/onboarding cases. Independent Sol/high targeted security review of
+`1aa465165..f6b11ceca` is clean, including the original reproduction: dismissal
+sends nothing, and affirmative confirmation retries identical data/ID. Session:
+3review turns,1fix batch, no unresolved blockers. Effective model/tokens/elapsed
+are unavailable.
 
 Before this refinement, every hosted gate passed at `4f83811f3`:
 [Windows44525432731](https://github.com/codepetca/zero/actions/runs/44525432731),
