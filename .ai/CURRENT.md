@@ -1,23 +1,27 @@
-# Zero 0.5.82 released — 2026-11-19
+# AI report triage active — 2026-11-19
 
-Owner-authorized full release: [source PR392](https://github.com/codepetca/zero/pull/392),
-[promotion PR393](https://github.com/codepetca/zero/pull/393), merge `6638d24d2`.
-Core remains 0.3.0. All 12 promotion checks passed at `1b7cf8995`; independent
-security/compatibility reviews and one targeted fixture correction are clean.
+[PR396](https://github.com/codepetca/zero/pull/396) merged `8d87dcd3c` after
+independent security/compatibility review and all 12 final-head checks passed.
+The [maintainer flow](../docs/AI-TRIAGE.md) and reviewed policy/prompt in `triage/`
+are implemented. No student runtime or released 0.5.82 artifact changed.
 
-The canonical kit, signed/notarized Mac setup, small and complete Windows Portable
-ZIPs and source companions are public and anonymously hash-verified. Exact public
-Portable cold/warm opening passed. Mac feed is signed build 81. Microsoft Partner
-Center confirms submission 17 / package 1.5.82.0 is live in Store.
+The existing-chat Codex heartbeat `zero-report-triage-and-draft-fixes` is ACTIVE
+every four hours locally; Codex and the Mac must be running. Use the dedicated
+clean control worktree at `/Users/stew/.codex/worktrees/zero-ai-triage/zero` and
+refresh only it to reviewed origin/main. Preserve the dirty original checkout.
+Operational state and logs remain private outside Git; use CLI health/scan.
 
-Production deployment `dpl_BqrdVB6pyBEi6fiSG5ZhdENcimGz` reached READY with the
-canonical alias. Live Mac/Store/Portable links, DMG and signed feed match the seal.
-Reporting ships in the installed 0.5.82 VSIX: one explicit first-run public choice,
-default off, silent eligible errors after consent and direct manual reporting.
-The service and hourly recovery are enabled; actual scheduled reconciliation passed.
+Future proposals remain draft-only: reproduce, preserve existing tests, independently
+review and pass selected CI; human decisions control ready/merge/release. Initial
+allowlist is four presentation helpers, four files/200 lines, three investigations
+and one draft attempt per UTC day. Other changes require owner direction.
 
-The next phase is evidence-based AI issue triage and bounded proposed fixes; that
-runner is not activated by this release. Physical school devices and interactive
-updater acceptance remain separate. Preserve the original dirty checkout and
-immutable public assets. See [release ledger](../docs/RELEASE-LEDGER.md) and
-[evidence](../docs/EVIDENCE.md).
+First real report6 is classified insufficient-evidence: builder-unavailable has
+multiple expected/environment causes, and no actual defect is reproduced. No fix
+or issue edit occurred. Its run is ended, with no outbox or active lease. Do not
+reinterpret counts as users, a confirmed defect or proof of recovery.
+
+Production privacy disclosure is live. A scheduled wake and real defect-to-draft
+publication are not yet exercised. Follow [evidence](../docs/EVIDENCE.md) and
+[verification](../docs/VERIFICATION.md); released 0.5.82 remains verified in the
+[release ledger](../docs/RELEASE-LEDGER.md). No release work is pending here.

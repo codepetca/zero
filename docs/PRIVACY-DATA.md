@@ -28,6 +28,16 @@ compliance. No new collector, consent record or data store is added by the pages
 Reporting-source addition, 2026-11-18. The endpoint and editor integration are
 local source changes. This inventory does not establish a deployed collector,
 configured public issue repository or telemetry-enabled student installations.
+Maintainer AI triage uses OpenAI Codex to analyze only normalized fields from
+already-public technical report issues, alongside maintained Zero source and
+synthetic reproduction tests. It does not fetch student repositories, arbitrary
+issue prose/comments or report database records. A private local SQLite ledger
+stores technical context, source/evidence identities, outcomes and draft-PR
+reservations; synthetic test logs remain private. No report-App or database
+credential is supplied to this worker. Public draft PRs contain reviewed code
+and a bounded technical explanation, not raw diagnostic logs. The local ledger
+and public PRs have no automatic deletion policy. See [the workflow](AI-TRIAGE.md).
+
 All reporting payloads reject source, filenames, paths, raw messages/stacks,
 project URLs, student identities, credentials and free-text descriptions. The
 server validates fixed fields and produces the public issue from that schema. Hosting infrastructure receives

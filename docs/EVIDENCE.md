@@ -61,6 +61,69 @@ changing the real index or files. Catch-up also uses the same external
 attributes check as the feature update, with a real global CRLF rule covered
 by the handoff regression.
 
+# AI report triage activated — 2026-11-19
+
+[PR396](https://github.com/codepetca/zero/pull/396) merged as
+`8d87dcd3c67305918d6116d139129c5ca99024da`. All 12 checks passed on reviewed head
+`398962e8b323f9935f5b5d39517014d716cb5fd7`:
+[source 44591240309](https://github.com/codepetca/zero/actions/runs/44591240309),
+[browser 44591240429](https://github.com/codepetca/zero/actions/runs/44591240429) and
+[Windows 44591240314](https://github.com/codepetca/zero/actions/runs/44591240314).
+This includes the real WebFX/browser lane and Windows installer/Portable checks.
+Local validation passed 37 focused triage/legal cases, source checks through
+`devq --source codex` job12, website typecheck/build and actionlint.
+
+The [maintainer flow](AI-TRIAGE.md) verifies numeric provenance and canonical
+structured reports, uses private transactional leases/deadlines and bounded
+attempts, and requires actual baseline assertion failure/fixed pass, unchanged
+existing tests and independent semantic review before a draft proposal. It does
+not give generated fixes ready/merge/release/deployment authority. Initial scope
+is four presentation helpers, four files/200 changed lines, three investigations
+and one draft attempt per UTC day. Broader changes need an owner decision.
+No reporting-App/database credential or student project is given to the worker.
+Zero 0.5.82 runtime, release bytes and the reporting service remain unchanged.
+
+Independent review receipts (requested Sol/high; effective configuration and
+per-turn elapsed/token costs were not exposed):
+
+- `security-initial`, `df864c666..fa901920f`: complete assigned boundary;
+  accepted P1 hidden intermediate history and P2 in-flight cancellation findings.
+- `compatibility-initial`, same delta: complete assigned boundary;
+  accepted P2 attached-proposal reuse and corrected-head proof-log collisions.
+- `security-remediation1`, `fa901920f..398962e8b`: complete nine-file correction
+  and immediate interactions; no remaining blockers; five independent regressions pass.
+- `compatibility-integration`, `df864c666..398962e8b`: complete cumulative
+  integration using initial 20-file coverage; no remaining blockers; 19 independent
+  state/proposal tests pass, including actual red/green and cancellation execution.
+
+One batched correction requires a single clean proposal commit with the public
+baseline as sole parent, cancels proof child groups on pause/deadline, preserves
+immutable per-head logs and prevents replacement proposals across snapshots.
+Review session: four turns, initial/targeted/integration waves, one fix batch,
+26.3 minutes wall time. CI queue/run time is separate. Terra/high delivered bounded
+intake/state/test work; root integrated and verified it. DeepSeek remained paused;
+account-wide allowance is not task cost. Bulky receipts remain ignored under
+`.verification/ai-triage/`; operational records remain private outside Git.
+
+The existing-chat Codex heartbeat `zero-report-triage-and-draft-fixes` was enabled
+and read back ACTIVE, with the reviewed prompt unchanged, every four hours locally.
+Codex and the Mac must be running. Production deployment
+`dpl_A3cRpXqDFZAP1TGhSzE9d63AvFk6` is READY from the merge; the public privacy page
+returns 200 and discloses OpenAI Codex processing of public structured reports.
+A scheduled wake itself and an actual defect-to-draft publication remain unproven.
+
+The post-merge scan found [report6](https://github.com/codepetca/zero-reports/issues/6):
+five `ZERO_BUILDER_UNAVAILABLE` publish failures on Windows Store 0.5.82. The same
+code intentionally covers incomplete/changed saved tooling and unavailable runtime
+conditions. The maintained missing/undeclared/linked/unsupported tooling test
+passes unchanged. With Java/builder versions unknown, this does not establish a
+Zero defect or distinct affected users. The first real triage outcome is
+**insufficient evidence**; its precise missing reproduction evidence is private.
+No Windows reproduction, source change, draft reservation, issue edit/closure or
+student-project access occurred. No inference is made about who generated it.
+The run ended with no active lease, pending outbox or proposed PR. Counts alone
+do not retrigger the same investigation.
+
 # Zero 0.5.82 full release — 2026-11-19
 
 [PR393](https://github.com/codepetca/zero/pull/393) merged as
