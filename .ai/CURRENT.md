@@ -18,8 +18,10 @@ Live reconciliation run44533868904 exposed Next/Vercel's empty request-body
 stream versus the handler's null-only check (400). Scheduler variable is disabled
 while the bounded empty-stream correction is implemented and reviewed. Collection
 and inline delivery work; durable pending records remain available for recovery.
-One service worker owns the handler/tests; root owns integration/docs. Next: verify
-and merge that correction, deploy exact source, rerun authenticated reconciliation,
+The correction at `672177b5a` has15passing focused cases (including actual PG),
+plus clean independent Sol/high security and compatibility reviews. Root owns
+integration. Next: pass final hosted gates and merge, deploy exact source, rerun
+authenticated reconciliation,
 then enable hourly minute17 execution. No installer publication is authorized here.
 
 Dedicated App5827621/installation183555907 remains issues-write/metadata-read only
