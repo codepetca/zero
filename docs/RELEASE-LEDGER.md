@@ -7,10 +7,10 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.81](https://github.com/codepetca/zero/releases/tag/v0.5.81) is public; all three anonymous downloads match reviewed preparation44447511514. | Metadata/website promotion checks. |
-| Website | [PR383](https://github.com/codepetca/zero/pull/383) promotes the verified0.5.80 Mac, signed feed and both Portable downloads. | The Windows button opens the Microsoft Store. |
-| Mac installer | [0.5.81](https://github.com/codepetca/zero/releases/tag/setup-v0.5.81) is public; DMG and both source archives match the reviewed seal. | Promote signed build 80 feed and verify deployed download/feed. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 15 / 0.5.80 is live; submission 16 / 1.5.81.0 is in certification. | 0.5.81 publishes automatically after Microsoft approval. |
+| GitHub manual kit | [Zero 0.5.81](https://github.com/codepetca/zero/releases/tag/v0.5.81) is public; all three anonymous downloads match reviewed preparation 44447511514. | Live release read-back verified. |
+| Website | [PR387](https://github.com/codepetca/zero/pull/387) and [PR388](https://github.com/codepetca/zero/pull/388) promoted 0.5.81 downloads/feed; live links and signed bytes match. | Store button is the exact Microsoft listing. |
+| Mac installer | [0.5.81](https://github.com/codepetca/zero/releases/tag/setup-v0.5.81) DMG and both Git source archives match the reviewed seal. | Signed build 80 feed and live DMG verified. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 16, package 1.5.81.0 / Zero 0.5.81, is live. | Certification and publishing complete. |
 | Windows Portable | [0.5.81 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.81) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.81) are public and embed the same published kit. | Complete: extract and open Zero.exe. Small: teacher/IT stages vendor tools. Verify actual school policy under a student login. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
@@ -25,51 +25,64 @@ installer.
 
 ## Zero 0.5.81 — 2026-11-18
 
-Owner explicitly authorized source merge and full download/Store publication.
-[Source PR385](https://github.com/codepetca/zero/pull/385) merged at
-`b61d160d3057f381da2a83c442a152548ba9a5e8`, after all 12 final-head checks passed.
-The kit, Mac and both Portable GitHub releases are public; website/feed promotion
-is in progress. No old public bytes were replaced. Core remains 0.3.0. Report a
-problem remains a separate proposal, handed to the always-on improvements chat.
+Owner-authorized source merge, download publication and Store rollout are complete.
+[PR385](https://github.com/codepetca/zero/pull/385) merged source at
+`b61d160d3057f381da2a83c442a152548ba9a5e8`; all 12 final-head checks passed.
+[PR387](https://github.com/codepetca/zero/pull/387) merged kit/Portable metadata
+at `2e71daf03f0c04e20277445c755e5267c1a63073`; [PR388](https://github.com/codepetca/zero/pull/388)
+merged Mac/feed/snapshots at `c0bdc93800272192bfccaa7f947c1efedb63e83f`, also
+with all 12 checks green. Core stays 0.3.0. No previous public asset was replaced.
 
-Explicit browser build/publish now offers **Update Browser Tools**, backs up old
-tools, updates only `.zero-build` and resumes the action. Java/assets/framework
-remain unchanged. Cancel ends quietly; incomplete full-project recovery blocks
+Explicit browser build/publish offers **Update Browser Tools**, backs up the old
+`.zero-build`, updates only those tools and resumes. Java/assets/framework stay
+unchanged; Cancel ends quietly. Incomplete full-project recovery still blocks
 browser actions. Missing Git revisions receive clearer guidance without claiming
-that every earlier merge error was reproduced or repaired.
+every previously reported merge error was reproduced. Report a problem remains
+proposed in the separate always-on improvements chat.
 
-[Manual preparation44447511514](https://github.com/codepetca/zero/actions/runs/44447511514)
-passed at the exact reviewed source and retained the kit, starter, VSIX and both
-matching Portable candidates. Fresh full extension tests:2,557 passed, 163 skipped,
-zero failures; website: 867 passed, 4 skipped, with successful build. Native game/
-framework checks, 27 GUI examples and lesson checks passed. The independent
-[WebFX run44447460456](https://github.com/codepetca/zero/actions/runs/44447460456)
-passed its actual browser compiles/behavior checks and 414 tests (4 skipped).
+Canonical [manual preparation 44447511514](https://github.com/codepetca/zero/actions/runs/44447511514)
+uses reviewed ancestor `ae18259ca607d7ce464e21a21d83ecf60182ac9b`, with packaged
+inputs unchanged on merged main. Its kit/starter/VSIX and both Portable archives
+are exact source-bound release bytes. Full hosted tests: 2557 passed, 163 skipped;
+website: 867 passed, 4 skipped, with successful build. Native/game/framework,
+27 GUI examples and lesson checks passed. [Browser44447460456](https://github.com/codepetca/zero/actions/runs/44447460456)
+passed 414 contracts (4 skipped) plus actual WebFX compiles/browser behavior.
+Public starter 32c4d56/tree 369608a5 matched source and modes; native UI_READY/Sam/Ada
+and Chrome 157 Sam/Ada passed with the exact VSIX. No template update was needed.
 
-Public starter `32c4d56a706d8d677db0eecfea5b202ca1bee8ca`, tree
-`369608a5d9847148dc801b3b1e2499adcb00a767`, matches source and executable modes.
-Project → New verified the exact hosted VSIX in native JavaFX (UI_READY,
-Hello Sam/Ada) and Chrome157.0.8103.50 WebFX. No template update was needed.
+The Mac was built at `0984de1e5ac101470d9f87141da81b590d77f1c4`, sealed at
+`965b8438e0c9b2459e8c37e2093acb2a4197ff69`, and independently reviewed. Apple
+accepted notarization `0694438f-9894-4643-885f-aa9c3192e743`; Developer ID,
+staple, app/DMG Gatekeeper and protected-source equivalence passed. Its measured
+source-equivalent local kit remains distinct from the canonical Linux kit.
 
-[Windows preparation44447514534](https://github.com/codepetca/zero/actions/runs/44447514534)
-passed at the same exact source: Store MSIX 1.5.81.0 built with the Windows SDK;
-a separately test-signed copy installed and passed first run, preserving the
-unsigned original. Standalone setup/private runtimes/editor reopening and actual
-JavaFX with cached offline rebuild passed. Portable cold/warm reopening passed
-for its measured same-source Windows-built ZIP `58203af3bce69941ee2c7506b7cc6f7dfa1ca590e72dd7ec3179baf6e7b2ae86`.
-The unsigned Store package was independently checked after download: identity,
-x64 payload, source/kit binding, every block-map SHA256 and installation receipt.
-This is not Microsoft certification or physical classroom acceptance.
+All native, kit, small Portable and complete Portable draft assets and anonymous
+public downloads passed exact size/hash checks. The complete release includes
+its checksum, source index/README and source TAR; all 68 source mappings were
+verified. Source TAR bytes are reused unchanged from 0.5.80 because upstream pins
+are unchanged, with an explicit 0.5.81 association. [Windows44457509540](https://github.com/codepetca/zero/actions/runs/44457509540)
+passed cold/warm reopening of the exact published ZIP/ad702aa9… and kit c7e85483…,
+superseding the separately built same-source preparation trial. Promotion data
+review 23baa99fa and targeted published-kit fixture review 35e2977e7 were clean
+(Sol/high). Local promotion validation: 868 website tests passed, 3 skipped;
+configuration/typecheck/build/bundle/runtime checks passed.
 
-The final Mac was built cleanly at `0984de1e5ac101470d9f87141da81b590d77f1c4`
-and sealed/reviewed at `965b8438e0c9b2459e8c37e2093acb2a4197ff69`. Apple accepted
-`0694438f-9894-4643-885f-aa9c3192e743`; signatures, staple, app/DMG Gatekeeper,
-protected-source equivalence and signed build 80 feed/archive passed independent
-Sol/high review. It retains its separately measured local source-equivalent kit;
-public native metadata/feed remain0.5.80/build79. Local set
-`dist/candidates/release-0.5.81-965b8438e0c9/` supersedes the earlier60a set.
+Live read-back at 2026-11-19T04:38:15Z (Nov18 America/Toronto) verified homepage
+Mac 0.5.81, both Portable 0.5.81 links and exact public DMG 12355557bytes/06ff83d7….
+The served appcast matches all 1179 signed bytes/feba5d35…, build 80. Ed25519
+feed and DMG signatures pass, and production deployment status is successful.
+Operational receipts are ignored under `.verification/release-081-publication/`
+in the publication worktree. Historical preparation files remain retained.
 
-| Prepared artifact | Bytes | SHA256 |
+Microsoft Partner Center confirms submission 16 (`1152921505702445603`) is live
+in Microsoft Store, with validated Zero Studio 0.5.81 / package 1.5.81.0 x64.
+Certification and publishing completed with normal ASAP settings. Original
+unsigned MSIX and separately test-signed hosted install/first-run receipts remain
+distinct. The earlier certification/publishing and submission 15-live snapshots
+are superseded. Physical school devices, authenticated Pages upload and live
+interactive updater delivery remain untested.
+
+| Verified artifact | Bytes | SHA256 |
 | --- | ---: | --- |
 | zero-bootstrap.zip | 5,110,853 | `c7e854839fd11090d5b35e723ba1763400bb5a7862cf3e913811dd7792aa541e` |
 | zero-starter.zip | 2,778,887 | `60ffe9a8733743aaaf33d4664f3bed208926fd4daf8393bae7d56143c4b68c7e` |
@@ -81,21 +94,10 @@ public native metadata/feed remain0.5.80/build79. Local set
 | Zero-Setup-0.5.81-windows-development.exe | 15,477,196 | `f2d92625a5553f8d27ec6bfaecc7a546ecbe28710a2c84c40048601035b2586a` |
 | Zero-0.5.81-windows-portable-sources.tar | 1,470,730,240 | `b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0` |
 
-Hosted artifacts/receipts are under ignored `.verification/release-081/hosted/`;
-GitHub retains them for14 days. The Linux kit and both Linux Portable candidates
-share the exact kit digest above. Windows jobs and the Mac independently package
-source-equivalent archives; do not substitute their bytes for the canonical kit.
-The Portable source TAR is reused byte for byte from public 0.5.80 after verifying
-unchanged pins and all 68 source archive mappings. Its adjacent index/README bind
-it to0.5.81; intended candidate URLs are not evidence of public upload.
-
-The canonical complete Portable ZIP download verification is pending. Its
-exact-ZIP Windows trial remains the publication-promotion check; the passing
-hosted trial above used a separately built same-source ZIP. Before full release,
-retain review/owner authorization, publish required source companions, perform
-normal publication/promotion checks and verify anonymous downloads/feed. Physical
-school devices, authenticated Pages upload and live updater delivery remain
-unverified. Store submission is separate. See [evidence](EVIDENCE.md).
+The development EXE is a retained CI candidate, not a newly published preview.
+Current website Windows choices are the Store and both Portable ZIPs. Native,
+Windows and canonical Linux kit archives are source-equivalent but independently
+measured; do not substitute their bytes. See [evidence](EVIDENCE.md).
 
 ## Zero 0.5.80 — 2026-11-18
 

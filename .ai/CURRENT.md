@@ -1,30 +1,29 @@
-# Zero 0.5.81 publication — 2026-11-18
+# Zero 0.5.81 released — 2026-11-18
 
-Owner explicitly authorized merging and publishing downloads and Microsoft Store.
-[Source PR385](https://github.com/codepetca/zero/pull/385) merged at b61d160d3 after
-all 12 final-head checks passed. Canonical manual run 44447511514 at reviewed
-ancestor ae18259ca supplies the exact kit/starter/VSIX and both Portable assets;
-packaged inputs match merged main. Kit/core versions are0.5.81/0.3.0.
+Owner-authorized merge and download/Store publication are complete. Source
+[PR385](https://github.com/codepetca/zero/pull/385) merged b61d160d3; kit/Portable
+[PR387](https://github.com/codepetca/zero/pull/387) merged 2e71daf03; Mac/feed
+[PR388](https://github.com/codepetca/zero/pull/388) merged c0bdc9380. All required
+checks passed. Kit/extension 0.5.81, core 0.3.0, signed Mac update build 80.
 
-GitHub kit, signed/notarized Mac, both Portable releases and all corresponding
-sources are public. Every draft and anonymous public asset was downloaded and
-its exact size/hash verified; all 68 source mappings pass. Earlier0.5.80 bytes
-remain immutable. [Kit/Portable metadata PR387](https://github.com/codepetca/zero/pull/387)
-is running normal CI, including the exact canonical complete-ZIP Windows trial.
-This branch adds reviewed Mac/feed/snapshots and the new published-kit test pins.
-The website and signed feed still need their promotion/deployment read-back.
+Public kit/starter/VSIX, notarized Mac and both Portable downloads match the
+reviewed bytes. All draft and anonymous public assets, including corresponding
+sources, passed size/hash checks; all 68 source mappings pass. Exact published
+complete ZIP passed hosted Windows cold/warm trial 44457509540. Live homepage/
+Downloads links and the exact signed appcast were verified at 04:38UTC Nov19
+(Nov18 America/Toronto): Mac 0.5.81 hash 06ff83d7…, feed 1179bytes/feba5d35…, build 80;
+Ed25519 feed and DMG signatures verified. Receipt is ignored under
+`.verification/release-081-publication/` in the publication worktree.
 
-Mac update build 80 advances 79 with the same key; sealed candidate965b8438e0c9,
-built0984de1e5. Independent Sol/high metadata review at 23baa99fa and targeted
-fixture review 35e2977e7 are clean. Local config/typecheck,868 website tests
-(3 skipped), build, bundle audit and runtime checks pass.
+Microsoft Partner Center confirms submission 16 is live in Store: Zero Studio
+0.5.81, package 1.5.81.0 x64. The original unsigned package and separately
+test-signed installation/first-run receipts remain distinct. No credentials or
+MFA codes are retained in Git. All previous public versions remain immutable.
 
-Store submission 16 (1152921505702445603), package 1.5.81.0, is in certification.
-It publishes automatically as soon as approved. Submission 15/ 0.5.80 remains live;
-do not claim 0.5.81 is available in Store yet. Authentication is complete.
-
-Next: finish/merge metadata PRs under existing authorization, verify actual live
-Mac/Portable links and signed feed, then recheck Store state if still pending.
-See [ledger](../docs/RELEASE-LEDGER.md#zero-0581--2026-11-18) and
-[evidence](../docs/EVIDENCE.md). Report a problem stays in its separate chat.
-Preserve the original dirty checkout, Zero Dev watcher and sealed candidates.
+There is no remaining 0.5.81 rollout action. Report a problem remains proposed
+and belongs to “Design an Always-On Improvement Loop”. Future distribution work
+needs a new local version; do not rebuild/replace published 0.5.81. Continue
+routine iteration through Zero Dev. Physical school devices, authenticated Pages
+upload and interactive updater delivery remain untested. Preserve original dirty
+checkout, Zero Dev watcher and useful release artifacts. See [ledger](../docs/RELEASE-LEDGER.md#zero-0581--2026-11-18)
+and [evidence](../docs/EVIDENCE.md) for exact artifact/source/review records.
