@@ -121,10 +121,16 @@ function sidebarClient() {
       const publishingProgress=document.getElementById('publishing-progress'),progressMarkup=message.publishingProgress || '';
       if(publishingProgress.dataset.content!==progressMarkup){publishingProgress.innerHTML=progressMarkup;publishingProgress.dataset.content=progressMarkup;}
       const recovery = document.getElementById('recovery');
-      recovery.hidden = !message.failed;
-      if (!message.failed) recovery.replaceChildren();
-      if (message.failed && !recovery.childElementCount) for (const label of ['Problems','Output']) {
-        const button=document.createElement('button'); button.className='link'; button.dataset.command='zero.show'+label; button.textContent='Show '+label; recovery.append(button);
+      const recoveryMode = `${Boolean(message.failed)}:${Boolean(message.reportAvailable)}`;
+      recovery.hidden = !message.failed && !message.reportAvailable;
+      if (recovery.dataset.mode !== recoveryMode) {
+        recovery.dataset.mode = recoveryMode;recovery.replaceChildren();
+        if (message.failed) for (const label of ['Problems','Output']) {
+          const button=document.createElement('button'); button.className='link'; button.dataset.command='zero.show'+label; button.textContent='Show '+label; recovery.append(button);
+        }
+        if (message.failed || message.reportAvailable) {
+          const button=document.createElement('button'); button.className='link'; button.dataset.command='zero.reportProblem'; button.textContent='Report a problem'; recovery.append(button);
+        }
       }
     }
   });

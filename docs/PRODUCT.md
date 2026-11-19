@@ -95,7 +95,13 @@ evidence, early compatibility diagnostics, actual compiler/behavior gates and
 truthful runtime error state. The [reliability plan](FRAMEWORK-RELIABILITY.md)
 evaluates PostHog for optional structured operational signals and Clarity for
 supplementary website usability. Neither replaces compiler/tests or automatically
-instruments student-owned sites. No new collector or analytics deployment exists.
+instruments student-owned sites. The [problem-reporting implementation](PROBLEM-REPORTING.md)
+adds optional bounded editor reports and a public structured-only GitHub issue service. Automatic
+reporting starts disabled, with an explicit one-time choice during first-run
+setup. After public consent, eligible errors are submitted silently and manual
+reporting needs no additional confirmation. Opted-out manual reports retain a
+public-submission confirmation. Service activation and a published editor release
+are separate from source implementation; no PostHog integration is activated.
 
 Project direction, updated 2026-11-18: new projects use the current framework and browser tooling; opening a project never updates its files. Full project update and recovery remain unavailable. When an older saved browser builder blocks an explicit browser build or publish, Zero offers **Update Browser Tools**. After confirmation, it replaces only `.zero-build` with the installed tools, keeps the previous tools in a local backup, and continues the requested action. Java, assets and framework files stay unchanged. Trust, saved-file, recovery and Git mutation checks still apply; the changed tools join the ordinary commit/upload review. Damaged tooling may still require restoring saved files or copying source/assets into a new project. Keep original projects and recovery copies. Student repositories own their source and build files.
 

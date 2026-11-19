@@ -1,3 +1,323 @@
+# One-time public consent and silent reporting — 2026-11-19
+
+Owner clarified that consent should be chosen once during setup and eligible
+errors should send automatically without dialogs. The prior implementation had
+no Zero installer consent step. The current extension offers a nonmodal choice
+on first run, with explicit public-GitHub and structured-data disclosure.
+Automatic reporting remains off until an affirmative choice.
+
+An exclusive local `public-reporting-choice-v1` marker under the extension's
+VS Code global storage prevents duplicate offers across windows and remembers
+that setup was offered, including decline/dismiss. It stores no consent value,
+report or project data. The machine/profile global setting remains authoritative;
+workspace-only values, legacy private consent and marker presence cannot grant
+public consent. Existing explicit true/false and managed policy choices are
+respected. Pending answers cannot override a newer setting revision or disposal.
+VS Code telemetry continues to gate automatic delivery only.
+
+With accepted public consent, explicit manual reporting and retained-draft retry
+send directly, using the same ID on retry. An opted-out manual report retains its
+one-off public confirmation. Automatic delivery has no per-error dialogs.
+Sidebar error presentation, fixed schema2 and server delivery are unchanged.
+
+Worker reporter/onboarding/native/browser suites passed115 cases. Source checks,
+website typecheck and3existing legal-page cases pass. The real installed editor
+showed the one-time notice and its Allow reports/No thanks actions; choosing
+Allow wrote the actual public setting. Reload did not offer setup again. The
+manual command then reached its unavailable-service retry fallback without
+showing a submission-confirmation sheet. Its draft is retained for production
+retry. Screenshot `.verification/native-report-setup-choice.jpg` is ignored.
+This supersedes per-report-confirmation wording in earlier receipts for users
+who have already consented. No public report was submitted by these UI checks.
+
+Independent initial Sol/high compatibility review of the complete consent delta
+`4f83811f3..1aa465165` is clean (90 reporter/onboarding cases). Security found one
+P2: revoking consent could leave a retained manual retry without renewed public
+disclosure. Batch1 (`f6b11ceca`) checks consent immediately before each manual
+transmission and requires the summary/public notice if consent is off, preserving
+the same report ID. Regressions cover retained drafts, in-flight revocation and
+revocation while Retry is open. Root and Terra/high worker each pass93 focused
+reporter/onboarding cases. Independent Sol/high targeted security review of
+`1aa465165..f6b11ceca` is clean, including the original reproduction: dismissal
+sends nothing, and affirmative confirmation retries identical data/ID. Session:
+3review turns,1fix batch, no unresolved blockers. Effective model/tokens/elapsed
+are unavailable.
+
+Before this refinement, every hosted gate passed at `4f83811f3`:
+[Windows44525432731](https://github.com/codepetca/zero/actions/runs/44525432731),
+[browser44525432914](https://github.com/codepetca/zero/actions/runs/44525432914) and
+[source44525435470](https://github.com/codepetca/zero/actions/runs/44525435470).
+The Windows correction is accepted. This new owner-requested consent boundary
+gets a separate bounded security/compatibility review and final hosted run before
+merge/activation. Production remains disabled. Weekly allowance readback25%
+remaining is account-wide and is not attributed task cost.
+
+# Windows reporting gate and native walkthrough — 2026-11-19
+
+Owner requested the Windows packaging CI correction and native-editor walkthrough
+so reporting can merge and be enabled after checks. Installer publication is not
+part of this phase. Current reviewed source is `7a929a131de87c98f8616da79a227dac9e3adeb9`.
+
+The published-kit path now binds committed published manifests, the recorded
+release tag/source revision and all three asset sizes/hashes. It snapshots that
+Git source and runs maintained structural/source checks without executing the
+downloaded Maven wrapper. New candidate kits retain strict current-source parity
+and extracted Maven compilation. Both Windows jobs fetch the necessary history.
+Actual public 0.5.81 artifacts pass against source `ae18259ca607d7ce464e21a21d83ecf60182ac9b`.
+The changed PR extension is not claimed to be installed by packaging that old kit.
+
+Local focused verifier/release/kit tests:24 passed. Actionlint and source checks
+pass. Independent Sol/high security and compatibility turns reviewed the complete
+`4bc06e894..afe345ef0` delta with no actionable blockers. Security's initial
+blob-line-ending concern was withdrawn after independent actual-archive testing:
+Git archive reproduces the reviewed CRLF attributes. Compatibility also verified
+Setup.cmd1516 bytes and mvnw.cmd8481 bytes against actual public kit bytes.
+
+Hosted [Windows44524210779](https://github.com/codepetca/zero/actions/runs/44524210779)
+passed the original published-kit verifier and reached installer acceptance. The
+Portable job then exposed an absent `.verification` parent. Batch1 adds one
+PowerShell parent-directory creation before the downloader, keeping its exclusive
+new destination and size/hash checks. Targeted compatibility review of
+`afe345ef0..7a929a131` is clean; actionlint/diff checks pass. Session ledger:2initial
+reviewers plus1targeted turn,1remediation batch, no unresolved source findings.
+Effective model/tokens/elapsed seconds are unavailable. Final hosted runs follow.
+
+The actual installed VS Code 1.147 host now runs the current source extension in
+a separate `Zero Reporting Walkthrough` profile and development window. It shares
+only the already-running application process; existing project windows were kept.
+The real command opens the native Send this problem report sheet, with a concise
+summary/public notice and no input field or JSON. Cancel closes it. The native
+settings control starts unchecked, can be explicitly enabled, and was restored
+to unchecked. A confirmed send before deployment fails gracefully with Retry,
+Copy report and Cancel; cancelling retains the reviewed draft for live retry.
+No public report was created by these pre-deployment UI checks. Screenshots are
+ignored under `.verification/native-report-confirmation.png`,
+`native-report-opt-in-default.png` and `native-report-disabled-service.png`.
+Earlier attempts to target a separate Code process or a locally isolated app
+copy were unsuccessful; the completed check uses the installed unmodified editor.
+No modified editor copy is shipped.
+
+The Neon console Settings→Postgres shows the reporting project's History window
+slider at its maximum six-hour setting. Free plan history is separately capped at
+1GB of changes, per current provider documentation. This is a restore-history
+limit, not report expiry, guaranteed recovery or deletion assurance. Initial
+operating retention remains no automatic deletion: report/receipt/group records
+and public issues persist until operator removal, and public copies are outside
+operator control. No restore exercise was performed. Hosting/provider logs retain
+their own policies; this setup makes no unverified purge deadline promise.
+
+Pending: final stable-head hosted checks; native receipt after exact-source
+production deployment; authenticated hosted reconciliation. Collection remains
+disabled until those phase gates. The existing public-policy and live backend
+reviews apply to unchanged reporting code. Release/physical Windows acceptance
+for a future reporting-enabled installer remains separate from service activation.
+
+# Reporting App/database live acceptance — 2026-11-18
+
+Owner authorized dedicated GitHub App/database setup and end-to-end testing,
+with Neon provisioned through Vercel. The resource was created on its existing
+Free installation with Auth/Realtime disabled and no deployment branches.
+
+| Resource | Verified configuration |
+| --- | --- |
+| Public inbox | `codepetca/zero-reports`, immutable ID `1463652567`, issues enabled |
+| Dedicated App | `codepet-zero-reports`, ID `5827621`, installation `183555907`, selected repository only, issues-write and metadata-read, no webhook events |
+| Vercel-managed Neon | `zero-reports`, project `crimson-silence-47818786`, store `store_mqf7HZUM4YAt47xY`, Free, AWS US East1 |
+| Direct connection | `ep-rapid-butterfly-bc3cz34p.c-16.us-east-1.aws.neon.tech`, `neondb`, client TLS1.3 encrypted and authorized |
+| Runtime | SQL-created `zero_reports_runtime`; no elevated flags, role memberships, schema/database CREATE or TEMP; CONNECT/USAGE and DML on four report tables only |
+| Vercel production | Nine canonical variables, `ZERO_REPORTS_ENABLED=false`; DB URL, App key and reconciliation secret sensitive; no preview/development reporting variables |
+
+The database was verified empty before applying the existing reporting schema.
+Session advisory locks survive a committed transaction. The temporary native
+Marketplace project binding was removed after provisioning to remove its owner
+credentials from Zero. The resource remains Vercel-managed; Zero receives the
+restricted runtime DSN through `ZERO_REPORTS_DATABASE_URL`. Other database
+resources/bindings and production deployments were untouched. Production-only
+credentials were not exposed through CLI API readback. Owner passkey verification
+permitted scoped credential access. Operator files are protected outside Git;
+private directory mode700 and credential files mode600. No secret was committed.
+
+At source `d41f4582bfd09878ecb87a59041e6d127ddd1b0c`, the actual collector with a
+controlled VS Code API fixture sent through a real loopback HTTP receiver using
+current service code, the real Neon database and dedicated App. Acceptance passed:
+fresh public consent; legacy queue retirement; automatic delivery; same-ID receipt
+and issue deduplication; matching recovery; manual public confirmation; free-text
+and schema-v1 rejection; synthetic privacy canary absent from payload, stored rows
+and issue bodies; canonical App-bot authorship; two fully delivered issue bindings.
+The automatic issue shows one report, one failure and one recovery. The synthetic
+[automatic issue1](https://github.com/codepetca/zero-reports/issues/1) and
+[manual issue2](https://github.com/codepetca/zero-reports/issues/2) are labelled
+`activation-test` and closed as not planned, excluding them from bug triage.
+
+Read-only health reports delivered2/pending0/needsAttention0/attempted0. The actual
+local reconciliation handler rejects an invalid secret with401; an authenticated
+body-free invocation returns200 and refreshes both groups successfully. This is
+local route acceptance with real providers, not a hosted scheduler run. Ignored
+receipts/scripts are `.verification/reporting-live-e2e-result.json`,
+`reporting-live-reconcile-result.json`, `reporting-live-e2e.mjs` and
+`provision-reporting-db.mjs`. The public inbox README records backend acceptance
+and pending production activation.
+
+Independent activation review session: requested Sol/high security and integration
+reviewers, two initial turns plus one targeted environment-verification turn;
+no remediation batches or source corrections. Security independently verified
+TLS, exact endpoint, role ACL, destination pin, Bot authorship and private file
+permissions. Its final metadata check verified all nine Vercel variables target
+production only, the three secrets are sensitive, collection is false and the
+provisioning-owner binding is absent. Integration review covered main sync and
+E2E evidence. No blockers remain in reviewed setup. Effective model, per-turn
+elapsed time and tokens are unavailable. Unchanged reporting-source review and
+128 focused cases remain applicable; native dialogs were controlled fixtures.
+
+Hosted source [44460217594](https://github.com/codepetca/zero/actions/runs/44460217594)
+and browser [44460217701](https://github.com/codepetca/zero/actions/runs/44460217701)
+checks pass. Windows [44460217622](https://github.com/codepetca/zero/actions/runs/44460217622)
+is blocked by a source/artifact verification mismatch after 0.5.81 publication:
+it downloads the published kit, whose extension.js is349,720 bytes, then compares
+it to the newer reporting-enabled checkout at352,656 bytes. Both packaging jobs
+fail at `scripts/verify-kit.mjs:47`; later missing artifacts are consequential.
+Keep strict current-source verification for newly built candidates. Published-kit
+verification must bind the reviewed published manifest and original release
+source, with separate current-source Windows coverage. No verifier was bypassed
+and no version/release was invented to suppress this failure.
+
+Production collection and deployment remain disabled/unperformed. Source merge,
+hosted endpoint and scheduler acceptance, actual native-dialog/physical Windows,
+retention/provider-backup decisions and an editor release remain activation work.
+
+# Public reporting PR and integration acceptance — 2026-11-18
+
+[Draft PR386](https://github.com/codepetca/zero/pull/386) targets main from
+`codex/automatic-error-reporting`. Pushed integration source
+`118409a91d1f6526802519e1b3bf51d53d9c979b` is mergeable. Hosted browser
+[44457474401](https://github.com/codepetca/zero/actions/runs/44457474401), release
+checks [44457474380](https://github.com/codepetca/zero/actions/runs/44457474380)
+and Windows [44457474463](https://github.com/codepetca/zero/actions/runs/44457474463)
+started; their final results remain pending at this receipt.
+
+All 128 consolidated reporting/native/browser/onboarding/browser-tool update
+and service cases pass at integration source, with isolated PostgreSQL and fake
+GitHub. `npm run check` passes. Website source is unchanged from the previously
+successful typecheck and production build.
+
+Independent integration turn `review_reporting_compatibility/integration-1`,
+requested GPT-6.1 Sol/high, reviewed `55a2b4bcc..118409a91`, combined conflicts
+and immediate callers. No actionable blockers; 32 targeted cases passed. It
+confirmed expected browser-tool cancellation returns before report capture,
+unchanged consent/queue/service boundaries, correct native fixture and 0.5.81
+manifest version. Public session: 3 reviewer turns, initial two-reviewer wave
+plus one targeted integration turn, no public-policy remediation batches.
+Effective model, per-turn tokens and elapsed seconds are unavailable. Current
+weekly usage readback was 29% remaining; this is account-wide, not task cost.
+
+Repository setup was verified again through GitHub: public, issues enabled,
+README present, ID `1463652567`. Production configuration, live attribution,
+report-dialog and physical Windows acceptance remain pending. No merge, service
+activation, credentials, editor release or deployment was performed. The final
+receipt-only commit does not change reviewed source.
+
+# Public reporting publication preparation — 2026-11-18
+
+Owner authorized branch push, PR creation and the public reporting repository.
+Created [codepetca/zero-reports](https://github.com/codepetca/zero-reports), verified
+public with issues enabled and immutable numeric ID `1463652567`. README commit
+`4fd8afe6b75dc5248a270e6a46be751ae75680bf` describes structured-only reports,
+untrusted evidence and pending service activation. Wiki, projects and discussions
+are disabled for the focused issue inbox. No production credentials or live
+reports were configured.
+
+Integrated main `b61d160d3` to preserve merged 0.5.81 behavior. The editor conflict
+keeps expected browser-tool update cancellation ahead of report capture. Both
+reporting and release evidence remain in this document. Integration review and
+checks follow separately; prior source review applies to unchanged reporting code.
+
+# Public structured reporting refinement — 2026-11-18
+
+Owner selected public GitHub issues containing structured technical data only.
+The sidebar keeps concise local errors. Manual reporting confirms a short issue
+summary and a public-submission notice without requesting text or showing JSON.
+The reviewed source is `65580f1093661b3d9d62cca4163d99cc3dac2edb`, based on
+`ddbbcc0cc` on the reporting feature branch.
+
+Schema version 2 rejects free text and unknown fields for every source. The
+server also rejects version 1 and revalidates stored samples before provider
+access. Public consent uses `zero.automaticPublicProblemReports` and its own
+queue. The previous private-reporting setting and queue never authorize or
+populate public submissions. Client and server tests cover these transitions.
+
+The provider requires public destination metadata and authenticated reporting
+App-bot provenance for issue adoption or updates. Issue bodies are regenerated
+from structured records. Maintainer notes belong in comments. Public marker
+copies made by humans or unrelated bots cannot authorize an update. Live App
+attribution and destination acceptance remain operator verification work.
+
+The final consolidated run passes all 116 contract, collector, native/browser,
+onboarding and service cases in 4.6 seconds. Actual isolated PostgreSQL is
+included. Source configuration/syntax/link checks, website typecheck and the
+current production build pass. Independent Sol/high security and compatibility
+reviews both inspected the complete 22-file public-policy delta and immediate
+dependencies, with no actionable blockers. This public-policy review session used
+one initial wave with two reviewers and no remediation wave. Requested model and
+effort are recorded, while effective provider configuration and token attribution
+remain unknown. All GitHub calls use local fakes and no public report was sent.
+The native dialog and actual GitHub App attribution remain live acceptance work.
+
+# Automatic problem reporting implementation — 2026-11-18
+
+Owner approved minimal automatic reports after opt-in, reviewed manual reports
+and a private GitHub issue inbox. Branch `codex/automatic-error-reporting`, base
+`d098d0d2f`, reviewed source `2aad43a5d4bfe74a886b351a0e301941b4721476`.
+Implementation used requested Sol/high for the service and Terra/high for the
+editor. Requested Sol/high independently reviewed security and compatibility.
+Effective model and per-worker token attribution are unavailable. Initial weekly
+remaining was 32%. Storage checks remained healthy with about 175 GB available.
+
+The shared schema rejects raw diagnostics, paths, source and account/project
+identifiers. Global opt-in/telemetry changes cancel and clear automatic delivery.
+Reviewed manual retries retain their original ID. Actual PostgreSQL with a
+socket-only temporary cluster proves idempotency, concurrent delivery, matching
+failure/recovery, destination pinning and ambiguous provider reconciliation.
+GitHub calls use local fakes. Live acceptance requires operator setup.
+The default operator health path is SELECT-only. Scheduled delivery is prepared
+behind an explicit repository variable and dedicated secret.
+
+Independent review inspected initial source `f30969080401` and corrected source
+`6e9559f3de98`, then final source `2aad43a5d4bf`. The ledger is 5 review turns,
+1 initial wave with 2 reviewers, 2 targeted waves, 1 integration wave and 2 fix batches.
+Three unique initial findings were accepted and fixed. These covered the consent revocation race,
+expected tooling guidance reported automatically, and stale manual runtime
+context. A later broad-test finding about disabled startup writing an empty
+queue was fixed and reviewed. No source blockers remain. Reviewer elapsed time
+and tokens were not measured. A reviewer independently reproduced the consent
+race and verified both suppression of revoked work and delivery under new consent.
+
+Accepted current evidence includes 57 focused schema/collector/native/browser/
+service checks, 2 existing startup checks, 10 gallery checks, the two new publishing
+UI cases and the publisher conclusion case. The 3 previously failing Git files
+passed 31 cases sequentially in 261.7 seconds. The website suite recorded 873 passes,
+2 timing failures and 3 skips. Both affected unchanged files then passed 37/37.
+The initial source run spanned intermediate corrections and was interrupted
+after 25 minutes. Its gallery and startup regressions were corrected, and failed
+Git files passed on the final source. A fresh full CI result remains required
+before merge. Configuration/syntax/local-links and website typecheck pass.
+The production website build includes both reporting routes. Subsequent source
+corrections were collector guards/manual-context handling and SELECT-only health,
+with current focused tests and typecheck evidence retained.
+
+Actual browser verification shows Report a problem next to a local sidebar error.
+The isolated native Dev host activated the source extension. Its report-dialog
+walkthrough remains unverified because computer use targeted another Code process
+and could not capture the dedicated window. Physical Windows, live GitHub App/
+private repository and hosted database/service acceptance remain separate.
+
+The owner checkout and 0.5.81 preparation worktree retain their edits. Website
+pinned dependencies were installed locally after Turbopack refused a dependency
+symlink outside the worktree. No dependency pins changed. No push, merge,
+reporting repository/App creation, credential change, deployment or new editor
+release occurred. The [reporting guide](PROBLEM-REPORTING.md) records the exact
+operator configuration and rollout requirements. Automatic collection defaults
+off. Private GitHub issues hold untrusted evidence for future AI investigation.
+
 # Zero 0.5.81 rollout completed — 2026-11-18
 
 Source PR385 merged b61d160d3; canonical publisher completed kit/Portable PR387

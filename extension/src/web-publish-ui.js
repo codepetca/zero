@@ -38,12 +38,13 @@ function dirtyBuildDocuments(vscode,root) {
   });
 }
 
-function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,listPublication,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
+function createWebPublishCommands(vscode,{onReportStage=()=>{},onReportFailure=()=>{},onReportSuccess=()=>{},project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,listPublication,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,recheckDispatch=false,lastLive;
   let root,stageProgress,openingRequested=false;
   const clearProgress=()=>{stageProgress=undefined;setProgress(undefined);};
   function startProgress(stages) {
     if(disposed || controller?.signal.aborted)return;
+    onReportStage(stages[0] || 'unknown');
     stageProgress={root,stages:openingRequested?[...stages,'opening']:stages,index:0};
     setProgress(stageProgress);
   }
@@ -51,7 +52,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
     if(!stageProgress || disposed || controller?.signal.aborted)return;
     const index=stageProgress.stages.indexOf(name);
     if(index<stageProgress.index)return;
-    stageProgress={...stageProgress,index};setProgress(stageProgress);
+    stageProgress={...stageProgress,index};onReportStage(name);setProgress(stageProgress);
   }
   const publisher=publisherFactory({authentication,repositories,isSimulation:()=>!root || isSimulation(root),engineRoot,cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit});
   async function stillCurrent(expected) {
@@ -134,7 +135,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
   }
   async function waitForDeployment(result,expected,account) {
     for(let attempt=0;result.status==='pending' && attempt<maxChecks;attempt++) {
-      await stillCurrent(expected);progress(result.message);
+      await stillCurrent(expected);stage('deploying');progress(result.message);
       await savePending(expected,result.resume,account);
       await new Promise(resolve=>{const timer=setTimeout(done,pollIntervalMs);function done(){clearTimeout(timer);controller?.signal.removeEventListener('abort',done);resolve();}controller.signal.addEventListener('abort',done,{once:true});});
       await stillCurrent(expected);
@@ -185,6 +186,7 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
     const listing = retryListing ? (saved?.listingPending ? await updateHubListing(saved, expected) : undefined) : saved;
     await stillCurrent(expected);
     clearProgress();
+    if (opened === false) onReportFailure(Object.assign(new Error(),{code:'WEB_PUBLISH_OPEN_FAILED'}),expected);
     const message = opened === false ? 'App published — the browser could not be opened. See Zero Output for its link.' : 'App opened';
     progress(listing?.listingMessage ? `${message} · ${listing.listingMessage}` : message,`Your playable app is live: ${current.url}`);
     return {...current,opened:opened!==false};
@@ -209,8 +211,8 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
       for(let attempt=0;attempt<(open?2:1);attempt++) {
         await stillPublishable(expected);
         const result=await publishOnce(expected,{reuse:open,recovering});
-        if(recovering || !open || result?.status!=='live')return result;
-        if(result.alreadyCurrent)return result;
+        if(recovering || !open || result?.status!=='live'){if(result?.status==='live')onReportSuccess(expected);return result;}
+        if(result.alreadyCurrent){if(result.opened!==false)onReportSuccess(expected,'opening');return result;}
         let current=result;
         if(!result.alreadyCurrent) {
           let reviewed;
@@ -225,8 +227,11 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
           throw Error('Your app changed while publishing. Choose Publish & open app again to open the latest version.');
         }
         if(current.status!=='live'){await showAction(current);return current;}
-        return current;
+        if(current.opened!==false)onReportSuccess(expected,'opening');return current;
       }
+    } catch(error) {
+      if (!controller?.signal.aborted) onReportFailure(error,root);
+      throw error;
     } finally {
       clearProgress();controller=undefined;publishing=false;setBusy(false);
       const dispatch=recheckDispatch, retry=recheckRequested || dispatch, checkRoot=root;
@@ -387,7 +392,12 @@ function createWebPublishCommands(vscode,{project,assertProjectNow=()=>{},connec
       }
     } else if(result.status==='pending')progress('Publishing is still running. Choose Publish & open app again to recheck this run.');
     else if(result.status==='dispatch-uncertain')return await showDispatchAction(result,expected) || result;
-    else {resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);await showAction(result,{allowRecheck:!recovering && result.status!=='failed'});}
+    else {
+      if(result.reportCode==='WEB_PUBLISH_DEPLOYMENT_FAILED') {
+        onReportFailure(Object.assign(new Error(),{code:result.reportCode}),expected);
+      }
+      resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);await showAction(result,{allowRecheck:!recovering && result.status!=='failed'});
+    }
     return result;
   }
   // Rendering reads only a previously verified receipt. It never infers a URL

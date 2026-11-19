@@ -66,7 +66,7 @@ test('native update contributions are Mac/Windows Palette-only and retain the mi
   const controlsMenu = ['zero.githubAccount', 'zero.chooseRepository', 'zero.exportWeb', 'zero.openFirstLesson', 'zero.showSetup', 'zero.startPage', 'zero.showOutput'];
   for (const view of ['zero.controls', 'zero.studentControls']) {
     const entries = manifest.contributes.menus['view/title'].filter(entry => entry.when === `view == ${view}`);
-    assert.deepEqual(entries.map(entry => entry.command), view === 'zero.controls' ? [...controlsMenu, 'zero.previewStudentExplorer'] : controlsMenu);
+    assert.deepEqual(entries.map(entry => entry.command), view === 'zero.controls' ? [...controlsMenu, 'zero.previewStudentExplorer', 'zero.reportProblem'] : [...controlsMenu, 'zero.reportProblem']);
     assert.ok(entries.every(entry => !entry.group.startsWith('navigation')), 'Controls remain overflow-only');
   }
 });

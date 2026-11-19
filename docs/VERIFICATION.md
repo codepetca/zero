@@ -1,3 +1,107 @@
+# One-time setup choice — 2026-11-19
+
+The revised editor offers explicit public consent once during first-run setup.
+Accepted consent gives silent automatic errors and direct manual submission;
+opted-out manual reports retain confirmation. Workspace values, a local offer
+marker and legacy private settings never grant public permission.115 focused
+cases, source checks, website typecheck and3legal-page cases pass. Actual native
+setup acceptance, reload persistence and direct manual flow are verified against
+the still-disabled service. Native success follows reviewed production deployment.
+
+All Windows/browser/source gates passed at prior head `4f83811f3`; the new consent
+delta requires its own independent review and final CI. See [receipt](EVIDENCE.md#one-time-public-consent-and-silent-reporting--2026-11-19).
+
+# Reporting merge/activation gate — 2026-11-19
+
+Reviewed Windows source `7a929a131`: published assets bind original release source
+and hashes; new candidate parity/compilation remains strict. 24 focused cases,
+actionlint and source checks pass. Two independent full-delta reviewers plus one
+targeted parent-directory correction review are clean. Final hosted CI is pending.
+
+Actual installed VS Code/current extension in a separate walkthrough profile
+verifies the concise public confirmation, Cancel, default-off opt-in and safe
+Retry/Copy fallback while the service is not deployed. Final native success is
+pending production deployment. The reporting Neon project's history window is
+verified at6h; records/public issues have no automatic expiry. See
+[the complete receipt](EVIDENCE.md#windows-reporting-gate-and-native-walkthrough--2026-11-19).
+
+# Reporting live backend acceptance — 2026-11-18
+
+Source `d41f4582bfd09878ecb87a59041e6d127ddd1b0c`: real collector/local HTTP receiver
+with real Neon and GitHub App passes automatic/manual delivery, same-ID dedup,
+recovery, legacy/free-text rejection and privacy-canary exclusion. Two bot-authored
+public test issues are labelled and closed. Read-only health and authenticated
+local reconciliation pass with no pending groups. Independent security/integration
+setup reviews and final Vercel environment isolation verification are clean.
+
+Hosted source and browser checks pass. Windows packaging is blocked by comparing
+the already published 0.5.81 kit to newer PR source; preserve strict verification
+and bind published-artifact checks to its release source. Production collection
+is staged disabled. Native UI, hosted route/scheduler, physical Windows and release
+acceptance remain pending. See [the complete receipt](EVIDENCE.md#reporting-appdatabase-live-acceptance--2026-11-18).
+
+# Reporting integration acceptance — 2026-11-18
+
+Source `118409a91d1f6526802519e1b3bf51d53d9c979b` passes 128 focused cases and
+`npm run check`. Independent targeted integration review is clean, with 32
+reviewer-run cases passing and unchanged public-policy coverage reused.
+[Draft PR386](https://github.com/codepetca/zero/pull/386) is pushed and mergeable;
+full hosted CI started and is pending. Website code retains its prior successful
+typecheck/build coverage. This receipt changes documentation only.
+
+# Public reporting repository — 2026-11-18
+
+GitHub readback verifies `codepetca/zero-reports` is public, numeric ID `1463652567`,
+with issues enabled and README present. Service activation, App credentials and
+live report attribution remain pending. Historical provisioning limits below
+refer to the earlier implementation checkpoint.
+
+# Public structured reporting refinement — 2026-11-18
+
+Owner selected public structured-only issues and a concise user confirmation.
+Schema version 2 rejects legacy requests, free text and extra fields. A separate
+public opt-in and queue prevent private-consent carryover. The server validates
+stored payloads, public visibility and canonical App-bot issue authorship.
+
+Reviewed source `65580f1093661b3d9d62cca4163d99cc3dac2edb` passes all 116
+consolidated schema, reporter, native/browser, onboarding and service cases.
+Actual isolated PostgreSQL and fake GitHub cover provenance, visibility and
+legacy payload checks. Source checks, website typecheck and the current
+production build pass. Independent security and compatibility reviews found no
+actionable blockers in the complete public-policy delta.
+Live GitHub App attribution, repository provisioning, deployment and native
+report-dialog acceptance remain separate. See [the current reporting guide](PROBLEM-REPORTING.md).
+
+# Automatic problem reporting — 2026-11-18
+
+Reviewed source `2aad43a5d4bfe74a886b351a0e301941b4721476`, based on `d098d0d2f`.
+See [operation and activation](PROBLEM-REPORTING.md) and
+[review receipts](EVIDENCE.md#automatic-problem-reporting-implementation--2026-11-18).
+Automatic collection defaults off and requires both the Zero setting and VS Code
+telemetry permission. The service requires a verified private destination and
+explicit server configuration.
+
+| Evidence | Result and limits |
+| --- | --- |
+| Schema, collector, native/browser context and service | All 57 cases are covered on final source or unchanged reviewed code and pass. The collector's final 17-case run includes consent epochs, retry identities and disabled startup. |
+| Service concurrency and failure injection | 7 cases, actual temporary socket-only PostgreSQL, fake GitHub. Includes private destination/permission refusal, delivery ambiguity, orphan recovery rejection and read-only health. |
+| Existing startup behavior | Both affected onboarding cases pass with no default profile write. |
+| Sidebar gallery | 10 cases pass after adding the fixture's report state. Actual browser view shows Report a problem beside local error guidance. |
+| Publishing | New failed-result/browser-open UI cases and actual GitHub conclusion fixture pass. Expected cancelled/action-required/skipped outcomes stay unreported. |
+| Git regressions | All 31 cases across branch-status UI, network-denied cleanup and saved-commit synchronization pass sequentially on final source. |
+| Website suite | 873 passed, 2 timing failures, 3 skipped in the broad run. Both affected unchanged files then pass 37/37. |
+| Source checks and website | Configuration/syntax/local links and typecheck pass. Production build succeeds with both new API routes. Guard-only corrections reuse build coverage with current focused/typecheck evidence. |
+| Broad source run | Interrupted after 25 minutes because it spanned intermediate fixes and remained nongreen. Its failing files were corrected or rerun successfully. No complete green full-source/hosted-CI run is established. |
+| Native and external acceptance | Dedicated source extension host activated. Actual report-dialog walkthrough, physical Windows and live GitHub/App/private service remain unverified. |
+| Independent review | Security and compatibility complete, 5 review turns / 2 correction batches, no remaining source blockers at the reviewed source. |
+
+Source implementation does not activate production collection. The private
+repository/App, dedicated PostgreSQL schema/credentials, scheduler enablement,
+full hosted CI and an authorized editor release remain rollout work. Reports
+carry bounded technical evidence. Java and builder release versions, macOS
+product version and unmarked distributions can remain `unknown`. Initial
+recovery transitions cover matching publishing operations in the same session.
+
 # Verification
 
 ## ZeroHub publish guide — 2026-11-17

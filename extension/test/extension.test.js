@@ -339,7 +339,7 @@ test("Zero offers the native student explorer with a standard Explorer escape",(
   assert.equal(manifest.contributes.commands.find(item=>item.command==='zero.previewStudentExplorer').title,'Zero: Show Project Explorer');
   assert.equal(manifest.contributes.commands.find(item=>item.command==='zero.standardExplorer').title,'Zero: Show Standard Explorer');
   const standard=manifest.contributes.menus['view/title'].filter(item=>item.when==='view == zero.controls').map(item=>item.command);
-  assert.deepEqual(standard,["zero.githubAccount","zero.chooseRepository","zero.exportWeb","zero.openFirstLesson","zero.showSetup","zero.startPage","zero.showOutput","zero.previewStudentExplorer"]);
+  assert.deepEqual(standard,["zero.githubAccount","zero.chooseRepository","zero.exportWeb","zero.openFirstLesson","zero.showSetup","zero.startPage","zero.showOutput","zero.previewStudentExplorer","zero.reportProblem"]);
   const preview=manifest.contributes.menus['view/title'].filter(item=>item.when==='view == zero.studentControls').map(item=>item.command);
   assert.deepEqual(preview,standard.filter(command=>command!=='zero.previewStudentExplorer'));
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");

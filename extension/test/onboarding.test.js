@@ -17,7 +17,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {workosReceipt=false, boundReceipt=false, studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, integratedBrowser=false, empty=false, profile, initialSession, repository=false, trusted, uploadMode, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, create=async()=>({repository:{html_url:'https://github.com/student/my-project'}}), execute=async()=>undefined, openDialog, dispatchRegistered=false}={}) {
+async function fixture(t, {workosReceipt=false, boundReceipt=false, studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, integratedBrowser=false, empty=false, profile, initialSession, repository=false, trusted, uploadMode, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, create=async()=>({repository:{html_url:'https://github.com/student/my-project'}}), execute=async()=>undefined, openDialog, dispatchRegistered=false, reportChoice}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   if (typeof profile === 'function') profile=profile(root);
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
@@ -58,6 +58,14 @@ async function fixture(t, {workosReceipt=false, boundReceipt=false, studentExplo
     ViewColumn:{One:1,Beside:2},Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ProcessExecution:class{},ShellExecution:class{},
     EventEmitter:class{event(){}fire(){}dispose(){}},env:{openExternal:async uri=>{calls.push(['openExternal',uri]);return externalResult;}},Uri:{file:fsPath=>({fsPath}),parse:value=>({value})}
   };
+  if(reportChoice) {
+    vscode.ConfigurationTarget={Global:1};
+    vscode.workspace.getConfiguration=section=>({
+      get:(key,fallback)=>section==='zero'&&key==='automaticPublicProblemReports'?(reportChoice.value??false):section==='zero'&&key==='uploadMode'?(uploadMode??fallback):fallback,
+      inspect:key=>key==='automaticPublicProblemReports'?{globalValue:reportChoice.value,defaultValue:false}:undefined,
+      update:async(key,value,target)=>{reportChoice.updates.push({key,value,target});reportChoice.value=value;}
+    });
+  }
   if(openDialog)vscode.window.showOpenDialog=openDialog;
   if(studentExplorer) {
     vscode.window.createTreeView=()=>({dispose(){}});
@@ -81,7 +89,7 @@ async function fixture(t, {workosReceipt=false, boundReceipt=false, studentExplo
   }
   await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
   const secrets=workosReceipt ? {get:async()=>{receiptReads++;return savedReceipt && JSON.stringify(savedReceipt);},onDidChange:fn=>{receiptChanged=fn;return disposable();}} : undefined;
-  extension.activate({extensionPath,subscriptions,extensionMode:workosReceipt?1:2,secrets,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return create(value);}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
+  extension.activate({extensionPath,subscriptions,extensionMode:workosReceipt?1:2,secrets,...(reportChoice?{globalStorageUri:{fsPath:path.join(root,'report-choice')}}:{}),globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return create(value);}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
@@ -730,4 +738,17 @@ test('an explicit standard Explorer preference does not get migrated to the stud
  assert.deepEqual(f.calls.slice(-2).map(([id])=>id),['workbench.view.explorer','zero.controls.focus']);
  assert.ok(!f.calls.some(([id])=>id==='workbench.view.extension.zero-student-explorer'));
  assert.equal(remembered.has('zero.studentExplorerShown'),false);
+});
+
+
+test('first-run public reporting choice does not block editor commands or sign-in',async t=>{
+  let resolveChoice;const waiting=new Promise(resolve=>{resolveChoice=resolve;});
+  const reportChoice={updates:[]};
+  const f=await fixture(t,{reportChoice,information:async text=>text.startsWith('Help improve Zero?')?waiting:undefined});
+  await settle(()=>f.notices.some(item=>item.text.startsWith('Help improve Zero?')));
+  assert.deepEqual(reportChoice.updates,[]);
+  await f.commands.get('zero.stopApp')();
+  assert.equal(reportChoice.updates.length,0,'Editor operation completes while the choice is pending');
+  resolveChoice('Allow reports');await settle(()=>reportChoice.updates.length===1);
+  assert.deepEqual(reportChoice.updates,[{key:'automaticPublicProblemReports',value:true,target:1}]);
 });

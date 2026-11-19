@@ -8,6 +8,15 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner reporting refinements, 2026-11-18–19. Keep sidebar error messages concise
+and useful. Offer the public-reporting choice once during first-run setup, then
+send eligible errors silently after affirmative consent. Manual reporting also
+sends directly when that public consent is on. An opted-out user must explicitly
+confirm a one-off public report. Technical payloads belong in the submitted
+report; publish only structured technical data, with a clear public notice and
+no free-text report description. Do not treat OS installation permission, a prior
+private-reporting preference or closing the setup notice as public consent.
+
 Owner header refinement, 2026-11-10. Show **Beta** as plain text beside the
 Zero wordmark, with a full click and tap target and visible keyboard focus.
 
