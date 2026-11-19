@@ -204,6 +204,31 @@ release occurred. The [reporting guide](PROBLEM-REPORTING.md) records the exact
 operator configuration and rollout requirements. Automatic collection defaults
 off. Private GitHub issues hold untrusted evidence for future AI investigation.
 
+# Zero 0.5.81 rollout completed — 2026-11-18
+
+Source PR385 merged b61d160d3; canonical publisher completed kit/Portable PR387
+at 2e71daf03; Mac/feed PR388 merged c0bdc9380 with all 12 checks green. All nine
+promotion data files and the published-kit fixture delta were independently
+reviewed. Every draft and anonymous public native, kit and Portable/source asset
+matches its exact expected bytes. Earlier public files were not replaced.
+
+The exact canonical complete ZIP, SHA256 ad702aa9…, passed hosted Windows cold/
+warm trial 44457509540 with embedded kit c7e85483…; receipt saved under
+`.verification/release-081-publication/exact-zip-windows/`. This supersedes the
+same-source-only preparation limitation. Live read-back at 2026-11-19T04:38:15Z
+(Nov18 America/Toronto) verified homepage Mac 0.5.81 and both Portable 0.5.81 links,
+the public DMG 12355557bytes/06ff83d7…, and exact 1179-byte appcast/feba5d35… build 80.
+Feed and archive Ed25519 signatures independently pass. See ignored
+`live-verification.json` in the same publication receipt directory. Production
+Vercel status for c0bdc9380 is successful. No runtime code changed during promotion.
+
+A fresh authenticated Partner Center read confirms submission 16 is live in the
+Microsoft Store, containing Zero Studio 0.5.81 / package 1.5.81.0 x64. Certification
+and publishing finished; no schedule hold was added. This supersedes the earlier
+in-certification/publishing snapshots below. Physical school devices, authenticated
+Pages upload and interactive updater delivery remain unverified. Detailed source,
+artifact hashes and checks are in the [ledger](RELEASE-LEDGER.md#zero-0581--2026-11-18).
+
 # Zero 0.5.81 publication — 2026-11-18
 
 Owner explicitly authorized merge, downloads and Microsoft Store publication.
