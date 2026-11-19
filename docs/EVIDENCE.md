@@ -52,6 +52,15 @@ downloading Maven artifacts. The Windows and browser lanes passed that run.
 [Opening diff](https://github.com/codepetca/zero/pull/395/commits/d504d109ca4da187868944d2bb7e13d1c2e45caa) ·
 [Initial source CI](https://github.com/codepetca/zero/actions/runs/44587519187)
 
+The follow-up review found that a competing checkout could write the index
+before Git refused its HEAD change. Both update paths now hold the Git index
+lock while they materialize the reviewed tree through a temporary index and
+commit the refs. The worktree and staged tree are checked before the ref
+commit. A native checkout to a sibling with different files now stops before
+changing the real index or files. Catch-up also uses the same external
+attributes check as the feature update, with a real global CRLF rule covered
+by the handoff regression.
+
 # Zero 0.5.82 full release — 2026-11-19
 
 [PR393](https://github.com/codepetca/zero/pull/393) merged as

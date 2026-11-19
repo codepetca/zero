@@ -432,6 +432,7 @@ async function prepareFinish(project, options = {}) {
     if (await ancestor(run,current.root,current.head,remoteMainHead)) {
       if (refStorage !== 'files') throw nativeUpdateHandoff('GitHub main already includes this branch. Use Source Control to update local main for this Git reference format.');
       await checkAlreadyMerged(current, remoteMainHead, run);
+      await requireSupportedAttributes(current, run);
       const archive = await archivedFinishIn(current, remoteMainHead, run, {confirmIncluded:true});
       try {
         await adoptReviewedMain(current.root,current.mainHead,remoteMainHead,current.branch,{probeOnly:true,verify:()=>{}});
@@ -535,6 +536,20 @@ async function stockSystemAttributes(filename, info) {
     return !rule || rule.startsWith('#') || /^\*\.[a-zA-Z0-9]+[ \t]+diff=astextplain$/.test(rule);
   });
 }
+const customConfiguration = () => nativeUpdateHandoff('This project has custom Git merge settings or attributes. Review the update in Source Control.');
+async function requireSupportedAttributes(current, run) {
+  const attributePaths = await Promise.all(['GIT_ATTR_SYSTEM','GIT_ATTR_GLOBAL'].map(name=>run(current.root,['var',name]))).catch(() => {
+    throw nativeUpdateHandoff('This Git version cannot verify merge attributes. Review the update in Source Control.');
+  });
+  const [systemAttributes, globalAttributes] = attributePaths;
+  for (const [filename, isSystem] of [[systemAttributes,true],[globalAttributes,false],[path.join(current.gitDir,'info','attributes'),false]]) {
+    if (!path.isAbsolute(filename) || /[\r\n]/.test(filename)) throw customConfiguration();
+    try {
+      const info = await fs.lstat(filename);
+      if (!info.isFile() || (info.size && (!isSystem || !await stockSystemAttributes(filename, info)))) throw customConfiguration();
+    } catch (error) {if (error.code !== 'ENOENT') throw error;}
+  }
+}
 async function previewCleanMerge(current, remoteHead, run) {
   await refuseFinishReplacements(current, run);
   await requireCompleteUpdateHistory(current, run);
@@ -557,19 +572,8 @@ async function previewCleanMerge(current, remoteHead, run) {
     if (error.code === 1) return '';
     throw error;
   });
-  const customConfiguration = () => nativeUpdateHandoff('This project has custom Git merge settings or attributes. Review the update in Source Control.');
   if (customMerge) throw customConfiguration();
-  const attributePaths = await Promise.all(['GIT_ATTR_SYSTEM','GIT_ATTR_GLOBAL'].map(name=>run(current.root,['var',name]))).catch(() => {
-    throw nativeUpdateHandoff('This Git version cannot verify merge attributes. Review the update in Source Control.');
-  });
-  const [systemAttributes, globalAttributes] = attributePaths;
-  for (const [filename, isSystem] of [[systemAttributes,true],[globalAttributes,false],[path.join(current.gitDir,'info','attributes'),false]]) {
-    if (!path.isAbsolute(filename) || /[\r\n]/.test(filename)) throw customConfiguration();
-    try {
-      const info = await fs.lstat(filename);
-      if (!info.isFile() || (info.size && (!isSystem || !await stockSystemAttributes(filename, info)))) throw customConfiguration();
-    } catch (error) {if (error.code !== 'ENOENT') throw error;}
-  }
+  await requireSupportedAttributes(current, run);
   let tree;
   try {
     // Git computes the proposed tree without changing HEAD, the index or files.
@@ -722,32 +726,79 @@ async function startPrepared(plan, options = {}) {
   plans.delete(plan);
   return Object.freeze({branch: plan.name, head: plan.head, page: plan.page, postCheckoutChanged, activeUncertain, checkoutWarning});
 }
-function reviewedTreeUpdate(current, target, opts, verify) {
-  const {root, head} = current;
-  let lineEndings;
-  return {
-    verify: async env => {
-      const lockedRun = (cwd,args,options) => opts.run(cwd,args,{...options,env});
-      await opts.beforeMutation();
-      await recheck(current, lockedRun, {full:true});
-      await verify(lockedRun);
-      // Keep normal Git line endings while leaving executable configuration
-      // out of the ref transaction and the materialization command.
-      const settings = [['core.autocrlf',['true','false','input']],['core.eol',['native','lf','crlf']],['core.safecrlf',['true','false','warn']]];
-      const overrides = await Promise.all(settings.map(async ([key, allowed]) => {
-        const value = await opts.run(root,['config','--type=bool-or-str','--get',key]).catch(error => {
-          if (error.code !== 1) throw error;
-        });
-        if (value === undefined) return [];
-        if (!allowed.includes(value)) throw nativeUpdateHandoff('Check this project’s Git line-ending settings in Source Control before updating.');
-        return ['-c',`${key}=${value}`];
-      }));
-      lineEndings = overrides.flat();
-    },
-    checkNow:opts.beforeMutationNow || (()=>{}),
-    perform:env=>opts.run(root,[...lineEndings,'-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false',
-      '-c','submodule.recurse=false','read-tree','-m','-u','--no-sparse-checkout',head,target],{env})
+async function applyReviewedTree(current, target, opts, verify, transact) {
+  const {root, head, gitDir} = current;
+  const indexPath = path.join(gitDir, 'index');
+  const lockPath = indexPath + '.lock';
+  const lock = await fs.open(lockPath,'wx',0o600).catch(error => {
+    if (error.code !== 'EEXIST') throw error;
+    throw nativeUpdateHandoff('Another Git action is using the index. Finish it in Source Control before trying again.');
+  });
+  let identity, temporary, primaryError;
+  const checkLock = async () => {
+    const named = await fs.lstat(lockPath);
+    if (!identity || !named.isFile() || named.nlink !== 1 || named.dev !== identity.dev || named.ino !== identity.ino) throw drift();
   };
+  let lineEndings;
+  try {
+    identity = await lock.stat();
+    temporary = await fs.mkdtemp(path.join(gitDir,'zero-index-update-'));
+    const stagedIndex = path.join(temporary,'index');
+    let targetTree;
+    // Git checkout honors index.lock before changing the workspace, even
+    // when it would otherwise reach its HEAD check only after writing files.
+    return await transact({
+      verify: async env => {
+        const lockedRun = (cwd,args,options) => opts.run(cwd,args,{...options,env});
+        await opts.beforeMutation();
+        await recheck(current, lockedRun, {full:true});
+        await verify(lockedRun);
+        await requireSupportedAttributes(current, opts.run);
+        // Keep normal Git line endings while leaving executable configuration
+        // out of the ref transaction and the materialization command.
+        const settings = [['core.autocrlf',['true','false','input']],['core.eol',['native','lf','crlf']],['core.safecrlf',['true','false','warn']]];
+        const overrides = await Promise.all(settings.map(async ([key, allowed]) => {
+          const value = await opts.run(root,['config','--type=bool-or-str','--get',key]).catch(error => {
+            if (error.code !== 1) throw error;
+          });
+          if (value === undefined) return [];
+          if (!allowed.includes(value)) throw nativeUpdateHandoff('Check this project’s Git line-ending settings in Source Control before updating.');
+          return ['-c',`${key}=${value}`];
+        }));
+        lineEndings = overrides.flat();
+        targetTree = await lockedRun(root,['rev-parse',`${target}^{tree}`]);
+        if (!shaPattern.test(targetTree)) throw drift();
+        const index = await fs.lstat(indexPath);
+        if (!index.isFile() || index.nlink !== 1) throw drift();
+        await checkLock();
+        await fs.copyFile(indexPath, stagedIndex, constants.COPYFILE_EXCL);
+      },
+      checkNow:opts.beforeMutationNow || (()=>{}),
+      perform:async env => {
+        const args = [...lineEndings,'-c',`core.hooksPath=${os.devNull}`,'-c','core.fsmonitor=false','-c','submodule.recurse=false','-c','core.splitIndex=false'];
+        const git = extra => opts.run(root,[...args,...extra],{env:{...env,GIT_INDEX_FILE:stagedIndex,GIT_OPTIONAL_LOCKS:'0'}});
+        await git(['read-tree','-m','-u','--no-sparse-checkout',head,target]);
+        if (await git(['write-tree']) !== targetTree || await git(['ls-files','--others','--exclude-standard','-z'])) throw drift();
+        await git(['diff-files','--quiet','--no-ext-diff','--no-textconv','--']);
+        await checkLock();
+        await fs.rename(stagedIndex,indexPath);
+      }
+    });
+  } catch (error) {
+    primaryError = error;
+    throw error;
+  } finally {
+    try {
+      await lock.close();
+      await checkLock();
+      await fs.unlink(lockPath);
+    } catch (error) {
+      if (!primaryError) throw new Error('Check the project’s Git index lock in Source Control before continuing.', {cause:error});
+      primaryError.message += ' Check the Git index lock before retrying.';
+    } finally {
+      if (temporary) await fs.rm(temporary,{recursive:true,force:true});
+    }
+  }
 }
 async function applyReviewedCleanMerge(plan, current, opts) {
   const {root, head, remoteMainHead} = plan;
@@ -767,11 +818,11 @@ async function applyReviewedCleanMerge(plan, current, opts) {
   opts.onProgress(`Applying the reviewed update to ${current.branch}…`);
   // Git locks HEAD, the feature and main. The two-tree read changes only
   // the index and worktree, then the ref transaction advances the feature.
-  await updateCheckedOutFeature(root, current.mainHead, head, candidate, reviewedTreeUpdate(current, candidate, opts, async lockedRun => {
+  await applyReviewedTree(current, candidate, opts, async lockedRun => {
     await assertNoPendingFinish(root, current.gitDir, lockedRun, 'Resolve the pending merge before updating from main.');
     await requireCompleteUpdateHistory(current, lockedRun);
     await inspectUpdateTarget(current, candidate, lockedRun);
-  }));
+  }, update => updateCheckedOutFeature(root, current.mainHead, head, candidate, update));
   try {
     const final = await state(root, run, {full:true});
     if (!same({...current, head:candidate}, final)) throw drift();
@@ -958,12 +1009,11 @@ async function switchToAlreadyMergedMain(plan, current, opts) {
   const {root, branch, head} = current;
   opts.onProgress('Switching to the reviewed GitHub main…');
   try {
-    const update = reviewedTreeUpdate(current, observed, opts, async run => {
+    await applyReviewedTree(current, observed, opts, async run => {
       await checkAlreadyMerged(current, observed, run);
       const archive = await archivedFinishIn(current, observed, run, {confirmIncluded:true});
       if (archive?.id !== plan.confirmedArchive) throw drift();
-    });
-    await adoptReviewedMain(root, current.mainHead, observed, branch, update);
+    }, update => adoptReviewedMain(root, current.mainHead, observed, branch, update));
     const final = await state(root, opts.run, {full:true});
     if (!same({...current, branch:'main', mainHead:observed, head:observed}, final) ||
         await opts.run(root, ['rev-parse','--verify',`refs/heads/${branch}^{commit}`]) !== head) throw drift();

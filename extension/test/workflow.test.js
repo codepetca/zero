@@ -639,14 +639,20 @@ test('Finish adopts an external merge plus later work while retaining the exact 
   // Local main has previously received a commit that is absent from the feature.
   await core.git(f.root, ['fetch', '--no-write-fetch-head', f.bare, independentMain]);
   await core.git(f.root, ['update-ref', 'refs/heads/main', independentMain, base]);
-  await core.git(f.root, ['branch', 'editor-branch', feature]);
+  await core.git(f.root, ['switch', '-c', 'editor-branch']);
+  const sibling = await commit(f.root, 'Other.java', 'only on the editor branch');
+  await core.git(f.root, ['switch', 'add-score']);
   const plan = await workflow.prepareFinish(f.root, f.options);
   assert.equal(plan.alreadyMerged, true);
   assert.equal(plan.remoteMainHead, external);
   let checkedLocks = false;
   const run = async (cwd, args, options) => {
     if (cwd === f.root && args.includes('read-tree') && args.includes('-u')) {
-      await assert.rejects(core.git(cwd, ['checkout', 'editor-branch']), /HEAD\.lock|cannot lock ref 'HEAD'/i);
+      const index = path.join(cwd, '.git', 'index');
+      const before = await fs.readFile(index);
+      await assert.rejects(core.git(cwd, ['switch', 'editor-branch']), /index\.lock/i);
+      assert.deepEqual(await fs.readFile(index), before);
+      await assert.rejects(fs.access(path.join(cwd, 'Other.java')), {code:'ENOENT'});
       await assert.rejects(core.git(cwd, ['update-ref', 'refs/heads/add-score', external, feature]), /cannot lock ref '(HEAD|refs\/heads\/add-score)'|HEAD\.lock/i);
       await assert.rejects(core.git(cwd, ['update-ref', 'refs/heads/main', external, independentMain]), /cannot lock ref 'refs\/heads\/main'/i);
       checkedLocks = true;
@@ -661,9 +667,12 @@ test('Finish adopts an external merge plus later work while retaining the exact 
   assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
   assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), external);
   assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/add-score']), feature);
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/editor-branch']), sibling);
   assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), external);
   assert.equal(await fs.readFile(path.join(f.root, 'Score.java'), 'utf8'), 'score');
   assert.equal(await fs.readFile(path.join(f.root, 'Later.java'), 'utf8'), 'after external merge');
+  await assert.rejects(fs.access(path.join(f.root, 'Other.java')), {code:'ENOENT'});
+  assert.equal(await core.git(f.root, ['write-tree']), await core.git(f.root, ['rev-parse', `${external}^{tree}`]));
   assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
   assert.equal(await core.git(f.root, ['for-each-ref', '--format=%(refname)', 'refs/zero/']), '');
   assert.equal(await core.git(f.root, ['rev-list', '--count', '--grep=Zero-Finished-Change: 1', '--all']), '0');
@@ -690,6 +699,38 @@ test('Finish applies the effective core.autocrlf setting to files received from 
   const finished = await workflow.finishPrepared(plan, options);
   assert.equal(finished.head, remoteHead);
   assert.deepEqual(await fs.readFile(path.join(f.root, 'Remote.java')), expected);
+  assert.ok(!f.calls.some(args => args[0] === 'push'));
+});
+test('Finish hands off external main when a global attributes file controls Java line endings', async t => {
+  const f = await fixture(t);
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'score\n');
+  await core.git(f.root, ['push', f.bare, `${feature}:refs/heads/main`]);
+  await remoteChange(f, 'Remote.java', 'class Remote {}\n');
+  const home = path.join(f.parent, 'git-home');
+  await fs.mkdir(home);
+  const attributes = path.join(home, 'attributes');
+  await fs.writeFile(attributes, '*.java text eol=crlf\n');
+  await core.git(f.root, ['config', '--file', path.join(home, '.gitconfig'), 'core.attributesFile', attributes]);
+  const run = (cwd, args, options) => {
+    const env = {...(options?.env || process.env), HOME:home, XDG_CONFIG_HOME:path.join(home, '.config')};
+    if (env.GIT_ATTR_NOSYSTEM !== '1') delete env.GIT_CONFIG_GLOBAL;
+    return f.run(cwd, args, {...options, env});
+  };
+  assert.equal(await run(f.root, ['check-attr', 'eol', '--', 'Remote.java']), 'Remote.java: eol: crlf');
+  assert.equal(await run(f.root, ['status', '--porcelain']), '');
+  const refs = await core.git(f.root, ['show-ref']);
+  const index = path.join(f.root, '.git', 'index');
+  const originalIndex = await fs.readFile(index);
+  const score = path.join(f.root, 'Score.java');
+  const originalScore = await fs.readFile(score);
+  await assert.rejects(workflow.prepareFinish(f.root, {...f.options, run}), {nativeUpdateHandoff:true});
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+  assert.equal(await core.git(f.root, ['symbolic-ref', 'HEAD']), 'refs/heads/add-score');
+  assert.deepEqual(await fs.readFile(index), originalIndex);
+  assert.deepEqual(await fs.readFile(score), originalScore);
+  await assert.rejects(fs.access(path.join(f.root, 'Remote.java')), {code:'ENOENT'});
+  assert.equal(await run(f.root, ['status', '--porcelain']), '');
   assert.ok(!f.calls.some(args => args[0] === 'push'));
 });
 for (const drift of ['remote main', 'feature tip', 'worktree']) test(`Finish refuses an external merge review after ${drift} changes`, async t => {
