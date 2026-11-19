@@ -1,3 +1,63 @@
+# Production reporting activation and hosted scheduler correction — 2026-11-19
+
+[PR386](https://github.com/codepetca/zero/pull/386) merged as
+`c5c2d275ac2c52a63c6b71f2831ecb52b3826570` after all12 checks passed on
+`9d355e147`: [source44531005898](https://github.com/codepetca/zero/actions/runs/44531005898)
+(12m15), [browser44531005631](https://github.com/codepetca/zero/actions/runs/44531005631)
+(8m28), and [Windows44531005493](https://github.com/codepetca/zero/actions/runs/44531005493)
+(MSIX/native6m50, Portable5m39), plus both gates and Vercel preview.
+
+The first exact-merge production build `dpl_69fBfaag1H4Tgwwz92YVFPwgtfdh`
+served the canonical domain and returned503/disabled. The existing production
+flag alone was changed totrue, then a fresh Git-source deployment of the same
+merge, `dpl_CvgbyzHMQ3vpVHgp43G5vtn5ZDLL`, reached READY with the canonical alias.
+Its invalid report request returns400/invalid. No local dirty build was deployed;
+previews still have no reporting secrets. New builds are required for flag changes.
+
+The real installed VS Code1.147 source host in the isolated walkthrough profile
+accepted the one-time public choice, submitted directly and retained its draft
+after the pre-deployment failure. Retrying after activation showed
+“Problem report sent” with receipt `47ad0843-2014-4ae0-9cd5-b3c968e1f3ec` and no
+submission-confirmation sheet. The original report ID and occurrence time are
+retained. Real Neon shows fully delivered revision1 and public
+[issue3](https://github.com/codepetca/zero-reports/issues/3) is authored by
+`codepet-zero-reports[bot]` (Bot), containing only fixed structured context.
+
+Current collector→canonical hosted endpoint→real Neon/App also passed default-off
+exclusion, silent automatic submission (zero notifications), same-ID duplicate
+receipt, same-ID recovery, schema1/free-text rejection, synthetic privacy canary
+exclusion from payload/DB/public body, and fully delivered revision. Its
+[issue4](https://github.com/codepetca/zero-reports/issues/4) is bot-authored.
+Issues3/4 are labelled activation-test and closed not-planned, excluded from triage.
+The automatic host is a controlled VS Code API fixture; manual delivery is actual
+native acceptance. Ignored detailed artifacts are `.verification/reporting-*-result.json`.
+No new installer bytes or physical Windows acceptance for this collector are claimed.
+
+The purpose-specific reconciliation secret was staged securely in canonical
+GitHub Actions; the hourly variable was enabled for a manual dispatch. Invalid
+authentication correctly returns401. Actual
+[run44533868904](https://github.com/codepetca/zero/actions/runs/44533868904) authenticated
+but returned400: Next/Vercel provides an empty request stream, while the handler
+accepted only `request.body === null`. The variable was disabled again during the
+bounded correction. Durable report delivery remains active. The correction must
+accept truly empty streams, reject all bytes/caller controls, bound reads and keep
+authentication before body access. Hosted scheduler acceptance follows deployment.
+
+Correction: authenticated POST validation accepts null or an EOF stream containing
+zero bytes, rejects the first byte (including whitespace/NUL) without buffering,
+and cancels unread data. A1s read deadline is nested inside the shared20s response
+budget and caller signal; even noncooperative cancellation/reconciliation cannot
+extend the25s route budget. Config/secret/method checks precede body access.
+Root and Sol/high implementation worker each pass15 focused reporting cases,
+including ephemeral actual PostgreSQL and8new empty-stream/deadline/abort/privacy
+regressions. No live credentials/providers were used for these focused checks.
+Independent Sol/high security and compatibility reviews of the complete
+`c5c2d275a..672177b5a` diff and route/deadline/scheduler/store callers are clean.
+Compatibility independently passes all8new regression cases. Session:2initial
+review turns,0fix batches, no blockers. Requested models/effort are Sol/high;
+effective configuration, elapsed and tokens unavailable. Final hosted gates and
+authenticated deployment acceptance follow.
+
 # One-time public consent and silent reporting — 2026-11-19
 
 Owner clarified that consent should be chosen once during setup and eligible

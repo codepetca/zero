@@ -25,16 +25,20 @@ runtime. The automatic Marketplace owner-secret binding was removed after
 provisioning; the resource is still managed through Vercel and Zero uses its
 restricted `ZERO_REPORTS_DATABASE_URL` instead.
 
-All nine canonical server variables are staged for Vercel production only;
-`ZERO_REPORTS_ENABLED=false`. The DB URL, private key and reconciliation secret
-are sensitive. No reporting credentials are supplied to preview/development
-builds. Local backend acceptance used these dedicated providers with the current
-collector and real HTTP receiver. Its VS Code interaction was a controlled API
-fixture. Synthetic test issues are labelled `activation-test` and closed. See
-[acceptance evidence](EVIDENCE.md#reporting-appdatabase-live-acceptance--2026-11-18).
-The installed editor now verifies native confirmation/cancellation, default-off
-opt-in and safe retry/copy fallback. Hosted/native-success and scheduler acceptance,
-source merge and a future reporting-enabled editor release remain pending.
+All nine canonical server variables are configured for Vercel production only;
+`ZERO_REPORTS_ENABLED=true` after the owner-authorized source merge and exact-source
+deployment on2026-11-19. The DB URL, private key and reconciliation secret are
+sensitive. No reporting credentials are supplied to preview/development builds.
+Actual native manual reporting and hosted automatic collector acceptance reached
+the real database and bot-authored public issues. Synthetic activation-test issues
+are labelled and closed. See [current activation evidence](EVIDENCE.md#production-reporting-activation-and-hosted-scheduler-correction--2026-11-19)
+and [initial provider acceptance](EVIDENCE.md#reporting-appdatabase-live-acceptance--2026-11-18).
+
+The first hosted scheduler dispatch exposed the platform's empty request stream
+versus the handler's null-only check. Hourly reconciliation is disabled during
+that bounded correction and its hosted acceptance. Collection/inline delivery
+remain enabled. A reporting-enabled editor release is still separate; existing
+published installers do not acquire the new collector from a website deployment.
 Physical Windows installer acceptance for the new collector remains separate.
 
 ## Student flow
