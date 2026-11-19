@@ -1,3 +1,44 @@
+# One-time public consent and silent reporting — 2026-11-19
+
+Owner clarified that consent should be chosen once during setup and eligible
+errors should send automatically without dialogs. The prior implementation had
+no Zero installer consent step. The current extension offers a nonmodal choice
+on first run, with explicit public-GitHub and structured-data disclosure.
+Automatic reporting remains off until an affirmative choice.
+
+An exclusive local `public-reporting-choice-v1` marker under the extension's
+VS Code global storage prevents duplicate offers across windows and remembers
+that setup was offered, including decline/dismiss. It stores no consent value,
+report or project data. The machine/profile global setting remains authoritative;
+workspace-only values, legacy private consent and marker presence cannot grant
+public consent. Existing explicit true/false and managed policy choices are
+respected. Pending answers cannot override a newer setting revision or disposal.
+VS Code telemetry continues to gate automatic delivery only.
+
+With accepted public consent, explicit manual reporting and retained-draft retry
+send directly, using the same ID on retry. An opted-out manual report retains its
+one-off public confirmation. Automatic delivery has no per-error dialogs.
+Sidebar error presentation, fixed schema2 and server delivery are unchanged.
+
+Worker reporter/onboarding/native/browser suites passed115 cases. Source checks,
+website typecheck and3existing legal-page cases pass. The real installed editor
+showed the one-time notice and its Allow reports/No thanks actions; choosing
+Allow wrote the actual public setting. Reload did not offer setup again. The
+manual command then reached its unavailable-service retry fallback without
+showing a submission-confirmation sheet. Its draft is retained for production
+retry. Screenshot `.verification/native-report-setup-choice.jpg` is ignored.
+This supersedes per-report-confirmation wording in earlier receipts for users
+who have already consented. No public report was submitted by these UI checks.
+
+Before this refinement, every hosted gate passed at `4f83811f3`:
+[Windows44525432731](https://github.com/codepetca/zero/actions/runs/44525432731),
+[browser44525432914](https://github.com/codepetca/zero/actions/runs/44525432914) and
+[source44525435470](https://github.com/codepetca/zero/actions/runs/44525435470).
+The Windows correction is accepted. This new owner-requested consent boundary
+gets a separate bounded security/compatibility review and final hosted run before
+merge/activation. Production remains disabled. Weekly allowance readback25%
+remaining is account-wide and is not attributed task cost.
+
 # Windows reporting gate and native walkthrough — 2026-11-19
 
 Owner requested the Windows packaging CI correction and native-editor walkthrough

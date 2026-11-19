@@ -13,6 +13,7 @@ const {
 const ENDPOINT = 'https://zero.codepet.ca/api/problem-reports';
 const KEY = 'zero.problemReports.publicQueue.v1';
 const LEGACY_KEY = 'zero.problemReports.queue';
+const CHOICE_MARKER = 'public-reporting-choice-v1';
 const MAX_QUEUE = 20;
 const MAX_AGE = 7 * 86400000;
 const MAX_ATTEMPTS = 4;
@@ -143,13 +144,19 @@ function createProblemReporter(vscode, context, {
   let persistence = Promise.resolve();
   let latest;
   let consentGeneration = 0;
+  let settingRevision = 0;
+  let choiceInFlight = false;
   const crumbs = [];
   const failures = new Map();
   const queueScopes = new Map();
   const observedErrors = new WeakMap();
 
-  const enabled = () => !disposed && vscode.env?.isTelemetryEnabled === true &&
-    vscode.workspace.getConfiguration('zero').get('automaticPublicProblemReports', false) === true;
+  const publicConsent = () => {
+    const config = vscode.workspace.getConfiguration('zero');
+    const inspected = config.inspect?.('automaticPublicProblemReports');
+    return inspected?.globalValue === true && config.get('automaticPublicProblemReports', false) === true;
+  };
+  const enabled = () => !disposed && vscode.env?.isTelemetryEnabled === true && publicConsent();
   const persist = () => {
     const snapshot = JSON.parse(JSON.stringify(queue));
     persistence = persistence.then(() => context.globalState?.update(KEY, snapshot)).catch(() => {});
@@ -359,6 +366,43 @@ function createProblemReporter(vscode, context, {
     });
     if (report) enqueue(report, undefined, generation);
   }
+  // The marker is local to VS Code's extension storage and contains no consent
+  // value. Exclusive creation prevents duplicate prompts in concurrent windows.
+  async function offerFirstRunChoice() {
+    if (disposed || choiceInFlight) return;
+    const directory = context.globalStorageUri?.fsPath;
+    const config = vscode.workspace.getConfiguration('zero');
+    if (typeof directory !== 'string' || !path.isAbsolute(directory) ||
+        typeof config.inspect !== 'function' || typeof config.update !== 'function' ||
+        vscode.ConfigurationTarget?.Global === undefined || !vscode.window.showInformationMessage) return;
+    const explicitSetting = () => {
+      const inspected = vscode.workspace.getConfiguration('zero').inspect('automaticPublicProblemReports');
+      if (!inspected) return true;
+      return inspected.globalValue !== undefined || inspected.policyValue !== undefined;
+    };
+    choiceInFlight = true;
+    const revision = settingRevision;
+    const marker = path.join(directory, CHOICE_MARKER);
+    try {
+      await fs.mkdir(directory, {recursive:true});
+      const handle = await fs.open(marker, 'wx', 0o600);
+      await handle.close();
+      if (disposed || revision !== settingRevision || explicitSetting() || publicConsent()) return;
+      const choice = await vscode.window.showInformationMessage(
+        'Help improve Zero? With your permission, structured versions, failed actions and recent steps are sent to public GitHub issues. No free text, source, logs or paths. Automatic reports also follow VS Code telemetry settings.',
+        'Allow reports', 'No thanks'
+      );
+      if (disposed || revision !== settingRevision || choice !== 'Allow reports' || explicitSetting() || publicConsent()) return;
+      // Re-inspect immediately before the only configuration write. An explicit
+      // change made while the notification was open takes precedence.
+      await vscode.workspace.getConfiguration('zero').update('automaticPublicProblemReports', true, vscode.ConfigurationTarget.Global);
+    } catch {
+      // EEXIST means another window already offered the choice. Other failures
+      // leave reporting off and never interrupt the editor.
+    } finally {
+      choiceInFlight = false;
+    }
+  }
   async function copyManualDraft() {
     try {
       await vscode.env.clipboard.writeText(JSON.stringify(manualDraft, null, 2));
@@ -371,7 +415,7 @@ function createProblemReporter(vscode, context, {
     if (disposed || manualBusy) return;
     manualBusy = true;
     try {
-      if (manualDraft) {
+      if (manualDraft && !publicConsent()) {
         const choice = await vscode.window.showInformationMessage(
           'A reviewed problem report is ready.',
           {modal:true, detail:'Retry the same report, copy it, or start a new report.'},
@@ -397,12 +441,14 @@ function createProblemReporter(vscode, context, {
           summary,
           'Version information, the failed action and recent operation steps will be published in a public GitHub issue.'
         ].filter(Boolean).join('\n\n');
-        const answer = await vscode.window.showInformationMessage(
-          'Send this problem report?',
-          {modal:true, detail},
-          'Send report'
-        );
-        if (answer !== 'Send report' || disposed) return;
+        if (!publicConsent()) {
+          const answer = await vscode.window.showInformationMessage(
+            'Send this problem report?',
+            {modal:true, detail},
+            'Send report'
+          );
+          if (answer !== 'Send report' || disposed) return;
+        }
         manualDraft = report;
       }
       while (!disposed && manualDraft) {
@@ -436,7 +482,10 @@ function createProblemReporter(vscode, context, {
   }
   const listeners = [
     vscode.workspace.onDidChangeConfiguration?.(event => {
-      if (event.affectsConfiguration('zero.automaticPublicProblemReports')) settingChanged();
+      if (event.affectsConfiguration('zero.automaticPublicProblemReports')) {
+        settingRevision++;
+        settingChanged();
+      }
     }),
     vscode.env?.onDidChangeTelemetryEnabled?.(settingChanged)
   ].filter(Boolean);
@@ -444,7 +493,7 @@ function createProblemReporter(vscode, context, {
   else clear();
 
   return {
-    breadcrumb, recordManual, failure, success, manual, flush,
+    breadcrumb, recordManual, failure, success, manual, flush, offerFirstRunChoice,
     dispose() {
       disposed = true;
       clearTimeout(timer);

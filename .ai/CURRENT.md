@@ -1,8 +1,12 @@
-# Reporting merge and activation — 2026-11-19
+# Reporting setup-consent refinement — 2026-11-19
 
 Owner requested the Windows CI correction and actual native walkthrough so the
 reporting feature can merge and be enabled after gates. [PR386](https://github.com/codepetca/zero/pull/386)
-remains draft. Reviewed source `7a929a131` binds published kits to original release
+remains draft and production collection remains disabled. New owner refinement:
+one first-run public-consent choice, then silent eligible errors and direct manual
+submission when consent is on; opted-out manual submission retains confirmation.
+Editor worker owns this delta; root owns design/docs/native acceptance. No OS
+installer consent currently exists. Windows reviewed source `7a929a131` binds published kits to original release
 source and hashes, retaining strict new-candidate verification. 24 focused cases,
 actionlint/source checks, two independent reviews and one targeted CI correction
 review pass. Final hosted CI follows. Reporting/editor code is unchanged.

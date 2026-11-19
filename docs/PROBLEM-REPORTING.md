@@ -39,8 +39,16 @@ Physical Windows installer acceptance for the new collector remains separate.
 
 ## Student flow
 
-Automatic public reporting starts disabled. The machine-scoped setting
-`zero.automaticPublicProblemReports` respects VS Code's telemetry preference.
+Automatic public reporting starts disabled. First-run setup offers one explicit
+choice to publish structured technical problem reports as public GitHub issues.
+This is Zero's own choice, not OS installation permission. Decline or dismissal
+keeps reporting off and does not cause repeated setup notices. An existing
+explicit public preference is respected. The setup-offer marker remains local,
+contains no report/project data and is never uploaded.
+
+After affirmative public consent, eligible unexpected errors send silently. The
+machine-scoped setting `zero.automaticPublicProblemReports` respects VS Code's
+telemetry preference; changing the public choice remains available in Help.
 A prior private-reporting setting and queue do not enable or populate public
 reporting. The collector clears the legacy queue locally without submitting it.
 Public reports use schema version 2. The endpoint rejects version 1 requests,
@@ -49,9 +57,12 @@ Turning public reporting off cancels
 pending automatic delivery and clears queued automatic reports. Failure to send a
 report must never block Run, Git operations or publishing.
 
-Help offers **Report a problem**. The editor prepares technical context and shows
-a concise issue summary and a notice that technical information will become a
-public GitHub issue. The user confirms submission without typing a description.
+Help offers **Report a problem**. With public reporting consent on, that explicit
+action submits the prepared context directly, without another confirmation or
+text input. A retained draft retries with its original ID. For a user who has
+opted out, a one-off manual submission still shows a concise issue summary and
+public-submission notice for confirmation. Manual intent remains available when
+VS Code telemetry is off; that preference continues to block automatic reports.
 The service submits through its own narrow GitHub App credential and returns a
 receipt the student can include in Pika Daily. A student GitHub connection is
 optional for this transport. Anyone can read the resulting GitHub issue.

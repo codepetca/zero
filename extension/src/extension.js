@@ -3630,5 +3630,6 @@ function activate(context, services = {}) {
     isBusy:()=>disposed || isBusy() || auth.busy || Boolean(appProvider?.busy || execution || pendingLaunch || nativeStarting || browserActive),
     log:message=>output.appendLine(message)}));
   void introduceAfterConnection();
+  queueMicrotask(()=>{void problemReporter.offerFirstRunChoice().catch(()=>{});});
 }
 module.exports = {activate,dirtyProjectDocuments};

@@ -1,3 +1,16 @@
+# One-time setup choice — 2026-11-19
+
+The revised editor offers explicit public consent once during first-run setup.
+Accepted consent gives silent automatic errors and direct manual submission;
+opted-out manual reports retain confirmation. Workspace values, a local offer
+marker and legacy private settings never grant public permission.115 focused
+cases, source checks, website typecheck and3legal-page cases pass. Actual native
+setup acceptance, reload persistence and direct manual flow are verified against
+the still-disabled service. Native success follows reviewed production deployment.
+
+All Windows/browser/source gates passed at prior head `4f83811f3`; the new consent
+delta requires its own independent review and final CI. See [receipt](EVIDENCE.md#one-time-public-consent-and-silent-reporting--2026-11-19).
+
 # Reporting merge/activation gate — 2026-11-19
 
 Reviewed Windows source `7a929a131`: published assets bind original release source

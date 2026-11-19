@@ -10,7 +10,7 @@ function fixture({enabled=true,legacyEnabled=false,telemetry=true,stored,legacyS
   const storage=new Map(),updates=[];
   if(stored!==undefined)storage.set(KEY,stored);
   if(legacyStored!==undefined)storage.set('zero.problemReports.queue',legacyStored);
-  const vscode={version:'1.95.0',ExtensionMode:{Development:2},env:{clipboard:{writeText:async value=>copied.push(value)},isTelemetryEnabled:telemetry,onDidChangeTelemetryEnabled:cb=>(telemetryListener=cb,{dispose(){}})},workspace:{getConfiguration:()=>({get:(key,fallback)=>key==='automaticPublicProblemReports'?setting:key==='automaticProblemReports'?legacyEnabled:fallback}),onDidChangeConfiguration:cb=>(configListener=cb,{dispose(){}})},window:{showInputBox:async()=>assert.fail('Structured reports must not ask for text'),showInformationMessage:async(...args)=>{notifications.push(args);return answers.shift();}}};
+  const vscode={version:'1.95.0',ExtensionMode:{Development:2},env:{clipboard:{writeText:async value=>copied.push(value)},isTelemetryEnabled:telemetry,onDidChangeTelemetryEnabled:cb=>(telemetryListener=cb,{dispose(){}})},workspace:{getConfiguration:()=>({get:(key,fallback)=>key==='automaticPublicProblemReports'?setting:key==='automaticProblemReports'?legacyEnabled:fallback,inspect:key=>key==='automaticPublicProblemReports'?{globalValue:setting}:undefined}),onDidChangeConfiguration:cb=>(configListener=cb,{dispose(){}})},window:{showInputBox:async()=>assert.fail('Structured reports must not ask for text'),showInformationMessage:async(...args)=>{notifications.push(args);return answers.shift();}}};
   const context={extensionMode:2,extension:{packageJSON:{version:'0.5.80'}},globalState:{get:key=>storage.get(key),update:async(key,value)=>{updates.push({key,value});if(value===undefined)storage.delete(key);else storage.set(key,structuredClone(value));}}};
   const reporter=createProblemReporter(vscode,context,{send,timeoutMs,retryDelay:100000,getProject:()=>currentProject});
   return {reporter,vscode,get store(){return storage.get(KEY);},get legacyStore(){return storage.get('zero.problemReports.queue');},updates,answers,notifications,copied,setProject(value){currentProject=value;},setEnabled(value){setting=value;configListener({affectsConfiguration:()=>true});},setTelemetry(value){vscode.env.isTelemetryEnabled=value;telemetryListener(value);}};
@@ -61,7 +61,7 @@ test('timeout is bounded even if a transport ignores cancellation',async()=>{
   const f=fixture({send:async()=>new Promise(()=>{}),timeoutMs:10});f.reporter.failure(bad(),'publish','building');await new Promise(resolve=>setTimeout(resolve,40));assert.equal(f.store[0].attempts,1);f.reporter.dispose();
 });
 test('manual report is reviewed before sending and works with telemetry disabled',async()=>{
-  const sent=[];const f=fixture({telemetry:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return response('pending');}});
+  const sent=[];const f=fixture({enabled:false,telemetry:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return response('pending');}});
   f.answers.push('Send report');await f.reporter.manual();
   assert.equal(sent.length,1);assert.equal(sent[0].source,'manual');assert.ok(validateProblemReport(sent[0]));
   const detail=f.notifications[0][1].detail;
@@ -109,7 +109,7 @@ test('deduplicated pending failure recovers the original backend occurrence',asy
   assert.ok(sent.some(report=>report.outcome==='recovered'));assert.equal(new Set(sent.map(report=>report.reportId)).size,1);f.reporter.dispose();
 });
 test('manual uncertainty retries the identical reviewed report and can copy it later',async()=>{
-  const sent=[];let count=0;const f=fixture({send:async(_,options)=>{sent.push(JSON.parse(options.body));return ++count===1?{status:503}:response();}});
+  const sent=[];let count=0;const f=fixture({enabled:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return ++count===1?{status:503}:response();}});
   f.answers.push('Send report','Copy report');await f.reporter.manual();
   assert.equal(sent.length,1);assert.equal(Object.hasOwn(sent[0],'description'),false);assert.deepEqual(JSON.parse(f.copied[0]),sent[0]);
   f.answers.push('Retry');await f.reporter.manual();assert.equal(sent.length,2);assert.deepEqual(sent[1],sent[0]);f.reporter.dispose();
@@ -149,7 +149,7 @@ test('revoking and re-enabling consent discards work queued in the previous epoc
 });
 
 test('manual public report requires explicit send confirmation',async()=>{
-  const sent=[];const f=fixture({send:async(_,options)=>{sent.push(options);return response();}});
+  const sent=[];const f=fixture({enabled:false,send:async(_,options)=>{sent.push(options);return response();}});
   await f.reporter.manual();assert.equal(sent.length,0);
   assert.match(f.notifications[0][1].detail,/public GitHub issue/);f.reporter.dispose();
 });
@@ -168,4 +168,89 @@ test('private reporting consent and queue never authorize or supply public repor
     }
     f.reporter.dispose();
   }
+});
+
+function firstRunFixture(t, {globalValue, workspaceValue, telemetry=true, respond=async()=>undefined}={}) {
+  const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'zero-report-choice-'));
+  t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));
+  let current=globalValue;const notifications=[],writes=[],listeners=[],deliveries=[];
+  const config={
+    inspect:()=>({globalValue:current,workspaceValue,defaultValue:false}),
+    get:()=>workspaceValue ?? current ?? false,
+    update:async(key,value,target)=>{writes.push({key,value,target});current=value;for(const listener of listeners)listener({affectsConfiguration:()=>true});}
+  };
+  const vscode={ConfigurationTarget:{Global:1},ExtensionMode:{Development:2},
+    workspace:{getConfiguration:()=>config,onDidChangeConfiguration:fn=>{listeners.push(fn);return {dispose(){}};}},
+    env:{isTelemetryEnabled:telemetry,clipboard:{writeText:async()=>{}}},
+    window:{showInformationMessage:async(...args)=>{notifications.push(args);return respond(...args);}}};
+  const storage=new Map();const context={extensionMode:2,globalStorageUri:{fsPath:directory},
+    globalState:{get:key=>storage.get(key),update:async(key,value)=>{if(value===undefined)storage.delete(key);else storage.set(key,value);}}};
+  const make=()=>createProblemReporter(vscode,context,{send:async(_,options)=>{deliveries.push(JSON.parse(options.body));return response();}});
+  return {make,notifications,writes,deliveries,get current(){return current;},set current(value){current=value;for(const listener of listeners)listener({affectsConfiguration:()=>true});}};
+}
+
+test('first-run choice explicitly enables only the global public setting',async t=>{
+  const f=firstRunFixture(t,{respond:async()=> 'Allow reports'}),reporter=f.make();
+  await reporter.offerFirstRunChoice();
+  assert.deepEqual(f.writes,[{key:'automaticPublicProblemReports',value:true,target:1}]);
+  assert.match(f.notifications[0][0],/public GitHub issues/);
+  assert.match(f.notifications[0][0],/No free text, source, logs or paths/);
+  assert.match(f.notifications[0][0],/telemetry/);
+  assert.deepEqual(f.notifications[0].slice(1),['Allow reports','No thanks']);reporter.dispose();
+});
+
+test('decline, dismissal, and existing explicit choices never nag on later windows',async t=>{
+  for(const result of ['No thanks',undefined]) await t.test(String(result),async t=>{
+    const f=firstRunFixture(t,{respond:async()=>result});let r=f.make();
+    await r.offerFirstRunChoice();r.dispose();r=f.make();await r.offerFirstRunChoice();
+    assert.equal(f.notifications.length,1);assert.deepEqual(f.writes,[]);r.dispose();
+  });
+  for(const initial of [true,false]) await t.test(`explicit ${initial}`,async t=>{
+    const f=firstRunFixture(t,{globalValue:initial});let r=f.make();await r.offerFirstRunChoice();r.dispose();
+    f.current=undefined;r=f.make();await r.offerFirstRunChoice();
+    assert.equal(f.notifications.length,0);assert.deepEqual(f.writes,[]);r.dispose();
+  });
+});
+
+test('concurrent windows offer the public choice only once',async t=>{
+  let finish;const pending=new Promise(resolve=>{finish=resolve;});
+  const f=firstRunFixture(t,{respond:()=>pending}),a=f.make(),b=f.make();
+  const first=a.offerFirstRunChoice(),second=b.offerFirstRunChoice();
+  for(let i=0;i<30&&!f.notifications.length;i++)await tick();
+  assert.equal(f.notifications.length,1);finish('No thanks');await Promise.all([first,second]);
+  assert.equal(f.notifications.length,1);assert.deepEqual(f.writes,[]);a.dispose();b.dispose();
+});
+
+test('a changed setting or disposed host makes a pending setup answer stale',async t=>{
+  for(const action of ['setting','dispose']) await t.test(action,async t=>{
+    let finish;const pending=new Promise(resolve=>{finish=resolve;});
+    const f=firstRunFixture(t,{respond:()=>pending}),r=f.make(),offered=r.offerFirstRunChoice();
+    for(let i=0;i<30&&!f.notifications.length;i++)await tick();
+    assert.equal(f.notifications.length,1);
+    if(action==='setting'){f.current=false;f.current=undefined;}else r.dispose();
+    finish('Allow reports');await offered;assert.deepEqual(f.writes,[]);r.dispose();
+  });
+});
+
+test('public consent sends a manual report directly even with telemetry disabled',async()=>{
+  const sent=[];const f=fixture({enabled:true,telemetry:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return response();}});
+  await f.reporter.manual();assert.equal(sent.length,1);assert.equal(sent[0].source,'manual');
+  assert.equal(f.notifications.some(args=>args[0]==='Send this problem report?'),false);f.reporter.dispose();
+});
+
+test('a saved draft retries directly once public reporting is enabled',async()=>{
+  const sent=[];let count=0;const f=fixture({enabled:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return ++count===1?{status:503}:response();}});
+  f.answers.push('Send report');await f.reporter.manual();assert.equal(sent.length,1);
+  const before=f.notifications.length;f.setEnabled(true);await f.reporter.manual();
+  assert.equal(sent.length,2);assert.deepEqual(sent[1],sent[0]);
+  assert.equal(f.notifications.slice(before).some(args=>args[0]==='A reviewed problem report is ready.'),false);f.reporter.dispose();
+});
+
+test('workspace-only settings do not authorize automatic or direct manual reports',async t=>{
+  const f=firstRunFixture(t,{workspaceValue:true});const r=f.make();
+  r.failure(bad(),'publish','building','project');await tick();
+  await r.manual();
+  assert.ok(f.notifications.some(args=>args[0]==='Send this problem report?'));
+  assert.deepEqual(f.deliveries,[]);assert.deepEqual(f.writes,[]);r.dispose();
 });
