@@ -1,3 +1,25 @@
+# Browser publishing recovery — 2026-11-18
+
+On `98ab09c64`, an explicit browser build or publish can offer **Update Browser
+Tools** instead of stopping at a builder-version mismatch. Confirmation replaces
+only `.zero-build`, keeps the complete previous builder in an ignored local
+backup, and continues the requested action. Declining leaves the project intact
+and ends quietly. Opening projects and native Run do not update them.
+
+The actual Mac Zero Dev host updated the published 0.5.79 starter, compiled its
+Java with WebFX/GWT, reached **Export ready**, and displayed **Hello, world!** in
+its embedded browser preview. All 65 old builder files match the backup; the
+other 158 original project files remain byte-identical. Receipts and logs are
+ignored under `.verification/publishing-recovery/`. This verifies local build
+recovery, not authenticated GitHub Pages upload or physical Windows behavior.
+
+Focused update/diagnostic tests: 25 passed. Publish/export tests: 105 passed,
+one skipped. `npm run check` and `git diff --check` passed. Independent Sol/high
+review covered the initial implementation; its targeted review accepted the
+cancellation-only delta and verified all 223 preserved/backup files. Two review
+waves found no blockers. Effective model/usage was not exposed. The changes remain local and are
+not included in the already published 0.5.80 installers or Store submission.
+
 # ZeroHub Projects responsiveness — 2026-11-18
 
 Draft based on `8192a7ab`. The first Projects page is resolved on the server.

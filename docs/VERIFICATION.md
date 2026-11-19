@@ -6126,3 +6126,25 @@ merge. Source-only checks do not establish physical school-device acceptance,
 interactive Sparkle upgrade, authenticated student publication or Store delivery.
 Original owner checkout files/staging remain preserved. Bulky evidence remains
 ignored under `.verification/release-080/`.
+
+## Browser tools update — 2026-11-18
+
+Explicit browser export/publish can now confirm a `.zero-build`-only update rather
+than failing at the installed-builder hash gate. Full project update/recovery stays
+disabled. Source checks cover cancellation, trust loss, incomplete recovery,
+customized core/source/assets preservation, exact old-builder backup, missing
+tooling and prompt-free reuse after updating. Browser actions no longer require
+a full core update plan.
+
+`node --test extension/test/mandatory-browser-update.test.js
+extension/test/project-builder-upgrade.test.js extension/test/project-builder.test.js
+extension/test/web-publish-ui.test.js extension/test/project-update.test.js`:
+151 passed, 14 intentionally skipped full-update tests, zero failures.
+`git diff --check` passed. A subsequent actual Mac Zero Dev walkthrough used the
+published 0.5.79 starter: confirmation, old-tool backup, real WebFX/GWT build,
+**Export ready**, and **Hello, world!** in the embedded preview all passed.
+The 65 backed-up builder files and 158 untouched project files were compared with
+the published ZIP. Focused update/diagnostic tests passed 25; publish/export tests
+passed 105 with one skip. `npm run check` passed. Physical Windows acceptance and
+authenticated student publication remain untested. No release of this fix was
+performed.

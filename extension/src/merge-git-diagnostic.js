@@ -3,6 +3,7 @@
 // Local Git can echo config paths, remote URLs or output from external tools.
 // Recognize Git's wording without copying paths, object IDs or other values.
 const gitMessages = [
+  [/^fatal: Needed a single revision/i, 'fatal: missing revision'],
   [/^fatal: unable to read tree\b/i, 'fatal: unable to read tree'],
   [/^fatal: bad (tree|object|revision)\b/i, 'fatal: bad $1'],
   [/^error: no such remote\b/i, '$&'],

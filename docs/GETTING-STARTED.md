@@ -71,9 +71,14 @@ Run and test your app first. Check that the tested version is on GitHub **main**
 ## Troubleshooting
 
 - **Can't find the sidebar or Start Page?** Follow [Back to Zero](https://zero.codepet.ca/tutorials/15).
+- **It looks like VS Code?** That is expected. Open the Zero app so it loads the Zero tools. If the controls are missing, use the Command Palette commands above.
 - **Zero won't open or finish setup?** Check your internet connection, close Zero and open it again. If needed, download the installer again.
 - **Run fails?** Read the error in Zero or the terminal and check the code and project files. Use **Troubleshooting → Test installation** to check the bundled example separately.
+- **“JavaFX runtime components are missing”?** Use Zero's **Run** instead of the Java debugger. It uses the project's JavaFX dependencies. If that fails, use **Test installation**.
 - **Zero could not prepare Git?** Fully quit Zero and VS Code, then reopen the Zero app. On Windows, connect to the internet so Zero can download Git if needed. If a school laptop blocks the download, ask school IT for help. Older Zero releases and manual ZIP setups need a working Git installation. If GitHub already has your project, choose **Clone from GitHub** and select the existing repository.
+- **The starter version differs?** Update Zero, then try **Project → New** again. If it persists, tell your teacher which version you have.
+- **Publishing needs newer browser tools?** Choose **Update Browser Tools** when prompted, then test your app and review the changed files before committing. Zero keeps the previous tools in a local backup and leaves your Java and assets unchanged. If the tools cannot be updated, keep a backup and copy your Java and assets into a new project.
+- **A merge fails?** Open Source Control and share the error with your teacher.
 - **GitHub says “Sudo authentication failed” after you enter the emailed code?** On GitHub’s **Confirm access** page, try another verification method if one is offered. If the email code keeps failing, try [resetting your GitHub password](https://github.com/password_reset). Then return to Zero and reconnect the same GitHub account.
 - **GitHub actions fail?** Check that you are signed in, the repository is accessible, and your connection is working. Zero displays the next action when it can identify the problem. If Git asks for your name or email, follow [GitHub’s guide to setting your commit name](https://docs.github.com/en/get-started/git-basics/setting-your-username-in-git) and [commit email](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address).
 - **Need to update Zero?** On Mac, use **Zero: Check for Updates**. On Windows, follow the update instructions for the installer you used.

@@ -6,9 +6,8 @@ const {loadBundle}=require('../src/lesson-projects');
 const format=require('../src/project-builder-format');
 const {readSavedBuilder}=require('../src/project-builder');
 const disposable=()=>({dispose(){}}),extensionPath=path.resolve(__dirname,'..');
-const migrationSteps=/Start Page → Project → New and copy your Java files and assets/;
 
-async function fixture(t,{current=false,onPrompt=async(_vscode,items)=>items[2]}={}) {
+async function fixture(t,{current=false,onPrompt=async()=>undefined}={}) {
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-required-update-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  for(const file of (await loadBundle(extensionPath))[0].files){const dest=path.join(root,...file.path.split('/'));await fs.mkdir(path.dirname(dest),{recursive:true});await fs.writeFile(dest,file.content);}
  await fs.writeFile(path.join(root,'zero.json'),'{}');
@@ -64,7 +63,7 @@ test('core-only browser action blocks dirty editor buffers before planning',asyn
  await h.commands.get('zero.exportWeb')();
  assert.equal(h.attempts,0);assert.equal(h.completed,0);assert.equal(h.prompts.length,0);assert.ok(h.errors.some(message=>/save your project files/i.test(message)));
 });
-test('outdated tooling stays quiet until export or publish and leaves the project intact',async t=>{
+test('declining the browser tools update leaves the project intact and never builds',async t=>{
  const h=await fixture(t),upgrade=require('../src/project-update'),originalPlan=upgrade.planUpdate,originalApply=upgrade.applyUpdate;let plans=0,applies=0;
  t.after(()=>{upgrade.planUpdate=originalPlan;upgrade.applyUpdate=originalApply;});
  upgrade.planUpdate=async options=>{plans++;return originalPlan(options);};
@@ -75,32 +74,54 @@ test('outdated tooling stays quiet until export or publish and leaves the projec
  assert.equal(plans,0);
  for(const command of ['zero.exportWeb','zero.publishAndOpenWeb']){
   await h.commands.get(command)();
-  assert.match(h.errors.at(-1),migrationSteps);
+  assert.match(h.logs.at(-1),/Browser action cancelled.*No browser tools were changed/);
  }
- assert.equal(h.errors.length,2);
- assert.equal(plans,2);assert.equal(applies,0);assert.equal(h.attempts,0);assert.equal(h.completed,0);assert.equal(h.prompts.length,0);
+ assert.deepEqual(h.errors,[]);
+ assert.equal(plans,0);assert.equal(applies,0);assert.equal(h.attempts,0);assert.equal(h.completed,0);assert.equal(h.prompts.length,2);
  assert.deepEqual(await fs.readFile(path.join(h.root,'zero-core.json')),originalCore);assert.equal((await readSavedBuilder(h.root)).profileHash,originalBuilder);
 });
-test('projects predating the core record get migration steps instead of a missing file error',async t=>{
- const h=await fixture(t);
+test('accepted browser tools update builds with the current builder and preserves original source and tools',async t=>{
+ const h=await fixture(t,{onPrompt:async(_vscode,items)=>items[2]});
+ const record=JSON.parse(await fs.readFile(path.join(h.root,'zero-core.json'))),customized=record.sources[0].path;
+ await fs.appendFile(path.join(h.root,customized),'\n// Student customization, intentionally differing from the core record.\n');
+ await fs.mkdir(path.join(h.root,'src/main/resources'),{recursive:true});
+ await fs.writeFile(path.join(h.root,'src/main/resources/student.txt'),'Student asset');
+ const paths=['zero-core.json','pom.xml','src/main/java/Main.java',customized,'src/main/resources/student.txt'];
+ const before=await Promise.all(paths.map(name=>fs.readFile(path.join(h.root,name))));
+ await h.commands.get('zero.exportWeb')();
+ assert.equal(h.attempts,1);assert.equal(h.completed,1);assert.deepEqual(h.errors,[]);assert.equal(h.prompts.length,1);
+ assert.equal(h.prompts[0][2].title,'Update Browser Tools');
+ assert.notEqual((await readSavedBuilder(h.root)).profileHash,h.old.profileHash);
+ for(let i=0;i<paths.length;i++)assert.deepEqual(await fs.readFile(path.join(h.root,paths[i])),before[i]);
+ const backup=(await fs.readdir(h.root)).find(name=>name.startsWith('.zero-build-backup-'));
+ assert.ok(backup);assert.equal((await readSavedBuilder(path.join(h.root,backup))).profileHash,h.old.profileHash);
+ await h.commands.get('zero.exportWeb')();assert.equal(h.prompts.length,1);assert.equal(h.completed,2);
+});
+test('browser tools update stops before writing when trust changes during its confirmation',async t=>{
+ const h=await fixture(t,{onPrompt:async(vscode,items)=>{vscode.workspace.isTrusted=false;return items[2];}});
+ await h.commands.get('zero.exportWeb')();
+ assert.equal(h.attempts,0);assert.equal(h.completed,0);assert.ok(h.errors.length);
+ assert.equal((await readSavedBuilder(h.root)).profileHash,h.old.profileHash);
+ assert.ok(!(await fs.readdir(h.root)).some(name=>name.startsWith('.zero-build-backup-')));
+});
+test('browser tools can be installed without a core ownership record',async t=>{
+ const h=await fixture(t,{onPrompt:async(_vscode,items)=>items[2]});
  await fs.rm(path.join(h.root,'zero-core.json'));
  await fs.rm(path.join(h.root,'.zero-build'),{recursive:true});
  await h.commands.get('zero.exportWeb')();
- assert.equal(h.attempts,0);
- assert.match(h.errors.at(-1),migrationSteps);
+ assert.equal(h.attempts,1);assert.equal(h.completed,1);assert.deepEqual(h.errors,[]);
+ await assert.rejects(fs.stat(path.join(h.root,'zero-core.json')),{code:'ENOENT'});
 });
-test('a missing core record with current browser tooling gets specific recovery guidance',async t=>{
+test('current browser tooling does not require a core update plan',async t=>{
  const h=await fixture(t,{current:true});
  await fs.rm(path.join(h.root,'zero-core.json'));
  await h.commands.get('zero.exportWeb')();
- assert.equal(h.attempts,0);
- assert.match(h.errors.at(-1),/zero-core\.json is missing/);
- assert.doesNotMatch(h.errors.at(-1),migrationSteps);
+ assert.equal(h.attempts,1);assert.equal(h.completed,1);assert.deepEqual(h.errors,[]);
 });
 test('core-only browser check stops when trust changes during planning',async t=>{
- const h=await fixture(t,{current:true}),upgrade=require('../src/project-update'),originalPlan=upgrade.planUpdate;
- t.after(()=>{upgrade.planUpdate=originalPlan;});
- upgrade.planUpdate=async()=>{h.vscode.workspace.isTrusted=false;return {changed:true,coreChanged:true,builderChanged:false};};
+ const h=await fixture(t,{current:true}),upgrade=require('../src/project-builder-upgrade'),originalPlan=upgrade.planUpgrade;
+ t.after(()=>{upgrade.planUpgrade=originalPlan;});
+ upgrade.planUpgrade=async()=>{h.vscode.workspace.isTrusted=false;return {changed:false};};
  await h.commands.get('zero.exportWeb')();
  assert.equal(h.attempts,0);assert.equal(h.completed,0);assert.equal(h.prompts.length,0);assert.ok(h.errors.length);
 });

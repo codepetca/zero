@@ -1,4 +1,23 @@
-# Full Zero0.5.80 release — 2026-11-18
+# Publishing recovery verified locally — 2026-11-18
+
+Branch `codex/student-daily-issues-20261118`, base `98ab09c64`. Explicit browser
+build/publish offers a confirmed `.zero-build`-only update, preserves the old
+tools, and continues. Java/assets/core stay unchanged. Cancel ends quietly.
+Full project upgrade and recovery remain disabled.
+
+Actual Mac Zero Dev updated the published 0.5.79 starter, completed WebFX/GWT,
+and showed Hello World in the embedded preview. Independent comparison verified
+65 backed-up tools and 158 untouched project files. Tests:25 update/diagnostic
+passed;105 publish/export passed,1 skipped. Check/diff checks and two Sol/high
+review waves passed. See [evidence](../docs/EVIDENCE.md).
+
+This fix remains local, outside published0.5.80 and its Store submission15.
+No new release/version, source push or deployment occurred. Physical Windows
+and authenticated Pages upload remain untested. Next delivery requires a new
+authorized release. Help/error **Report a problem** with reviewed private
+diagnostics is proposed, not implemented. Preserve the isolated Dev watcher.
+
+## Released0.5.80 context
 
 Owner authorized full publication. Audited fixes and progressive ZeroHub loading
 are on main. [Release ledger](../docs/RELEASE-LEDGER.md#zero-0580--2026-11-18)
