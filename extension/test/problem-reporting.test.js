@@ -13,11 +13,12 @@ function fixture({enabled=true,telemetry=true,stored,send,timeoutMs=30,project}=
   return {reporter,vscode,get store(){return store;},inputs,answers,notifications,copied,setProject(value){currentProject=value;},setEnabled(value){setting=value;configListener({affectsConfiguration:()=>true});},setTelemetry(value){vscode.env.isTelemetryEnabled=value;telemetryListener(value);}};
 }
 const tick=()=>new Promise(resolve=>setTimeout(resolve,10));
-const bad=()=>Object.assign(new Error('secret /Users/student project https://github.com/a/b token'),{code:'ZERO_BUILDER_UNAVAILABLE'});
+const bad=()=>Object.assign(new Error('secret /Users/student project https://github.com/a/b token'),{code:'WEB_PUBLISH_DEPLOYMENT_FAILED'});
 test('classification rejects expected and untrusted generic failures',()=>{
-  assert.equal(classify(bad()),'ZERO_BUILDER_UNAVAILABLE');
+  assert.equal(classify(bad()),'WEB_PUBLISH_DEPLOYMENT_FAILED');
   assert.equal(classify(new TypeError('secret')),'ZERO_INTERNAL_TYPE_ERROR');
   assert.equal(classify(new Error('compiler error')),undefined);
+  assert.equal(classify(Object.assign(new Error('update required'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'})),undefined);
   assert.equal(classify(Object.assign(new Error('student runtime'),{code:'STARTUP_FAILED'})),undefined);
   assert.equal(classify(Object.assign(new TypeError('cancel'),{name:'AbortError'})),undefined);
 });
@@ -63,7 +64,7 @@ test('pending uses the same report id and is not treated as delivery',async()=>{
 test('manual report preserves only stable latest error context when automatic reporting is off',async()=>{
   const sent=[];const f=fixture({enabled:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return response();}});
   f.reporter.failure(bad(),'run-browser','web-compile');f.inputs.push('');f.answers.push('Send report');await f.reporter.manual();
-  assert.equal(sent[0].operation,'run-browser');assert.equal(sent[0].stage,'web-compile');assert.equal(sent[0].code,'ZERO_BUILDER_UNAVAILABLE');assert.doesNotMatch(JSON.stringify(sent),/secret|Users|github\.com|token/);f.reporter.dispose();
+  assert.equal(sent[0].operation,'run-browser');assert.equal(sent[0].stage,'web-compile');assert.equal(sent[0].code,'WEB_PUBLISH_DEPLOYMENT_FAILED');assert.doesNotMatch(JSON.stringify(sent),/secret|Users|github\.com|token/);f.reporter.dispose();
 });
 test('project version reads are bounded and reject symlinks',async()=>{
   const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path');
@@ -109,4 +110,19 @@ test('an opening failure only recovers after a confirmed browser opening',async(
   await f.reporter.success('publish','project-a');await tick();assert.equal(sent.length,1);
   await f.reporter.success('publish','project-a','opening');await tick();
   assert.equal(sent.length,2);assert.equal(sent[1].outcome,'recovered');assert.equal(sent[1].reportId,sent[0].reportId);f.reporter.dispose();
+});
+test('revoking and re-enabling consent discards work queued in the previous epoch',async()=>{
+  const sent=[];let release;
+  const firstResponse=new Promise(resolve=>{release=resolve;});
+  const f=fixture({timeoutMs:1000,send:async(_,options)=>{
+    sent.push(JSON.parse(options.body));
+    return sent.length===1 ? firstResponse : response();
+  }});
+  f.reporter.failure(bad(),'publish','building','project-a');await tick();
+  f.reporter.failure(bad(),'publish','deploying','project-a');await tick();
+  f.setEnabled(false);f.setEnabled(true);release(response());
+  await new Promise(resolve=>setTimeout(resolve,40));
+  assert.equal(sent.length,1);assert.deepEqual(f.store,[]);
+  f.reporter.failure(bad(),'publish','verifying','project-a');await tick();
+  assert.equal(sent.length,2);assert.equal(sent[1].stage,'verifying');f.reporter.dispose();
 });

@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const {createBrowserRunCommands,sourceDiagnostics}=require('../src/web-run-ui');
 const {createManagedWebPreview}=require('../src/web-run-preview');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
-function harness(t) {
+function harness(t, {onReportManual,onReportFailure} = {}) {
   let runtimeOptions;const allRuntimeOptions=[];let active='/project',busy=false,building,valid=true,save=true,saveGate,builds=0,previews=0,stops=0,opens=0,openResult=true,cancel,workspaceChanged,previewGate,projectGate,validating,retainedValidating;
   const states=[],failures=[],events=[],diagnostics=[];
   const result={sitePath:'/project/.zero/web-export/site'};
@@ -12,7 +12,7 @@ function harness(t) {
     window:{withProgress:async(_,work)=>work({report(){}},{onCancellationRequested:callback=>{cancel=callback;return {dispose(){}};}})},ProgressLocation:{Notification:15},
     languages:{createDiagnosticCollection:()=>({clear(){diagnostics.length=0;},set(uri,items){diagnostics.push({uri,items});},dispose(){}})},Uri:{file:fsPath=>({fsPath})},
     Position:class{constructor(line,character){Object.assign(this,{line,character});}},Range:class{constructor(start,end){Object.assign(this,{start,end});}},Diagnostic:class{constructor(range,message,severity){Object.assign(this,{range,message,severity});}},DiagnosticSeverity:{Error:0}};
-  const api=createBrowserRunCommands(vscode,{project:async()=>{if(projectGate)await projectGate;return active;},output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:v=>{busy=v;},setActive:v=>events.push('active:'+v),setFailed:v=>failures.push(v),setState:v=>states.push(v),
+  const api=createBrowserRunCommands(vscode,{onReportManual,onReportFailure,project:async()=>{if(projectGate)await projectGate;return active;},output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:v=>{busy=v;},setActive:v=>events.push('active:'+v),setFailed:v=>failures.push(v),setState:v=>states.push(v),
     ensureValidatedExport:async options=>{events.push('build');builds++;options.onProgress('Checking compatibility');options.onProgress('Compiling Java');return building ? building(options) : result;},validateExport:async options=>{events.push('validate');if(validating)return validating(options);if(!valid)throw Error('Inputs changed. Run App again.');},
     validateRetainedExport:async options=>{events.push('retained-validate');return retainedValidating?retainedValidating(options):result;},
     previewFactory:async(_,site,options)=>{runtimeOptions=options;allRuntimeOptions.push(options);previews++;events.push('preview');if(previewGate)await previewGate;let stopped=false;return {openInBrowser:async()=>{opens++;if(openResult instanceof Error)throw openResult;return openResult;},dispose(){if(!stopped){stopped=true;stops++;events.push('dispose');options.onDidDispose();}}};}});
@@ -165,4 +165,19 @@ test('generated browser-runtime errors link to the retained adapter source rathe
  ]);
  const windows="Errors in 'C:\\cache\\build\\src\\main\\java\\zero\\web\\media\\BrowserSound.java'\nLine 14: Broken audio adapter";
  assert.equal(sourceDiagnostics(windows,'/project')[0].file,'/project/.zero-build/src/web-export/adapters/runtime/zero/web/media/BrowserSound.java');
+});
+test('browser fatal and compiler failures replace earlier manual context without leaking diagnostics',async t=>{
+ const {createProblemReporter}=require('../src/problem-reporting');const sent=[];let reporter;
+ const h=harness(t,{onReportManual:(stage,code,root)=>reporter.recordManual('run-browser',stage,code,root),onReportFailure:(error,stage,root)=>reporter.failure(error,'run-browser',stage,root)});
+ h.vscode.env={isTelemetryEnabled:true};h.vscode.workspace.getConfiguration=()=>({get:()=>true});
+ h.vscode.window.showInputBox=async()=>'';h.vscode.window.showInformationMessage=async(message)=>message==='Send this problem report?'?'Send report':undefined;
+ reporter=createProblemReporter(h.vscode,{extensionMode:2,globalState:{get:()=>[],update:async()=>{}}},{getProject:()=>'/project',send:async(_,options)=>{sent.push(JSON.parse(options.body));return {status:202,json:async()=>({status:'delivered',receipt:'c4ebd3bc-a08e-4a8c-847c-7ac13f32c898'})};}});t.after(()=>reporter.dispose());
+ reporter.recordManual('publish','deploying','WEB_PUBLISH_DEPLOYMENT_FAILED','/project');
+ await h.api.run();h.runtimeOptions.onRuntime({type:'fatal',stage:'frame-draw',code:'FRAME_EXCEPTION',diagnostic:'private /project file'});
+ await reporter.manual();assert.equal(sent.at(-1).operation,'run-browser');assert.equal(sent.at(-1).stage,'frame-draw');assert.equal(sent.at(-1).code,'FRAME_EXCEPTION');
+ reporter.recordManual('publish','deploying','WEB_PUBLISH_DEPLOYMENT_FAILED','/project');
+ h.building=async()=>{throw Object.assign(new Error('private /project compiler'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});};
+ await assert.rejects(h.api.run(),/private/);await tick();assert.equal(sent.length,1,'Expected browser tooling mismatch is not sent automatically');
+ await reporter.manual();assert.equal(sent.at(-1).operation,'run-browser');assert.equal(sent.at(-1).stage,'web-compile');assert.equal(sent.at(-1).code,'ZERO_BUILDER_UPDATE_REQUIRED');
+ assert.doesNotMatch(JSON.stringify(sent),/private|\/project/);
 });

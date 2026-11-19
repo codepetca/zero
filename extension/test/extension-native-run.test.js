@@ -16,7 +16,7 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-native-command-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,process.platform==='win32'?'mvnw.cmd':'mvnw'),'');
  await fs.writeFile(path.join(root,'pom.xml'),'<project></project>');
- const commands=new Map(),errors=[],states=[],launches=[],starts=[],ends=[],processEnds=[],deferredStarts=[];let provider,saves=0,builds=0,validated=0,webview,saveGate,startGate,openGate,hashGate,hashSignal=false,deferStartEvent=false,preparations=0,checks=0,edited,savedDocument,checkStatus='compatible',prepareGate,prepareSignal,holdNativePipes=false,cloneConfiguredTask=false,earlyCompilerOutput=false,earlyExit,hostCacheMode=false;
+ const commands=new Map(),errors=[],states=[],launches=[],starts=[],ends=[],processEnds=[],deferredStarts=[],problemReports=[];let problemReporter,provider,saves=0,builds=0,validated=0,webview,saveGate,startGate,openGate,hashGate,hashSignal=false,deferStartEvent=false,preparations=0,checks=0,edited,savedDocument,checkStatus='compatible',prepareGate,prepareSignal,holdNativePipes=false,cloneConfiguredTask=false,earlyCompilerOutput=false,earlyExit,hostCacheMode=false;
  const sourceIdentity={builderHash:'b'.repeat(64),scopeHash:'a'.repeat(64)};
  const proof=Object.fromEntries(['sourceHash','coreHash','librariesHash','profileHash','checkerHash','contractHash','jdkHash'].map(key=>[key,key==='profileHash'?sourceIdentity.builderHash:'a'.repeat(64)]));
  class Task{constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
@@ -40,11 +40,18 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  const originalLoad=Module._load,originalEnsure=snapshot.ensureValidatedExport,originalValidate=snapshot.validateExport;
  snapshot.ensureValidatedExport=async options=>{builds++;assert.equal(options.projectRoot,root);return {sitePath:path.join(root,'site')};};snapshot.validateExport=async()=>{validated++;};
  const filename=require.resolve('../src/extension');const oldCache=require.cache[filename];delete require.cache[filename];
- Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./saved-source-host')return {createSavedSourceHost:()=>({inspect:async()=>sourceIdentity,check:async()=>{checks++;return {status:checkStatus,scopeIdentity:sourceIdentity,identity:proof,diagnostics:[]};}})};const loaded=originalLoad.call(this,id,...args);if(id==='./native-runtime-task')return {...loaded,nativeBuildIdentity:async root=>{const identity=await loaded.nativeBuildIdentity(root);if(hashGate){hashSignal=true;await hashGate;}return identity;}};if(id==='./project-builder')return {...loaded,createProjectBuilder:()=>({prepareBrowserChecks:async options=>{assert.equal(options.explicitAction,true);preparations++;prepareSignal=options.signal;if(prepareGate)await prepareGate;return {};},ensureValidatedExport:options=>snapshot.ensureValidatedExport(options),validateExport:options=>snapshot.validateExport(options),validateRetainedExport:options=>snapshot.validateExport(options),assertBuildInputsAtCommit:async()=>{}})};return loaded;};
+ Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./saved-source-host')return {createSavedSourceHost:()=>({inspect:async()=>sourceIdentity,check:async()=>{checks++;return {status:checkStatus,scopeIdentity:sourceIdentity,identity:proof,diagnostics:[]};}})};const loaded=originalLoad.call(this,id,...args);if(id==='./problem-reporting')return {...loaded,createProblemReporter:(editor,context,options)=>problemReporter=loaded.createProblemReporter(editor,context,{...options,send:async(_,request)=>{problemReports.push(JSON.parse(request.body));return {status:202,json:async()=>({status:'delivered',receipt:'c4ebd3bc-a08e-4a8c-847c-7ac13f32c898'})};}})};if(id==='./native-runtime-task')return {...loaded,nativeBuildIdentity:async root=>{const identity=await loaded.nativeBuildIdentity(root);if(hashGate){hashSignal=true;await hashGate;}return identity;}};if(id==='./project-builder')return {...loaded,createProjectBuilder:()=>({prepareBrowserChecks:async options=>{assert.equal(options.explicitAction,true);preparations++;prepareSignal=options.signal;if(prepareGate)await prepareGate;return {};},ensureValidatedExport:options=>snapshot.ensureValidatedExport(options),validateExport:options=>snapshot.validateExport(options),validateRetainedExport:options=>snapshot.validateExport(options),assertBuildInputsAtCommit:async()=>{}})};return loaded;};
  let extension;try{extension=require(filename);}finally{Module._load=originalLoad;}
  const subscriptions=[];t.after(()=>{subscriptions.forEach(d=>d.dispose());update.planUpdate=originalPlanUpdate;snapshot.ensureValidatedExport=originalEnsure;snapshot.validateExport=originalValidate;delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
  extension.activate({extensionMode:2,subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{env:{},repositoryLedgerFactory,provider:appSessions(vscode,appProvider),nativeRuntime:{spawn,platform:'linux',env:{},killProcess:(pid,signal)=>{if(!holdNativePipes)spawned.find(item=>item.child.pid===-pid)?.child.emit('close',0);}}});
  const latestApp=()=>launches.filter(active=>active.task.definition.instanceId).at(-1);
+ const reportLatest=async()=>{
+  const input=vscode.window.showInputBox,info=vscode.window.showInformationMessage,quickPick=vscode.window.createQuickPick;
+  vscode.window.createQuickPick=()=>({dispose(){}});vscode.window.showInputBox=async()=>'';
+  vscode.window.showInformationMessage=async message=>message==='Send this problem report?'?'Send report':undefined;
+  try {await commands.get('zero.reportProblem')();} finally {vscode.window.showInputBox=input;vscode.window.showInformationMessage=info;vscode.window.createQuickPick=quickPick;}
+  return problemReports.at(-1);
+ };
  await commands.get('zero.runApp')();assert.equal(saves,1);assert.equal(launches.length,1);assert.equal(builds,0);assert.equal(validated,0);
  assert.ok(launches[0].task.execution instanceof CustomExecution);assert.deepEqual(spawned[0].args,['clean','compile','javafx:run']);assert.match(webview.html,/readiness unverified/);
  const identity=spawned[0].options.env;const signal=(seq,type,code,stage='startup',diagnostic)=>{launches[0].child.stdout.emit('data',Buffer.from(NATIVE_PREFIX+JSON.stringify({version:1,runId:identity.ZERO_RUNTIME_RUN_ID,buildId:identity.ZERO_RUNTIME_BUILD_ID,seq,type,stage,code,...(diagnostic?{diagnostic}:{})})+'\n'));};
@@ -56,7 +63,9 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  await fs.rename(wrapper,wrapper+'.held');
  const unavailableTask=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});
  const liveSpawns=spawned.length,liveErrors=errors.length;
+ problemReporter.recordManual('publish','deploying','WEB_PUBLISH_DEPLOYMENT_FAILED',root);
  await vscode.tasks.executeTask(unavailableTask);
+ const taskReport=await reportLatest();assert.equal(taskReport.operation,'run-native');assert.equal(taskReport.stage,'preparing');assert.equal(taskReport.code,'MANUAL_REPORT');
  await fs.rename(wrapper+'.held',wrapper);
  hostCacheMode=false;
  assert.equal(unavailableTask.definition.instanceId,undefined,'Configured tasks keep their user definition');
@@ -250,19 +259,23 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  assert.equal(builds,1);assert.ok(states.some(text=>text.includes('Web export ready')));
  await commands.get('zero.runApp')();const failed=launches.at(-1),failureIdentity=spawned.at(-1).options.env;
  const failureRecord=(seq,type,code,stage,diagnostic)=>failed.child.stdout.emit('data',Buffer.from(NATIVE_PREFIX+JSON.stringify({version:1,runId:failureIdentity.ZERO_RUNTIME_RUN_ID,buildId:failureIdentity.ZERO_RUNTIME_BUILD_ID,seq,type,code,stage,...(diagnostic?{diagnostic}:{})})+'\n'));
+ problemReporter.recordManual('publish','deploying','WEB_PUBLISH_DEPLOYMENT_FAILED',root);
  failureRecord(1,'startup','STARTING','startup');failureRecord(2,'fatal','FRAME_EXCEPTION','frame-update','local update cause');assert.match(webview.html,/App failed/);finish(failed,0);assert.match(webview.html,/App ended with an error/,'A fatal runtime event remains failed even if Maven exits zero');assert.ok(states.some(text=>text.includes('local update cause')));
+ const nativeReport=await reportLatest();assert.equal(nativeReport.operation,'run-native');assert.equal(nativeReport.stage,'frame-update');assert.equal(nativeReport.code,'FRAME_EXCEPTION');assert.doesNotMatch(JSON.stringify(nativeReport),/local update cause|zero-native-command/);
  // Already-delivered compiler diagnostics survive delayed failure/Stop. A new
  // run clears only Zero's compiler owner, leaving unrelated diagnostics alone.
  await commands.get('zero.runApp')();const compilerFailed=launches.at(-1);
  const compilerErrors=diagnosticCollections.get('zero-native-compiler');
  const runtimeErrors=diagnosticCollections.get('zero-native-runtime');
  const sourceFile=path.join(root,'src/main/java/Main.java');
+ problemReporter.recordManual('publish','deploying','WEB_PUBLISH_DEPLOYMENT_FAILED',root);
  compilerFailed.child.stderr.emit('data',Buffer.from('[ERROR] '+sourceFile+':[22,'));
  compilerFailed.child.stderr.emit('data',Buffer.from("50] ';' expected\n"));
  assert.equal(compilerErrors.get(sourceFile)[0].message,"';' expected");
  assert.equal(compilerErrors.get(sourceFile)[0].range.start.character,49);
  await new Promise(resolve=>setTimeout(resolve,20));finish(compilerFailed,1);
  assert.equal(compilerErrors.get(sourceFile).length,1,'Task exit retains delivered errors');
+ const compilerReport=await reportLatest();assert.equal(compilerReport.operation,'run-native');assert.equal(compilerReport.stage,'native-compile');assert.equal(compilerReport.code,'MANUAL_REPORT');assert.doesNotMatch(JSON.stringify(compilerReport),/expected|zero-native-command/);
  await commands.get('zero.stopApp')();assert.equal(compilerErrors.get(sourceFile).length,1,'Stop is not a compiler error reset');
  const browserErrors=diagnosticCollections.get('zero-browser-compatibility');browserErrors.set('other.java',['unrelated']);
  await commands.get('zero.runApp')();assert.equal(compilerErrors.size,0);assert.deepEqual(browserErrors.get('other.java'),['unrelated']);

@@ -166,6 +166,13 @@ test('actual PostgreSQL preserves receipts, grouping, recovery, rate limits and 
     pool = new Pool({host:socket, port:55483, user:userInfo().username, database:'postgres', ssl:false, max:8});
     await pool.query(await readFile(new URL('../sql/problem-reports.sql', import.meta.url), 'utf8'));
     const stores = [createProblemReportsStore(pool,config), createProblemReportsStore(pool,config)];
+    const freshHealth = await reconcileProblemReports({env,apply:false,storeFactory:() => stores[0]});
+    assert.deepEqual(freshHealth,{status:'ok',delivered:0,pending:0,needsAttention:0,attempted:0});
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM zero_problem_destination')).rows[0].n,0,
+      'read-only health never initializes the destination on a fresh schema');
+    assert.equal((await reconcileProblemReports({env,apply:true,storeFactory:() => stores[1]})).status,'ok');
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM zero_problem_destination')).rows[0].n,1,
+      'explicit reconciliation initializes and verifies the fixed destination');
     const github = fakeGithub();
     const response = (report, alternate = false, client = github) => receiveProblemReport(request(report), {
       env, storeFactory:() => stores[Number(alternate)], githubFactory:cfg => createProblemReportsGithub(cfg, {fetchImpl:client.fetchImpl})

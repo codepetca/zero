@@ -26,7 +26,12 @@ eight structured operation breadcrumbs. Environment fields include the installed
 Zero and editor versions, OS family and numeric version, architecture,
 distribution, Java version, project framework version and browser-builder
 version. An unavailable field is `unknown`. Gathering context never executes
-project code.
+project code. The initial collector can read the bounded framework coordinate
+record and explicit Windows launcher distribution markers. Java and browser
+builder release versions remain `unknown` because the current operation hooks
+do not supply those observed versions. macOS product version and unmarked
+distributions also remain `unknown`; kernel version is not labeled as a macOS
+product release.
 
 The shared [report contract](../extension/src/problem-report-contract.js) rejects
 unrecognized fields. Automatic payloads contain no raw error messages, stacks,
@@ -48,6 +53,11 @@ recoveries without claiming distinct users. Keep generic manual reports separate
 unless a maintainer determines they describe the same problem. Repeated delivery
 of the same report must keep one occurrence. A reported recovery describes a
 later matching operation and does not establish that a released fix caused it.
+The initial recovery hook covers publishing in the same editor session, after
+the server accepts its failure and the same project reaches verified live
+publication and confirmed browser opening. Other operation types currently
+report failures without recovery transitions. Native task launch alone cannot
+establish that an app recovered.
 
 An investigator records one of these outcomes in the issue.
 

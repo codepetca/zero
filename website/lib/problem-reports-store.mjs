@@ -16,7 +16,7 @@ export function createProblemReportsStore(pool, destination) {
     throw new Error('A fixed report destination is required.');
   }
   return {
-    async open(deadline) {
+    async open(deadline, {initializeDestination = true} = {}) {
       let client;
       let released = false;
       const release = (destroy = false) => { if (client && !released) { released = true; client.release(destroy); } };
@@ -36,10 +36,13 @@ export function createProblemReportsStore(pool, destination) {
         return client.query({text, values, query_timeout:4000});
       });
       try {
-        await query(`INSERT INTO zero_problem_destination(singleton,repository_id,repository) VALUES(true,$1,$2)
-          ON CONFLICT DO NOTHING`, [destination.repositoryId,destination.repository]);
+        if (initializeDestination) {
+          await query(`INSERT INTO zero_problem_destination(singleton,repository_id,repository) VALUES(true,$1,$2)
+            ON CONFLICT DO NOTHING`, [destination.repositoryId,destination.repository]);
+        }
         const pinned = (await query('SELECT repository_id,repository FROM zero_problem_destination WHERE singleton=true')).rows[0];
-        if (String(pinned?.repository_id) !== String(destination.repositoryId) || pinned?.repository !== destination.repository) {
+        if ((pinned || initializeDestination) &&
+            (String(pinned?.repository_id) !== String(destination.repositoryId) || pinned?.repository !== destination.repository)) {
           throw new Error('Report destination differs from its private database.');
         }
       } catch (error) {
@@ -49,6 +52,7 @@ export function createProblemReportsStore(pool, destination) {
       }
       return {
         async accept(report) {
+          if (!initializeDestination) throw new Error('Report acceptance requires a verified destination.');
           const fingerprint = problemFingerprint(report);
           await query('BEGIN');
           try {
@@ -92,6 +96,7 @@ export function createProblemReportsStore(pool, destination) {
           }
         },
         async lock(fingerprint) {
+          if (!initializeDestination) throw new Error('Report delivery requires a verified destination.');
           // Do not queue requests behind GitHub: the accepted report is already durable.
           const result = await query('SELECT pg_try_advisory_lock(hashtextextended($1, 0)) AS locked', ['zero-report:'+fingerprint]);
           const locked = result.rows[0].locked === true;

@@ -33,10 +33,10 @@ const REPORT_CODES = Object.freeze({
   SHUTDOWN_FAILED: 'The app failed during shutdown.',
   MANUAL_REPORT: 'The user reported a problem.'
 });
-// These broad failures can originate in student code. A manual report can
-// describe them without automatically opening issues for ordinary Java errors.
+// Expected tooling guidance and broad failures originating in student code
+// remain available through manual reports without automatically opening issues.
 const MANUAL_ONLY_CODES = new Set([
-  'ZERO_BUILDER_OPERATION_FAILED', 'STARTUP_FAILED', 'ASSET_MISSING',
+  'ZERO_BUILDER_UPDATE_REQUIRED', 'ZERO_BUILDER_OPERATION_FAILED', 'STARTUP_FAILED', 'ASSET_MISSING',
   'FRAME_EXCEPTION', 'UI_CALLBACK_FAILED', 'PROMISE_REJECTED', 'SHUTDOWN_FAILED',
   'MANUAL_REPORT'
 ]);

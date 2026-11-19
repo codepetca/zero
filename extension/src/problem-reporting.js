@@ -145,6 +145,7 @@ function createProblemReporter(vscode, context, {
   const crumbs = [];
   const failures = new Map();
   const queueScopes = new Map();
+  const observedErrors = new WeakMap();
 
   const enabled = () => !disposed && vscode.env?.isTelemetryEnabled === true &&
     vscode.workspace.getConfiguration('zero').get('automaticProblemReports', false) === true;
@@ -239,22 +240,23 @@ function createProblemReporter(vscode, context, {
       timer.unref?.();
     }
   }
-  function flush() {
+  function flush(generation = consentGeneration) {
     return serialize(async () => {
-      if (disposed) return;
+      if (disposed || generation !== consentGeneration) return;
       if (!enabled()) {
         clear();
         return;
       }
       queue = queue.filter(validEntry);
       await persist();
-      while (enabled() && queue.length) {
+      if (generation !== consentGeneration) return;
+      while (enabled() && generation === consentGeneration && queue.length) {
         const item = queue[0];
         const controller = new AbortController();
         active = controller;
         const result = await transmit(item.report, controller);
         if (active === controller) active = undefined;
-        if (disposed) return;
+        if (disposed || generation !== consentGeneration) return;
         if (!enabled()) {
           clear();
           return;
@@ -271,34 +273,44 @@ function createProblemReporter(vscode, context, {
             queueScopes.delete(item.report.reportId);
           }
           await persist();
+          if (generation !== consentGeneration) return;
           schedule();
           return;
         }
         queue.shift();
         queueScopes.delete(item.report.reportId);
         await persist();
+        if (generation !== consentGeneration) return;
       }
     });
   }
+  function recordManual(operation, stage, code, scope) {
+    if (!OPERATIONS.includes(operation)) return;
+    const safeStage = STAGES.includes(stage) ? stage : 'unknown';
+    const safeCode = typeof code === 'string' && Object.hasOwn(REPORT_CODES, code) ? code : 'MANUAL_REPORT';
+    latest = {operation, stage:safeStage, code:safeCode, scope};
+    breadcrumb(operation, safeStage, 'failed');
+  }
   function failure(error, operation, stage = 'unknown', scope) {
     if (!OPERATIONS.includes(operation) || !STAGES.includes(stage)) return;
-    const candidate = error?.code;
-    const manualCode = typeof candidate === 'string' && Object.hasOwn(REPORT_CODES, candidate)
-      ? candidate : classify(error) || 'MANUAL_REPORT';
-    latest = {operation, stage, code:manualCode, scope};
-    breadcrumb(operation, stage, 'failed');
+    if (error && typeof error === 'object') {
+      const prior = observedErrors.get(error);
+      if (prior?.operation === operation && prior.scope === scope) return;
+      observedErrors.set(error, {operation, scope});
+    }
+    recordManual(operation, stage, error?.code || classify(error), scope);
     if (!enabled()) return;
     const code = classify(error);
     if (!code) return;
     const generation = consentGeneration;
     void makeReport('automatic', operation, stage, code, undefined, scope).then(report => {
       if (!report || !enabled() || generation !== consentGeneration) return;
-      enqueue(report, scope);
+      enqueue(report, scope, generation);
     }).catch(() => {});
   }
-  function enqueue(report, scope) {
+  function enqueue(report, scope, generation = consentGeneration) {
     void serialize(async () => {
-      if (!enabled()) return;
+      if (!enabled() || generation !== consentGeneration) return;
       const duplicate = queue.find(item =>
         item.report.operation === report.operation && item.report.stage === report.stage &&
         item.report.code === report.code && item.report.outcome === report.outcome &&
@@ -321,7 +333,7 @@ function createProblemReporter(vscode, context, {
       queue.push({report, attempts:0});
       while (queue.length > MAX_QUEUE) queueScopes.delete(queue.shift().report.reportId);
       await persist();
-    }).then(() => flush());
+    }).then(() => {if (generation === consentGeneration) return flush(generation);});
   }
   async function success(operation, scope, stage) {
     if (!enabled() || typeof scope !== 'string' || !scope) return;
@@ -338,7 +350,7 @@ function createProblemReporter(vscode, context, {
       outcome: 'recovered',
       breadcrumbs: crumbs.slice()
     });
-    if (report) enqueue(report);
+    if (report) enqueue(report, undefined, generation);
   }
   async function copyManualDraft() {
     try {
@@ -429,7 +441,7 @@ function createProblemReporter(vscode, context, {
   else clear();
 
   return {
-    breadcrumb, failure, success, manual, flush,
+    breadcrumb, recordManual, failure, success, manual, flush,
     dispose() {
       disposed = true;
       clearTimeout(timer);

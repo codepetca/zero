@@ -19,7 +19,7 @@ export async function reconcileProblemReports({env = process.env, apply = false,
   let session, health, attempted = 0;
   const store = storeFactory(config);
   try {
-    session = await store.open(deadline);
+    session = await store.open(deadline, {initializeDestination:apply});
     health = await session.health();
     const pending = apply ? await session.pending(limit) : [];
     session.close(); session = null;
@@ -33,7 +33,7 @@ export async function reconcileProblemReports({env = process.env, apply = false,
       } catch { /* Retain durable pending state; no provider details leave this boundary. */ }
       finally { provider.dispose(); session.close(); session = null; }
     }
-    session = await store.open(deadline);
+    session = await store.open(deadline, {initializeDestination:apply});
     health = await session.health();
     return {status:'ok', ...health, attempted};
   } catch {

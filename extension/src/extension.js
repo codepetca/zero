@@ -697,13 +697,15 @@ function activate(context, services = {}) {
     if (disposed || metadata.generation !== runGeneration || nativeTaskState(execution?.task) !== metadata || stoppedTasks.has(execution)) return;
     if (event.type === 'ui-ready') state = 'App UI ready';
     else if (event.type === 'first-frame') state = 'App running · first game frame ready';
-    else if (event.type === 'fatal') {buildFailed = true;state = `App failed (${event.stage}/${event.code}). Check Problems or the task terminal.`;publishRuntimeProblems(metadata,event);}
+    else if (event.type === 'fatal') {problemReporter.recordManual('run-native',event.stage,event.code,metadata.root);buildFailed = true;state = `App failed (${event.stage}/${event.code}). Check Problems or the task terminal.`;publishRuntimeProblems(metadata,event);}
     else if (event.type === 'stopped') state = 'App stopped';
     if (event.diagnostic) output.appendLine(`[Native ${event.stage}/${event.code}] ${event.diagnostic}`);
     refresh();
   }
   function publishCompilerProblems(metadata, owner = execution) {
-    if(!compilerProblems || disposed || metadata.generation !== runGeneration || nativeTaskState(owner?.task) !== metadata || stoppedTasks.has(owner))return;
+    if(disposed || metadata.generation !== runGeneration || nativeTaskState(owner?.task) !== metadata || stoppedTasks.has(owner))return;
+    if(metadata.compilerItems?.length && !metadata.failed)problemReporter.recordManual('run-native','native-compile','MANUAL_REPORT',metadata.root);
+    if(!compilerProblems)return;
     const grouped=new Map();
     for(const item of metadata.compilerItems||[]){
       const point=new vscode.Position(item.line-1,item.column-1);
@@ -771,9 +773,10 @@ function activate(context, services = {}) {
       metadata.reconciled = true;
       compilerProblems?.clear();nativeProblems?.clear();
       publishCompilerProblems(metadata,active);
-      if (metadata.fatal) publishRuntimeProblems(metadata,metadata.fatal);
+      if (metadata.fatal) {problemReporter.recordManual('run-native',metadata.fatal.stage,metadata.fatal.code,metadata.root);publishRuntimeProblems(metadata,metadata.fatal);}
       const exitCode = metadata.exitCode ?? taskExitCodes.get(active);
       buildFailed = Boolean(metadata.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata.custom || !stoppedTasks.has(active)));
+      if(buildFailed && !metadata.fatal && !stoppedTasks.has(active))problemReporter.recordManual('run-native',metadata.compilerItems?.length?'native-compile':'unknown','MANUAL_REPORT',metadata.root);
       state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
       refresh();return;
     }
@@ -800,6 +803,7 @@ function activate(context, services = {}) {
       execution = undefined;
       const exitCode = metadata?.exitCode ?? taskExitCodes.get(event.execution);
       buildFailed = Boolean(metadata?.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata?.custom || !stoppedTasks.has(event.execution)));
+      if(buildFailed && metadata && !metadata.fatal && !stoppedTasks.has(event.execution))problemReporter.recordManual('run-native',metadata.compilerItems?.length?'native-compile':'unknown','MANUAL_REPORT',metadata.root);
       state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
       refresh();
     }
@@ -815,6 +819,7 @@ function activate(context, services = {}) {
       if (typeof vscode.CustomExecution !== 'function') return undefined;
       const taskExecution = new vscode.CustomExecution(async () => {
         const generation = runGeneration;
+        let selectedRoot;
         const fail = message => {
           output.appendLine(`Run App: ${message}`);
           void vscode.window.showErrorMessage(`Zero: ${message}`).then(undefined,()=>{});
@@ -823,13 +828,16 @@ function activate(context, services = {}) {
         if (disposed || stopPromise || isBusy() || nativeStarting) return fail('Finish the current action before running the app.');
         try {
           if (!await firstUse.ensure() || disposed || generation !== runGeneration) return finishedTaskPty('Run cancelled.',0);
-          const root=await project();
+          const root=await project();selectedRoot=root;
           if (disposed || generation !== runGeneration) return finishedTaskPty('Run cancelled.',0);
           if (stopPromise || isBusy() || nativeStarting) return fail('Finish the current action before running the app.');
           const active=await queuedRun(root);
           if (disposed || generation !== runGeneration || !active) return finishedTaskPty('Run cancelled.',0);
           return finishedTaskPty('',0);
-        } catch (error) {return fail(error.message || 'Cannot prepare Run App.');}
+        } catch (error) {
+          problemReporter.recordManual('run-native','preparing',error?.code,selectedRoot || projectRoot);
+          return fail(error.message || 'Cannot prepare Run App.');
+        }
       });
       const task = new vscode.Task(configured.definition, configured.scope, 'Run App', 'Zero', taskExecution, []);
       task.presentationOptions = {reveal: vscode.TaskRevealKind.Never, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
@@ -2885,7 +2893,7 @@ function activate(context, services = {}) {
   const buildWithSavedProject=options=>withCurrentBrowserTooling(savedBuilder.ensureValidatedExport,options);
   const validateWithSavedProject=options=>savedBuilder.validateExport({...options,explicitAction:true});
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
-  const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
+  const browserRun=createBrowserRunCommands(vscode,{onReportManual:(stage,code,root)=>problemReporter.recordManual('run-browser',stage,code,root),onReportFailure:(error,stage,root)=>problemReporter.failure(error,'run-browser',stage,root),project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
   Object.assign(actions,browserRun.commands);
   actions['zero.runApp']=expectedRoot=>{
     if (stopPromise) return stopPromise;

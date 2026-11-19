@@ -11,7 +11,7 @@ function report() {
     source: 'automatic',
     operation: 'publish',
     stage: 'checking',
-    code: 'ZERO_BUILDER_UPDATE_REQUIRED',
+    code: 'ZERO_BUILDER_UNAVAILABLE',
     outcome: 'failed',
     environment: {
       zeroVersion: '0.5.80', editorVersion: '1.105.0', os: 'windows',
@@ -60,7 +60,7 @@ test('rejects hidden arbitrary values in technical version and enum fields', () 
 });
 
 test('student runtime and broad compiler failures require a manual report', () => {
-  for (const code of ['ZERO_BUILDER_OPERATION_FAILED', 'STARTUP_FAILED', 'ASSET_MISSING', 'FRAME_EXCEPTION', 'UI_CALLBACK_FAILED', 'PROMISE_REJECTED', 'SHUTDOWN_FAILED', 'MANUAL_REPORT']) {
+  for (const code of ['ZERO_BUILDER_UPDATE_REQUIRED', 'ZERO_BUILDER_OPERATION_FAILED', 'STARTUP_FAILED', 'ASSET_MISSING', 'FRAME_EXCEPTION', 'UI_CALLBACK_FAILED', 'PROMISE_REJECTED', 'SHUTDOWN_FAILED', 'MANUAL_REPORT']) {
     const value = {...report(), code};
     assert.equal(validateProblemReport(value), null, code);
     assert.ok(validateProblemReport({...value, source: 'manual'}), code);

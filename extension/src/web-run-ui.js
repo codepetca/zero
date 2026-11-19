@@ -23,7 +23,7 @@ function sourceDiagnostics(text, root) {
   return diagnostics.filter(item => item.file.startsWith(root+path.sep));
 }
 
-function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setActive=()=>{},setFailed=()=>{},cacheRoot,ensureValidatedExport,validateExport,validateRetainedExport,previewFactory=createManagedWebPreview,beforeRun=async()=>{},preferredPreviewColumn=()=>undefined}) {
+function createBrowserRunCommands(vscode, {onReportManual=()=>{},onReportFailure=()=>{},project,output,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setActive=()=>{},setFailed=()=>{},cacheRoot,ensureValidatedExport,validateExport,validateRetainedExport,previewFactory=createManagedWebPreview,beforeRun=async()=>{},preferredPreviewColumn=()=>undefined}) {
   const build = options => (ensureValidatedExport || require('./web-export/snapshot').ensureValidatedExport)(options);
   const validate = options => (validateExport || require('./web-export/snapshot').validateExport)(options);
   const problems = vscode.languages?.createDiagnosticCollection('zero-browser');
@@ -79,6 +79,7 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
       else if(event.type==='ui-ready')setState('App ready');
       else if(event.type==='first-frame')setState('App running');
       else if(event.type==='fatal'){
+        onReportManual(event.stage,event.code,root);
         setFailed(true);setState('App stopped with an error. Open Problems or check Zero output.');
         const detail=event.diagnostic||event.code;output.appendLine(detail);output.show?.(true);
         void diagnostics({message:detail,diagnostics:runtimeDiagnostics(detail,root)},root).catch(error=>output.appendLine(error.message));
@@ -116,6 +117,7 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
       await showPreview(root,result,id,validate,controller.signal);
     }catch(error){
       if(controller.signal.aborted || id!==generation || disposed)return;
+      onReportFailure(error,'web-compile',root);
       error.zeroRunMessage=root ? 'App could not run. Open Problems or check Zero output.' : error.message;
       setFailed(true);setState(error.zeroRunMessage);output.appendLine(error.message);output.show?.(true);await diagnostics(error,root);throw error;
     }finally{
