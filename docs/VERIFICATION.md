@@ -1,3 +1,16 @@
+# Zero 0.5.82 release verification — 2026-11-19
+
+Source PR392 passed all 12 checks; canonical preparation 44550447823 and Windows
+preparation 44550453843 passed. Anonymous downloads verified the three-file kit,
+Mac setup and its two source archives, and the small Portable ZIP. Installed VSIX
+reporting passed its actual editor walkthrough. Complete Portable is public after
+authenticated verification; anonymous ZIP/source-TAR and exact public ZIP
+cold/warm proof are pending. Store submission 17 remains in
+certification. Promotion CI and live website/feed read-back are pending. Physical
+school devices, interactive updater delivery and the AI runner remain separate.
+Detailed artifact identities and proof references are in [the release ledger](RELEASE-LEDGER.md)
+and [evidence](EVIDENCE.md).
+
 # One-time setup choice — 2026-11-19
 
 The revised editor offers explicit public consent once during first-run setup.
