@@ -7,8 +7,8 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.81](https://github.com/codepetca/zero/releases/tag/v0.5.81) is public; all three anonymous downloads match reviewed preparation44447511514. | Metadata/website promotion checks. |
-| Website | [PR383](https://github.com/codepetca/zero/pull/383) promotes the verified0.5.80 Mac, signed feed and both Portable downloads. | The Windows button opens the Microsoft Store. |
+| GitHub manual kit | [Zero 0.5.81](https://github.com/codepetca/zero/releases/tag/v0.5.81) is public; all three anonymous downloads match reviewed preparation44447511514. | Live links and release read-back verified. |
+| Website | [PR387](https://github.com/codepetca/zero/pull/387) and [PR388](https://github.com/codepetca/zero/pull/388) promoted verified0.5.81 downloads/feed; live links and signed bytes match. | Store button remains the exact Microsoft listing. |
 | Mac installer | [0.5.81](https://github.com/codepetca/zero/releases/tag/setup-v0.5.81) is public; DMG and both source archives match the reviewed seal. | Promote signed build 80 feed and verify deployed download/feed. |
 | Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 15 / 0.5.80 is live; submission 16 / 1.5.81.0 is in certification. | 0.5.81 publishes automatically after Microsoft approval. |
 | Windows Portable | [0.5.81 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.81) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.81) are public and embed the same published kit. | Complete: extract and open Zero.exe. Small: teacher/IT stages vendor tools. Verify actual school policy under a student login. |
@@ -29,7 +29,7 @@ Owner explicitly authorized source merge and full download/Store publication.
 [Source PR385](https://github.com/codepetca/zero/pull/385) merged at
 `b61d160d3057f381da2a83c442a152548ba9a5e8`, after all 12 final-head checks passed.
 The kit, Mac and both Portable GitHub releases are public; website/feed promotion
-is in progress. No old public bytes were replaced. Core remains 0.3.0. Report a
+and live read-back are complete. No old public bytes were replaced. Core remains 0.3.0. Report a
 problem remains a separate proposal, handed to the always-on improvements chat.
 
 Explicit browser build/publish now offers **Update Browser Tools**, backs up old
@@ -43,7 +43,7 @@ passed at the exact reviewed source and retained the kit, starter, VSIX and both
 matching Portable candidates. Fresh full extension tests:2,557 passed, 163 skipped,
 zero failures; website: 867 passed, 4 skipped, with successful build. Native game/
 framework checks, 27 GUI examples and lesson checks passed. The independent
-[WebFX run44447460456](https://github.com/codepetca/zero/actions/runs/44447460456)
+[WebFX run 44447460456](https://github.com/codepetca/zero/actions/runs/44447460456)
 passed its actual browser compiles/behavior checks and 414 tests (4 skipped).
 
 Public starter `32c4d56a706d8d677db0eecfea5b202ca1bee8ca`, tree
