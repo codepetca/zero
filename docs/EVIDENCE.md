@@ -1,3 +1,34 @@
+# Final hosted reporting and reconciliation acceptance — 2026-11-19
+
+[PR390](https://github.com/codepetca/zero/pull/390) merged as
+`baf9fe48ac298e5ffd199ee1923528ec9e4e9d1e` after all12 checks passed on
+`8f14e2762`: [source44535020325](https://github.com/codepetca/zero/actions/runs/44535020325)
+(10m6), [browser44535020524](https://github.com/codepetca/zero/actions/runs/44535020524)
+(8m50), [Windows44535020429](https://github.com/codepetca/zero/actions/runs/44535020429)
+(native/MSIX5m27, Portable5m15), both gates and Vercel preview. Root source checks
+also passed. The handler correction has two clean independent Sol/high reviews,
+15 focused passing cases and8 independently rerun regression cases.
+
+Exact-merge production deployment `dpl_6LMsgmHFrhXq9S2xLwEJtYC5t1KR` reached READY
+and the canonical zero.codepet.ca alias. The existing production collection flag
+remains enabled. The repository hourly variable is nowtrue; the matching
+purpose-specific secret is staged without DB/App credentials in Actions.
+[Manual dispatch44537092433](https://github.com/codepetca/zero/actions/runs/44537092433)
+ran on `baf9fe48a` and passed authenticated reconciliation. Aggregate200 response:
+status ok, delivered4, pending0, needsAttention0, attempted4. The workflow has no
+GitHub token permissions and uses the fixed endpoint. Hourly minute17 UTC is
+configured/enabled; actual future schedule-trigger delivery is not yet observed.
+The first authenticated400 is retained below as the reason for the correction.
+
+Actual native direct-manual and hosted silent-automatic proofs below still apply:
+this correction changes only reconciliation's body/deadline handling. All4 test
+issues are bot-authored, activation-test labelled and closed. Detailed ignored
+proof: `.verification/reporting-corrected-deployment.json` and
+`.verification/reporting-hosted-reconcile-result.json`; private operator state
+remains outside Git. Public inbox README links the operation record. No new
+installer/editor release, physical Windows collector acceptance, automatic AI fix
+or merge/release runner is claimed. Reporting setup and service activation are complete.
+
 # Production reporting activation and hosted scheduler correction — 2026-11-19
 
 [PR386](https://github.com/codepetca/zero/pull/386) merged as

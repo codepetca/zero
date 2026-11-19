@@ -34,12 +34,14 @@ the real database and bot-authored public issues. Synthetic activation-test issu
 are labelled and closed. See [current activation evidence](EVIDENCE.md#production-reporting-activation-and-hosted-scheduler-correction--2026-11-19)
 and [initial provider acceptance](EVIDENCE.md#reporting-appdatabase-live-acceptance--2026-11-18).
 
-The first hosted scheduler dispatch exposed the platform's empty request stream
-versus the handler's null-only check. Hourly reconciliation is disabled during
-that bounded correction and its hosted acceptance. Collection/inline delivery
-remain enabled. A reporting-enabled editor release is still separate; existing
-published installers do not acquire the new collector from a website deployment.
-Physical Windows installer acceptance for the new collector remains separate.
+Hourly reconciliation is enabled at minute17 UTC. The first hosted dispatch
+exposed the platform's empty request stream versus a null-only check; PR390
+corrected it. Exact-source production deployment and authenticated manual
+workflow44537092433 passed with four delivered groups, zero pending and zero
+needing attention. A future schedule-triggered event remains unobserved.
+A reporting-enabled editor release is still separate; existing published installers
+do not acquire the new collector from a website deployment. Physical Windows
+installer acceptance for the new collector remains separate.
 
 ## Student flow
 
@@ -193,7 +195,10 @@ wakes hourly at minute 17. It runs only when the repository variable
 reconciliation secret in that repository's Actions secrets. The job has no
 GitHub token permissions and holds no database or App credential. It sends an
 authenticated body-free POST to the fixed production reconciliation endpoint.
-Each invocation processes at most five groups within a 20-second budget.
+Each invocation processes at most five groups within a 20-second total budget.
+A body-free request may have no stream or an empty stream reaching EOF. Every
+nonempty byte is rejected after authentication; the one-second body-read budget
+shares the total request deadline and cancellation signal.
 
 For operator health, run `node scripts/reconcile-problem-reports.mjs` with the
 server configuration available securely in the environment. The default is
