@@ -101,6 +101,12 @@ rejected proposals, regressions and review effort alongside successful fixes.
 
 ## Service activation
 
+The public inbox is [codepetca/zero-reports](https://github.com/codepetca/zero-reports),
+created and verified public with issues enabled on 2026-11-18. Its immutable
+numeric repository ID is `1463652567`. Configure `ZERO_REPORTS_REPOSITORY` as
+`codepetca/zero-reports` and `ZERO_REPORTS_REPOSITORY_ID` as `1463652567`.
+Repository provisioning does not activate the service or editor collection.
+
 The public GitHub inbox and service credentials are operator configuration.
 Use a dedicated public repository and an installation token narrowed to that
 repository with issue write access. Keep the private key server-side. The

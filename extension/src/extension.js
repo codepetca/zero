@@ -2801,13 +2801,15 @@ function activate(context, services = {}) {
     const current=projectUpdateGuard(root,signal);
     await current();
     const upgrade=require('./project-update');
+    if(required) {
+      const recoveries=await upgrade.listRecoveries({projectRoot:root});
+      await current();
+      if(recoveries.some(item=>item.status==='incomplete'))throw new Error('An incomplete project update must be recovered before browser actions. Keep its recovery copies.');
+      return updateBrowserTooling(root,{signal});
+    }
     const plan=await upgrade.planUpdate({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
     await current();
     if(!plan.changed)return false;
-    // Browser actions can use a verified current builder without changing an
-    // older core. The saved builder independently verifies itself before use.
-    if(required&&plan.builderChanged===false)return false;
-    if(required)throw browserToolingUpdateRequired();
     throw new Error('Project update and recovery are temporarily unavailable. Your project and recovery copies are kept. '+browserToolingUpdateRequired().message);
     const version=require('../package.json').version;
     const detail='This may cause your project to stop working. The updated Zero files include their license in .zero-build/src/web-export/notices; your existing project LICENSE stays unchanged.';
@@ -2820,6 +2822,25 @@ function activate(context, services = {}) {
     try{await current();}catch(error){if(result.backupPath)error.message+=` The original project files are saved at ${result.backupPath}.`;throw error;}
     if(result.cleanupWarning)output.appendLine(result.cleanupWarning);
     report('Project updated · test and commit',`Project updated. ${result.backupPath?`Previous files saved at ${result.backupPath}. `:''}Test the app and browser build, review local library requirements, and commit the changed project files.`);
+    return true;
+  }
+  async function updateBrowserTooling(root,{signal}={}) {
+    const current=projectUpdateGuard(root,signal);
+    await current();
+    const upgrade=require('./project-builder-upgrade');
+    const plan=await upgrade.planUpgrade({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
+    await current();
+    if(!plan.changed)return false;
+    const updateChoice={title:'Update Browser Tools'};
+    const detail='Replace this project’s .zero-build folder with the browser tools included in your installed Zero. Your Java, assets and framework files stay unchanged. The previous browser tools are kept in a local backup. This may affect browser builds; review and commit the changed files after testing.';
+    const choice=await vscode.window.showWarningMessage(`Update browser tools for ${path.basename(root)}?`,{modal:true,detail},updateChoice,{title:'Cancel',isCloseAffordance:true});
+    await current();
+    if(choice!==updateChoice)throw Object.assign(new Error('Browser action cancelled. No browser tools were changed.'),{code:'ZERO_BROWSER_TOOLING_UPDATE_CANCELLED'});
+    const result=await withProjectUpdateMutation(root,current,guard=>upgrade.applyUpgrade(plan,{assertCurrent:guard}));
+    if(result.backupPath)output.appendLine(`Previous browser tools: ${result.backupPath}`);
+    if(result.cleanupWarning)output.appendLine(result.cleanupWarning);
+    await current();
+    report('Browser tools updated',`Browser tools updated. ${result.backupPath?`Previous tools saved at ${result.backupPath}. `:''}Test the app and review the changed .zero-build files before committing.`);
     return true;
   }
   async function withCurrentBrowserTooling(operation,options) {
@@ -3401,6 +3422,7 @@ function activate(context, services = {}) {
     const inline=args[0]===startPageInvocation;
     if(inline)args.shift();
     try {await action(...args);} catch(error) {
+      if(error.code==='ZERO_BROWSER_TOOLING_UPDATE_CANCELLED'){report(error.message);return;}
       if(operation){reportAvailable=true;refresh();}
       if(operation && operation!=='publish')problemReporter.failure(error,operation,'unknown',projectRoot);
       const message = error.zeroRunMessage || error.message;
