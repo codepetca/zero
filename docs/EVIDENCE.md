@@ -1,3 +1,16 @@
+# Zero0.5.82 full-release preparation — 2026-11-19
+
+Owner explicitly authorized the full reporting-enabled release. Preparation starts
+from main `c9cc6c431`, retains core0.3.0, advances kit/extension0.5.82 local and Mac
+update build81. Published0.5.81 kit, native manifests/feed and Portable records
+remain untouched as fallbacks. The original dirty checkout is preserved.
+
+Local release/updater/sealing/publication contracts:107passed,2explicitlyskipped;
+configuration/syntax/local-link checks passed. Archived reporting-current links
+were adjusted to the archive directory before those checks. Runtime reporting
+implementation and its independent acceptance remain unchanged. New source,
+artifact/signature and promotion reviews and stable-head hosted gates follow.
+
 # Final hosted reporting and reconciliation acceptance — 2026-11-19
 
 [PR390](https://github.com/codepetca/zero/pull/390) merged as
