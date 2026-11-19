@@ -7,11 +7,11 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.80](https://github.com/codepetca/zero/releases/tag/v0.5.80) is public. All three anonymous downloads match preparation44339762972. | Audited fixes and current project builder. |
+| GitHub manual kit | [Zero 0.5.81](https://github.com/codepetca/zero/releases/tag/v0.5.81) is public; all three anonymous downloads match reviewed preparation44447511514. | Metadata/website promotion checks. |
 | Website | [PR383](https://github.com/codepetca/zero/pull/383) promotes the verified0.5.80 Mac, signed feed and both Portable downloads. | The Windows button opens the Microsoft Store. |
-| Mac installer | [0.5.80](https://github.com/codepetca/zero/releases/tag/setup-v0.5.80) is public. Its DMG and Git source archives match the sealed candidate. | Isolated-home setup installed the exact extension. Interactive Sparkle upgrade remains unverified. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 13, package 1.5.77.0 x64, was live when preparing submission 14 for package 1.5.78.0. | Store availability follows successful upload and Microsoft certification. |
-| Windows Portable | [0.5.80 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.80) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.80) are public and embed the same published kit. | Complete: extract and open Zero.exe. Small: teacher/IT stages vendor tools. Verify actual school policy under a student login. |
+| Mac installer | [0.5.81](https://github.com/codepetca/zero/releases/tag/setup-v0.5.81) is public; DMG and both source archives match the reviewed seal. | Promote signed build 80 feed and verify deployed download/feed. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 15 / 0.5.80 is live; submission 16 / 1.5.81.0 is in certification. | 0.5.81 publishes automatically after Microsoft approval. |
+| Windows Portable | [0.5.81 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.81) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.81) are public and embed the same published kit. | Complete: extract and open Zero.exe. Small: teacher/IT stages vendor tools. Verify actual school policy under a student login. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
@@ -23,15 +23,14 @@ The candidate source is on a release branch; do not assume its Store fixes are
 merged into main. The Store submission does not publish a Mac or standalone Windows
 installer.
 
-## Zero 0.5.81 preparation — 2026-11-18
+## Zero 0.5.81 — 2026-11-18
 
-Owner authorized preparation, source push, a draft PR and hosted checks.
-[Draft PR385](https://github.com/codepetca/zero/pull/385) targets main `d098d0d2f`.
-Its reviewed source is `ae18259ca607d7ce464e21a21d83ecf60182ac9b`; all 12 PR checks
-passed at that revision. No merge, release, public download/feed promotion or
-Store submission is authorized or completed. All public 0.5.80 bytes remain intact.
-Core stays 0.3.0. Report a problem remains a separate proposal, handed to the
-always-on improvements chat.
+Owner explicitly authorized source merge and full download/Store publication.
+[Source PR385](https://github.com/codepetca/zero/pull/385) merged at
+`b61d160d3057f381da2a83c442a152548ba9a5e8`, after all 12 final-head checks passed.
+The kit, Mac and both Portable GitHub releases are public; website/feed promotion
+is in progress. No old public bytes were replaced. Core remains 0.3.0. Report a
+problem remains a separate proposal, handed to the always-on improvements chat.
 
 Explicit browser build/publish now offers **Update Browser Tools**, backs up old
 tools, updates only `.zero-build` and resumes the action. Java/assets/framework
@@ -142,10 +141,10 @@ The kit, native and small Portable public downloads match their measured bytes. 
 
 The complete ZIP retains bundled third-party notices and a verified0.5.80
 source-companion link. All upstream tool pins are unchanged from0.5.79. Independent
-Terra/high review verified the reused TAR and all68 source mappings. The adjacent
+Terra/high review verified the reused TAR and all 68 source mappings. The adjacent
 index explains the original0.5.78 index inside the byte-identical source TAR.
 
-Local full-promotion checks:868 website tests passed,3 skipped, with typecheck,
+Local full-promotion checks:868 website tests passed, 3 skipped, with typecheck,
 production build and11 focused published-download tests passing. Exact-head
 review, selected CI and the hosted Windows cold/warm trial are recorded on the
 full-promotion PR. Final live checks require both Portable links, the Mac link

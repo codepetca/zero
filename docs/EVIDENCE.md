@@ -131,6 +131,37 @@ release occurred. The [reporting guide](PROBLEM-REPORTING.md) records the exact
 operator configuration and rollout requirements. Automatic collection defaults
 off. Private GitHub issues hold untrusted evidence for future AI investigation.
 
+# Zero 0.5.81 publication — 2026-11-18
+
+Owner explicitly authorized merge, downloads and Microsoft Store publication.
+Source PR385 merged b61d160d3 with all 12 final-head checks green. Canonical
+run 44447511514 at reviewed ancestor ae18259ca is reused by the existing publisher:
+all packaged inputs are unchanged on merged main. Every native/small/complete
+Portable draft asset and anonymous public download matches the exact size/hash;
+all three public kit assets were independently downloaded too. The complete
+release includes all five ZIP/source/checksum assets and 68 verified source
+mappings. No old published bytes were overwritten. Operational receipts are in
+`.verification/release-081-publication/` in the publication worktree.
+
+The nine-file data promotion at 23baa99fa passed independent Sol/high review:
+signed XML identity, Ed25519 feed/DMG signatures,80>79 build ordering, source
+ancestry, exact kit/Portable coupling, native/kit snapshots and website choice.
+The explicit published-kit regression fixture was advanced to the verified 0.5.81
+bytes at 35e2977e7; targeted Sol/high review found no actionable issue. All existing
+assertions remain. Local config/typecheck,868 website tests (3 skipped), build,
+bundle audit and runtime checks pass. No production code changed during release.
+The kit/Portable metadata is handled by PR387; remaining Mac/feed/snapshots and
+release records follow this same reviewed plan. Deployment read-back is pending.
+
+Partner Center authenticated, validated 1.5.81.0 and accepted submission 16
+(1152921505702445603). It is in certification/pre-processing and set to publish
+as soon as certification passes, with the base schedule also ASAP. Submission 15
+/ 0.5.80 remains live. Do not claim 0.5.81 Store availability until verified.
+The original unsigned MSIX hash835b0013… is unchanged; hosted test-signing and
+first-run receipts remain distinct from certification. Authentication/MFA codes
+and credentials are not retained in Git. Physical school devices, authenticated
+Pages upload and interactive live updater delivery remain untested.
+
 # Hosted Zero 0.5.81 preparation — 2026-11-18
 
 Owner authorized source push/draft PR and hosted checks after local preparation.
@@ -148,7 +179,7 @@ Downloaded canonical kit/starter/VSIX and small Portable assets match SOURCE.txt
 run/commit, exact source files, licenses, hashes and the shared embedded kit.
 Project → New binds the exact VSIX to the unchanged public starter, native
 UI_READY/Sam/Ada and Chrome157.0.8103.50 Sam/Ada. Complete ZIP size/hash, clean-source, exact-kit, launcher/runtime/editor/Java
-and0.5.81 source-notice verification passed. See the [ledger](RELEASE-LEDGER.md#zero-0581-preparation--2026-11-18)
+and0.5.81 source-notice verification passed. See the [ledger](RELEASE-LEDGER.md#zero-0581--2026-11-18)
 for measured artifacts and remaining promotion gates. All logs/downloads are
 ignored under `.verification/release-081/hosted/`.
 
@@ -8022,7 +8053,7 @@ DMG/receipt and exact236725-byte kit ZIP are preserved. No publication occurred.
 Passed:8 focused packaging/signature tests;67 native harness assertions; Intel
 Swift typecheck; JS syntax/configuration/diff checks; old unsigned-artifact verifier;
 real signed build and signed verifier (strict Apple Developer ID chain, extracted
-leaf SHA1/team, both architectures, timestamps/runtime, all126kit files/permissions).
+leaf SHA1/team, both architectures, timestamps/runtime, all 126kit files/permissions).
 Signed AppKit UI opened and real read-only Check laptop completed, correctly
 reporting available tools and old/missing Zero support. No repairs or profile/tool
 installation were attempted. Previous run/copy/editor evidence is reused only for
@@ -8149,7 +8180,7 @@ ready, separate Details, failure/retry, five visible profile steps, deliberate
 copy and Check profile before extension approval. Inputs/commands are disposable;
 this is not real installation or profile-import evidence. Actual final signed
 app ran on ARM64/macOS26.6.2, passed read-only auto-check and copied a fresh folder
-with spaces:all126bytes/modes match ZIP. Main status correctly requested editor
+with spaces:all 126bytes/modes match ZIP. Main status correctly requested editor
 support approval; that action was not selected. No host installs/profile/account
 changes or actual editor handoff. Native apps/processes/volume used for this test
 closed/stopped/ejected. UI captures remain440×212.
@@ -10835,7 +10866,7 @@ passed. New383VSIX/kit packaging and extracted Maven passed.
 Actual installed preview Run App/Open in browser/Chrome start,pause,resume,restart,
 click andStop passed. Publish app confirmed the existing public test destination.
 [Pages run38983460841](https://github.com/armorup/zero-sharing-proof/actions/runs/38983460841)
-succeeded; all68publicfiles/8208615bytes exactly match local manifest, source/run
+succeeded; all 68publicfiles/8208615bytes exactly match local manifest, source/run
 marker matchesb69879a and38983460841. Open app renders/plays in actual Chrome.
 Temporary draft-release staging list is empty. Copy result visible; fresh native
 paste proof inconclusive. No claim of physical audible output or clean browser
@@ -11607,7 +11638,7 @@ merged628b389e686141c8562a19c08731ad14e36d6dc7 after fixedhead7f59175 and allfiv
 checks passed, including [release CI39130920575](https://github.com/codepetca/zero/actions/runs/39130920575).
 Main identity/branding integration received one bounded independent Sol/high
 review; mobile source stays byte-identical to acceptedc49b32f. Repeated browser
-checks56desktop/136phone-sized pass. Combined root710tests:707passed,3skipped,
+checks56desktop/136phone-sized pass. Combined root710tests:707passed, 3skipped,
 zero failures. All14Grove source/resource hashes remain unchanged.
 
 [Mac0.5.20](https://github.com/codepetca/zero/releases/tag/setup-v0.5.20) contains
@@ -11661,7 +11692,7 @@ are preserved. Account actions now remain reachable through Project menu →
 GitHub account…. Local Run has no added authentication gate; ordinary Java and
 branding assets are unchanged. Source106beeb, reviewed corrections through1a590f2.
 
-Final npm run check and npm test pass:710tests,707passed,3skipped,0failed.
+Final npm run check and npm test pass:710tests,707passed, 3skipped,0failed.
 Focused sidebar/onboarding/upload tests:45passed. The first integrated full run
 found one stale workflow test waiting for the intentionally removed username;
 its replacement checks published-action restoration after auth refresh and name
@@ -11703,7 +11734,7 @@ project. Header wraps in narrow widths without horizontal overflow.
 
 Root npm run check passes.66focused tests pass across extension/workflow,
 assets/recovery,onboarding and sidebar refresh. Full npm test on sourcefc92551
-ran711tests:707passed,3skipped,1failed because the playground expected the removed
+ran711tests:707passed, 3skipped,1failed because the playground expected the removed
 labels/buttons. Test-only correctionbf3fd2f passed the entire3-test playground
 file; unchanged707passing checks are reused. No clean single full-suite rerun
 is claimed. Initial focused run similarly needed an updated menu-array expectation.
@@ -11774,7 +11805,7 @@ Requested gpt-6.1-sol/medium; effective model, per-turn tokens and attributable
 review/coordinator seconds unknown. No inference of cost from account allowance.
 
 Final root npm run check passes. Stable corrected source2cc0424 full npm test:
-714tests,711passed,3skipped,0failed (194833ms);54focused tests pass. Tests cover
+714tests,711passed, 3skipped,0failed (194833ms);54focused tests pass. Tests cover
 queued start, cancellation during build/save/native resolution, failed save/
 compile, preview closure, late build rejection, duplicate clicks and shortcuts
 while stopping. Initial full run before correction also passed710/3skipped;
@@ -11923,7 +11954,7 @@ turn3, beb3986..3bf21cb) completed clean. Original height/activity-bar-only rema
 current. The superseded in-panel-heading screenshots are historical fixtures;
 no new native rendering claim is made. Its temporary preview server is closed.
 
-Broad run result:714tests,710passed,3skipped,1failed,554.2seconds. Sole failure
+Broad run result:714tests,710passed, 3skipped,1failed,554.2seconds. Sole failure
 was the obsolete lesson-project visibility cancellation assertion, already fixed
 infaeeb4a and covered by the clean30-test lesson/onboarding rerun. The full run
 loaded that test before its correction. Final acceptance combines unchanged broad

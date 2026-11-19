@@ -18,9 +18,12 @@ report capture. Targeted integration review found no blockers; all 128 focused c
 source checks pass. [Draft PR386](https://github.com/codepetca/zero/pull/386)
 is pushed and mergeable. Hosted CI has started; its final result is pending.
 
-Production service activation, GitHub App credentials/installation, database,
-scheduler enablement and an editor release remain pending. Native report-dialog,
-live App attribution and physical Windows acceptance remain unverified. No merge
-or deployment is authorized. Preserve the original dirty checkout and separate
+Owner now authorizes dedicated App/database setup and end-to-end testing.
+Created App `codepet-zero-reports` (5827621) and Vercel-provisioned Free Neon
+`zero-reports` (`crimson-silence-47818786`, store `store_mqf7HZUM4YAt47xY`),
+connected to Zero production only under `ZERO_REPORTS_NEON`. App key download and
+Vercel identity verification await the owner. Runtime SQL schema/role, end-to-end
+acceptance, scheduler enablement and an editor release remain pending. Native report-dialog,
+live App attribution and physical Windows acceptance remain unverified. No source merge or release is authorized. Preserve the original dirty checkout and separate
 0.5.81 preparation worktree. See [reporting operation](../docs/PROBLEM-REPORTING.md),
 [evidence](../docs/EVIDENCE.md) and [release ledger](../docs/RELEASE-LEDGER.md).
