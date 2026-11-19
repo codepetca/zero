@@ -245,6 +245,7 @@ jobs:
               throw 'The promoted complete ZIP must match its exact manifest.'
             }
           } else {
+            New-Item -ItemType Directory -Force -Path '.verification' | Out-Null
             node scripts/download-windows-portable-tools.mjs .verification/portable-downloads
             node scripts/build-windows-portable.mjs --bundled .verification/portable-downloads dist/portable-bundled
           }
