@@ -4,7 +4,7 @@
 
 Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.
 
-This local kit candidate **0.5.79** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
+This local kit candidate **0.5.81** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
 
@@ -46,9 +46,11 @@ Choose **Project → New**, name your repository and choose where to save its cl
 Follow the lesson to add its starting code. Zero creates a public repository in
 your account and opens its clone. Keep that project across its continuing lessons.
 Use **Project → Open** for an existing local folder or **Project → Clone** for an
-existing GitHub repository. Opening a project does not update its files. If its
-browser tooling is outdated, create a new project and retain the original and any
-recovery copies. Published downloads retain their bundled instructions.
+existing GitHub repository. Opening a project does not update its files. When a browser build or publish
+needs current tools, Zero offers **Update Browser Tools**. After confirmation,
+it keeps a backup of the old tools and updates only `.zero-build`; Java, assets
+and framework files stay unchanged. Test the app and review the changed tools
+before committing. Published downloads retain their bundled instructions.
 
 ## Zero app for Mac
 
@@ -100,7 +102,7 @@ lesson 0, then create and clone your own tutorial repository.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.80.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.81.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors

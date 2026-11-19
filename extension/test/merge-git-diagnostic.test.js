@@ -13,3 +13,6 @@ test('merge diagnostics do not echo unrecognized output or variable values', () 
   failure.stderr = "error: No such remote 'private'";
   assert.equal(mergeGitDiagnostic('remote', failure), 'Git remote failed (exit 128). error: No such remote.');
 });
+test('missing revisions give useful diagnostics', () => {
+  assert.equal(mergeGitDiagnostic('rev-parse', {code:128,stderr:'fatal: Needed a single revision'}), 'Git rev-parse failed (exit 128). fatal: missing revision.');
+});

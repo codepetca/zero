@@ -1,3 +1,67 @@
+# Hosted Zero 0.5.81 preparation — 2026-11-18
+
+Owner authorized source push/draft PR and hosted checks after local preparation.
+[PR385](https://github.com/codepetca/zero/pull/385) remains draft. At reviewed
+source `ae18259ca607d7ce464e21a21d83ecf60182ac9b`, all 12 PR checks passed.
+[Manual preparation44447511514](https://github.com/codepetca/zero/actions/runs/44447511514)
+and [Windows preparation44447514534](https://github.com/codepetca/zero/actions/runs/44447514534)
+passed. Both fresh hosted full matrices had2,557 passed, 163 skipped, 0 failed;
+this resolves the local stale-fixture caveat. Website 867 passed/4 skipped with
+successful build; 27 GUI examples, native game/framework and lesson checks passed.
+[Browser44447460456](https://github.com/codepetca/zero/actions/runs/44447460456)
+passed 414 contracts (4 skipped) and real WebFX compiles/browser behavior.
+
+Downloaded canonical kit/starter/VSIX and small Portable assets match SOURCE.txt,
+run/commit, exact source files, licenses, hashes and the shared embedded kit.
+Project → New binds the exact VSIX to the unchanged public starter, native
+UI_READY/Sam/Ada and Chrome157.0.8103.50 Sam/Ada. Complete ZIP size/hash, clean-source, exact-kit, launcher/runtime/editor/Java
+and0.5.81 source-notice verification passed. See the [ledger](RELEASE-LEDGER.md#zero-0581-preparation--2026-11-18)
+for measured artifacts and remaining promotion gates. All logs/downloads are
+ignored under `.verification/release-081/hosted/`.
+
+Windows MSIX 1.5.81.0 hash 835b0013… was independently checked after download,
+including identity, x64 payload, exact embedded kit and every block-map hash.
+The receipt binds its unchanged unsigned bytes to a successfully installed,
+separately test-signed copy, with first run and cleanup passed. Real standalone
+setup/private Git/editor reopening and private-Java JavaFX/offline rebuild passed.
+The measured Windows-built Portable ZIP passed cold/warm reopening; it is a
+different archive from the canonical Linux-run complete ZIP. Store certification,
+physical school devices, authenticated Pages upload and live updater remain
+unverified. No merge, publication or Store submission occurred.
+
+Independent source Sol/high reviews, Terra/medium metadata+fixture reviews and
+Sol/high artifact/final-delta review are reused for unchanged production inputs.
+The final local Mac seal at 965b8438e0c9, built 0984de1e5, verifies source equivalence,
+all 15 hashes, notarization, signatures, staple, Gatekeeper and Ed25519 feed/DMG.
+The two local full runs (20.3/19.6min) exposed stale fixtures, corrected/reviewed
+at 51808415f and 0984de1e5; affected tests 55/55 and identity/onboarding 62/62 passed.
+One Mac rebuild was required by the protected test path. No production correction
+was needed for hosted CI. Effective models/tokens/task cost remain unknown.
+Portable corresponding sources reuse verified public 0.5.80 bytes: pinned tools
+are unchanged and all 68 archive hashes/mappings were checked again.
+
+# Browser publishing recovery — 2026-11-18
+
+On `98ab09c64`, an explicit browser build or publish can offer **Update Browser
+Tools** instead of stopping at a builder-version mismatch. Confirmation replaces
+only `.zero-build`, keeps the complete previous builder in an ignored local
+backup, and continues the requested action. Declining leaves the project intact
+and ends quietly. Opening projects and native Run do not update them.
+
+The actual Mac Zero Dev host updated the published 0.5.79 starter, compiled its
+Java with WebFX/GWT, reached **Export ready**, and displayed **Hello, world!** in
+its embedded browser preview. All 65 old builder files match the backup; the
+other 158 original project files remain byte-identical. Receipts and logs are
+ignored under `.verification/publishing-recovery/`. This verifies local build
+recovery, not authenticated GitHub Pages upload or physical Windows behavior.
+
+Focused update/diagnostic tests: 25 passed. Publish/export tests: 105 passed,
+one skipped. `npm run check` and `git diff --check` passed. Independent Sol/high
+review covered the initial implementation; its targeted review accepted the
+cancellation-only delta and verified all 223 preserved/backup files. Two review
+waves found no blockers. Effective model/usage was not exposed. The changes remain local and are
+not included in the already published 0.5.80 installers or Store submission.
+
 # ZeroHub Projects responsiveness — 2026-11-18
 
 Draft based on `8192a7ab`. The first Projects page is resolved on the server.
