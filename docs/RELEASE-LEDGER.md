@@ -1,18 +1,51 @@
 # Zero release ledger
 
-Last reconciled 2026-11-18 (America/Toronto). This is a dated working record,
+Last reconciled 2026-11-19 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.81](https://github.com/codepetca/zero/releases/tag/v0.5.81) is public; all three anonymous downloads match reviewed preparation 44447511514. | Live release read-back verified. |
+| GitHub manual kit | [Zero 0.5.82](https://github.com/codepetca/zero/releases/tag/v0.5.82) is public; all three anonymous downloads match reviewed preparation 44550447823. | Combined website promotion is pending. |
 | Website | [PR387](https://github.com/codepetca/zero/pull/387) and [PR388](https://github.com/codepetca/zero/pull/388) promoted 0.5.81 downloads/feed; live links and signed bytes match. | Store button is the exact Microsoft listing. |
-| Mac installer | [0.5.81](https://github.com/codepetca/zero/releases/tag/setup-v0.5.81) DMG and both Git source archives match the reviewed seal. | Signed build 80 feed and live DMG verified. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 16, package 1.5.81.0 / Zero 0.5.81, is live. | Certification and publishing complete. |
-| Windows Portable | [0.5.81 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.81) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.81) are public and embed the same published kit. | Complete: extract and open Zero.exe. Small: teacher/IT stages vendor tools. Verify actual school policy under a student login. |
+| Mac installer | [0.5.82](https://github.com/codepetca/zero/releases/tag/setup-v0.5.82) DMG and both Git source archives match the reviewed seal and anonymous downloads. | Build 81 feed promotion and live read-back remain pending; build 80 stays public. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 16 / 0.5.81 is live. Submission 17 / 1.5.82.0 is in certification. | Verify certification and live availability. |
+| Windows Portable | [0.5.82 small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.82) is public and anonymously verified; [0.5.81 complete ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.81) remains public. | Complete 0.5.82 ZIP is public after authenticated verification; anonymous ZIP/source-TAR and exact-ZIP cold/warm proof are pending. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.82 release in progress — 2026-11-19
+
+Source PR392 merged `8e754368a6f23c36dc20111b3015c55ed68fc108` with all 12 checks.
+Canonical preparation 44550447823 and Windows preparation 44550453843 passed.
+The public [kit](https://github.com/codepetca/zero/releases/tag/v0.5.82) contains:
+
+| Asset | Bytes | SHA256 |
+| --- | ---: | --- |
+| zero-bootstrap.zip | 5,120,661 | `7910179675f575d931aa31e465f25fc55a82929e1379897842deaa9e2f7c9bca` |
+| zero-starter.zip | 2,778,887 | `0ef38f86a4b83b038e663cf7342ac90b0d6fca1eafb566de7066acb7d363b66b` |
+| zero-0.5.82.vsix | 2,317,248 | `63000d5c0cbf1bed0b48cee6cb220c791b5718f2e3b5fb027607d52de75af4d0` |
+
+The [Mac release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.82)
+and both source archives passed anonymous verification. Its DMG is 12,362,920
+bytes, SHA256 `186370fce89e577404330c6e33abbbff4cb5171ee1c8877ae7f65d6ec3ce84ab`;
+built source `a37ba4a22`, seal `5ca6a5489`, update build 81. The public
+[small Portable ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.82)
+is 5,429,096 bytes, SHA256 `b3b1a0fd93f1e8ff14bfddbba38929ceb995ebff3c89b0a44e2d2786130dbc71`,
+and passed anonymous download verification. The complete Portable release is public
+after all five authenticated checks; anonymous ZIP/source-TAR and exact public ZIP
+cold/warm acceptance remain pending. Its
+source TAR preserves all 68 verified mappings and SHA256
+`b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0`; its adjacent
+index identifies 0.5.82.
+
+Store submission 17 (`1152921505702451016`), package 1.5.82.0, was submitted for
+normal ASAP release and is awaiting certification. The original unsigned package
+SHA256 is `fa792d2bdff33769ba8991ecd8fa783b2cb9ce6659dfb3ebd4c26a16df07fe52`.
+It is not yet verified live. Actual installed VSIX reporting acceptance and the
+first scheduled reconciliation passed; see [evidence](EVIDENCE.md). Promotion
+review/CI, live website/feed read-back, physical school devices and interactive
+updater acceptance remain pending. The AI investigation runner is separate.
 
 The 0.5.58 Store candidate includes Project Explorer and online Tutorial Docs
 updates, recent tutorial changes, and Store Java/VS Code startup fixes. Its exact

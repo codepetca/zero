@@ -1,3 +1,46 @@
+# Zero 0.5.82 release progress — 2026-11-19
+
+[PR392](https://github.com/codepetca/zero/pull/392) merged `8e754368a6f23c36dc20111b3015c55ed68fc108` after all 12 checks, including
+[source](https://github.com/codepetca/zero/actions/runs/44548205980),
+[browser](https://github.com/codepetca/zero/actions/runs/44548206046) and
+[Windows](https://github.com/codepetca/zero/actions/runs/44548205944). Canonical
+[preparation](https://github.com/codepetca/zero/actions/runs/44550447823) and
+[Windows preparation](https://github.com/codepetca/zero/actions/runs/44550453843) passed.
+The source review was clean (Terra/high, one turn); four artifact review turns
+(Sol/high) were clean, with zero remediation batches. Two final promotion reviews
+have not yet started.
+
+The canonical kit's three files, signed/notarized Mac setup and both Mac Git source
+archives, and small Portable ZIP passed anonymous public download verification.
+The Mac was built from `a37ba4a229a30550441291803e0e531e17f5d07b`, sealed at
+`5ca6a548995d59476df1fb7d61820a87250b62ff` and uses update build 81. The complete
+Portable release 451536778 is public after all five authenticated checks;
+anonymous ZIP/source-TAR transfers and exact public-ZIP cold/warm acceptance
+are pending. Its source TAR reuses the verified unchanged 68
+mappings (SHA256 `b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0`),
+with a 0.5.82 index and a four-asset checksum. The public index/README/checksum
+downloads pass; both large anonymous transfers remain in progress.
+
+The actual installed 0.5.82 VSIX passed reporting default-off, decline, explicit
+opt-in, direct submission and reload checks; its public report was issue 5.
+The first actual scheduled reconciliation [44542889224](https://github.com/codepetca/zero/actions/runs/44542889224)
+succeeded at 2026-11-19 14:21:42 UTC on `c9cc6c431`. Earlier statements that a
+future scheduled event was unobserved describe their historical observation time.
+Store submission 17 (`1152921505702451016`), original unsigned MSIX SHA256
+`fa792d2bdff33769ba8991ecd8fa783b2cb9ce6659dfb3ebd4c26a16df07fe52`, package
+1.5.82.0, is submitted for normal ASAP release and awaiting certification.
+Promotion CI, public website/feed verification, physical school devices,
+interactive updater delivery and the AI investigation runner remain separate.
+
+Ignored receipts: `zero/.verification/release-082/canonical-verification.json`,
+`native-reporting.json`, `portable-drafts/small-public/verification.json`,
+`store-certification.jpg`, and `mac/.verification/release-082/native-public/verification.json`
+in the corresponding sibling worktrees. These are evidence, not published assets.
+
+Local promotion checks passed configuration/syntax/command/link validation,
+website typecheck and all 102 release tests. Website tests/build and final-head
+hosted gates remain in progress. No runtime code or credentials change here.
+
 # Zero0.5.82 measured Mac candidate — 2026-11-19
 
 Owner-authorized full release. Developer ID app/DMG verification, Apple accepted
