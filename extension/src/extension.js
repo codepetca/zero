@@ -2475,7 +2475,7 @@ function activate(context, services = {}) {
     },
     'zero.showOutput': () => output.show(true),
     'zero.reportProblem': () => problemReporter.manual(),
-    'zero.configureProblemReports': () => vscode.commands.executeCommand('workbench.action.openSettings','zero.automaticProblemReports'),
+    'zero.configureProblemReports': () => vscode.commands.executeCommand('workbench.action.openSettings','zero.automaticPublicProblemReports'),
     'zero.showProblems': () => vscode.commands.executeCommand('workbench.actions.view.problems'),
     'zero.showSidebar': async () => {
       const preview=studentExplorer?.isPreview();

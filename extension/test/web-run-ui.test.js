@@ -170,8 +170,8 @@ test('browser fatal and compiler failures replace earlier manual context without
  const {createProblemReporter}=require('../src/problem-reporting');const sent=[];let reporter;
  const h=harness(t,{onReportManual:(stage,code,root)=>reporter.recordManual('run-browser',stage,code,root),onReportFailure:(error,stage,root)=>reporter.failure(error,'run-browser',stage,root)});
  h.vscode.env={isTelemetryEnabled:true};h.vscode.workspace.getConfiguration=()=>({get:()=>true});
- h.vscode.window.showInputBox=async()=>'';h.vscode.window.showInformationMessage=async(message)=>message==='Send this problem report?'?'Send report':undefined;
- reporter=createProblemReporter(h.vscode,{extensionMode:2,globalState:{get:()=>[],update:async()=>{}}},{getProject:()=>'/project',send:async(_,options)=>{sent.push(JSON.parse(options.body));return {status:202,json:async()=>({status:'delivered',receipt:'c4ebd3bc-a08e-4a8c-847c-7ac13f32c898'})};}});t.after(()=>reporter.dispose());
+ h.vscode.window.showInputBox=async()=>assert.fail('Report must not request text');h.vscode.window.showInformationMessage=async(message)=>message==='Send this problem report?'?'Send report':undefined;
+ reporter=createProblemReporter(h.vscode,{extensionMode:2,globalState:{get:()=>undefined,update:async()=>{}}},{getProject:()=>'/project',send:async(_,options)=>{sent.push(JSON.parse(options.body));return {status:202,json:async()=>({status:'delivered',receipt:'c4ebd3bc-a08e-4a8c-847c-7ac13f32c898'})};}});t.after(()=>reporter.dispose());
  reporter.recordManual('publish','deploying','WEB_PUBLISH_DEPLOYMENT_FAILED','/project');
  await h.api.run();h.runtimeOptions.onRuntime({type:'fatal',stage:'frame-draw',code:'FRAME_EXCEPTION',diagnostic:'private /project file'});
  await reporter.manual();assert.equal(sent.at(-1).operation,'run-browser');assert.equal(sent.at(-1).stage,'frame-draw');assert.equal(sent.at(-1).code,'FRAME_EXCEPTION');

@@ -5,23 +5,29 @@ const {createProblemReporter,classify,KEY}=require('../src/problem-reporting');
 const {validateProblemReport}=require('../src/problem-report-contract');
 const receipt='c4ebd3bc-a08e-4a8c-847c-7ac13f32c898';
 const response=(status='delivered')=>({status:202,json:async()=>({status,receipt})});
-function fixture({enabled=true,telemetry=true,stored,send,timeoutMs=30,project}={}) {
-  let setting=enabled,telemetryListener,configListener,store=stored,inputs=[],answers=[],notifications=[],copied=[],currentProject=project;
-  const vscode={version:'1.95.0',ExtensionMode:{Development:2},env:{clipboard:{writeText:async value=>copied.push(value)},isTelemetryEnabled:telemetry,onDidChangeTelemetryEnabled:cb=>(telemetryListener=cb,{dispose(){}})},workspace:{getConfiguration:()=>({get:()=>setting}),onDidChangeConfiguration:cb=>(configListener=cb,{dispose(){}})},window:{showInputBox:async()=>inputs.shift(),showInformationMessage:async(...args)=>{notifications.push(args);return answers.shift();}}};
-  const context={extensionMode:2,extension:{packageJSON:{version:'0.5.80'}},globalState:{get:()=>store,update:async(_,value)=>{store=structuredClone(value);}}};
+function fixture({enabled=true,legacyEnabled=false,telemetry=true,stored,legacyStored,send,timeoutMs=30,project}={}) {
+  let setting=enabled,telemetryListener,configListener,answers=[],notifications=[],copied=[],currentProject=project;
+  const storage=new Map(),updates=[];
+  if(stored!==undefined)storage.set(KEY,stored);
+  if(legacyStored!==undefined)storage.set('zero.problemReports.queue',legacyStored);
+  const vscode={version:'1.95.0',ExtensionMode:{Development:2},env:{clipboard:{writeText:async value=>copied.push(value)},isTelemetryEnabled:telemetry,onDidChangeTelemetryEnabled:cb=>(telemetryListener=cb,{dispose(){}})},workspace:{getConfiguration:()=>({get:(key,fallback)=>key==='automaticPublicProblemReports'?setting:key==='automaticProblemReports'?legacyEnabled:fallback}),onDidChangeConfiguration:cb=>(configListener=cb,{dispose(){}})},window:{showInputBox:async()=>assert.fail('Structured reports must not ask for text'),showInformationMessage:async(...args)=>{notifications.push(args);return answers.shift();}}};
+  const context={extensionMode:2,extension:{packageJSON:{version:'0.5.80'}},globalState:{get:key=>storage.get(key),update:async(key,value)=>{updates.push({key,value});if(value===undefined)storage.delete(key);else storage.set(key,structuredClone(value));}}};
   const reporter=createProblemReporter(vscode,context,{send,timeoutMs,retryDelay:100000,getProject:()=>currentProject});
-  return {reporter,vscode,get store(){return store;},inputs,answers,notifications,copied,setProject(value){currentProject=value;},setEnabled(value){setting=value;configListener({affectsConfiguration:()=>true});},setTelemetry(value){vscode.env.isTelemetryEnabled=value;telemetryListener(value);}};
+  return {reporter,vscode,get store(){return storage.get(KEY);},get legacyStore(){return storage.get('zero.problemReports.queue');},updates,answers,notifications,copied,setProject(value){currentProject=value;},setEnabled(value){setting=value;configListener({affectsConfiguration:()=>true});},setTelemetry(value){vscode.env.isTelemetryEnabled=value;telemetryListener(value);}};
 }
 const tick=()=>new Promise(resolve=>setTimeout(resolve,10));
 const bad=()=>Object.assign(new Error('secret /Users/student project https://github.com/a/b token'),{code:'WEB_PUBLISH_DEPLOYMENT_FAILED'});
-test('disabled reporting leaves an untouched editor profile without a queue record',async()=>{
-  const f=fixture({enabled:false,send:async()=>{throw Error('Unexpected submission');}});
-  await tick();
-  assert.equal(f.store,undefined);
-  f.reporter.failure(bad(),'publish','deploying');
-  await tick();
-  assert.equal(f.store,undefined);
-  f.reporter.dispose();
+test('startup leaves an untouched editor profile without queue records',async()=>{
+  for(const enabled of [false,true]) {
+    const f=fixture({enabled,send:async()=>{throw Error('Unexpected submission');}});
+    await tick();
+    assert.equal(f.store,undefined);assert.deepEqual(f.updates,[]);
+    if(!enabled) {
+      f.reporter.failure(bad(),'publish','deploying');await tick();
+      assert.equal(f.store,undefined);assert.deepEqual(f.updates,[]);
+    }
+    f.reporter.dispose();
+  }
 });
 test('classification rejects expected and untrusted generic failures',()=>{
   assert.equal(classify(bad()),'WEB_PUBLISH_DEPLOYMENT_FAILED');
@@ -35,7 +41,7 @@ test('disabled and telemetry opt-out do not transmit; automatic payload is bound
   const sent=[];const f=fixture({enabled:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return response();}});
   f.reporter.failure(bad(),'run-browser','checking');await tick();assert.equal(sent.length,0);
   f.setEnabled(true);f.reporter.breadcrumb('run-browser','checking','started');f.reporter.failure(bad(),'run-browser','checking');await tick();
-  assert.equal(sent.length,1);assert.ok(validateProblemReport(sent[0]));assert.doesNotMatch(JSON.stringify(sent),/secret|Users|github\.com|token/);
+  assert.equal(sent.length,1);assert.ok(validateProblemReport(sent[0]));assert.equal(Object.hasOwn(sent[0],'description'),false);assert.doesNotMatch(JSON.stringify(sent),/secret|Users|github\.com|token/);
   f.setTelemetry(false);f.reporter.failure(bad(),'run-browser','checking');await tick();assert.equal(sent.length,1);assert.deepEqual(f.store,[]);f.reporter.dispose();
 });
 test('queue persists across restart, deduplicates, retries with the same id, and expires',async()=>{
@@ -56,8 +62,14 @@ test('timeout is bounded even if a transport ignores cancellation',async()=>{
 });
 test('manual report is reviewed before sending and works with telemetry disabled',async()=>{
   const sent=[];const f=fixture({telemetry:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return response('pending');}});
-  f.inputs.push('');f.answers.push('Send report');await f.reporter.manual();
-  assert.equal(sent.length,1);assert.equal(sent[0].source,'manual');assert.ok(validateProblemReport(sent[0]));assert.match(f.notifications[0][1].detail,/"environment"/);assert.match(f.notifications[1][0],/pending/);f.reporter.dispose();
+  f.answers.push('Send report');await f.reporter.manual();
+  assert.equal(sent.length,1);assert.equal(sent[0].source,'manual');assert.ok(validateProblemReport(sent[0]));
+  const detail=f.notifications[0][1].detail;
+  assert.match(detail,/Version information, the failed action and recent operation steps/);
+  assert.match(detail,/published in a public GitHub issue/);
+  assert.equal(Object.hasOwn(sent[0],'description'),false);
+  assert.doesNotMatch(detail,/"environment"|schemaVersion|reportId|occurredAt/);
+  assert.match(f.notifications[1][0],/pending/);f.reporter.dispose();
 });
 test('recovery requires the same local project and unchanged original versions',async()=>{
   const sent=[];const f=fixture({send:async(_,options)=>{sent.push(JSON.parse(options.body));return response();}});
@@ -72,8 +84,8 @@ test('pending uses the same report id and is not treated as delivery',async()=>{
 });
 test('manual report preserves only stable latest error context when automatic reporting is off',async()=>{
   const sent=[];const f=fixture({enabled:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return response();}});
-  f.reporter.failure(bad(),'run-browser','web-compile');f.inputs.push('');f.answers.push('Send report');await f.reporter.manual();
-  assert.equal(sent[0].operation,'run-browser');assert.equal(sent[0].stage,'web-compile');assert.equal(sent[0].code,'WEB_PUBLISH_DEPLOYMENT_FAILED');assert.doesNotMatch(JSON.stringify(sent),/secret|Users|github\.com|token/);f.reporter.dispose();
+  f.reporter.failure(bad(),'run-browser','web-compile');f.answers.push('Send report');await f.reporter.manual();
+  assert.equal(sent[0].operation,'run-browser');assert.equal(sent[0].stage,'web-compile');assert.equal(sent[0].code,'WEB_PUBLISH_DEPLOYMENT_FAILED');assert.match(f.notifications[0][1].detail,/GitHub Pages deployment failed\./);assert.match(f.notifications[0][1].detail,/public GitHub issue/);assert.doesNotMatch(JSON.stringify(sent),/secret|Users|github\.com|token/);f.reporter.dispose();
 });
 test('project version reads are bounded and reject symlinks',async()=>{
   const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path');
@@ -98,18 +110,18 @@ test('deduplicated pending failure recovers the original backend occurrence',asy
 });
 test('manual uncertainty retries the identical reviewed report and can copy it later',async()=>{
   const sent=[];let count=0;const f=fixture({send:async(_,options)=>{sent.push(JSON.parse(options.body));return ++count===1?{status:503}:response();}});
-  f.inputs.push('A reviewed description');f.answers.push('Send report','Copy report');await f.reporter.manual();
-  assert.equal(sent.length,1);assert.deepEqual(JSON.parse(f.copied[0]),sent[0]);
+  f.answers.push('Send report','Copy report');await f.reporter.manual();
+  assert.equal(sent.length,1);assert.equal(Object.hasOwn(sent[0],'description'),false);assert.deepEqual(JSON.parse(f.copied[0]),sent[0]);
   f.answers.push('Retry');await f.reporter.manual();assert.equal(sent.length,2);assert.deepEqual(sent[1],sent[0]);f.reporter.dispose();
 });
 test('manual disposal aborts an in-flight send',async()=>{
   let aborted=false,started;const startedPromise=new Promise(resolve=>{started=resolve;});
   const f=fixture({timeoutMs:1000,send:async(_,options)=>new Promise((resolve,reject)=>{started();options.signal.addEventListener('abort',()=>{aborted=true;reject(Error('aborted'));});})});
-  f.inputs.push('');f.answers.push('Send report');const operation=f.reporter.manual();await startedPromise;f.reporter.dispose();await operation;assert.ok(aborted);
+  f.answers.push('Send report');const operation=f.reporter.manual();await startedPromise;f.reporter.dispose();await operation;assert.ok(aborted);
 });
 test('manual report drops stale context when the project changes',async()=>{
   const sent=[];const f=fixture({enabled:false,project:'project-a',send:async(_,options)=>{sent.push(JSON.parse(options.body));return response();}});
-  f.reporter.failure(bad(),'publish','building','project-a');f.setProject('project-b');f.inputs.push('');f.answers.push('Send report');await f.reporter.manual();
+  f.reporter.failure(bad(),'publish','building','project-a');f.setProject('project-b');f.answers.push('Send report');await f.reporter.manual();
   assert.equal(sent[0].operation,'manual');assert.equal(sent[0].stage,'manual');assert.equal(sent[0].code,'MANUAL_REPORT');assert.doesNotMatch(JSON.stringify(sent),/project-[ab]/);f.reporter.dispose();
 });
 test('an opening failure only recovers after a confirmed browser opening',async()=>{
@@ -134,4 +146,26 @@ test('revoking and re-enabling consent discards work queued in the previous epoc
   assert.equal(sent.length,1);assert.deepEqual(f.store,[]);
   f.reporter.failure(bad(),'publish','verifying','project-a');await tick();
   assert.equal(sent.length,2);assert.equal(sent[1].stage,'verifying');f.reporter.dispose();
+});
+
+test('manual public report requires explicit send confirmation',async()=>{
+  const sent=[];const f=fixture({send:async(_,options)=>{sent.push(options);return response();}});
+  await f.reporter.manual();assert.equal(sent.length,0);
+  assert.match(f.notifications[0][1].detail,/public GitHub issue/);f.reporter.dispose();
+});
+test('private reporting consent and queue never authorize or supply public reports',async()=>{
+  const legacyKey='zero.problemReports.queue';
+  const oldReport={schemaVersion:1,reportId:'c4ebd3bc-a08e-4a8c-847c-7ac13f32c898',occurredAt:new Date().toISOString(),source:'automatic',operation:'publish',stage:'deploying',code:'WEB_PUBLISH_DEPLOYMENT_FAILED',outcome:'failed',environment:{zeroVersion:'0.5.80',editorVersion:'1.95.0',os:'unknown',osVersion:'unknown',architecture:'unknown',distribution:'unknown',javaVersion:'unknown',frameworkVersion:'unknown',browserBuilderVersion:'unknown'},breadcrumbs:[]};
+  const oldQueue=[{report:oldReport,attempts:0}];
+  for(const enabled of [false,true]) {
+    const sent=[];const f=fixture({enabled,legacyEnabled:true,legacyStored:oldQueue,send:async(_,options)=>{sent.push(JSON.parse(options.body));return response();}});
+    await tick();assert.equal(f.legacyStore,undefined);assert.equal(sent.length,0);
+    assert.deepEqual(f.updates.map(update=>update.key),[legacyKey]);
+    if(enabled) {
+      f.reporter.failure(bad(),'publish','building','project-a');await tick();
+      assert.equal(sent.length,1);assert.notEqual(sent[0].reportId,oldReport.reportId);
+      assert.equal(f.updates[0].key,legacyKey);
+    }
+    f.reporter.dispose();
+  }
 });

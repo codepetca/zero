@@ -1,7 +1,7 @@
 # Framework reliability: catch failures automatically
 
 Current reporting work, 2026-11-18. [Problem reporting](PROBLEM-REPORTING.md)
-implements a separate, opt-in bounded editor channel to private GitHub issues.
+implements a separate, opt-in bounded editor channel to public structured-only GitHub issues.
 It constructs its own remote payload and keeps local diagnostic records local.
 PostHog remains an evaluated optional sink. The dated source audit below records
 the earlier reliability baseline; consult current source and verification for

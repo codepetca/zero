@@ -11,7 +11,8 @@ const {
 } = require('./problem-report-contract');
 
 const ENDPOINT = 'https://zero.codepet.ca/api/problem-reports';
-const KEY = 'zero.problemReports.queue';
+const KEY = 'zero.problemReports.publicQueue.v1';
+const LEGACY_KEY = 'zero.problemReports.queue';
 const MAX_QUEUE = 20;
 const MAX_AGE = 7 * 86400000;
 const MAX_ATTEMPTS = 4;
@@ -148,7 +149,7 @@ function createProblemReporter(vscode, context, {
   const observedErrors = new WeakMap();
 
   const enabled = () => !disposed && vscode.env?.isTelemetryEnabled === true &&
-    vscode.workspace.getConfiguration('zero').get('automaticProblemReports', false) === true;
+    vscode.workspace.getConfiguration('zero').get('automaticPublicProblemReports', false) === true;
   const persist = () => {
     const snapshot = JSON.parse(JSON.stringify(queue));
     persistence = persistence.then(() => context.globalState?.update(KEY, snapshot)).catch(() => {});
@@ -160,6 +161,11 @@ function createProblemReporter(vscode, context, {
     now() - Date.parse(item.report.occurredAt) >= 0 && now() - Date.parse(item.report.occurredAt) < MAX_AGE;
   queue = (Array.isArray(context.globalState?.get(KEY)) ? context.globalState.get(KEY) : [])
     .filter(validEntry).slice(-MAX_QUEUE);
+  // Previous consent covered private issues only. Retire its queue without
+  // inspecting, migrating or sending any of its contents.
+  if (context.globalState?.get(LEGACY_KEY) !== undefined) {
+    persistence = persistence.then(() => context.globalState.update(LEGACY_KEY, undefined)).catch(() => {});
+  }
 
   function serialize(work) {
     chain = chain.then(work, work).catch(() => {});
@@ -186,7 +192,7 @@ function createProblemReporter(vscode, context, {
     crumbs.push({operation, stage, outcome});
     if (crumbs.length > 8) crumbs.shift();
   }
-  async function makeReport(source, operation, stage, code, description, root) {
+  async function makeReport(source, operation, stage, code, root) {
     const details = await projectEnvironment(vscode, context, env, root);
     return validateProblemReport({
       schemaVersion: REPORT_SCHEMA_VERSION,
@@ -195,8 +201,7 @@ function createProblemReporter(vscode, context, {
       source, operation, stage, code,
       outcome: 'failed',
       environment: details,
-      breadcrumbs: crumbs.slice(),
-      ...(description ? {description} : {})
+      breadcrumbs: crumbs.slice()
     });
   }
   async function transmit(report, controller) {
@@ -248,6 +253,7 @@ function createProblemReporter(vscode, context, {
         clear();
         return;
       }
+      if (!queue.length && context.globalState?.get(KEY) === undefined) return;
       queue = queue.filter(validEntry);
       await persist();
       if (generation !== consentGeneration) return;
@@ -304,7 +310,7 @@ function createProblemReporter(vscode, context, {
     const code = classify(error);
     if (!code) return;
     const generation = consentGeneration;
-    void makeReport('automatic', operation, stage, code, undefined, scope).then(report => {
+    void makeReport('automatic', operation, stage, code, scope).then(report => {
       if (!report || !enabled() || generation !== consentGeneration) return;
       enqueue(report, scope, generation);
     }).catch(() => {});
@@ -380,24 +386,20 @@ function createProblemReporter(vscode, context, {
         else if (choice !== 'Retry') return;
       }
       if (!manualDraft) {
-        const description = await vscode.window.showInputBox({
-          title: 'Report a problem',
-          prompt: 'Optional description. Do not include private information.',
-          placeHolder: 'What happened? (optional)',
-          ignoreFocusOut: true,
-          validateInput: value => value.length > 1000 ? 'Use at most 1,000 characters.' :
-            /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value) ? 'Remove control characters.' : undefined
-        });
-        if (description === undefined || disposed) return;
         let root;
         try { root = getProject(); } catch {}
         const snapshot = latest && latest.scope === root ? latest :
           {operation:'manual', stage:'manual', code:'MANUAL_REPORT'};
-        const report = await makeReport('manual', snapshot.operation, snapshot.stage, snapshot.code, description.trim(), root);
+        const report = await makeReport('manual', snapshot.operation, snapshot.stage, snapshot.code, root);
         if (!report || disposed) return;
+        const summary = report.code === 'MANUAL_REPORT' ? 'Report a problem in Zero.' : REPORT_CODES[report.code];
+        const detail = [
+          summary,
+          'Version information, the failed action and recent operation steps will be published in a public GitHub issue.'
+        ].filter(Boolean).join('\n\n');
         const answer = await vscode.window.showInformationMessage(
           'Send this problem report?',
-          {modal:true, detail:`Review everything that will be sent:\n\n${JSON.stringify(report, null, 2)}\n\nYour optional description is sent as written. Do not include private information.`},
+          {modal:true, detail},
           'Send report'
         );
         if (answer !== 'Send report' || disposed) return;
@@ -434,7 +436,7 @@ function createProblemReporter(vscode, context, {
   }
   const listeners = [
     vscode.workspace.onDidChangeConfiguration?.(event => {
-      if (event.affectsConfiguration('zero.automaticProblemReports')) settingChanged();
+      if (event.affectsConfiguration('zero.automaticPublicProblemReports')) settingChanged();
     }),
     vscode.env?.onDidChangeTelemetryEnabled?.(settingChanged)
   ].filter(Boolean);

@@ -1,8 +1,8 @@
 'use strict';
 
-// Shared by the editor and report service. Free-form local diagnostics never
-// enter this schema. Only an explicitly reviewed manual report may add text.
-const REPORT_SCHEMA_VERSION = 1;
+// Shared by the editor and report service. Public reports carry structured
+// technical context only. Free-form descriptions and local diagnostics are rejected.
+const REPORT_SCHEMA_VERSION = 2;
 const MAX_REPORT_BYTES = 8192;
 const OPERATIONS = Object.freeze([
   'run-native', 'run-browser', 'publish', 'sync', 'commit',
@@ -63,14 +63,13 @@ function validateEnvironment(value) {
 
 function validateProblemReport(value) {
   const required = ['schemaVersion', 'reportId', 'occurredAt', 'source', 'operation', 'stage', 'code', 'outcome', 'environment', 'breadcrumbs'];
-  if (!exactKeys(value, required, ['description'])) return null;
+  if (!exactKeys(value, required)) return null;
   if (value.schemaVersion !== REPORT_SCHEMA_VERSION || typeof value.reportId !== 'string' || !UUID.test(value.reportId)) return null;
   if (typeof value.occurredAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value.occurredAt)) return null;
   if (!Number.isFinite(Date.parse(value.occurredAt)) || new Date(value.occurredAt).toISOString() !== value.occurredAt) return null;
   if (!['automatic', 'manual'].includes(value.source) || !OPERATIONS.includes(value.operation) || !STAGES.includes(value.stage)) return null;
   if (!Object.hasOwn(REPORT_CODES, value.code) || !['failed', 'recovered'].includes(value.outcome)) return null;
-  if (value.source === 'automatic' && (MANUAL_ONLY_CODES.has(value.code) || Object.hasOwn(value, 'description'))) return null;
-  if (Object.hasOwn(value, 'description') && (typeof value.description !== 'string' || value.description.length > 1000 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value.description))) return null;
+  if (value.source === 'automatic' && MANUAL_ONLY_CODES.has(value.code)) return null;
   if (!validateEnvironment(value.environment) || !Array.isArray(value.breadcrumbs) || value.breadcrumbs.length > 8) return null;
   for (const item of value.breadcrumbs) {
     if (!exactKeys(item, ['operation', 'stage', 'outcome']) || !OPERATIONS.includes(item.operation) || !STAGES.includes(item.stage) ||

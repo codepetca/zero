@@ -20,11 +20,11 @@ const env = {
   ZERO_REPORTS_ENABLED:'true', ZERO_REPORTS_ENVIRONMENT:'development',
   ZERO_REPORTS_DATABASE_URL:'postgresql://fixture:secret@localhost/reports',
   ZERO_REPORTS_GITHUB_APP_ID:'42', ZERO_REPORTS_GITHUB_INSTALLATION_ID:'43',
-  ZERO_REPORTS_REPOSITORY:'example/private-reports', ZERO_REPORTS_REPOSITORY_ID:'44',
+  ZERO_REPORTS_REPOSITORY:'example/public-reports', ZERO_REPORTS_REPOSITORY_ID:'44',
   ZERO_REPORTS_GITHUB_PRIVATE_KEY:privateKey.export({type:'pkcs8', format:'pem'})
 };
 const config = problemReportsConfig(env);
-const base = () => ({schemaVersion:1, reportId:randomUUID(), occurredAt:'2026-11-18T12:00:00.000Z',
+const base = () => ({schemaVersion:2, reportId:randomUUID(), occurredAt:'2026-11-18T12:00:00.000Z',
   source:'automatic', operation:'run-browser', stage:'checking', code:'ZERO_BUILDER_UNAVAILABLE', outcome:'failed',
   environment:{zeroVersion:'0.5.80', editorVersion:'1.105.0', os:'macos', osVersion:'15.0', architecture:'arm64',
     distribution:'development', javaVersion:'21', frameworkVersion:'0.5.80', browserBuilderVersion:'0.5.80'}, breadcrumbs:[]});
@@ -32,11 +32,12 @@ const request = (body, options = {}) => new Request('https://zero.example/api/pr
   method:'POST', headers:{'Content-Type':'application/json', ...options.headers},
   body:typeof body === 'string' ? body : JSON.stringify(body), ...options
 });
-const repo = {id:44, private:true, full_name:config.repository, has_issues:true,
+const repo = {id:44, private:false, visibility:'public', full_name:config.repository, has_issues:true,
   url:'https://api.github.com/repos/'+config.repository, html_url:'https://github.com/'+config.repository};
 
-function fakeGithub({privateRepo = true, ambiguous = false, redirect = false, oversized = false, badGrant = false,
-  rejected = false, ambiguousPatch = false, createGate, publicOnVerify = false, wrongIssueUrl = false} = {}) {
+function fakeGithub({privateRepo = false, visibility = 'public', ambiguous = false, redirect = false, oversized = false, badGrant = false,
+  rejected = false, ambiguousPatch = false, createGate, privateOnVerify = false, visibilityOnVerify, wrongIssueUrl = false,
+  appId = 42, appSlug = 'zero-reports', issueUser = {type:'Bot',login:'zero-reports[bot]'}, performedViaApp = null} = {}) {
   const issues = new Map();
   const calls = [];
   let next = 1, loseResponse = ambiguous, losePatchResponse = ambiguousPatch;
@@ -47,21 +48,22 @@ function fakeGithub({privateRepo = true, ambiguous = false, redirect = false, ov
     assert.equal(options.cache, 'no-store');
     assert.ok(options.signal);
     const json = (value, status = 200) => Response.json(value, {status});
+    if (path === '/app') return json({id:appId,slug:appSlug});
     if (path === '/app/installations/43') return json({id:43, app_id:42, suspended_at:null, permissions:{issues:'write'}});
     if (path === '/app/installations/43/access_tokens') {
       assert.deepEqual(JSON.parse(options.body), {repository_ids:[44], permissions:{issues:'write', metadata:'read'}});
       return json({token:'ghs_fixture_token_value', expires_at:new Date(Date.now()+3600000).toISOString(),
         repository_selection:'selected', permissions:{issues:'write', metadata:'read', ...(badGrant ? {contents:'write'} : {})},
-        repositories:[{...repo, private:privateRepo}]}, 201);
+        repositories:[{...repo, private:privateRepo, visibility}]}, 201);
     }
     if (path === '/repositories/44') {
       if (redirect) return new Response(null, {status:302, headers:{Location:'https://github.com/other/public'}});
-      return json({...repo, private:publicOnVerify ? false : privateRepo});
+      return json({...repo, private:privateOnVerify ? true : privateRepo, visibility:visibilityOnVerify ?? visibility});
     }
     if (path === '/repos/'+config.repository+'/issues' && method === 'POST') {
       if (rejected) return json({message:'Private provider diagnostic'}, 403);
       const body = JSON.parse(options.body), number = next++;
-      const issue = {id:100+number, number, ...body, repository_url:repo.url,
+      const issue = {id:100+number, number, ...body, user:issueUser, performed_via_github_app:performedViaApp, repository_url:repo.url,
         url:repo.url+'/issues/'+number, html_url:(wrongIssueUrl ? 'https://github.com/other/public' : repo.html_url)+'/issues/'+number};
       if (createGate) await createGate; // Deliberately ignores AbortSignal like a late provider.
       issues.set(number, issue);
@@ -107,15 +109,19 @@ test('canonical automatic grouping excludes identity, time, breadcrumbs; manual 
   assert.notEqual(problemFingerprint(first), problemFingerprint({...first, code:'ZERO_INTERNAL_TYPE_ERROR'}));
   assert.notEqual(problemFingerprint({...first, source:'manual', code:'MANUAL_REPORT'}),
     problemFingerprint({...second, source:'manual', code:'MANUAL_REPORT'}));
-  assert.equal(problemFingerprint({...first, source:'manual', description:'A'}),
-    problemFingerprint({...first, source:'manual', description:'B'}));
+  assert.equal(problemFingerprint({...first, source:'manual'}),
+    problemFingerprint({...first, source:'manual', occurredAt:second.occurredAt}));
 });
 
-test('HTTP boundary rejects unknown fields, raw diagnostics, automatic student failures and bodies over 8192 bytes before storage', async () => {
-  let opened = 0;
-  const options = {env, storeFactory:() => ({open() { opened++; throw Error('unexpected'); }})};
-  for (const body of [{...base(), email:'student@example.com'}, {...base(), token:'private'},
-    {...base(), description:'unreviewed raw exception'}, {...base(), code:'STARTUP_FAILED'},
+test('HTTP boundary rejects all manual free text, raw diagnostics and oversized bodies before storage or GitHub', async () => {
+  let opened = 0, githubCalls = 0;
+  const options = {env, storeFactory:() => ({open() { opened++; throw Error('unexpected'); }}),
+    githubFactory:() => { githubCalls++; throw Error('unexpected GitHub access'); }};
+  for (const body of [{...base(), schemaVersion:1}, {...base(), email:'student@example.com'}, {...base(), token:'private'},
+    {...base(), description:'unreviewed raw exception'},
+    {...base(), source:'manual', operation:'manual', stage:'manual', code:'MANUAL_REPORT', description:'private details @student /Users/secret'},
+    ...['message','stack','logs','filename','path','sourceCode','repositoryUrl','githubUser'].map(key => ({...base(),source:'manual',[key]:'private client text'})),
+    {...base(), environment:{...base().environment, javaVersion:'21@example.com'}}, {...base(), code:'STARTUP_FAILED'},
     {...base(), environment:{...base().environment, path:'/Users/private'}}]) {
     const response = await receiveProblemReport(request(body), options);
     assert.equal(response.status, 400);
@@ -124,6 +130,7 @@ test('HTTP boundary rejects unknown fields, raw diagnostics, automatic student f
   for (const req of [request('x'.repeat(8193)), request(base(), {headers:{'Content-Type':'application/json','content-length':'999999'}}),
     request(base(), {headers:{'Content-Type':'text/plain'}})]) assert.equal((await receiveProblemReport(req, options)).status, 400);
   assert.equal(opened, 0);
+  assert.equal(githubCalls, 0);
   const disabled = await receiveProblemReport(request(base()), {env:{}});
   assert.equal(disabled.status, 503);
   assert.deepEqual(await disabled.json(), {status:'disabled'});
@@ -194,6 +201,10 @@ test('actual PostgreSQL preserves receipts, grouping, recovery, rate limits and 
     assert.match(issue.body, /Occurred at: 2026-11-18T12:00:00.000Z/);
     assert.match(issue.body, /Bounded breadcrumbs/);
     assert.equal((await response({...report, code:'ZERO_INTERNAL_TYPE_ERROR'})).status, 400);
+    issue.body += '\nArbitrary remote text @student /Users/private';
+    assert.equal((await (await response(report)).json()).status,'delivered');
+    assert.ok(!issue.body.includes('Arbitrary remote text'),'refresh regenerates the body instead of re-posting arbitrary provider text');
+    assert.ok(!github.calls.filter(call => call.method === 'PATCH').some(call => call.options.body.includes('Arbitrary remote text')));
 
     const orphan = {...base(), outcome:'recovered', environment:{...base().environment, zeroVersion:'0.5.994'}};
     const budgetsBefore = (await pool.query('SELECT bucket,count FROM zero_problem_budgets ORDER BY bucket')).rows;
@@ -210,8 +221,57 @@ test('actual PostgreSQL preserves receipts, grouping, recovery, rate limits and 
     assert.deepEqual(await (await response(uncertain,false,unknown)).json(), {
       receipt:(await pool.query('SELECT receipt FROM zero_problem_reports WHERE report_id=$1',[uncertain.reportId])).rows[0].receipt, status:'pending'});
     assert.equal(unknown.creates(), 1);
+    const ours = [...unknown.issues.values()][0];
+    const copyIssue = (number,user) => ({...ours,id:100+number,number,user,performed_via_github_app:{id:42},
+      url:repo.url+'/issues/'+number,html_url:repo.html_url+'/issues/'+number});
+    const copiedMarkers = [copyIssue(80,{type:'User',login:'human-contributor'}),
+      copyIssue(81,{type:'Bot',login:'another-app[bot]'})];
+    for (const spoof of copiedMarkers) unknown.issues.set(spoof.number,spoof);
     assert.equal((await (await response(uncertain,true,unknown)).json()).status, 'delivered');
     assert.equal(unknown.creates(), 1, 'marker reconciliation binds an ambiguous issue rather than recreating');
+    assert.equal(Number((await pool.query('SELECT issue_number FROM zero_problem_groups WHERE fingerprint=$1',[problemFingerprint(uncertain)])).rows[0].issue_number),ours.number,
+      'only the authenticated App bot issue is adopted among copied public markers');
+    assert.ok(!unknown.calls.some(call => call.method === 'PATCH' && /\/(80|81)$/.test(call.path)));
+    ours.performed_via_github_app = {id:42};
+    assert.equal((await (await response(uncertain,true,unknown)).json()).status,'delivered');
+    delete ours.performed_via_github_app;
+    assert.equal((await (await response(uncertain,true,unknown)).json()).status,'delivered',
+      'missing optional performed_via_github_app does not block a verified App bot author');
+
+    const renamedApp = fakeGithub({appSlug:'custom-reports',issueUser:{type:'Bot',login:'custom-reports[bot]'},performedViaApp:{id:42}});
+    assert.equal((await (await response({...base(),environment:{...base().environment,zeroVersion:'0.5.988'}},false,renamedApp)).json()).status,'delivered',
+      'canonical author login derives from authenticated App metadata, not an assumed bot name');
+
+    const spoofed = {...base(),environment:{...base().environment,zeroVersion:'0.5.992'}};
+    const spoofOnly = fakeGithub({ambiguous:true});
+    await response(spoofed,false,spoofOnly);
+    const original = [...spoofOnly.issues.values()][0];
+    spoofOnly.issues.clear();
+    for (const spoof of copiedMarkers) spoofOnly.issues.set(spoof.number,{...spoof,body:original.body});
+    assert.equal((await (await response(spoofed,true,spoofOnly)).json()).status,'pending');
+    assert.equal((await pool.query('SELECT issue_number FROM zero_problem_groups WHERE fingerprint=$1',[problemFingerprint(spoofed)])).rows[0].issue_number,null,
+      'human or unrelated bot markers cannot be adopted when our App issue is absent');
+    assert.equal(spoofOnly.creates(),1);
+    assert.equal(spoofOnly.calls.filter(call => call.method === 'PATCH').length,0);
+
+    const originalUser = ours.user;
+    ours.user = {type:'User',login:'human-contributor'};
+    const patchesBefore = unknown.calls.filter(call => call.method === 'PATCH').length;
+    assert.equal((await (await response(uncertain,true,unknown)).json()).status,'pending');
+    assert.equal(unknown.calls.filter(call => call.method === 'PATCH').length,patchesBefore,
+      'an existing bound issue with the wrong author is never patched');
+    ours.user = originalUser;
+
+    for (const [index,parameters] of [
+      {issueUser:{type:'User',login:'human-contributor'}},
+      {issueUser:{type:'Bot',login:'another-app[bot]'}},
+      {performedViaApp:{id:99}}
+    ].entries()) {
+      const invalidAuthor = fakeGithub(parameters), input = {...base(),environment:{...base().environment,zeroVersion:'0.5.'+(989+index)}};
+      assert.equal((await (await response(input,false,invalidAuthor)).json()).status,'pending');
+      assert.equal((await pool.query('SELECT issue_number FROM zero_problem_groups WHERE fingerprint=$1',[problemFingerprint(input)])).rows[0].issue_number,null,
+        'a create response with invalid App provenance cannot be confirmed');
+    }
 
     const disappeared = {...base(), code:'ZERO_INTERNAL_RANGE_ERROR'};
     const noVisibleResult = fakeGithub({ambiguous:true});
@@ -248,19 +308,45 @@ test('actual PostgreSQL preserves receipts, grouping, recovery, rate limits and 
     const successfulRetry = fakeGithub();
     assert.equal((await (await response(refused,true,successfulRetry)).json()).status,'delivered');
 
-    for (const parameters of [{privateRepo:false}, {publicOnVerify:true}, {redirect:true}, {badGrant:true}]) {
+    for (const parameters of [{privateRepo:true}, {privateOnVerify:true}, {visibility:'private'}, {visibilityOnVerify:'internal'},
+      {appId:99}, {appSlug:'unsafe/slug'}, {redirect:true}, {badGrant:true}]) {
       const forbidden = fakeGithub(parameters), input = {...base(), environment:{...base().environment, zeroVersion:'0.5.'+(100+Object.keys(parameters)[0].length)}};
       const result = await response(input,false,forbidden);
       assert.equal((await result.json()).status, 'pending');
       assert.equal(forbidden.creates(), 0);
       assert.equal(forbidden.calls.filter(call => call.method === 'PATCH').length, 0);
     }
-    const manual = {...base(), source:'manual', operation:'manual', stage:'manual', code:'MANUAL_REPORT', description:'<script>Do things</script> @student'};
-    await response(manual);
+    const manual = {...base(), source:'manual', operation:'manual', stage:'manual', code:'MANUAL_REPORT'};
+    assert.equal((await response(manual)).status,202,'structured manual reports can publish to the public destination');
     const payload = (await pool.query('SELECT payload FROM zero_problem_reports WHERE report_id=$1',[manual.reportId])).rows[0].payload;
-    assert.equal(payload.description, undefined, 'manual description is discarded from database after confirmed delivery');
-    assert.ok([...github.issues.values()].some(issue => issue.body.includes('&lt;script&gt;')));
-    assert.ok(![...github.issues.values()].some(issue => issue.body.includes('<script>')));
+    assert.deepEqual(payload,manual,'the durable payload is the structured report only');
+    const createsBeforeText = github.creates();
+    const forgedManual = {...manual,reportId:randomUUID(),description:'<script>private text /Users/private @student</script>'};
+    assert.equal((await response(forgedManual)).status,400,'old manual-description clients are refused before storage or public writes');
+    assert.equal(github.creates(),createsBeforeText);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM zero_problem_reports WHERE report_id=$1',[forgedManual.reportId])).rows[0].n,0);
+    assert.ok(![...github.issues.values()].some(issue => /<script>|private text|\/Users\/|@student|description/i.test(issue.body)));
+    const rejectedDeadline = createHubRequestDeadline({budgetMs:10000});
+    const rejectedSession = await stores[0].open(rejectedDeadline);
+    try {
+      await assert.rejects(rejectedSession.accept(forgedManual),error => error.code === 'REPORT_CONFLICT',
+        'the store also rejects invalid free text independently of the HTTP boundary');
+    } finally { rejectedSession.close(); rejectedDeadline.dispose(); }
+
+    const legacy = {...base(),environment:{...base().environment,zeroVersion:'0.5.993'}};
+    await receiveProblemReport(request(legacy),{env,storeFactory:() => stores[0],
+      githubFactory:() => ({deliver:async () => { throw Error('No provider dispatch'); }})});
+    await pool.query(`UPDATE zero_problem_reports SET payload=payload || '{"description":"old private text"}'::jsonb
+      WHERE report_id=$1`,[legacy.reportId]);
+    const legacyGithub = fakeGithub();
+    const legacyDeadline = createHubRequestDeadline({budgetMs:10000});
+    const legacySession = await stores[1].open(legacyDeadline);
+    try {
+      await assert.rejects(createProblemReportsGithub(config,{fetchImpl:legacyGithub.fetchImpl})
+        .deliver(legacySession,problemFingerprint(legacy),legacyDeadline),/Report delivery unavailable/);
+      assert.equal(legacyGithub.calls.length,0,'persisted old free text fails closed before provider access or public writes');
+      assert.equal((await pool.query('SELECT create_reserved_at FROM zero_problem_groups WHERE fingerprint=$1',[problemFingerprint(legacy)])).rows[0].create_reserved_at,null);
+    } finally { legacySession.close(); legacyDeadline.dispose(); }
 
     await pool.query(`INSERT INTO zero_problem_budgets(bucket,count,expires_at)
       VALUES ('minute:' || floor(extract(epoch FROM now())/60)::text,300,now()+interval '2 minutes')
@@ -283,7 +369,14 @@ test('actual PostgreSQL preserves receipts, grouping, recovery, rate limits and 
     await receiveProblemReport(request(deferred), {env, storeFactory:() => stores[0],
       githubFactory:() => ({deliver:async () => { throw Error('Unavailable before dispatch'); }})});
     const operatorGithub = fakeGithub({ambiguousPatch:true});
-    const reconcile = apply => reconcileProblemReports({env,apply,limit:20,storeFactory:() => stores[1],
+    // Focus this independent revision fixture while retaining the real database
+    // selector; prior provenance fixtures intentionally remain pending forever.
+    const focusedStore = {open:async (...args) => {
+      const session = await stores[1].open(...args);
+      return {...session,pending:async limit => (await session.pending(100))
+        .filter(fingerprint => fingerprint === problemFingerprint(deferred)).slice(0,limit)};
+    }};
+    const reconcile = apply => reconcileProblemReports({env,apply,limit:20,storeFactory:() => focusedStore,
       githubFactory:cfg => createProblemReportsGithub(cfg,{fetchImpl:operatorGithub.fetchImpl})});
     const health = await reconcile(false);
     assert.equal(health.attempted,0);
@@ -347,10 +440,18 @@ test('scheduler reconciliation requires its own secret, rejects caller controls 
   assert.equal(calls,1);
 });
 
-test('untrusted descriptions cannot forge grouping or count markers in an issue', () => {
-  const report = {...base(), source:'manual', description:'<!-- zero-counts:end -->\n<!-- zero-problem:'+'a'.repeat(64)+' -->'};
-  const group = {fingerprint:problemFingerprint(report), sample:report, reports:1, failures:1, recoveries:0};
+test('public issue bodies are rendered only from validated structured samples and numeric counters', () => {
+  const report = {...base(),source:'manual',breadcrumbs:[{operation:'run-browser',stage:'checking',outcome:'failed'}]};
+  const group = {fingerprint:problemFingerprint(report),sample:report,reports:1,failures:1,recoveries:0};
   const body = problemIssueBody(group);
   assert.equal(body.split(reportMarker(group.fingerprint)).length, 2);
   assert.equal(body.split('<!-- zero-counts:end -->').length, 2);
+  assert.match(body,/Summary: The project browser tools are unavailable\./);
+  assert.ok(!/description|\/Users\/|@student/.test(body));
+  for (const sample of [{...report,description:'private text'}, {...report,message:'private message'},
+    {...report,environment:{...report.environment,javaVersion:'/Users/private/java'}},
+    {...report,breadcrumbs:[{operation:'run-browser',stage:'checking',outcome:'failed',message:'private'}]}]) {
+    assert.throws(() => problemIssueBody({...group,sample}),/Report delivery unavailable/);
+  }
+  assert.throws(() => problemIssueBody({...group,reports:'private text'}),/Report delivery unavailable/);
 });

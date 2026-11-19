@@ -47,7 +47,7 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  const latestApp=()=>launches.filter(active=>active.task.definition.instanceId).at(-1);
  const reportLatest=async()=>{
   const input=vscode.window.showInputBox,info=vscode.window.showInformationMessage,quickPick=vscode.window.createQuickPick;
-  vscode.window.createQuickPick=()=>({dispose(){}});vscode.window.showInputBox=async()=>'';
+  vscode.window.createQuickPick=()=>assert.fail('Report must not request text');vscode.window.showInputBox=async()=>assert.fail('Report must not request text');
   vscode.window.showInformationMessage=async message=>message==='Send this problem report?'?'Send report':undefined;
   try {await commands.get('zero.reportProblem')();} finally {vscode.window.showInputBox=input;vscode.window.showInformationMessage=info;vscode.window.createQuickPick=quickPick;}
   return problemReports.at(-1);

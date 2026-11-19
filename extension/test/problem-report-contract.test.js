@@ -5,7 +5,7 @@ const {validateProblemReport, MAX_REPORT_BYTES} = require('../src/problem-report
 
 function report() {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     reportId: '1bcf279a-bac7-4a7d-88aa-771295d78c02',
     occurredAt: '2026-11-18T12:30:00.000Z',
     source: 'automatic',
@@ -67,17 +67,17 @@ test('student runtime and broad compiler failures require a manual report', () =
   }
 });
 
-test('free text is accepted only on explicitly manual reports', () => {
-  const value = {...report(), description: 'I clicked Publish and the page never opened.'};
-  assert.equal(validateProblemReport(value), null);
-  assert.equal(validateProblemReport({...value, source: 'manual'}).description, value.description);
-  assert.equal(validateProblemReport({...value, source: 'manual', description: 'x'.repeat(1001)}), null);
-  assert.equal(validateProblemReport({...value, source: 'manual', description: 'text\u0000hidden'}), null);
+test('public reports reject all free text for automatic and manual submissions', () => {
+  for (const source of ['automatic', 'manual']) {
+    for (const description of ['', 'I clicked Publish and the page never opened.', 'secret token', 'x'.repeat(1001)]) {
+      assert.equal(validateProblemReport({...report(), source, description}), null);
+    }
+  }
 });
 
 test('requires bounded valid IDs, dates and breadcrumbs', () => {
   for (const [key, value] of [
-    ['schemaVersion', 2], ['reportId', 'student-login'],
+    ['schemaVersion', 1], ['schemaVersion', 3], ['reportId', 'student-login'],
     ['occurredAt', '2026-02-30T12:30:00.000Z'], ['occurredAt', '2026-11-18'],
     ['breadcrumbs', Array.from({length: 9}, () => report().breadcrumbs[0])]
   ]) assert.equal(validateProblemReport({...report(), [key]: value}), null, key);

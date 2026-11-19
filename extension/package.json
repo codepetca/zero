@@ -600,11 +600,11 @@
           "scope": "machine",
           "markdownDescription": "Operator-configured reviewed policy revision, stamped by an accepted kit release. Blank keeps publication forms disabled."
         },
-        "zero.automaticProblemReports": {
+        "zero.automaticPublicProblemReports": {
           "type": "boolean",
           "default": false,
           "scope": "machine",
-          "markdownDescription": "Send sanitized unexpected Zero operation failures to Zero to help fix problems. Requires VS Code telemetry to be enabled. Reports do not include logs, paths, project URLs, or credentials. You can also choose Zero Help → Report a Problem to review and send a report manually."
+          "markdownDescription": "Off by default. Send structured unexpected Zero operation failures to a public GitHub issue to help fix problems. Requires VS Code telemetry to be enabled. Reports include version information and operation steps, but no logs, paths, project URLs, credentials or free text. You can also choose Zero Help → Report a Problem to send a report manually."
         }
       }
     },

@@ -13,7 +13,7 @@ compliance. No new collector, consent record or data store is added by the pages
 | Desktop browser authorization and refresh | Broker processes codes/verifiers/access+refresh credentials; no credential DB. Flow10minutes, delivery2minutes; no-store responses. | `website/lib/desktop-github-auth.mjs` |
 | Desktop account/connection/access+refresh tokens | VS Code SecretStorage; validity limits do not delete stored expired records. Desktop sign-out clears credential record. | `extension/src/github-app/credential-store.js`, `provider.js` |
 | Recent desktop projects | Up to20paths/timestamps/optional repository URLs per numeric account in local editor state. No age-based expiry. Sign-out retains projects/history. | `extension/src/recent-projects.js` |
-| Optional editor problem reports | Automatic collection starts disabled and respects VS Code telemetry preference. Bounded technical versions, operation stages, stable codes, random retry IDs and structured breadcrumbs are queued locally and submitted to a separately configured private GitHub issue service. A manual report can include the description the user reviews. PostgreSQL coordinates receipts, grouping, rate budgets and uncertain delivery. GitHub holds private reports. Operator retention and deployed configuration require verification at activation. | `extension/src/problem-report-contract.js`, `problem-reporting.js`; `website/lib/problem-reports.mjs`; [operation and acceptance](PROBLEM-REPORTING.md) |
+| Optional editor problem reports | Automatic collection starts disabled and respects VS Code telemetry preference. Bounded technical versions, operation stages, stable codes, random retry IDs and structured breadcrumbs are queued locally and submitted to a separately configured public GitHub issue service. Manual submission confirms the same structured-only payload without a free-text description. PostgreSQL coordinates receipts, grouping, rate budgets and uncertain delivery. GitHub holds public structured reports. Operator retention and deployed configuration require verification at activation. | `extension/src/problem-report-contract.js`, `problem-reporting.js`; `website/lib/problem-reports.mjs`; [operation and acceptance](PROBLEM-REPORTING.md) |
 | Appearance preference | Browser localStorage `zero-learn-theme`; no coded expiry; user clears site data. | `website/app/learn/LearnTheme.jsx` |
 | Last documentation page | Browser localStorage `zero.docs.lastVisited` holds one tutorial or docs path and optional fragment, without query parameters; no coded expiry; user clears site data. | `website/components/DocsLocationTracker.jsx`, `website/lib/docs-resume.mjs` |
 | ZeroHub app listings, when enabled | The desktop sends its GitHub access token to Zero for verification and a Pages publishing receipt. The listing database stores account and repository IDs, public links and project metadata, run identity, queue order and protection state. Apps outside public discovery retain their records for owner controls and safe publish retries. The listing table stores no access token. | `website/lib/hub-listings-http.mjs`, `website/sql/zerohub-listings.sql` |
@@ -27,10 +27,10 @@ compliance. No new collector, consent record or data store is added by the pages
 
 Reporting-source addition, 2026-11-18. The endpoint and editor integration are
 local source changes. This inventory does not establish a deployed collector,
-configured private issue repository or telemetry-enabled student installations.
-Automatic payloads reject source, paths, raw messages/stacks, project URLs,
-student identities and credentials. Optional manually reviewed text is shared as
-written and can include personal information. Hosting infrastructure receives
+configured public issue repository or telemetry-enabled student installations.
+All reporting payloads reject source, filenames, paths, raw messages/stacks,
+project URLs, student identities, credentials and free-text descriptions. The
+server validates fixed fields and produces the public issue from that schema. Hosting infrastructure receives
 normal connection metadata separately from the bounded report payload.
 
 Current website source has no ad/session-replay/marketing analytics integration

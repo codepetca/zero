@@ -1,5 +1,6 @@
 import {Pool} from 'pg';
 import {createHash, randomUUID} from 'node:crypto';
+import contract from '../../extension/src/problem-report-contract.js';
 
 export function problemFingerprint(report) {
   const environment = Object.fromEntries(Object.keys(report.environment).sort().map(key => [key, report.environment[key]]));
@@ -53,6 +54,8 @@ export function createProblemReportsStore(pool, destination) {
       return {
         async accept(report) {
           if (!initializeDestination) throw new Error('Report acceptance requires a verified destination.');
+          report = contract.validateProblemReport(report);
+          if (!report) throw Object.assign(new Error('Invalid structured report.'), {code:'REPORT_CONFLICT'});
           const fingerprint = problemFingerprint(report);
           await query('BEGIN');
           try {
@@ -119,12 +122,8 @@ export function createProblemReportsStore(pool, destination) {
           return result.rows.length === 1;
         },
         async bind(fingerprint, number) {
-          // Free text lives in the private issue after confirmed delivery only.
-          // Binding and removal are one atomic statement, including on cancellation.
-          await query(`WITH bound AS (UPDATE zero_problem_groups SET issue_number=$2
-            WHERE fingerprint=$1 AND (issue_number IS NULL OR issue_number=$2) RETURNING fingerprint)
-            UPDATE zero_problem_reports SET payload=payload-'description'
-            WHERE fingerprint IN (SELECT fingerprint FROM bound)`, [fingerprint,number]);
+          await query(`UPDATE zero_problem_groups SET issue_number=$2
+            WHERE fingerprint=$1 AND (issue_number IS NULL OR issue_number=$2)`, [fingerprint,number]);
         },
         async rejected(fingerprint) {
           await query('UPDATE zero_problem_groups SET create_reserved_at=NULL WHERE fingerprint=$1 AND issue_number IS NULL', [fingerprint]);

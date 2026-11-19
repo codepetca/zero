@@ -1,3 +1,17 @@
+# Public structured reporting refinement — 2026-11-18
+
+Owner selected public structured-only issues and a concise user confirmation.
+Schema version 2 rejects legacy requests, free text and extra fields. A separate
+public opt-in and queue prevent private-consent carryover. The server validates
+stored payloads, public visibility and canonical App-bot issue authorship.
+
+34 focused boundary cases pass, including actual isolated PostgreSQL and fake
+GitHub provenance/visibility/legacy payload checks. The editor worker's 101-case
+reporter/native/browser/onboarding suite passes. Source checks and website
+typecheck pass. Fixed-revision independent reviews follow before acceptance.
+Live GitHub App attribution, repository provisioning, deployment and native
+report-dialog acceptance remain separate. See [the current reporting guide](PROBLEM-REPORTING.md).
+
 # Automatic problem reporting — 2026-11-18
 
 Reviewed source `2aad43a5d4bfe74a886b351a0e301941b4721476`, based on `d098d0d2f`.

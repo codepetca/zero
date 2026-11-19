@@ -8,6 +8,12 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner reporting refinement, 2026-11-18. Keep sidebar error messages concise and
+useful. Manual report confirmation shows a short issue summary and the kinds of
+information being sent. Technical payloads belong in the submitted report. Publish only structured
+technical data to public GitHub issues, with a clear public-submission notice
+and no free-text report description.
+
 Owner header refinement, 2026-11-10. Show **Beta** as plain text beside the
 Zero wordmark, with a full click and tap target and visible keyboard focus.
 

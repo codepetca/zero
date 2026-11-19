@@ -1,3 +1,28 @@
+# Public structured reporting refinement — 2026-11-18
+
+Owner selected public GitHub issues containing structured technical data only.
+The sidebar keeps concise local errors. Manual reporting confirms a short issue
+summary and a public-submission notice without requesting text or showing JSON.
+The current source delta is based on `ddbbcc0cc` on the reporting feature branch.
+
+Schema version 2 rejects free text and unknown fields for every source. The
+server also rejects version 1 and revalidates stored samples before provider
+access. Public consent uses `zero.automaticPublicProblemReports` and its own
+queue. The previous private-reporting setting and queue never authorize or
+populate public submissions. Client and server tests cover these transitions.
+
+The provider requires public destination metadata and authenticated reporting
+App-bot provenance for issue adoption or updates. Issue bodies are regenerated
+from structured records. Maintainer notes belong in comments. Public marker
+copies made by humans or unrelated bots cannot authorize an update. Live App
+attribution and destination acceptance remain operator verification work.
+
+Current focused evidence includes 34 contract, collector and actual PostgreSQL
+service checks, plus 101 editor/native/browser/onboarding checks before the
+schema-version bump. Source configuration/syntax/link checks and website
+typecheck pass. Independent review of the public-policy delta is next. All
+GitHub provider calls are local fakes and no public report was submitted.
+
 # Automatic problem reporting implementation — 2026-11-18
 
 Owner approved minimal automatic reports after opt-in, reviewed manual reports

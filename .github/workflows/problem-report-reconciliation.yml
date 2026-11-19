@@ -1,4 +1,4 @@
-name: Reconcile private problem reports
+name: Reconcile public problem reports
 
 on:
   schedule:

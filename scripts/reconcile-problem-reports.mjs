@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import {reconcileProblemReports} from '../website/lib/problem-reports-reconcile.mjs';
 
-// Health inspection is the default. --apply explicitly enables private GitHub
+// Health inspection is the default. --apply explicitly enables public GitHub
 // issue delivery using the dedicated server environment; never student tokens.
 const args = process.argv.slice(2);
 if (args.some(arg => arg !== '--apply') || args.length > 1) {
