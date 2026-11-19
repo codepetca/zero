@@ -103,6 +103,12 @@ reporting needs no additional confirmation. Opted-out manual reports retain a
 public-submission confirmation. Service activation and a published editor release
 are separate from source implementation; no PostHog integration is activated.
 
+Maintainer [AI triage](AI-TRIAGE.md) can investigate published structured reports
+and prepare bounded draft fixes after real reproduction and independent review.
+It has no automatic merge/release authority and does not alter student projects.
+Its initial local scheduled rollout, safe change scope and operating limits are
+separate from the editor collector and hourly delivery reconciliation.
+
 Project direction, updated 2026-11-18: new projects use the current framework and browser tooling; opening a project never updates its files. Full project update and recovery remain unavailable. When an older saved browser builder blocks an explicit browser build or publish, Zero offers **Update Browser Tools**. After confirmation, it replaces only `.zero-build` with the installed tools, keeps the previous tools in a local backup, and continues the requested action. Java, assets and framework files stay unchanged. Trust, saved-file, recovery and Git mutation checks still apply; the changed tools join the ordinary commit/upload review. Damaged tooling may still require restoring saved files or copying source/assets into a new project. Keep original projects and recovery copies. Student repositories own their source and build files.
 
 Implementation execution, owner-authorized 2026-10-23: follow the single

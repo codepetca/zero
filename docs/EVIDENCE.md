@@ -1,3 +1,48 @@
+# Bounded AI report triage implementation — 2026-11-19
+
+Owner requested orchestration of AI triage and fixing with false-positive and
+regression safeguards. Isolated branch `codex/ai-report-triage`, base `df864c666`;
+the original dirty checkout and all 0.5.82 artifacts/runtime inputs are preserved.
+The maintainer flow is documented in [AI triage](AI-TRIAGE.md) with reviewed policy
+and an exact scheduled prompt in `triage/`. No new credentials, student data fields,
+report-App permissions or hosted model/database service are introduced.
+
+Strict provenance and canonical structured parsing exclude arbitrary issue prose,
+comments, forged identities, manual-unverifiable fingerprints, stale/recovered
+context and activation tests. Private SQLite supplies transactional leases,
+action deadlines, snapshot deduplication, daily caps, pause and a durable draft
+reservation. Actual assertion-fail/fixed-pass reproduction, unchanged existing
+tests and restricted diffs supplement independent semantic review. These are not
+an OS sandbox or an independent attestation from stored metadata. Drafts cannot
+become merge/release authority; uncertain provider writes are read-reconciled.
+
+Focused triage and legal disclosure cases pass (32 tests), including actual
+isolated Git baseline/fix executions. Configuration/syntax/local links, website
+typecheck and actionlint pass. A live read-only scan verified the public repository,
+App and numeric bot user and returned no-action with zero open reports/jobs/outbox
+reservations and no active lease. Synthetic fixtures prove machinery, not an actual
+student bug fix. No public issue, branch or PR was created by that scan.
+
+Terra/high handled bounded mapping, pure intake, state and integration tests;
+root integration refined canonical digests, queue refresh, action fencing and
+cross-run reconciliation. Effective model/time/tokens were not exposed. The full
+consequential-boundary independent review, final-head CI and scheduled activation
+remain pending. The initial four-hour worker is local to Codex on the Mac.
+Ignored receipts are under `.verification/ai-triage/`; operational state is private
+outside Git. The source release record below remains historical evidence.
+
+The initial independent Sol/high security and compatibility wave covered
+`df864c666..fa901920f` completely. It found four accepted blockers: one P1 hidden
+intermediate-history publication gap, and P2s for in-flight pause/deadline handling,
+attached-proposal reuse after a source change, and corrected-head proof log collisions.
+One correction batch requires a single clean proposal commit, fences/cancels proof
+children throughout execution, preserves immutable per-head logs and suppresses
+replacement proposals across source snapshots. Regression fixtures include actual
+child cancellation and retained canary-history rejection. All 37 focused cases pass
+(19 state/proposal plus 18 intake/runner/legal). The queued source check passed via
+`devq` job12; earlier website typecheck/build and actionlint coverage remains valid.
+Targeted re-review and final integration coverage follow before activation.
+
 # Zero 0.5.82 full release — 2026-11-19
 
 [PR393](https://github.com/codepetca/zero/pull/393) merged as

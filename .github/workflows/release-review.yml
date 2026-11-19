@@ -82,6 +82,8 @@ jobs:
         run: npm ci --prefix website
       - name: CI selection, gate, browser provisioning and Dev contracts
         run: node --test scripts/ci-*.test.mjs scripts/zero-dev.test.mjs
+      - name: Report triage provenance, state and proposal safety gates
+        run: node --test triage/*.test.mjs
       - name: Require a new version for framework changes
         if: github.event_name == 'pull_request'
         env:
