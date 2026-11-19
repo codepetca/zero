@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {mkdtempSync,realpathSync,mkdirSync,writeFileSync,readFileSync,rmSync,renameSync,symlinkSync,chmodSync} from 'node:fs';
+import {mkdtempSync,realpathSync,mkdirSync,writeFileSync,readFileSync,existsSync,rmSync,renameSync,symlinkSync,chmodSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {readPolicy} from './runner.mjs';
@@ -31,7 +31,7 @@ test('real regression fails on baseline, passes patched, hashes logs and cleans 
   const r=repo(t),headSha=good(r),logDirectory=join(r.root,'proof-logs');
   const before=r.git('worktree','list','--porcelain');
   const proof=await proveProposal({...args(r,headSha),logDirectory});
-  const redLog=readFileSync(join(logDirectory,'baseline.log')), greenLog=readFileSync(join(logDirectory,'patched.log'));
+  const redLog=readFileSync(join(logDirectory,headSha,'baseline.log')), greenLog=readFileSync(join(logDirectory,headSha,'patched.log'));
   assert.match(redLog.toString(),/ERR_ASSERTION/);assert.match(greenLog.toString(),/# fail 0/);
   assert.equal(proof.baselineLogSha256,hash(redLog));assert.equal(proof.patchedLogSha256,hash(greenLog));
   assert.equal(r.git('worktree','list','--porcelain'),before);
@@ -69,4 +69,55 @@ test('wrong base and excess commits fail inspection',t=>{
   assert.throws(()=>inspectProposal({...args(r,headSha),baselineSha:headSha}));
   for(let i=0;i<policy.limits.proposalCommits;i++){r.write(src,green+`// ${i}\n`);r.commit();}
   assert.throws(()=>inspectProposal(args(r,r.git('rev-parse','HEAD'))),{code:'PROPOSAL_COMMITS_EXCEEDED'});
+});
+
+
+test('removed private canary in intermediate commit still prevents publishing history',t=>{
+  const r=repo(t);
+  r.write('private-canary.txt','CANARY: unpublished synthetic data\n');r.commit();
+  rmSync(join(r.root,'private-canary.txt'));r.write(src,green);r.write(regression,regressionText);const headSha=r.commit();
+  assert.throws(()=>inspectProposal(args(r,headSha)));
+});
+
+test('corrected amended proposal retains separate proofs for both heads',async t=>{
+  const r=repo(t), firstHead=good(r), logDirectory=join(r.root,'proof-logs');
+  const first=await proveProposal({...args(r,firstHead),logDirectory});
+  r.write(src,green+'// corrected\n');r.git('add',src);r.git('commit','--amend','--no-edit','-q');
+  const secondHead=r.git('rev-parse','HEAD');assert.notEqual(firstHead,secondHead);
+  const second=await proveProposal({...args(r,secondHead),logDirectory});
+  for(const [headSha,proof] of [[firstHead,first],[secondHead,second]]) {
+    assert.equal(hash(readFileSync(join(logDirectory,headSha,'baseline.log'))),proof.baselineLogSha256);
+    assert.equal(hash(readFileSync(join(logDirectory,headSha,'patched.log'))),proof.patchedLogSha256);
+  }
+});
+
+test('pause while baseline test runs stops proof before patched test begins',async t=>{
+  const r=repo(t), started=join(r.root,'baseline-started'), patched=join(r.root,'patched-started');
+  r.write(src,green);
+  r.write(regression,`const test=require('node:test');
+const fs=require('node:fs');
+const value=require('../src/explorer-labels.js');
+test('slow',async()=>{ if(value()===0) {fs.writeFileSync(${JSON.stringify(started)},'started'); await new Promise(r=>setTimeout(r,2500));} else {fs.writeFileSync(${JSON.stringify(patched)},'started');} });
+`);
+  const headSha=r.commit();let pausedAt;
+  const assertActive=()=>{if(existsSync(started)){pausedAt=Date.now();throw new Error('PAUSED');}return {remainingMilliseconds:5000};};
+  const before=r.git('worktree','list','--porcelain');
+  await assert.rejects(proveProposal({...args(r,headSha),logDirectory:join(r.root,'proof-logs'),assertActive}));
+  assert.ok(pausedAt);assert.equal(existsSync(patched),false);assert.ok(Date.now()-pausedAt<1500,'baseline child should stop promptly');
+  assert.equal(r.git('worktree','list','--porcelain'),before);
+});
+
+test('remaining action deadline bounds a running baseline child',async t=>{
+  const r=repo(t),started=join(r.root,'deadline-baseline'),patched=join(r.root,'deadline-patched');
+  r.write(src,green);
+  r.write(regression,`const test=require('node:test');\nconst fs=require('node:fs');\nconst value=require('../src/explorer-labels.js');\ntest('slow',async()=>{ if(value()===0) {fs.writeFileSync(${JSON.stringify(started)},'started'); await new Promise(r=>setTimeout(r,2500));} else {fs.writeFileSync(${JSON.stringify(patched)},'started');} });\n`);
+  const headSha=r.commit();let deadline;
+  const assertActive=()=>{
+    if(existsSync(started) && !deadline) deadline=Date.now()+150;
+    const remainingMilliseconds=deadline ? Math.max(0,deadline-Date.now()) : 5000;
+    if(!remainingMilliseconds) throw new Error('EXPIRED');
+    return {remainingMilliseconds};
+  };
+  await assert.rejects(proveProposal({...args(r,headSha),logDirectory:join(r.root,'proof-logs'),assertActive}));
+  assert.ok(deadline);assert.equal(existsSync(patched),false);assert.ok(Date.now()-deadline<1500,'deadline should stop baseline child promptly');
 });

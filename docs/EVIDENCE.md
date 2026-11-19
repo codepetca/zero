@@ -31,6 +31,18 @@ remain pending. The initial four-hour worker is local to Codex on the Mac.
 Ignored receipts are under `.verification/ai-triage/`; operational state is private
 outside Git. The source release record below remains historical evidence.
 
+The initial independent Sol/high security and compatibility wave covered
+`df864c666..fa901920f` completely. It found four accepted blockers: one P1 hidden
+intermediate-history publication gap, and P2s for in-flight pause/deadline handling,
+attached-proposal reuse after a source change, and corrected-head proof log collisions.
+One correction batch requires a single clean proposal commit, fences/cancels proof
+children throughout execution, preserves immutable per-head logs and suppresses
+replacement proposals across source snapshots. Regression fixtures include actual
+child cancellation and retained canary-history rejection. All 37 focused cases pass
+(19 state/proposal plus 18 intake/runner/legal). The queued source check passed via
+`devq` job12; earlier website typecheck/build and actionlint coverage remains valid.
+Targeted re-review and final integration coverage follow before activation.
+
 # Zero 0.5.82 full release — 2026-11-19
 
 [PR393](https://github.com/codepetca/zero/pull/393) merged as

@@ -64,6 +64,10 @@ policy, a new issue-specific regression test, four changed files and 200 changed
 lines. Existing tests cannot be edited or removed. Renames, deletions, executable
 or symlink changes, new production files and added execution/network/credential
 capabilities are rejected. This path check does not establish semantic safety.
+The proposed head must be exactly one clean commit with the public baseline as
+its sole parent. Review amendments before publication, then reproduce/review the
+new exact head. An allowed final diff does not sanitize forbidden intermediate
+history. This scheduled-proposal rule does not restrict separate owner-led work.
 
 Anything involving authentication, permissions, student files/Git operations,
 reporting/privacy, data/schema, dependencies, CI, deployment/release, public APIs,
@@ -123,6 +127,10 @@ and a test already passing on baseline do not prove a defect. Logs stay private,
 bound to both SHAs. Test execution uses an empty HOME and a minimal environment;
 these are hygiene measures, **not an OS sandbox**. Inspect authored tests before
 execution and use only trusted maintained code and synthetic projects.
+Proof logs are immutable per head, so a permitted correction retains the earlier
+proof and produces a fresh one. The active run fence and remaining budget are
+checked throughout reproduction; pause or expiry stops child process groups
+and prevents the next test from starting. Safe temporary-tree cleanup still runs.
 
 Run the existing affected tests, `npm run check` and `npm test` without weakening
 assertions or changing timeouts. Review counterexamples, including invalid input,
@@ -130,6 +138,13 @@ cancel/retry behavior, useful errors and the relevant native/WebFX paths. A nati
 success alone does not prove browser portability. If required checks cannot run,
 hold the proposal. Actual reproduction and reviewer results must be checked from
 their tool output; ledger metadata alone is not an independent attestation.
+On the maintainer Mac, submit heavy builds/full suites/installations through
+`~/.local/bin/devq submit --source codex -- COMMAND ARGS...` and verify the returned
+job's exit result with `devq status`/`devq wait`. Keep the full compound command in
+the queue, honor Xcode focus/owner overrides, and leave lightweight targeted checks
+direct. A queued job is not a passing check. If it cannot finish within the run
+budget, hold the proposal and cancel only this run's own queued work through the
+supported queue controls; never bypass the queue or operate on another task's job.
 
 Have an independent reviewer inspect the complete fixed-head diff, the actual
 reproduction/check outputs, the test and the expected result. A review must
@@ -159,6 +174,9 @@ node scripts/triage-problem-reports.mjs check --run RUN_ID
 
 Read GitHub first to detect an existing branch/PR. Push only the reviewed head to
 `codepetca/zero`, then create one draft PR with `base: main` and `draft: true`.
+Use the canonical HTTPS repository URL, the exact head-to-branch refspec and
+`--no-follow-tags` (also set `-c push.followTags=false`), rather than implicit
+configured push destinations/default refs. Do not publish tags or other history.
 Link the canonical public report and include the reproduction, expected behavior,
 test results, independent-review verdict, limits and rollback. Do not publish raw
 logs, private paths, student data or arbitrary issue text. Do not use a closing
@@ -186,6 +204,9 @@ an unexpected head change, or an owner decision. A changed head does not inherit
 the old proof/review. A merged PR is not proof of release or reduced failures;
 a closed unmerged PR is not proof that the report was false. Do not automatically
 reopen, update, mark ready or create a replacement for an attached proposal.
+An extension/source update or a new UTC day cannot commission a second proposal
+for that same issue or reuse its branch. Such a replacement needs a new explicit
+owner decision outside this scheduled flow.
 
 For a non-fix outcome and at the end of every bounded run:
 

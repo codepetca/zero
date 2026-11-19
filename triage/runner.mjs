@@ -23,7 +23,7 @@ export async function readPolicy() {
   assert.equal(policy.identity.repository,'codepetca/zero-reports');assert.equal(policy.identity.repositoryId,1463652567);
   assert.ok(policy.limits.pages<=3&&policy.limits.issuesPerPage<=30&&policy.limits.runSeconds<=1200&&policy.limits.leaseSeconds<=1500);
   assert.ok(policy.limits.runSeconds+60<=policy.limits.leaseSeconds);
-  assert.ok(policy.limits.changedFiles<=4&&policy.limits.changedLines<=200&&policy.limits.proposalCommits<=3);
+  assert.ok(policy.limits.changedFiles<=4&&policy.limits.changedLines<=200&&policy.limits.proposalCommits===1);
   return {policy,policyDigest:createHash('sha256').update(bytes).digest('hex')};
 }
 export async function githubRead(endpoint) {
@@ -169,6 +169,7 @@ export async function main(args) {
     const headSha=values['--head'];
     if(command==='prove') {
       const proof=await proveProposal({root:sourceRoot,baselineSha:job.baselineSha,headSha,issueNumber:job.context.issueNumber,policy,
+        assertActive:()=>store.check(runId),
         logDirectory:path.join(directory,'proofs',runId,String(jobId))});
       store.saveProof(runId,jobId,proof);return {status:'reproduced',proof};
     }
@@ -177,7 +178,7 @@ export async function main(args) {
       const fresh=normalizeReportIssue(issue,policy.identity);
       if(fresh.status!=='candidate'||fresh.context.issueId!==job.context.issueId||fresh.context.evidenceDigest!==job.context.evidenceDigest||
           classifyContext(fresh.context,source.version)!=='investigate'||source.sourceTree!==job.sourceTree)throw problem('EVIDENCE_CHANGED');
-      inspectProposal({root:sourceRoot,baselineSha:job.baselineSha,headSha,issueNumber:job.context.issueNumber,policy});
+      inspectProposal({root:sourceRoot,baselineSha:job.baselineSha,headSha,issueNumber:job.context.issueNumber,policy,assertActive:()=>store.check(runId)});
       const branch=proposalBranch(job.context),answer=store.reserveDraft(runId,jobId,{headSha,branch});
       return {...answer,branch,headSha,draftOnly:true,mergeAllowed:false,releaseAllowed:false};
     }

@@ -103,6 +103,9 @@ export function openTriageState(directory, {policyDigest, now = Date.now, leaseM
       // eligible. Closed, recovered, stale and excluded reports disappear here.
       stmt("UPDATE jobs SET status='held',outcome='not-current-evidence' WHERE status='queued'").run();
       for (const context of contexts) {
+        // A source-tree change cannot commission another proposal for an issue
+        // that already has a reservation, attached draft or owner retirement.
+        if (stmt('SELECT count(*) AS n FROM drafts d JOIN jobs j ON d.job_id=j.id WHERE j.issue_id=?').get(context.issueId).n) continue;
         const existing = stmt('SELECT * FROM jobs WHERE issue_id=? AND digest=? AND source_tree=?').get(context.issueId, context.evidenceDigest, sourceTree);
         if (existing) {
           stmt('UPDATE jobs SET context=? WHERE id=?').run(JSON.stringify(context), existing.id);
@@ -127,7 +130,7 @@ export function openTriageState(directory, {policyDigest, now = Date.now, leaseM
       return publicJob({...job, status:'investigating'});
     }); },
     getJob(runId, id) { const time = timestamp(); fence(runId,time); return publicJob(jobForRun(runId,id)); },
-    check(runId) { return tx(() => {fence(runId,timestamp());return {status:'active'};}); },
+    check(runId) { return tx(() => {const time=timestamp();fence(runId,time);const row=stmt('SELECT deadline FROM control WHERE id=1').get();return {status:'active',actionDeadline:row.deadline,remainingMilliseconds:row.deadline-time};}); },
     decide(runId, id, outcome) { return tx(() => {
       fence(runId,timestamp()); const job = jobForRun(runId,id);
       if (job.status !== 'investigating' || !['expected-behavior','insufficient-evidence','external-environment','confirmed-defect','product-suggestion','needs-owner'].includes(outcome)) fail();
@@ -149,6 +152,7 @@ export function openTriageState(directory, {policyDigest, now = Date.now, leaseM
       const existing = stmt('SELECT * FROM drafts WHERE job_id=?').get(id);
       if (existing) return {status:'reconciliation-required'};
       const proof = job.proof && JSON.parse(job.proof), context = JSON.parse(job.context);
+      if (stmt('SELECT count(*) AS n FROM drafts d JOIN jobs j ON d.job_id=j.id WHERE j.issue_id=? OR d.branch=?').get(context.issueId,branch).n) return {status:'proposal-exists'};
       if (job.status !== 'confirmed-defect' || !proof || proof.baselineSha !== job.baseline || proof.headSha !== headSha ||
           branch !== `codex/zero-report-${context.issueNumber}-${context.evidenceDigest.slice(0,12)}`) fail();
       if (stmt("SELECT count(*) AS n FROM drafts WHERE status='publishing'").get().n) return {status:'reconciliation-required'};

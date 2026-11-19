@@ -55,6 +55,9 @@ test without editing existing tests. Auth, student files/Git, privacy/reporting,
 schema/data, public API, dependencies, CI/release, new behavior and visual-design
 changes require an owner decision. Prepare a concrete diagnosis for those cases;
 do not expand the autonomous allowlist or apply changes to a student project.
+Keep the proposal as one clean commit whose sole parent is the verified public
+baseline. A corrected/amended head needs fresh reproduction and review; do not
+publish intermediate history or old proof as though it covers the new head.
 
 Work in a separate new worktree from the exact returned baseline. Preserve useful
 errors, existing behavior, ordinary Java and offline work. Inspect the authored
@@ -64,6 +67,11 @@ Run npm run check, npm test and affected checks without weakening tests, changin
 timeouts or suppressing errors. Relevant native and pinned WebFX paths must retain
 their required evidence. Test isolation is not an OS sandbox: use only maintained
 trusted code and synthetic inputs, never issue-supplied code.
+Use the host's development queue for heavy suites/builds/installs. On this Mac,
+submit the full command with ~/.local/bin/devq submit --source codex -- and verify
+the job's exit result. Respect Xcode focus and owner overrides; targeted checks
+remain direct. If queued work cannot finish before the action deadline, hold and
+cancel only this run's own queued work through supported queue controls.
 
 Get an independent review of the complete fixed-head diff, the established
 expected result and the actual reproduction/check outputs. Challenge false
@@ -76,7 +84,10 @@ Only after actual reproduction, existing checks and review are clean, call
 reserve-draft. Recheck the live lease immediately before each write. Only a NEW
 publishing reservation allows the first write. Read GitHub to detect an existing
 branch/PR; push only the exact reviewed head and returned deterministic branch,
-without force, then create one draft PR against main. Link the canonical report,
+without force, then create one draft PR against main.
+Use the canonical HTTPS source URL and explicit reviewed-head-to-branch refspec,
+with --no-follow-tags and -c push.followTags=false; never publish implicit refs,
+tags or a configured alternate push destination. Link the canonical report,
 reproduction, expected behavior, test/review results, limits and rollback. Do not
 publish raw logs, private paths, student data or arbitrary report text. Do not use
 closing keywords. Call attach-pr so the tool verifies repository, draft state,

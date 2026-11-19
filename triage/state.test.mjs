@@ -137,3 +137,17 @@ test('explicit owner retirement preserves draft budget and cannot retry the same
   const next=s.claim(run);s.saveProof(run,next.id,proof());
   assert.equal(s.reserveDraft(run,next.id,{headSha:head,branch:branch(context(2))}).status,'daily-limit');
 });
+
+
+test('attached proposal suppresses same evidence on a later source tree and day', t => {
+  const f=setup(t),s=f.open();t.after(()=>s.close());const c=context();let run=s.begin().runId;
+  enqueue(s,run,[c]);const job=s.claim(run);s.saveProof(run,job.id,proof());
+  s.reserveDraft(run,job.id,{headSha:head,branch:branch(c)});
+  s.attachDraft(run,job.id,{number:10,url:'https://github.com/codepetca/zero/pull/10',headSha:head,isDraft:true});
+  s.end(run);f.advance(86400000);run=s.begin().runId;
+  s.enqueue(run,[c],{baselineSha:'1'.repeat(40),sourceTree:'2'.repeat(40)});
+  assert.equal(s.claim(run),null);
+  assert.equal(s.health().pendingOutbox,0);
+  assert.equal(s.list().jobs.filter(row=>row.status==='draft-proposed').length,1);
+  assert.throws(()=>s.reserveDraft(run,job.id,{headSha:head,branch:branch(c)}));
+});
