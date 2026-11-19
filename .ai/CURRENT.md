@@ -5,15 +5,18 @@ reporting feature can merge and be enabled after gates. [PR386](https://github.c
 remains draft and production collection remains disabled. New owner refinement:
 one first-run public-consent choice, then silent eligible errors and direct manual
 submission when consent is on; opted-out manual submission retains confirmation.
-Editor worker owns this delta; root owns design/docs/native acceptance. No OS
-installer consent currently exists. Windows reviewed source `7a929a131` binds published kits to original release
+First-run consent and direct reporting are implemented at `1aa465165`; a targeted
+revocation/retry correction is `f6b11ceca`. Root owns integration/native acceptance.
+No OS installer consent exists. Windows reviewed source `7a929a131` binds published kits to original release
 source and hashes, retaining strict new-candidate verification. 24 focused cases,
 actionlint/source checks, two independent reviews and one targeted CI correction
-review pass. Final hosted CI follows. Reporting/editor code is unchanged.
+review pass. Hosted Windows, browser and source gates all passed at `4f83811f3`; final
+consent-source hosted gates follow.
 
-Installed VS Code/current extension in a separate walkthrough profile verifies
-public confirmation, cancellation, default-off opt-in and safe Retry/Copy fallback.
-A reviewed manual draft is retained for native success after deployment. Existing
+Installed VS Code/current extension verifies the one-time public choice, persisted
+Allow selection, no repeated setup notice, and direct manual submission without
+another confirmation. The disabled-service Retry/Copy fallback remains safe.
+Native success after deployment remains pending. Existing
 project windows and the original dirty checkout are preserved. The unused local
 editor copy is ignored and is not a shipping artifact.
 

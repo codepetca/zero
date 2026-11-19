@@ -30,6 +30,16 @@ retry. Screenshot `.verification/native-report-setup-choice.jpg` is ignored.
 This supersedes per-report-confirmation wording in earlier receipts for users
 who have already consented. No public report was submitted by these UI checks.
 
+Independent initial Sol/high compatibility review of the complete consent delta
+`4f83811f3..1aa465165` is clean (90 reporter/onboarding cases). Security found one
+P2: revoking consent could leave a retained manual retry without renewed public
+disclosure. Batch1 (`f6b11ceca`) checks consent immediately before each manual
+transmission and requires the summary/public notice if consent is off, preserving
+the same report ID. Regressions cover retained drafts, in-flight revocation and
+revocation while Retry is open. Root and Terra/high worker each pass93 focused
+reporter/onboarding cases. Targeted security review follows; no further source
+changes are planned. Effective model/tokens/elapsed are unavailable.
+
 Before this refinement, every hosted gate passed at `4f83811f3`:
 [Windows44525432731](https://github.com/codepetca/zero/actions/runs/44525432731),
 [browser44525432914](https://github.com/codepetca/zero/actions/runs/44525432914) and
