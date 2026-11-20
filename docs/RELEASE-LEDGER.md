@@ -14,6 +14,14 @@ permission to publish from this ledger.
 | Windows Portable | [0.5.83 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.83) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.83) both embed the canonical kit from run 44600431774. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
+## Zero 0.5.84 release preparation — 2026-11-19
+
+[PR399](https://github.com/codepetca/zero/pull/399) adds Delete to the Files
+context menu and merged after all 12 checks passed. [PR401](https://github.com/codepetca/zero/pull/401)
+prepares kit 0.5.84 and Mac update build 83. The published 0.5.83 records remain
+the active downloads during preparation. Manual Windows testing of the Files
+feature was skipped at the owner's direction. Hosted release checks remain required.
+
 ## Zero 0.5.83 release promotion — 2026-11-19
 
 [PR395](https://github.com/codepetca/zero/pull/395) fixes Git merges and sync, and
