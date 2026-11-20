@@ -7,12 +7,43 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.83](https://github.com/codepetca/zero/releases/tag/v0.5.83) is public. All three anonymous downloads match preparation run 44600431774. | Preserve immutable assets. |
-| Website | This promotion selects the verified 0.5.83 downloads and signed build 82 feed. | Check the production download links and feed after deployment. |
-| Mac installer | [0.5.83](https://github.com/codepetca/zero/releases/tag/setup-v0.5.83) includes the signed, stapled DMG and both matching Git source archives. | The signed build 82 feed references the measured public DMG. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 18 was set to publish after certification. The Canadian retail catalog lists package 1.5.83.0. | Check the Store update on managed devices using their normal policy. |
-| Windows Portable | [0.5.83 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.83) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.83) both embed the canonical kit from run 44600431774. | The school stages its preferred ZIP under its existing device policy. |
+| GitHub manual kit | [Zero 0.5.84](https://github.com/codepetca/zero/releases/tag/v0.5.84) is public. All three anonymous downloads match preparation run 44652490676. | Preserve immutable assets. |
+| Website | This promotion selects the verified 0.5.84 downloads and signed build 83 feed. | Check the production download links and feed after deployment. |
+| Mac installer | [0.5.84](https://github.com/codepetca/zero/releases/tag/setup-v0.5.84) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 83 feed references the measured public DMG. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 19 includes package 1.5.84.0 and is set to publish after certification. | Verify Store availability for submission 19. |
+| Windows Portable | [0.5.84 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.84) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.84) both embed the canonical kit from run 44652490676. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.84 release promotion — 2026-11-19
+
+[PR399](https://github.com/codepetca/zero/pull/399) adds Trash and Recycle Bin
+deletion for editable Files rows. [PR401](https://github.com/codepetca/zero/pull/401)
+prepares the release. All 12 checks passed on each source PR. The
+[canonical kit run](https://github.com/codepetca/zero/actions/runs/44652490676) and
+[hosted Windows run](https://github.com/codepetca/zero/actions/runs/44652494517)
+passed at `3e83a67914eb8e463313edab320af0575d20010f`. The packaged Project → New
+trial used the public starter and the release VSIX.
+
+Apple accepted the signed Mac installer and the stapled DMG passed validation.
+Seal `3ab5262fc55529f8f0ffa3c9749586be7d7af5e9` captures the measured installer.
+The promotion copies the exact signed build 83 appcast. The three kit assets,
+three Mac assets and seven Portable assets passed anonymous download size and
+SHA256 verification. Native and Portable drafts were also verified before
+publication. Promotion CI opens the exact public complete ZIP on Windows.
+
+The original MSIX passed a hosted installation and first-run trial using a
+separately test-signed copy. Partner Center submission 19
+(`1152921505702454884`) uses the measured original package and is set to
+publish as soon as certification passes. Physical Windows testing remains
+outside this release's hosted evidence.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| zero-bootstrap.zip | 5,127,265 | `084537553e72f2a04b8c96af812d1184e31398d1b4e2c42abaee8010d19fe255` |
+| Zero-0.5.84-macos.dmg | 12,371,605 | `98bcfddca7a9ffa4b154aa932f8fa615a7412a385d118f78df9ebc6df0368460` |
+| Zero-0.5.84-windows-portable-bundled-x64.zip | 605,989,726 | `e91f4290af79ecff8e441d0f748e81439d05338958cd4e9bada39aba8957a205` |
+| Zero-0.5.84-windows-portable-sources.tar | 1,470,730,240 | `b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0` |
+| Zero-0.5.84-msix-store-x64.msix | 5,429,174 | `28cce4e9f0c30eb7601f437d083a1e0cf20df283770baaec5729d4808469f158` |
 
 ## Zero 0.5.84 release preparation — 2026-11-19
 

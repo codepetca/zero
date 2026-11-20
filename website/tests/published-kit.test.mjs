@@ -42,15 +42,15 @@ export function Downloads()`);
 test('fallback preserves exact published versions, filenames, digests and explicit URLs', () => {
   validateManifest(current);
   assert.equal(validatePublishedKit(fallback, current), fallback);
-  assert.equal(fallback.kitVersion, '0.5.83');
+  assert.equal(fallback.kitVersion, '0.5.84');
   for (const [key, size, sha256, filename] of [
-    ['kit',5126058,'267e001d04386e997d41644d6c930e298d6dd855dca50c06f41af28839016b3d','zero-bootstrap.zip'],
-    ['starter',2778887,'501430d7108061084691d35e28773f19d84027f3f17fd07a0bee8c27b498e266','zero-starter.zip'],
-    ['extension',2322512,'112379e661e1dd97fb6dfb916657d325a55e45f6e6aa9d082f21589f0a1ffce4','zero-0.5.83.vsix']]) {
+    ['kit',5127265,'084537553e72f2a04b8c96af812d1184e31398d1b4e2c42abaee8010d19fe255','zero-bootstrap.zip'],
+    ['starter',2778887,'badbbcf0a6be01f9218db2bb6d6b67c00b83d52bdd9297ff8b7b9aedef0a4f33','zero-starter.zip'],
+    ['extension',2323684,'f79149bd430abcda6cefe49ef44bf82d80ed87e29041d20840fb246c180bf761','zero-0.5.84.vsix']]) {
     assert.equal(fallback.assets[key].filename,filename);
     assert.equal(fallback.assets[key].size,size);
     assert.equal(fallback.assets[key].sha256,sha256);
-    assert.equal(releaseAssetHref(fallback,key),`https://github.com/codepetca/zero/releases/download/v0.5.83/${filename}`);
+    assert.equal(releaseAssetHref(fallback,key),`https://github.com/codepetca/zero/releases/download/v0.5.84/${filename}`);
   }
   assert.equal(validatePublishedKit(null,current),null);
   assert.throws(() => validatePublishedKit(current,current), /must be published/);
