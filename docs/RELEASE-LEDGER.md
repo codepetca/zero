@@ -7,12 +7,38 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.82](https://github.com/codepetca/zero/releases/tag/v0.5.82) is public; all three anonymous downloads match reviewed preparation 44550447823. | Publication verified; preserve immutable bytes. |
-| Website | [PR393](https://github.com/codepetca/zero/pull/393) promoted all 0.5.82 downloads and build 81 feed. | Live Mac/Store/Portable links, DMG and signed feed verified at 2026-11-19T17:22:23Z. |
-| Mac installer | [0.5.82](https://github.com/codepetca/zero/releases/tag/setup-v0.5.82) DMG and both Git source archives match the reviewed seal and anonymous downloads. | Build 81 feed and public DMG match the seal and valid Ed25519 signatures. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 17 / package 1.5.82.0 is live. | Certification and normal ASAP publication complete. |
-| Windows Portable | [0.5.82 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.82) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.82) are public and anonymously verified; both embed canonical kit 79101796…. | Exact complete-ZIP cold/warm opening passed on hosted Windows. Verify actual school policy under a student login. |
+| GitHub manual kit | [Zero 0.5.83](https://github.com/codepetca/zero/releases/tag/v0.5.83) is public. All three anonymous downloads match preparation run 44600431774. | Preserve immutable assets. |
+| Website | This promotion selects the verified 0.5.83 downloads and signed build 82 feed. | Check the production download links and feed after deployment. |
+| Mac installer | [0.5.83](https://github.com/codepetca/zero/releases/tag/setup-v0.5.83) includes the signed, stapled DMG and both matching Git source archives. | The signed build 82 feed references the measured public DMG. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 18 was set to publish after certification. The Canadian retail catalog lists package 1.5.83.0. | Check the Store update on managed devices using their normal policy. |
+| Windows Portable | [0.5.83 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.83) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.83) both embed the canonical kit from run 44600431774. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.83 release promotion — 2026-11-19
+
+[PR395](https://github.com/codepetca/zero/pull/395) fixes Git merges and sync, and
+preserves the underlying browser publishing error. [PR398](https://github.com/codepetca/zero/pull/398)
+sets the kit version and Mac update build. Both exact-head CI sets passed.
+Canonical [preparation](https://github.com/codepetca/zero/actions/runs/44600431774)
+and [Windows installation verification](https://github.com/codepetca/zero/actions/runs/44600431275)
+passed from `50931e77a8f52e8bc8769264049d6f53c6529be8`. The packaged Project → New
+check exercised the starter in both the native app and a browser.
+
+Mac build 82 was signed, notarized and stapled. The native build from
+`b7908f77e` has the same source tree as the canonical preparation. The website
+feed uses the exact signed XML from seal `173b254f9`. The Windows Store version
+`1.5.83.0` matches the measured original submitted package. The Canadian retail
+catalog included this version at 2026-11-20T00:16:27Z. The Store package also
+passed installation and first launch on hosted Windows with the separate test
+signature. The promotion CI opens the public complete Portable ZIP on Windows.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| zero-bootstrap.zip | 5,126,058 | `267e001d04386e997d41644d6c930e298d6dd855dca50c06f41af28839016b3d` |
+| Zero-0.5.83-macos.dmg | 12,375,012 | `57af5dff3c2635b7b2582855333f32c05a260bfb8906f297ba07b15adfd8d501` |
+| Zero-0.5.83-windows-portable-bundled-x64.zip | 605,988,504 | `de73a60c162727c0ee8460b40d2fec010059dbef53739f5c4950e15a687f7b2b` |
+| Zero-0.5.83-windows-portable-sources.tar | 1,470,730,240 | `b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0` |
+| Zero-0.5.83-msix-store-x64.msix | 5,428,029 | `6636260cf83ef7ff991b8193b42404c2cc8e4e354031d65d98db0314238781df` |
 
 ## Zero 0.5.82 release completed — 2026-11-19
 
