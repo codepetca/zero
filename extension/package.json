@@ -473,6 +473,11 @@
         "category": "Zero"
       },
       {
+        "command": "zero.explorerDeleteEntry",
+        "title": "Delete…",
+        "category": "Zero"
+      },
+      {
         "command": "zero.renameStudentFile",
         "title": "Rename student file",
         "category": "Zero"
@@ -695,6 +700,10 @@
           "when": "false"
         },
         {
+          "command": "zero.explorerDeleteEntry",
+          "when": "false"
+        },
+        {
           "command": "zero.renameStudentFile",
           "when": "false"
         },
@@ -863,27 +872,27 @@
         },
         {
           "command": "zero.explorerNewClass",
-          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted)(?::compare)?$/",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFolder|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-create@1"
         },
         {
           "command": "zero.explorerNewPackage",
-          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted)(?::compare)?$/",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFolder|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-create@2"
         },
         {
           "command": "zero.explorerNewFile",
-          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssets|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted|zeroProject|zeroProjectFile|zeroProjectFileAdded|zeroProjectFileModifiedAdded|zeroProjectFileModified|zeroProjectFileCommitted|zeroProjectFileModifiedAndCommitted)(?::compare)?$/",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFolder|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssets|zeroAssetsFolder|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted|zeroProject|zeroProjectFolder|zeroProjectFile|zeroProjectFileAdded|zeroProjectFileModifiedAdded|zeroProjectFileModified|zeroProjectFileCommitted|zeroProjectFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-create@3"
         },
         {
           "command": "zero.explorerNewFolder",
-          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssets|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted|zeroProject|zeroProjectFile|zeroProjectFileAdded|zeroProjectFileModifiedAdded|zeroProjectFileModified|zeroProjectFileCommitted|zeroProjectFileModifiedAndCommitted)(?::compare)?$/",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFolder|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssets|zeroAssetsFolder|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted|zeroProject|zeroProjectFolder|zeroProjectFile|zeroProjectFileAdded|zeroProjectFileModifiedAdded|zeroProjectFileModified|zeroProjectFileCommitted|zeroProjectFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-create@4"
         },
         {
           "command": "zero.explorerImportAssets",
-          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssets|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted)(?::compare)?$/",
+          "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCode|zeroCodeFolder|zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssets|zeroAssetsFolder|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-create@5"
         },
         {
@@ -895,6 +904,11 @@
           "command": "zero.explorerRenameFile",
           "when": "view == zero.studentProject && viewItem =~ /^(?:zeroCodeFile|zeroCodeFileAdded|zeroCodeFileModifiedAdded|zeroCodeFileModified|zeroCodeFileCommitted|zeroCodeFileModifiedAndCommitted|zeroAssetFile|zeroAssetFileAdded|zeroAssetFileModifiedAdded|zeroAssetFileModified|zeroAssetFileCommitted|zeroAssetFileModifiedAndCommitted|zeroProjectFile|zeroProjectFileAdded|zeroProjectFileModifiedAdded|zeroProjectFileModified|zeroProjectFileCommitted|zeroProjectFileModifiedAndCommitted)(?::compare)?$/",
           "group": "zero-file@1"
+        },
+        {
+          "command": "zero.explorerDeleteEntry",
+          "when": "view == zero.studentProject && isWorkspaceTrusted && viewItem =~ /^zero((Code|Assets|Project)Folder|(Code|Asset|Project)File(Modified|Added|ModifiedAdded|Committed|ModifiedAndCommitted)?(?::compare)?)$/",
+          "group": "zero-file@4"
         }
       ],
       "zero.projectActionsMenu": [
