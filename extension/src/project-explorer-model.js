@@ -99,6 +99,27 @@ async function ordinaryEntries(root, relative='', {hideCorePaths=[],excludePaths
   return visible(relative);
 }
 
+async function inspectTrashTarget(root, relative, folder) {
+  const filename = await ordinaryPath(root,relative,{missing:true});
+  if (!filename) throw Error('The selected item no longer exists. Select it again.');
+  const stat = await fs.lstat(filename,{bigint:true});
+  if (!(folder ? stat.isDirectory() : stat.isFile()))
+    throw Error('The selected item changed. Select it again.');
+  if (folder) {
+    const budget={count:0,maximum:LIMITS.files};
+    async function checkContents(directory) {
+      for (const entry of await entriesAt(root,directory,budget)) {
+        const name = entry.name.toLowerCase();
+        if (toolingDirectories.has(name) || ['zero.json','zero-core.json','zero-libraries.json','zero-library.json'].includes(name))
+          throw Error('This folder contains protected project files. Choose the files you want to delete inside it.');
+        if (entry.directory) await checkContents(entry.relative);
+      }
+    }
+    await checkContents(relative);
+  }
+  return `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}`;
+}
+
 async function corePaths(root) {
   const text = await readText(root,'zero-core.json',{optional:true});
   if (text === null) {
@@ -212,4 +233,4 @@ function libraryDetails(library) {
   return lines.join('\n')+'\n';
 }
 
-module.exports={readProjectModel,ordinaryEntries,isToolingPath,libraryDetails,LIMITS};
+module.exports={readProjectModel,ordinaryEntries,inspectTrashTarget,isToolingPath,libraryDetails,LIMITS};

@@ -7,7 +7,7 @@ const {execFile} = require('node:child_process');
 const {promisify} = require('node:util');
 const crypto = require('node:crypto');
 const exec = promisify(execFile);
-const {readProjectModel,ordinaryEntries,isToolingPath} = require('./project-explorer-model');
+const {readProjectModel,ordinaryEntries,inspectTrashTarget,isToolingPath} = require('./project-explorer-model');
 const {resolveAuthoringTarget} = require('./file-targets');
 const {authoringLocation} = require('./explorer-labels');
 const {readStudentFileStatus,assertNoPromisor} = require('./student-file-status');
@@ -270,7 +270,20 @@ function createStudentExplorer(vscode, host) {
     return pending;
   }
   function folder(snapshot,label,relative,area,library,retained=false) {
-    return node({kind:'folder',root:snapshot.root,label,relative,area,libraryId:library?.id,libraryFolder:library?.folder,libraryTitle:library?.title,retained});
+    return node({kind:'folder',root:snapshot.root,label,relative,area,libraryId:library?.id,libraryFolder:library?.folder,libraryTitle:library?.title,retained,sectionRoot:true});
+  }
+  function canTrash(value, snapshot) {
+    if (!value.relative || !value.area || value.retained || value.placeholder || value.sectionRoot ||
+        !['file','folder'].includes(value.kind)) return false;
+    const {kind,area,libraryId,libraryFolder}=value;
+    if (libraryId && !snapshot.libraries.some(item=>item.id===libraryId && item.folder===libraryFolder && item.mode==='local')) return false;
+    const relative=value.relative.toLowerCase();
+    const includesPath=name=>{
+      name=name.toLowerCase();
+      return name===relative || kind==='folder'&&name.startsWith(relative+'/');
+    };
+    return !isToolingPath(value.relative) && !isToolingPath(relative) && !snapshot.corePaths.some(includesPath) &&
+      (area!=='project' || !snapshot.excludePaths.some(name=>includesPath(name) || relative.startsWith(name.toLowerCase()+'/')));
   }
   async function children(parent) {
     if(disposed)return [];
@@ -365,6 +378,10 @@ function createStudentExplorer(vscode, host) {
     result.contextValue=value.kind==='deleted'&&!value.retained&&value.canRestoreDeleted?'zeroDeletedFile':value.kind==='deleted'?'zeroReadonly':value.kind==='library'?'zeroLibrary':value.area&&!value.retained?(value.area==='project'?(value.kind==='file'?'zeroProjectFile':'zeroProject'):value.area.endsWith('code')?(value.kind==='file'?'zeroCodeFile':'zeroCode'):value.kind==='file'?'zeroAssetFile':'zeroAssets'):value.kind==='other'?'zeroProject':'zeroReadonly';
     if(value.kind==='file'&&!value.retained&&result.contextValue!=='zeroReadonly')result.contextValue+=value.canRestoreModified&&value.canRestoreCommitted?'ModifiedAndCommitted':value.canRestoreModified?'Modified':value.canRestoreCommitted?'Committed':'';
     if(value.kind==='file'&&value.canRemoveAdded&&!value.retained&&result.contextValue!=='zeroReadonly')result.contextValue+='Added';
+    if(model?.root===value.root) {
+      if(value.kind==='folder'&&canTrash(value,model))result.contextValue+='Folder';
+      if(value.kind==='file'&&result.contextValue!=='zeroReadonly'&&!canTrash(value,model))result.contextValue='zeroReadonly';
+    }
     if(value.kind==='file'&&value.status==='modified')result.contextValue+=':compare';
     return result;
   }
@@ -427,6 +444,41 @@ function createStudentExplorer(vscode, host) {
     const entries=await ordinaryEntries(snapshot.root,path.posix.dirname(value.relative)==='.'?'':path.posix.dirname(value.relative),{hideCorePaths:snapshot.corePaths,excludePaths:snapshot.excludePaths});
     if(!entries.some(entry=>entry.relative===value.relative&&!entry.directory))throw Error('The file changed. Select it again.');
     try {return await host.execute('zero.renameStudentFile',{root:snapshot.root,relative:value.relative,area:value.area||'project',libraryFolder:value.libraryFolder});}finally{invalidate();}
+  }
+  let deleting=false;
+  async function deleteEntry(value) {
+    if(disposed||host.isBusy()||deleting)return;
+    deleting=true;
+    try {
+      const inspect = async () => {
+        if(vscode.workspace.isTrusted!==true)throw Error('Trust the project before deleting files.');
+        const snapshot=await fresh(value);
+        if(!canTrash(value,snapshot))throw Error('Select an editable file or folder in Files.');
+        const folder=value.kind==='folder';
+        const version=await inspectTrashTarget(snapshot.root,value.relative,folder);
+        const dirtyPaths=await readDirtyPaths(snapshot.root);
+        if([...dirtyPaths].some(name=>name===value.relative || folder&&name.startsWith(value.relative+'/')))
+          throw Error('Save or close unsaved edits in the selected item before deleting it.');
+        return version;
+      };
+      const version=await inspect();
+      const folder=value.kind==='folder';
+      const destination=process.platform==='win32'?'Recycle Bin':'Trash';
+      const button=`Move to ${destination}`;
+      const detail=`${value.relative}\n\nYou can restore ${folder?'the folder and its contents':'the file'} from the ${destination}.`;
+      if(await vscode.window.showWarningMessage(`Delete “${value.label}”${folder?' and its contents':''}?`,{modal:true,detail},button)!==button)return;
+      if(await inspect()!==version)throw Error('The selected item changed. Select it again.');
+      if(disposed||value.generation!==generation)throw Error('The project view changed. Select the item again.');
+      if(host.isBusy())throw Error('Another project action is running. Try deleting the item again.');
+      host.setFileActionBusy(true);
+      try {
+        await vscode.workspace.fs.delete(vscode.Uri.file(path.join(value.root,value.relative)),{recursive:folder,useTrash:true});
+        host.report?.(`Moved ${value.label} to ${destination}`);
+      } finally {
+        invalidate();
+        host.setFileActionBusy(false);
+      }
+    } finally {deleting=false;}
   }
   async function requireOpenSelection(value,expectedRoot) {
     let root;
@@ -617,6 +669,7 @@ function createStudentExplorer(vscode, host) {
   return {provider,tree,invalidate,refreshCreated,refreshStatus:()=>{if(model)scheduleRefresh();},isPreview:()=>preview,
     commands:{'zero.previewStudentExplorer':()=>setPreview(true),'zero.standardExplorer':()=>setPreview(false),'zero.showAllProjectFiles':showAll,
       'zero.refreshStudentExplorer':invalidate,'zero.collapseStudentExplorer':collapseAll,'zero.explorerOpenFile':open,'zero.explorerAction':invoke,'zero.explorerRenameFile':rename,'zero.explorerRestoreDeletedFile':restoreDeleted,'zero.explorerRestoreModifiedFile':restoreModified,'zero.explorerRestoreCommittedFile':restoreCommitted,'zero.explorerRemoveAddedFile':removeAdded,
+      'zero.explorerDeleteEntry':deleteEntry,
       'zero.explorerCopyAssetPath':copyAsset,'zero.explorerCompareWithLastCommit':compareWithLastCommit,
       ...Object.fromEntries(['newClass','newPackage','newFile','newFolder','importAssets'].flatMap(name=>[[`zero.explorer${name[0].toUpperCase()+name.slice(1)}`,value=>create(`zero.${name}`,value)],[`zero.project${name[0].toUpperCase()+name.slice(1)}`,()=>createSelected(`zero.${name}`)]]))},
     dispose(){disposed=true;generation++;setDiscardAvailable(false);clearTimeout(timer);watcher?.dispose();folders.dispose();trust?.dispose();for(const document of documents)document.dispose();selectionEvents?.dispose();diffProvider?.dispose();diffSnapshots.clear();tree.dispose();events.dispose();}

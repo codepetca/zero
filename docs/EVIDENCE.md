@@ -14478,3 +14478,15 @@ merge. Source-only checks do not establish physical school-device acceptance,
 interactive Sparkle upgrade, authenticated student publication or Store delivery.
 Original owner checkout files/staging remain preserved. Bulky evidence remains
 ignored under `.verification/release-080/`.
+
+### Files panel deletion (2026-11-19)
+
+**Delete…** confirms the selected editable file or folder and moves it to the
+system Trash or Recycle Bin. The command checks project paths and unsaved edits
+before moving the item. Creation, rename and comparison remain available on
+the corresponding editable rows.
+
+In a disposable macOS VS Code 1.147.0 source host, cancellation preserved the
+file. Confirmation moved a file and a nonempty folder to Trash, refreshed the
+tree and kept the java root available for creation. The owner directed that the
+manual Windows smoke be skipped. The PR records the final review and CI result.

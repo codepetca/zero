@@ -59,6 +59,22 @@ test('Project New is a supported dropdown with selected-area choices and file co
  }
 });
 
+test('Files Delete is a trusted context action for editable files and folders',()=>{
+ const {commands,menus}=require('../package.json').contributes;
+ const command='zero.explorerDeleteEntry';
+ const entry=menus['view/item/context'].find(item=>item.command===command);
+ assert.equal(commands.find(item=>item.command===command).title,'Delete…');
+ assert.equal(menus.commandPalette.find(item=>item.command===command).when,'false');
+ assert.match(entry.when,/^view == zero\.studentProject && isWorkspaceTrusted/);
+ const contexts=new RegExp(entry.when.split(' =~ /')[1].slice(0,-1));
+ for(const context of ['zeroCodeFile','zeroAssetFileModified:compare','zeroProjectFileModifiedAndCommitted','zeroCodeFolder','zeroAssetsFolder','zeroProjectFolder'])
+   assert.match(context,contexts);
+ for(const context of ['zeroCode','zeroAssets','zeroProject','zeroReadonly:compare','zeroDeletedFile','zeroLibrary'])
+   assert.doesNotMatch(context,contexts);
+ for(const suffix of ['NewClass','NewPackage','NewFile','NewFolder','ImportAssets'])
+   assert.match(menus['view/item/context'].find(item=>item.command==='zero.explorer'+suffix).when,/\bzeroCodeFolder\b/);
+});
+
 test('Project controls offer New, Clone, and Open in a native header menu',()=>{
  const {menus,submenus}=require('../package.json').contributes;
  assert.deepEqual(submenus.find(s=>s.id==='zero.projectActionsMenu'),{id:'zero.projectActionsMenu',label:'Project',icon:'$(folder-opened)'});

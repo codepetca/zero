@@ -25,7 +25,7 @@ async function fixture(t,{remembered=new Map()}={}){
     workspace:{isTrusted:true,registerTextDocumentContentProvider:(scheme,provider)=>{contentProviders.set(scheme,provider);return disposable();},...Object.fromEntries(['onDidChangeTextDocument','onDidSaveTextDocument','onDidCloseTextDocument'].map(name=>[name,fn=>{documentEvents[name]=fn;return disposable();}])),onDidChangeWorkspaceFolders:fn=>{folderChange=fn;return disposable();},onDidGrantWorkspaceTrust:fn=>{trustChange=fn;return disposable();},createFileSystemWatcher:pattern=>{const callbacks={};const w={pattern,callbacks,dispose(){w.disposed=true;}};for(const method of ['onDidCreate','onDidChange','onDidDelete'])w[method]=fn=>{callbacks[method]=fn;return disposable();};watchers.push(w);return w;}},
     window:{createTreeView:(_,options)=>({options,onDidChangeSelection:fn=>{selectionChange=fn;return disposable();},dispose(){}}),showInputBox:async()=>name,showQuickPick:async items=>items[0]}};
   const workspaceState={get:(key,fallback)=>remembered.has(key)?remembered.get(key):fallback,update:async(key,value)=>{remembered.set(key,value);calls.push(['state',key,value]);}};
-  const host={project:async()=>current,isBusy:()=>busy,output:{appendLine:text=>logs.push(text)},workspaceState};
+  const host={project:async()=>current,isBusy:()=>busy,setFileActionBusy:value=>{busy=value;},output:{appendLine:text=>logs.push(text)},workspaceState};
   const files=createFileCommands(vscode,{...host,setBusy:value=>{busy=value;},setState:()=>{},
     refreshFiles:(root,relative)=>tree.refreshCreated(root,relative)});
   host.execute=async(command,arg)=>{calls.push([command,arg]);return files.commands[command]?.(arg);};
@@ -339,6 +339,85 @@ test('file-context creation refuses an already missing file, then targets its pa
  await fs.unlink(path.join(f.root,note.relative));await assert.rejects(f.tree.commands['zero.explorerNewFile'](note),/selected file changed/);
  await put(f.root,note.relative,'note');f.vscode.window.showInputBox=async()=>{await fs.unlink(path.join(f.root,note.relative));return 'Sibling.txt';};
  await f.tree.commands['zero.explorerNewFile'](note);assert.equal(await fs.readFile(path.join(f.root,'src/main/java/Sibling.txt'),'utf8'),'');
+});
+
+test('Files can move a file and a nonempty folder to the system trash',async t=>{
+ const f=await fixture(t);
+ const relative='src/main/resources/sounds/original.wav';
+ await put(f.root,relative,'test audio');
+ await put(f.root,'src/main/resources/sounds/copy.wav','test audio');
+ const assets=(await f.children()).find(row=>row.area==='assets');
+ const [sounds]=await f.children(assets);
+ const file=(await f.children(sounds)).find(row=>row.label==='original.wav');
+ assert.equal(f.item(assets).contextValue,'zeroAssets');
+ assert.equal(f.item(sounds).contextValue,'zeroAssetsFolder');
+ const deletes=[], confirmations=[];
+ f.vscode.workspace.fs={delete:async(uri,options)=>{
+   assert.equal(f.host.isBusy(),true);
+   deletes.push([uri.fsPath,options]);
+   await fs.rm(uri.fsPath,{recursive:options.recursive});
+ }};
+ let confirm=false;
+ f.vscode.window.showWarningMessage=async(message,options,button)=>{
+   confirmations.push({message,options,button});
+   return confirm?button:undefined;
+ };
+ const remove=f.tree.commands['zero.explorerDeleteEntry'];
+ await remove(file);
+ assert.deepEqual(deletes,[]);
+ assert.equal(await fs.readFile(path.join(f.root,relative),'utf8'),'test audio');
+ confirm=true;
+ await remove(file);
+ const refreshedAssets=(await f.children()).find(row=>row.area==='assets');
+ const [refreshedSounds]=await f.children(refreshedAssets);
+ assert.deepEqual((await f.children(refreshedSounds)).map(row=>row.label),['copy.wav']);
+ await remove(refreshedSounds);
+ assert.deepEqual(deletes,[
+   [path.join(f.root,relative),{recursive:false,useTrash:true}],
+   [path.join(f.root,sounds.relative),{recursive:true,useTrash:true}]
+ ]);
+ assert.match(confirmations.at(-1).message,/sounds.*and its contents/);
+ assert.equal(confirmations.at(-1).options.modal,true);
+ assert.equal(f.host.isBusy(),false);
+ assert.deepEqual(await f.children((await f.children()).find(row=>row.area==='assets')),[]);
+});
+
+test('Files deletion refuses dirty descendants, protected folders, and a replaced selection',async t=>{
+ const f=await fixture(t);
+ const relative='src/main/java/lesson/Question.java';
+ await put(f.root,relative,'class Question {}');
+ const toolingAlias=path.join(f.root,'POM.XML');
+ await fs.writeFile(toolingAlias,await fs.readFile(path.join(f.root,'pom.xml')),{flag:'wx'}).catch(async error=>{
+   if(error.code!=='EEXIST')throw error;
+   await fs.rename(path.join(f.root,'pom.xml'),toolingAlias);
+ });
+ const [code]=await f.children(),[lesson]=await f.children(code);
+ const [question]=await f.children(lesson);
+ let deletes=0;
+ f.vscode.workspace.fs={delete:async()=>{deletes++;}};
+ const remove=f.tree.commands['zero.explorerDeleteEntry'];
+ await assert.rejects(remove(code),/editable file or folder/);
+ const other=(await f.children()).find(row=>row.kind==='other');
+ const pom=(await f.children(other)).find(row=>row.label==='POM.XML');
+ assert.equal(f.item(pom).contextValue,'zeroReadonly');
+ await assert.rejects(remove(pom),/editable file or folder/);
+ await assert.rejects(remove({...question}),/view changed/);
+ f.vscode.workspace.isTrusted=false;
+ await assert.rejects(remove(question),/Trust the project/);
+ f.vscode.workspace.isTrusted=true;
+ f.vscode.workspace.textDocuments=[{uri:f.vscode.Uri.file(path.join(f.root,relative)),isDirty:true}];
+ await assert.rejects(remove(lesson),/unsaved edits/);
+ f.vscode.workspace.textDocuments=[];
+ await put(f.root,'src/main/java/lesson/.git','gitdir: other');
+ await assert.rejects(remove(lesson),/protected project files/);
+ f.vscode.window.showWarningMessage=async(_message,_options,button)=>{
+   await fs.rename(path.join(f.root,relative),path.join(f.root,relative+'.old'));
+   await put(f.root,relative,'class Question { int changed; }');
+   return button;
+ };
+ await assert.rejects(remove(question),/selected item changed/);
+ assert.equal(deletes,0);
+ assert.equal(f.host.isBusy(),false);
 });
 
 test('Files shows added, modified and deleted paths without opening deleted files',async t=>{

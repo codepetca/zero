@@ -680,6 +680,11 @@ the prompt explains that limitation. A local library with a basename/declaration
 mismatch stays navigable and shows a repair hint; imports are withheld until
 repaired. Namespace/path containment checks remain strict. Published retained
 source remains read-only.
+Use **Delete…** from an editable file or folder’s context menu in Files. The
+confirmation names the target and moves it to Trash or the Recycle Bin. Deleting
+a folder moves its contents with it. Save open edits in the selected item
+before deleting it. The Files view keeps its source and resource roots and
+folders containing protected project files in place.
 Project overflow retains ZeroHub's guarded browser. Actions revalidate current
 project/tree targets before opening the name prompt. File creation then targets
 the containing folder, revalidated before mutation; subsequent removal of the
