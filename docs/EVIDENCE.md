@@ -1,3 +1,27 @@
+# Windows Store browser build cache — 2026-11-23
+
+Zero 0.5.84 appended a host cache identity and a second copy of the saved builder
+closure hash to the Store editor's deep storage path. The source fix at
+`a61b5cace` moves the Windows cache into a short directory under the current
+user's temporary directory. The saved builder still partitions the cache by its
+full verified closure hash, which covers the runtime lock. Independent review
+confirmed that all 65 saved-builder files are byte-identical to the baseline.
+
+The [hosted Windows regression](https://github.com/codepetca/zero/actions/runs/45251247642)
+installed and opened a test-signed copy of Store package `1.5.84.0` on Windows
+Server 2022 x64. The released host reproduced `ENOENT` in `mkdtemp` at 285
+characters. The fixed adapter used the same starter and package-provisioned
+Node 22.23.4 and JDK 21.0.12.1. A cold build and revalidation of the same
+export succeeded in 101 seconds. The harness ran the adapters under standalone
+Node against the installed package files. Retail Store activation of a fixed
+package and a signed-in GitHub Pages deployment remain separate checks.
+
+Reports [#10](https://github.com/codepetca/zero-reports/issues/10) and
+[#11](https://github.com/codepetca/zero-reports/issues/11) record the same
+build-stage error code. The cause of each event remains unverified. Report
+[#9](https://github.com/codepetca/zero-reports/issues/9) stopped during its
+earlier tooling check.
+
 # Git merge, sync, and browser diagnostic path — 2026-11-19
 
 On `8e754368a`, disposable clones reproduced a conflict-free split between

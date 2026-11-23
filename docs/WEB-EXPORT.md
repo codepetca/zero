@@ -303,9 +303,11 @@ existing published kits and the inactive public publication policy remain unchan
 
 Generated output replaces `.zero/web-export/{site,web-export.zip,manifest.json}` and
 stays ignored by Git. No JDK, Maven installation or compiler is shipped in the
-playable ZIP. The first local export downloads compiler dependencies into Zero's
-per-installation cache; later projects reuse them. These downloads are larger
-than a game's playable output and are developer/student machine cache space.
+playable ZIP. The first local export downloads compiler dependencies for later
+projects to reuse. Windows keeps that cache in the user's temporary directory
+so the Store editor profile does not lengthen compiler paths. If Windows clears
+the cache, the next build downloads the dependencies again. These downloads
+can be larger than a game's playable output.
 
 The measured full game export with controls was 8.2 MB uncompressed / 7.0 MB
 ZIP, including audio and required runtime notices/corresponding source archives.
