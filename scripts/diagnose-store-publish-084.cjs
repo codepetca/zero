@@ -14,7 +14,7 @@ function diagnostic(error) {
   const maven = /^Web compilation failed \(Maven exit (-?\d+)\)/.exec(message);
   const filesystem = /\b(ENOENT|ENAMETOOLONG|EACCES|EPERM|EINVAL|EBUSY|ENOSPC)\b/.exec(message);
   const network = /\b(ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|CERT_HAS_EXPIRED|UNABLE_TO_VERIFY_LEAF_SIGNATURE|SELF_SIGNED_CERT_IN_CHAIN)\b/.exec(message);
-  const fileOperation = /\b(open|stat|lstat|realpath|mkdir|rename|unlink|copyfile|spawn|scandir)\s+'([^'\r\n]+)'(?:\s*->\s*'([^'\r\n]+)')?/i.exec(message);
+  const fileOperation = /\b(open|stat|lstat|realpath|mkdtemp|mkdir|rename|unlink|copyfile|spawn|scandir|opendir|access)\s+'([^'\r\n]+)'(?:\s*->\s*'([^'\r\n]+)')?/i.exec(message);
   const missingKind = fileOperation && /\.(jar|pom|zip|cmd|exe|java|xml|json|tmp)(?:$|[.\-])/i.exec(path.basename(fileOperation[3] || fileOperation[2]));
   const reasons = [
     [/toolchain download timed out/i, 'download-timeout'],
@@ -47,6 +47,25 @@ function diagnostic(error) {
     }),
     hadCompilerLog: Boolean(log),
   };
+}
+
+async function probeTemporaryDirectory(root) {
+  const cases = [];
+  for (const requestedLength of [220, 253, 259, 275]) {
+    const parent = path.join(root, 'x'.repeat(100));
+    const prefix = path.join(parent, 'p'.repeat(requestedLength - parent.length - 1));
+    assert.equal(prefix.length, requestedLength);
+    await fs.mkdir(parent, {recursive: true});
+    try {
+      const created = await fs.mkdtemp(prefix);
+      cases.push({prefixLength: requestedLength, outcome: 'passed'});
+      await fs.rmdir(created);
+    } catch (error) {
+      const code = ['ENOENT', 'EINVAL', 'ENAMETOOLONG', 'EACCES', 'EPERM'].includes(error.code) ? error.code : 'OTHER';
+      cases.push({prefixLength: requestedLength, outcome: 'failed', code});
+    }
+  }
+  return cases;
 }
 
 async function browserBuild(builder, projectRoot, cacheRoot, profileHash) {
@@ -128,6 +147,7 @@ async function run() {
         shortCache = await fs.mkdtemp(path.join(runnerVolume, 'z-'));
         const shorter = await browserBuild(builder, projectRoot, shortCache, clean.newProfileHash);
         result.shortCacheBuild = {...shorter, cacheBaseLength: shortCache.length};
+        result.temporaryDirectoryCases = await probeTemporaryDirectory(shortCache);
       }
       if (baseline.outcome !== 'passed') {
         result.outcome = 'failed';
