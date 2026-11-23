@@ -65,7 +65,7 @@ const {isSetupProject,findSetupProject} = require('./setup-project');
 const {createNativeUpdateCommands} = require('./native-updates');
 const {createNativeUpdateReload} = require('./native-update-reload');
 const {createWebExportCommands} = require('./web-export-ui');
-const {createProjectBuilder,readSavedBuilder,browserToolingUpdateRequired} = require('./project-builder');
+const {createProjectBuilder,readSavedBuilder,browserCacheRoot,browserToolingUpdateRequired} = require('./project-builder');
 const {createBrowserRunCommands,sourceDiagnostics} = require('./web-run-ui');
 const {createSavedSourceStatus}=require('./saved-source-status');
 const {createSavedSourceHost}=require('./saved-source-host');
@@ -2782,7 +2782,7 @@ function activate(context, services = {}) {
     },
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),testInstallation:async()=>{const root=await findSetupProject();await vscode.commands.executeCommand('vscode.openFolder',vscode.Uri.file(root),{forceNewWindow:true});},uploadMode})
   };
-  const webCacheRoot=context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined;
+  const webCacheRoot=browserCacheRoot(context.globalStorageUri?.fsPath);
   const savedBuilder=createProjectBuilder({isTrusted:()=>vscode.workspace.isTrusted===true,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
   function projectUpdateGuard(root,signal) {
     return async()=>{

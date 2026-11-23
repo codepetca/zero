@@ -92,6 +92,18 @@ async function canonicalCacheBase(filename) {
   return path.join(await canonicalCacheBase(parent), path.basename(filename));
  }
 }
+function browserCacheRoot(editorStorage, platform=process.platform) {
+ // The MSIX editor profile already uses most of the Win32 path budget.
+ if(platform==='win32')return path.join(os.tmpdir(),'zero-web');
+ return editorStorage ? path.join(editorStorage,'web-compiler') : undefined;
+}
+function builderCacheRoot(base, saved, platform) {
+ // The saved builder adds its full closure digest, which includes runtime-lock.json.
+ // Avoid adding a second copy of that identity before Maven creates its own paths.
+ if(platform==='win32')return base;
+ const runtimeHash=format.sha256(saved.files.find(file=>file.path==='runtime-lock.json').bytes);
+ return path.join(base,saved.manifest.closureSha256+'-'+runtimeHash);
+}
 async function readOperationLog(filename,expectedLogPath){
  if(typeof filename!=='string'||filename.length>4096||!expectedLogPath||filename!==expectedLogPath)throw unavailable('builder returned an invalid diagnostic log path.');
  const before=await ordinary(filename,{maxBytes:16*1024*1024});let handle;
@@ -191,9 +203,8 @@ function createProjectBuilder({isTrusted=()=>false,environment=process.env,platf
    for(const file of before.files){const target=path.join(frozen,...file.path.split('/'));await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,file.bytes,{flag:'wx',mode:0o600});}
    if((await readSavedBuilder(projectRoot)).profileHash!==before.profileHash)throw unavailable('saved tooling changed before execution.');await requireCurrent(projectRoot,before);authorize(options,operation);
    // Match the exporter's canonical paths without trusting any path from its response.
-   const cacheBase = await canonicalCacheBase(path.resolve(options.cacheRoot || path.join(temporaryBase, 'zero-web-cache')));
-   const identity = before.manifest.closureSha256+'-'+format.sha256(before.files.find(file=>file.path==='runtime-lock.json').bytes);
-   const cacheRoot = path.join(cacheBase, identity);
+   const cacheBase = await canonicalCacheBase(path.resolve(options.cacheRoot || browserCacheRoot(undefined, platform) || path.join(temporaryBase, 'zero-web-cache')));
+   const cacheRoot = builderCacheRoot(cacheBase, before, platform);
    const canonicalProjectRoot = await fs.realpath(projectRoot);
    if(cacheRoot===canonicalProjectRoot||cacheRoot.startsWith(canonicalProjectRoot+path.sep))throw unavailable('the browser cache must be outside the project.');
    const expectedLogPath = path.join(cacheRoot, before.manifest.closureSha256, 'logs', format.sha256(canonicalProjectRoot)+'.log');
@@ -222,4 +233,4 @@ function createProjectBuilder({isTrusted=()=>false,environment=process.env,platf
  }
  return {readSavedBuilder,ensureValidatedExport,validateExport,validateRetainedExport,assertBuildInputsAtCommit,prepareBrowserChecks,checkSavedSources};
 }
-module.exports={createProjectBuilder,readSavedBuilder,browserToolingUpdateRequired,sanitizeEnvironment,locateRuntimes,runProtocol,_test:{digest,currentInputs}};
+module.exports={createProjectBuilder,readSavedBuilder,browserCacheRoot,browserToolingUpdateRequired,sanitizeEnvironment,locateRuntimes,runProtocol,_test:{digest,currentInputs,builderCacheRoot}};
