@@ -168,7 +168,7 @@ async function run() {
     result.code = knownCodes.has(error.code) ? error.code : 'OTHER';
     process.exitCode = 1;
   } finally {
-    if (shortCache) await fs.rm(shortCache, {recursive: true, force: true});
+    if (patchedModule) await fs.unlink(patchedModule);
     await fs.rm(scratch, {recursive: true, force: true});
     console.log(JSON.stringify(result));
   }
