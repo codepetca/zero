@@ -258,7 +258,7 @@ if (-not $editorReady) { throw 'The isolated editor did not show a fresh visible
 Write-Host 'MSIX first-run setup, private Java, VS Code and Java extension verified.'
 
 
-# Temporary 0.5.84 publishing diagnostic. Run before the MSIX cleanup removes
+# Temporary Store browser cache verification. Run before MSIX cleanup removes
 # the packaged profile and its private runtimes.
 $zeroExtension = @(Get-ChildItem -LiteralPath $extensions -Directory | Where-Object {
     $package = Join-Path $_.FullName 'package.json'
@@ -281,6 +281,6 @@ $env:ZERO_KIT_DIR = $kit
 $env:ZERO_NODE_EXECUTABLE = $node
 $env:ZERO_JAVA_HOME = $physicalJava
 $env:Path = "$env:SystemRoot\System32;$env:SystemRoot;$env:SystemRoot\System32\WindowsPowerShell\v1.0"
-Write-Host 'Running released builder with the package-provisioned private runtimes.'
+Write-Host 'Comparing released and fixed hosts with the same saved builder and private runtimes.'
 & $node (Join-Path $PSScriptRoot 'diagnose-store-publish-084.cjs') $zeroExtension[0].FullName (Join-Path $kit 'starter') windows-build
 if ($LASTEXITCODE -ne 0) { throw 'The local browser publishing diagnostic failed.' }

@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const {createHash} = require('node:crypto');
+const {constants} = require('node:fs');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
@@ -49,26 +51,7 @@ function diagnostic(error) {
   };
 }
 
-async function probeTemporaryDirectory(root) {
-  const cases = [];
-  for (const requestedLength of [220, 253, 259, 275]) {
-    const parent = path.join(root, 'x'.repeat(100));
-    const prefix = path.join(parent, 'p'.repeat(requestedLength - parent.length - 1));
-    assert.equal(prefix.length, requestedLength);
-    await fs.mkdir(parent, {recursive: true});
-    try {
-      const created = await fs.mkdtemp(prefix);
-      cases.push({prefixLength: requestedLength, outcome: 'passed'});
-      await fs.rmdir(created);
-    } catch (error) {
-      const code = ['ENOENT', 'EINVAL', 'ENAMETOOLONG', 'EACCES', 'EPERM'].includes(error.code) ? error.code : 'OTHER';
-      cases.push({prefixLength: requestedLength, outcome: 'failed', code});
-    }
-  }
-  return cases;
-}
-
-async function browserBuild(builder, projectRoot, cacheRoot, profileHash) {
+async function browserBuild(builder, projectRoot, cacheRoot, profileHash, validate = false) {
   let phase = 'not-started';
   const started = Date.now();
   try {
@@ -86,7 +69,17 @@ async function browserBuild(builder, projectRoot, cacheRoot, profileHash) {
     assert.equal(exported.profileHash, profileHash);
     assert.equal(exported.runtimeEvidence.nodeVersion, process.versions.node);
     assert.match(exported.runtimeEvidence.javaVersion, /^21\./);
-    return {outcome: 'passed', runtime: exported.runtimeEvidence};
+    let retainedExport = false;
+    if (validate) {
+      assert.ok(exported.zipBytes.length > 0);
+      assert.ok(exported.manifest.files.some(file => file.path === 'index.html'));
+      const retained = await builder.validateExport({projectRoot, cacheRoot, result: exported, explicitAction: true});
+      assert.equal(retained.buildId, exported.buildId);
+      assert.equal(retained.sourceHash, exported.sourceHash);
+      assert.deepEqual(retained.zipBytes, exported.zipBytes);
+      retainedExport = true;
+    }
+    return {outcome: 'passed', retainedExport, elapsedSeconds: Math.round((Date.now() - started) / 1000), runtime: exported.runtimeEvidence};
   } catch (error) {
     const known = new Set(['ZERO_BUILDER_UNAVAILABLE', 'ZERO_BUILDER_OPERATION_FAILED', 'ZERO_BUILDER_UPDATE_REQUIRED', 'ERR_ASSERTION']);
     return {
@@ -110,7 +103,7 @@ async function run() {
   const projectRoot = path.join(scratch, 'starter');
   const result = {schema: 1, zeroVersion: identity.version, platform: process.platform, architecture: process.arch, osRelease: os.release()};
   let stage = 'fixture-copy';
-  let shortCache;
+  let patchedModule;
 
   try {
     await fs.cp(starterPath, projectRoot, {recursive: true, errorOnExist: true, force: false});
@@ -135,25 +128,37 @@ async function run() {
       assert.equal(process.env.ZERO_WINDOWS_DISTRIBUTION, 'store');
       assert.ok(path.isAbsolute(process.env.ZERO_NODE_EXECUTABLE));
       assert.equal(await fs.realpath(process.execPath), await fs.realpath(process.env.ZERO_NODE_EXECUTABLE));
-      stage = 'local-browser-build';
+      assert.equal(process.env.GITHUB_ACTIONS, 'true');
+      assert.equal(process.env.RUNNER_ENVIRONMENT, 'github-hosted');
+      stage = 'baseline-browser-build';
       const builder = createProjectBuilder({isTrusted: () => true, extensionPath, deadlineMs: 8 * 60_000});
-      const cacheRoot = path.join(scratch, 'web-cache');
-      const baseline = await browserBuild(builder, projectRoot, cacheRoot, clean.newProfileHash);
-      result.defaultCacheBuild = {...baseline, cacheBaseLength: cacheRoot.length};
-      if (baseline.outcome === 'failed' && baseline.filesystemError === 'ENOENT' && baseline.elapsedSeconds < 60) {
-        assert.equal(process.env.GITHUB_ACTIONS, 'true');
-        assert.equal(process.env.RUNNER_ENVIRONMENT, 'github-hosted');
-        const runnerVolume = path.parse(await fs.realpath(process.env.GITHUB_WORKSPACE)).root;
-        shortCache = await fs.mkdtemp(path.join(runnerVolume, 'z-'));
-        const shorter = await browserBuild(builder, projectRoot, shortCache, clean.newProfileHash);
-        result.shortCacheBuild = {...shorter, cacheBaseLength: shortCache.length};
-        result.temporaryDirectoryCases = await probeTemporaryDirectory(shortCache);
-      }
-      if (baseline.outcome !== 'passed') {
-        result.outcome = 'failed';
-        process.exitCode = 1;
-        return;
-      }
+      const baselineCache = path.join(scratch, 'web-cache');
+      const baseline = await browserBuild(builder, projectRoot, baselineCache, clean.newProfileHash);
+      result.baselineBuild = {...baseline, cacheBaseLength: baselineCache.length};
+      assert.equal(baseline.outcome, 'failed');
+      assert.equal(baseline.code, 'ZERO_BUILDER_OPERATION_FAILED');
+      assert.equal(baseline.fileOperation, 'mkdtemp');
+      assert.ok(['ENOENT', 'ENAMETOOLONG'].includes(baseline.filesystemError));
+      assert.ok(baseline.subjectPathLength > 260);
+      console.log('The released host reproduced the Windows-long-path build failure.');
+
+      stage = 'patched-browser-build';
+      const patchSource = path.join(__dirname, '..', 'extension', 'src', 'project-builder.js');
+      result.adapterSha256 = createHash('sha256').update(await fs.readFile(patchSource)).digest('hex');
+      const sibling = path.join(extensionPath, 'src', 'project-builder-fixed.js');
+      await fs.copyFile(patchSource, sibling, constants.COPYFILE_EXCL);
+      patchedModule = sibling;
+      const fixed = require(patchedModule);
+      const editorStorage = path.join(path.dirname(path.dirname(extensionPath)), 'user-data', 'User', 'globalStorage', 'zero.zero');
+      const cacheRoot = fixed.browserCacheRoot(editorStorage);
+      assert.equal(cacheRoot, path.join(os.tmpdir(), 'zero-web'));
+      await assert.rejects(fs.lstat(cacheRoot), {code: 'ENOENT'});
+      const fixedBuilder = fixed.createProjectBuilder({isTrusted: () => true, extensionPath, deadlineMs: 8 * 60_000});
+      const compiled = await browserBuild(fixedBuilder, projectRoot, cacheRoot, clean.newProfileHash, true);
+      result.fixedBuild = {...compiled, cacheBaseLength: cacheRoot.length, coldCache: true};
+      assert.equal(compiled.outcome, 'passed');
+      assert.equal(compiled.retainedExport, true);
+      assert.equal((await fixed.readSavedBuilder(projectRoot)).profileHash, clean.newProfileHash);
     }
     result.outcome = 'passed';
   } catch (error) {
