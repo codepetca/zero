@@ -14,6 +14,8 @@ function diagnostic(error) {
   const maven = /^Web compilation failed \(Maven exit (-?\d+)\)/.exec(message);
   const filesystem = /\b(ENOENT|ENAMETOOLONG|EACCES|EPERM|EINVAL|EBUSY|ENOSPC)\b/.exec(message);
   const network = /\b(ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|CERT_HAS_EXPIRED|UNABLE_TO_VERIFY_LEAF_SIGNATURE|SELF_SIGNED_CERT_IN_CHAIN)\b/.exec(message);
+  const fileOperation = /\b(open|stat|lstat|realpath|mkdir|rename|unlink|copyfile|spawn|scandir)\s+'([^'\r\n]+)'(?:\s*->\s*'([^'\r\n]+)')?/i.exec(message);
+  const missingKind = fileOperation && /\.(jar|pom|zip|cmd|exe|java|xml|json|tmp)(?:$|[.\-])/i.exec(path.basename(fileOperation[3] || fileOperation[2]));
   const reasons = [
     [/toolchain download timed out/i, 'download-timeout'],
     [/web compiler checksum mismatch|artifact.*checksum/i, 'artifact-integrity'],
@@ -37,8 +39,42 @@ function diagnostic(error) {
     ...(maven && {mavenExitCode: Number(maven[1])}),
     ...(filesystem && {filesystemError: filesystem[1]}),
     ...(network && {networkError: network[1]}),
+    ...(fileOperation && {
+      fileOperation: fileOperation[1].toLowerCase(),
+      subjectPathLength: fileOperation[2].length,
+      ...(fileOperation[3] && {destinationPathLength: fileOperation[3].length}),
+      ...(missingKind && {fileType: missingKind[1].toLowerCase()}),
+    }),
     hadCompilerLog: Boolean(log),
   };
+}
+
+async function browserBuild(builder, projectRoot, cacheRoot, profileHash) {
+  let phase = 'not-started';
+  const started = Date.now();
+  try {
+    const exported = await builder.ensureValidatedExport({
+      projectRoot, cacheRoot, explicitAction: true,
+      onProgress(message) {
+        if (message === 'Checking Java sources and resources') phase = 'checking-inputs';
+        if (message.startsWith('Preparing web compiler (')) phase = 'downloading-web-compiler';
+        if (message.startsWith('Checking every original Java API against ')) phase = 'checking-java-apis';
+        if (message === 'Preparing and verifying the pinned Maven distribution') phase = 'preparing-maven';
+        if (message === 'Compiling Java for the browser.') phase = 'compiling';
+        if (message === 'Web export ready') phase = 'validating-output';
+      },
+    });
+    assert.equal(exported.profileHash, profileHash);
+    assert.equal(exported.runtimeEvidence.nodeVersion, process.versions.node);
+    assert.match(exported.runtimeEvidence.javaVersion, /^21\./);
+    return {outcome: 'passed', runtime: exported.runtimeEvidence};
+  } catch (error) {
+    const known = new Set(['ZERO_BUILDER_UNAVAILABLE', 'ZERO_BUILDER_OPERATION_FAILED', 'ZERO_BUILDER_UPDATE_REQUIRED', 'ERR_ASSERTION']);
+    return {
+      outcome: 'failed', code: known.has(error.code) ? error.code : 'OTHER',
+      elapsedSeconds: Math.round((Date.now() - started) / 1000), phase, ...diagnostic(error),
+    };
+  }
 }
 
 async function run() {
@@ -55,7 +91,7 @@ async function run() {
   const projectRoot = path.join(scratch, 'starter');
   const result = {schema: 1, zeroVersion: identity.version, platform: process.platform, architecture: process.arch, osRelease: os.release()};
   let stage = 'fixture-copy';
-  let buildPhase = 'not-started';
+  let shortCache;
 
   try {
     await fs.cp(starterPath, projectRoot, {recursive: true, errorOnExist: true, force: false});
@@ -82,19 +118,22 @@ async function run() {
       assert.equal(await fs.realpath(process.execPath), await fs.realpath(process.env.ZERO_NODE_EXECUTABLE));
       stage = 'local-browser-build';
       const builder = createProjectBuilder({isTrusted: () => true, extensionPath, deadlineMs: 8 * 60_000});
-      const exported = await builder.ensureValidatedExport({
-        projectRoot, cacheRoot: path.join(scratch, 'web-cache'), explicitAction: true,
-        onProgress(message) {
-          if (message === 'Checking Java sources and resources') buildPhase = 'checking-inputs';
-          if (message.startsWith('Preparing web compiler (')) buildPhase = 'downloading-web-compiler';
-          if (message === 'Compiling Java for the browser.') buildPhase = 'compiling';
-        },
-      });
-      assert.equal(exported.profileHash, clean.newProfileHash);
-      assert.equal(exported.runtimeEvidence.nodeVersion, process.versions.node);
-      assert.match(exported.runtimeEvidence.javaVersion, /^21\./);
-      result.localBrowserBuild = 'passed';
-      result.runtime = exported.runtimeEvidence;
+      const cacheRoot = path.join(scratch, 'web-cache');
+      const baseline = await browserBuild(builder, projectRoot, cacheRoot, clean.newProfileHash);
+      result.defaultCacheBuild = {...baseline, cacheBaseLength: cacheRoot.length};
+      if (baseline.outcome === 'failed' && baseline.filesystemError === 'ENOENT' && baseline.elapsedSeconds < 60) {
+        assert.equal(process.env.GITHUB_ACTIONS, 'true');
+        assert.equal(process.env.RUNNER_ENVIRONMENT, 'github-hosted');
+        const runnerVolume = path.parse(await fs.realpath(process.env.GITHUB_WORKSPACE)).root;
+        shortCache = await fs.mkdtemp(path.join(runnerVolume, 'z-'));
+        const shorter = await browserBuild(builder, projectRoot, shortCache, clean.newProfileHash);
+        result.shortCacheBuild = {...shorter, cacheBaseLength: shortCache.length};
+      }
+      if (baseline.outcome !== 'passed') {
+        result.outcome = 'failed';
+        process.exitCode = 1;
+        return;
+      }
     }
     result.outcome = 'passed';
   } catch (error) {
@@ -102,9 +141,9 @@ async function run() {
     result.outcome = 'failed';
     result.stage = stage;
     result.code = knownCodes.has(error.code) ? error.code : 'OTHER';
-    if (stage === 'local-browser-build') result.build = {phase: buildPhase, ...diagnostic(error)};
     process.exitCode = 1;
   } finally {
+    if (shortCache) await fs.rm(shortCache, {recursive: true, force: true});
     await fs.rm(scratch, {recursive: true, force: true});
     console.log(JSON.stringify(result));
   }
