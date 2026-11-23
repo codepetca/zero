@@ -256,3 +256,31 @@ while ([DateTime]::UtcNow -lt $deadline) {
 }
 if (-not $editorReady) { throw 'The isolated editor did not show a fresh visible window stable for three seconds.' }
 Write-Host 'MSIX first-run setup, private Java, VS Code and Java extension verified.'
+
+
+# Temporary 0.5.84 publishing diagnostic. Run before the MSIX cleanup removes
+# the packaged profile and its private runtimes.
+$zeroExtension = @(Get-ChildItem -LiteralPath $extensions -Directory | Where-Object {
+    $package = Join-Path $_.FullName 'package.json'
+    if (Test-Path -LiteralPath $package -PathType Leaf) {
+        $info = Get-Content -LiteralPath $package -Raw | ConvertFrom-Json
+        $info.publisher -eq 'zero' -and $info.name -eq 'zero' -and $info.version -eq '0.5.84'
+    }
+})
+if ($zeroExtension.Count -ne 1 -or $KitVersion -ne '0.5.84') { throw 'Expected one installed Zero 0.5.84 extension.' }
+$expectedKit = 'a93a9ef61a5e3f3a3c52a02b4e6662c39e3b734f8f4dcdef501f6ffe0912fe88'
+$kit = Join-Path ($data + '-embedded-kits') $expectedKit
+$manifest = Get-Content -LiteralPath (Join-Path $kit 'setup\windows-downloads.json') -Raw | ConvertFrom-Json
+$nodePin = $manifest.architectures.x64.node
+if ($nodePin.version -ne '22.23.4' -or $nodePin.sha256 -notmatch '^[a-f0-9]{64}$') { throw 'Unexpected private Node pin.' }
+$node = Join-Path $data ("runtime\node-" + $nodePin.sha256 + "\node.exe")
+if (-not (Test-Path -LiteralPath $node -PathType Leaf)) { throw 'Store setup did not install private Node.' }
+
+$env:ZERO_WINDOWS_DISTRIBUTION = 'store'
+$env:ZERO_KIT_DIR = $kit
+$env:ZERO_NODE_EXECUTABLE = $node
+$env:ZERO_JAVA_HOME = $physicalJava
+$env:Path = "$env:SystemRoot\System32;$env:SystemRoot;$env:SystemRoot\System32\WindowsPowerShell\v1.0"
+Write-Host 'Running released builder with the package-provisioned private runtimes.'
+& $node (Join-Path $PSScriptRoot 'diagnose-store-publish-084.cjs') $zeroExtension[0].FullName (Join-Path $kit 'starter') windows-build
+if ($LASTEXITCODE -ne 0) { throw 'The local browser publishing diagnostic failed.' }
