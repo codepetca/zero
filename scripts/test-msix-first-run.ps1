@@ -256,3 +256,37 @@ while ([DateTime]::UtcNow -lt $deadline) {
 }
 if (-not $editorReady) { throw 'The isolated editor did not show a fresh visible window stable for three seconds.' }
 Write-Host 'MSIX first-run setup, private Java, VS Code and Java extension verified.'
+
+# Keep this diagnostic before the deployment harness removes the test package.
+$kitHash = $env:ZERO_STORE_DIAGNOSTIC_KIT_SHA256
+$browserReceipt = $env:ZERO_STORE_DIAGNOSTIC_RECEIPT
+if ($KitVersion -ne '0.5.85' -or $kitHash -cnotmatch '^[a-f0-9]{64}$' -or
+    -not $browserReceipt -or -not [IO.Path]::IsPathRooted($browserReceipt) -or (Test-Path -LiteralPath $browserReceipt)) {
+    throw 'The Store browser diagnostic requires the verified 0.5.85 kit and a new receipt.'
+}
+$zeroExtension = @(Get-ChildItem -LiteralPath $extensions -Directory | Where-Object {
+    $package = Join-Path $_.FullName 'package.json'
+    if (Test-Path -LiteralPath $package -PathType Leaf) {
+        $info = Get-Content -LiteralPath $package -Raw | ConvertFrom-Json
+        $info.publisher -eq 'zero' -and $info.name -eq 'zero' -and $info.version -eq $KitVersion
+    }
+})
+if ($zeroExtension.Count -ne 1) { throw 'Expected one installed Zero 0.5.85 extension.' }
+$kit = Join-Path ($data + '-embedded-kits') $kitHash
+$manifest = Get-Content -LiteralPath (Join-Path $kit 'setup\windows-downloads.json') -Raw | ConvertFrom-Json
+$nodePin = $manifest.architectures.x64.node
+if ($nodePin.sha256 -cnotmatch '^[a-f0-9]{64}$') { throw 'Unexpected private Node pin.' }
+$node = Join-Path $data ("runtime\node-" + $nodePin.sha256 + "\node.exe")
+if (-not (Test-Path -LiteralPath $node -PathType Leaf)) { throw 'Store setup did not install private Node.' }
+
+$env:ZERO_WINDOWS_DISTRIBUTION = 'store'
+$env:ZERO_KIT_DIR = $kit
+$env:ZERO_NODE_EXECUTABLE = $node
+$env:ZERO_JAVA_HOME = $physicalJava
+$env:Path = "$env:SystemRoot\System32;$env:SystemRoot;$env:SystemRoot\System32\WindowsPowerShell\v1.0"
+$browserResult = & $node (Join-Path $PSScriptRoot 'verify-store-browser-085.cjs') $zeroExtension[0].FullName (Join-Path $kit 'starter')
+$browserExit = $LASTEXITCODE
+if (@($browserResult).Count -ne 1) { throw 'The Store browser diagnostic did not return one sanitized result.' }
+$proof = $browserResult | ConvertFrom-Json
+$proof | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $browserReceipt -Encoding utf8
+if ($browserExit -ne 0 -or $proof.outcome -ne 'passed') { throw 'The Store browser diagnostic failed. See sanitized browser receipt.' }
