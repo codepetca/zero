@@ -41,6 +41,17 @@ certification, physical Windows 10/11 use, browser builds, actual problem report
 live GitHub actions or publication. The desktop is Windows Server 2022. Successful
 source-bound unit tests are recorded separately from visible native UI proof.
 
+The focused source step covers Start Page, sidebar updates, native/browser runtime
+events and controls, browser update/publishing UI, and structured reporting. It
+prepares the exact checkout's starter, lesson bundles and extension theme before
+running those tests, matching their generated-fixture prerequisites. It
+excludes unrelated Student Explorer Git fixtures: diagnostic run `45401485820`
+passed package provenance, then four fixtures failed at `git init -q` because they
+pass Node's Windows `os.devNull` (`\\.\nul`) as `GIT_CONFIG_GLOBAL`, which Git for
+Windows rejects. Their assertions never ran. Canonical CI retains those tests;
+this temporary diagnostic does not modify them or claim they passed. That failed
+run did not reach package activation or visible editor verification.
+
 After this branch is separately reviewed and made available remotely by the
 coordinator, dispatch with the exact successful candidate values:
 
