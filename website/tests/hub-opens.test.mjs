@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createOpensStore, opensConfiguration, recordOpen} from '../lib/hub-opens.mjs';
-import {recordPlayOpen, metricLabel} from '../lib/hub-metrics-client.mjs';
+import {createOpensStore, listingOpenId, opensConfiguration, recordOpen} from '../lib/hub-opens.mjs';
+import {recordListingPlayOpen, recordPlayOpen, metricLabel} from '../lib/hub-metrics-client.mjs';
+
+import {projectPlayRef} from '../lib/hub-play-reference.mjs';
+import app from '../../extension/src/github-app/config.json' with {type:'json'};
 
 const env = {ZERO_HUB_OPENS_REDIS_URL: 'https://counter.upstash.io', ZERO_HUB_OPENS_REDIS_TOKEN: 'fixture-token'};
 const request = (body = {id: 'drawing-pad'}, headers = {}) => new Request('https://zero.codepet.ca/api/hub/opens', {
@@ -74,6 +77,48 @@ test('recording requires same origin, bounded selection and a known playable pro
   assert.deepEqual(writes, ['drawing-pad']);
 });
 
+test('listing opens bind the exact public publication and use a stable per-owner counter', async () => {
+  const entry={repositoryId:'123',accountId:'7',repositoryUrl:'https://github.com/student/game',
+    pagesUrl:'https://student.github.io/game/',commit:'a'.repeat(40),runId:'42'};
+  const listingEnv={...env,ZERO_HUB_LISTINGS_ENABLED:'1',ZERO_HUB_GITHUB_CLIENT_ID:app.clientId,
+    ZERO_HUB_GITHUB_CLIENT_SECRET:'fixture-only-secret-value',ZERO_HUB_GITHUB_SESSION_SECRET:'11'.repeat(32)};
+  let publication=entry, present=true, repositoryPublic=true, reads=0, heldOnFinal=false;
+  const writes=[];
+  const options={env:listingEnv,store:{increment:async id=>writes.push(id)},
+    resolve:async()=>assert.fail('A listing must not use the catalog resolver'),
+    getListingStore:()=>({
+      listedForPlay:async(id,runId)=>id===publication.repositoryId&&runId===publication.runId?[publication]:[],
+      stillListed:async rows=>present?rows:[]
+    }),
+    listingDestinationReader:async()=>repositoryPublic,
+    visibilityReader:async()=>{
+      reads++;
+      const held=heldOnFinal && reads===2;
+      return {revision:'a'.repeat(40),observedAt:0,isHeld:()=>held};
+    },
+  };
+  const send=async ref=>{reads=0;return (await recordOpen(request({ref}),options)).status;};
+  const ref=projectPlayRef('listing',entry);
+  assert.equal(await send(ref),204);
+  assert.deepEqual(writes,[listingOpenId(entry)]);
+  assert.equal((await recordOpen(request({id:listingOpenId(entry)}),options)).status,400);
+  repositoryPublic=false;
+  assert.equal(await send(ref),404);
+  repositoryPublic=true;present=false;
+  assert.equal(await send(ref),404);
+  present=true;heldOnFinal=true;
+  assert.equal(await send(ref),404);
+  heldOnFinal=false;
+  publication={...entry,commit:'b'.repeat(40),runId:'43'};
+  assert.equal(await send(ref),404);
+  assert.equal(await send(projectPlayRef('listing',publication)),204);
+  publication={...publication,accountId:'8'};
+  const differentOwner=projectPlayRef('listing',publication);
+  assert.equal(await send(differentOwner),204);
+  assert.deepEqual(writes,[listingOpenId(entry),listingOpenId(entry),listingOpenId(publication)]);
+  assert.notEqual(writes[0],writes[2]);
+});
+
 test('disabled counting, downtime and explicitly configured local development are harmless', async () => {
   assert.equal((await recordOpen(request(), {store: null})).status, 204);
   assert.equal((await recordOpen(request(), {store: {increment: async () => {throw Error('down');}}, resolve: async () => ({playUrl: 'https://example.test'})})).status, 503);
@@ -100,6 +145,9 @@ test('client records without credentials and swallows errors without touching na
   recordPlayOpen('drawing-pad', async (...args) => {seen = args; throw Error('offline');});
   assert.equal(seen[0], '/api/hub/opens'); assert.equal(seen[1].credentials, 'omit'); assert.equal(seen[1].keepalive, true);
   assert.deepEqual(JSON.parse(seen[1].body), {id: 'drawing-pad'});
+  const ref=`1.listing.123.${'a'.repeat(64)}.42`;
+  recordListingPlayOpen(ref, async (...args)=>{seen=args;});
+  assert.deepEqual(JSON.parse(seen[1].body), {ref});
   assert.doesNotThrow(() => recordPlayOpen('drawing-pad', () => {throw Error('blocked');}));
 });
 

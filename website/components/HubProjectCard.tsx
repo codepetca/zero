@@ -2,7 +2,7 @@
 import {type ReactNode, useState} from 'react';
 import {HubProjectInfo} from './HubProjectInfo';
 import {Icon} from './Icon';
-import {recordPlayOpen} from '@/lib/hub-metrics-client.mjs';
+import {recordListingPlayOpen,recordPlayOpen} from '@/lib/hub-metrics-client.mjs';
 import {projectPattern, projectPatternSeed} from '@/lib/project-pattern.mjs';
 import styles from '@/app/hub/hub.module.css';
 
@@ -26,7 +26,11 @@ export function HubProjectCard({projectId, title, description, author, version, 
   const pattern = <ProjectPattern seed={projectPatternSeed(author, repositoryHref.split('/').filter(Boolean).at(-1) || title)} />;
   const destination = siteUnavailable ? undefined : playHref || fallbackPlayHref;
   const playLabel = `${playHref ? 'Play' : 'Check availability and play'} ${title} (opens in a new tab)`;
-  const recordOpen = (event: {button: number}) => { if (playHref && projectId && (event.button === 0 || event.button === 1)) recordPlayOpen(projectId); };
+  const recordOpen = (event: {button: number}) => {
+    if (!playHref || (event.button !== 0 && event.button !== 1)) return;
+    if (projectId) recordPlayOpen(projectId);
+    else if (playRef) recordListingPlayOpen(playRef);
+  };
   const identity = <p className={styles.metadata}><a href={version ? `https://github.com/${author}` : repositoryHref}>@{author}</a>{version && <> · <a href={repositoryHref} aria-label={`${title} v${version} on GitHub`}>v{version}</a></>}</p>;
   const preview = <>
     {image && failedImage !== image ? <img className={styles.thumbnail} src={image} alt={`${title} screenshot`} loading="lazy" onError={() => setFailedImage(image)}

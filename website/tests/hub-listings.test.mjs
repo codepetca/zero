@@ -118,6 +118,12 @@ test('held matches do not create a continuation and GitHub outages are retryable
   const second = await hubPublicListingsResponse(new Request(url+'&before='+visible.next), {...base, visibilityReader:async()=>null});
   assert.deepEqual((await second.json()).projects.map(project=>project.id), ['92']);
   assert.equal((await read({destinationReader:async()=>{throw new Error('rate limited');}})).status, 503);
+  const partial = await read({destinationReader:async item=>{
+    if (item.repositoryId==='100') throw new Error('rate limited');
+    return true;
+  }});
+  assert.equal(partial.status,200);
+  assert.deepEqual((await partial.json()).projects.map(item=>item.id),['99','98','97','96','95','94','93']);
 });
 
 test('disabled jam pages suppress the award while the published app remains visible', async () => {
@@ -146,6 +152,7 @@ test('public discovery uses a GitHub App grant for one public repository and met
   let selection = 'selected';
   let status = 200;
   let hasPages = true;
+  let privateRepo = false;
   const fetchImpl = async (url, options) => {
     assert.equal(options.redirect,'manual');
     calls.push(url);
@@ -164,7 +171,7 @@ test('public discovery uses a GitHub App grant for one public repository and met
     assert.equal(url,'https://api.github.com/app/installations/11/access_tokens');
     assert.deepEqual(JSON.parse(options.body),{repository_ids:[21],permissions:{metadata:'read'}});
     return Response.json({token:installationToken,expires_at:new Date(now+3600_000).toISOString(),
-      repositories:[{id:21,private:false}],repository_selection:selection,permissions},{status:201});
+      repositories:[{id:21,private:privateRepo}],repository_selection:selection,permissions},{status:201});
   };
   const options = {appId,key,now:()=>now,fetchImpl};
   const read = createListingRepositoryReader(options);
@@ -183,6 +190,10 @@ test('public discovery uses a GitHub App grant for one public repository and met
   permissions = {metadata:'read'};
   selection = 'all';
   await assert.rejects(createListingRepositoryReader(options)(entry,{signal}),/metadata is unavailable/);
+  selection = 'selected';
+  privateRepo = true;
+  assert.equal(await createListingRepositoryReader(options)(entry,{signal}),false);
+  assert.equal(calls.at(-1),'https://api.github.com/app/installations/11/access_tokens');
 });
 
 test('public Play links require the expected direct Pages marker', async () => {

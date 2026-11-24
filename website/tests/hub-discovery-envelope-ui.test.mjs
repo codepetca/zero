@@ -23,7 +23,7 @@ function harness(projects=[project], enforceJamVisibility=true, fakeTimers=false
   const react={useRef(initial){const i=cursor++;if(!(i in hooks))hooks[i]={current:initial};return hooks[i];},useState(initial){const i=cursor++;if(!(i in hooks))hooks[i]=typeof initial==='function'?initial():initial;return [hooks[i],value=>{hooks[i]=typeof value==='function'?value(hooks[i]):value;}];},useEffect(fn,deps){const i=cursor++,old=hooks[i];if(!old||deps.some((v,n)=>v!==old.deps[n])){effects.push(()=>{old?.cleanup?.();hooks[i]={deps,cleanup:fn()};});}}};
   const sharing={selectMaintainedProjects:(items,opts)=>opts.kind==='game'&&!opts.id&&!opts.version?items.filter(x=>x.title.toLowerCase().includes(opts.search.toLowerCase())):[],selectReleases:catalog=>catalog.releases,projectSummary:x=>x,maintainedPlayLink:p=>p.web?.url,releaseSummary:(r,p)=>p.find(x=>x.id===r.id&&x.sourceCommit===r.source.commit)?.description||r.description,releaseAuthor:(r,a)=>a.find(x=>x.id===r.id&&x.sourceCommits.includes(r.source.commit))?.author||'fallback',releaseImage:(r,p)=>p.find(x=>x.id===r.id&&x.sourceCommit===r.source.commit)?.image,playLink:()=>'/play',sourceLink:()=>'',dependencySnippet:()=>''};
   const card=()=>null;
-  const modules={'react':react,'react/jsx-runtime':{jsx:element,jsxs:element,Fragment:'fragment'},'next/navigation':{useSearchParams:()=>params},'next/link':{default:'a'},'@/lib/sharing-client.mjs':sharing,'@/content/projects.json':{default:[project]},'@/content/project-previews.json':{default:{}},'@/content/release-authors.json':{default:{}},'@/app/hub/hub.module.css':{default:{}},'./HubProjectCard':{HubProjectCard:card},'@/lib/hub-metrics-client.mjs':{loadMetricBatches:async()=>{},metricLabel:()=>null}};
+  const modules={'react':react,'react/jsx-runtime':{jsx:element,jsxs:element,Fragment:'fragment'},'next/navigation':{useSearchParams:()=>params},'next/link':{default:'a'},'@/lib/sharing-client.mjs':sharing,'@/content/projects.json':{default:[project]},'@/content/project-previews.json':{default:{}},'@/content/release-authors.json':{default:{}},'@/app/hub/hub.module.css':{default:{}},'./HubProjectCard':{HubProjectCard:card},'@/lib/hub-metrics-client.mjs':{loadMetricBatches:async()=>{},metricLabel:(_kind,metric)=>Number.isSafeInteger(metric?.opens)?{text:`${metric.opens} opens`,hint:'Open count'}:null}};
   for(const [path,name] of [['./HubPublishedProjects','HubPublishedProjects'],['./CodeBlock','CodeBlock'],['./Icon','Icon'],['./HubProjectInfo','HubProjectInfo'],['./HubProjectFeedback','HubProjectFeedback']])modules[path]={[name]:()=>null,...(path.includes('Feedback')?{HubProjectDetails:()=>null}:{})};
   modules['@/lib/hub-play-selector.mjs']={parseProjectPlayRef};
   const exports={};
@@ -137,7 +137,7 @@ test('server-rendered Projects use their initial metadata once and verify Play p
   const publishedRef=`1.listing.235.${'a'.repeat(64)}.42`;
   const slowRef=`1.listing.236.${'b'.repeat(64)}.42`;
   const hiddenRef=`1.listing.237.${'c'.repeat(64)}.42`;
-  const published={id:'235',identity:'e'.repeat(64),title:'Published app',author:'student',playRef:publishedRef,
+  const published={id:'235',identity:'e'.repeat(64),title:'Published app',author:'student',playRef:publishedRef,opens:0,
     repositoryUrl:'https://github.com/student/app',stars:0,issuesEnabled:true};
   const slow={...published,id:'236',identity:'f'.repeat(64),title:'Slow app',playRef:slowRef};
   const hidden={...published,id:'237',identity:'1'.repeat(64),title:'Hidden app',playRef:hiddenRef};
@@ -145,6 +145,7 @@ test('server-rendered Projects use their initial metadata once and verify Play p
   const render=()=>h.render({paginatedProjects:true,initialProjects});
   const [pending]=h.cards(render());
   assert.equal(pending.feedback,undefined);
+  assert.match(pending.metric.props.title,/^0 opens/);
   assert.equal(pending.fallbackPlayHref,`/hub/play?ref=${publishedRef}`);
   assert.equal(pending.playHref,undefined);
   assert.equal(h.calls.some(call=>call.url.includes('/discover')),false);

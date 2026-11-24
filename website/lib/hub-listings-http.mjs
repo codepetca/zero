@@ -27,7 +27,16 @@ export function claimPublicHubRequest() {
   };
 }
 
-export async function bindProjectListingEntries(candidates, {env,signal,visibility,destinationReader}) {
+const listingFailureCode = error => {
+  const known = ['listing-token-envelope','listing-token-repositories','listing-token-http','listing-installation-http','listing-repository-http'];
+  const reason = known.includes(error?.code) ? error.code : 'listing-binding';
+  const status = error?.status;
+  return Number.isInteger(status) && status >= 100 && status <= 599 ? `${reason}:${status}` : reason;
+};
+
+export async function bindProjectListingEntries(candidates,{
+  env,signal,visibility,destinationReader,includeFeedback=true,onUnavailable
+}) {
   if (!candidates.length) return [];
   const readDestination = destinationReader ?? listingRepositoryReader(env);
   if (!readDestination) throw new Error('Listing destination reader unavailable');
@@ -36,8 +45,15 @@ export async function bindProjectListingEntries(candidates, {env,signal,visibili
     signal?.throwIfAborted();
     const batch = await Promise.all(candidates.slice(offset,offset+4).map(async entry=>{
       if (!hubTargetVisible({kind:'game',repositoryId:entry.repositoryId},visibility)) return null;
-      const result = await readDestination(entry,{signal,includeFeedback:true});
-      return result === true ? entry : result ? {...entry,feedback:result} : null;
+      try {
+        const result = await readDestination(entry,{signal,...(includeFeedback ? {includeFeedback:true} : {})});
+        return result === true ? entry : result ? {...entry,feedback:result} : null;
+      } catch (error) {
+        // One unverified repository must not remove the confirmed gallery.
+        signal?.throwIfAborted();
+        onUnavailable?.(listingFailureCode(error));
+        return null;
+      }
     }));
     confirmed.push(...batch.filter(Boolean));
   }
@@ -230,6 +246,7 @@ export async function hubPublicListingsResponse(request, {
     let order = cursor?.order ?? null;
     let exhausted = false;
     const observed = [];
+    let failedBindings = 0;
     // Find one extra authorized result before advertising another page.
     // Neither the count of hidden matches nor a raw row cursor leaves the server.
     for (let attempt = 0; attempt < 4 && !exhausted && observed.length <= listingPageSize; attempt++) {
@@ -238,11 +255,11 @@ export async function hubPublicListingsResponse(request, {
       order = candidates.at(-1)?.order;
       for (let offset = 0; offset < candidates.length && observed.length <= listingPageSize; offset += 4) {
         signal.throwIfAborted();
-        const checked = await Promise.all(candidates.slice(offset, offset+4).map(async entry => {
-          if (!visible(entry, visibility) || !await readDestination(entry, {signal})) return null;
-          return {...entry, playUrl:await playReader(entry, {signal})};
-        }));
-        observed.push(...checked.filter(Boolean));
+        const bound = await bindProjectListingEntries(candidates.slice(offset,offset+4),{
+          env,signal,visibility,destinationReader:readDestination,includeFeedback:false,
+          onUnavailable:()=>{failedBindings++;}
+        });
+        observed.push(...await Promise.all(bound.map(async entry=>({...entry,playUrl:await playReader(entry,{signal})}))));
       }
     }
     if (!exhausted && observed.length <= listingPageSize) return unavailable();
@@ -252,7 +269,7 @@ export async function hubPublicListingsResponse(request, {
     assertJamVisibilityTime(fresh, Date.now, env);
     signal.throwIfAborted();
     const authorized = current.filter(entry => visible(entry, fresh));
-    if (!exhausted && authorized.length <= listingPageSize) return unavailable();
+    if ((!exhausted && authorized.length <= listingPageSize) || (!authorized.length && failedBindings)) return unavailable();
     const page = authorized.slice(0, listingPageSize);
     const showAwards = jamsPreviewAvailable(env);
     return json({projects:page.map(entry => {

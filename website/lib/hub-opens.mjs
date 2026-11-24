@@ -1,3 +1,9 @@
+import {createHash} from 'node:crypto';
+import {hubConfig} from './hub-github-auth.mjs';
+import {listingRepositoryReader} from './hub-listings-github-app.mjs';
+import {configuredListingsStore,listingsEnabled} from './hub-listings-store.mjs';
+import {projectPlayRef} from './hub-play-reference.mjs';
+import {parseProjectPlayRef} from './hub-play-selector.mjs';
 import {hubProjectId, hubTargetVisible, hubVisibilityDecision, resolveHubProject} from './hub-project-status.mjs';
 import {assertJamVisibilityTime, readJamHubVisibility} from './jam-hub-visibility.mjs';
 import {createHubRequestDeadline} from './hub-request-deadline.mjs';
@@ -5,6 +11,9 @@ import {upstashCommand, upstashConfiguration} from './upstash-redis.mjs';
 
 /** Aggregate Play activations only. No account, cookie, IP or event log. */
 export const openId = hubProjectId;
+const counterId = id => openId(id) || typeof id === 'string' && /^listing:[a-f0-9]{64}$/.test(id);
+export const listingOpenId = ({accountId,repositoryId}) =>
+  'listing:'+createHash('sha256').update(JSON.stringify([accountId,repositoryId])).digest('hex');
 const key = id => `zero:hub:opens:v1:${id}`;
 
 export function opensConfiguration(env = process.env) {
@@ -24,14 +33,14 @@ export function createOpensStore({env = process.env, fetchImpl = fetch} = {}) {
   const command = upstashCommand(configuration, fetchImpl);
   return {
     async increment(id) {
-      if (!openId(id)) throw new Error('Invalid project');
+      if (!counterId(id)) throw new Error('Invalid project');
       // Atomic INCR; never retry an uncertain write, which could double count.
       const count = await command(['INCR', key(id)]);
       if (!Number.isSafeInteger(count) || count < 1) throw new Error('Open counts unavailable');
       return count;
     },
     async counts(ids) {
-      if (!ids.length || ids.length > 12 || !ids.every(openId)) throw new Error('Invalid projects');
+      if (!ids.length || ids.length > 12 || !ids.every(counterId)) throw new Error('Invalid projects');
       const values = await command(['MGET', ...ids.map(key)]);
       if (!Array.isArray(values) || values.length !== ids.length) throw new Error('Open counts unavailable');
       return Object.fromEntries(ids.map((id, index) => {
@@ -56,6 +65,7 @@ function allowedOrigin(request, env) {
 
 export async function recordOpen(request, {env = process.env, store = createOpensStore({env}), resolve = resolveHubProject,
   visibilityReader = readJamHubVisibility, destinationReader, pagesBindingReader, destinationTimeoutMs = 6000,
+  getListingStore = configuredListingsStore, listingDestinationReader,
   responseBudgetMs = 18_000, deadlineNow, decisionNow = Date.now} = {}) {
   const reply = status => new Response(null, {status, headers: {'Cache-Control': 'no-store'}});
   const deadline = createHubRequestDeadline({budgetMs:responseBudgetMs, signal:request.signal, now:deadlineNow});
@@ -69,7 +79,7 @@ export async function recordOpen(request, {env = process.env, store = createOpen
     // Cleanup observes eventual rejection but never waits for an untrusted stream.
     const cancel = () => { try { Promise.resolve(reader.cancel()).catch(() => {}); } catch {} };
     deadline.signal.addEventListener('abort', cancel, {once:true});
-    let id;
+    let id, reference, listing;
     try {
       const chunks = []; let length = 0;
       while (true) {
@@ -81,8 +91,13 @@ export async function recordOpen(request, {env = process.env, store = createOpen
       const bytes = new Uint8Array(length); let offset = 0;
       for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.length;}
       const data = JSON.parse(new TextDecoder().decode(bytes));
-      if (!data || Object.keys(data).length !== 1 || !openId(data.id)) return reply(400);
-      id = data.id;
+      if (!data || Object.keys(data).length !== 1) return reply(400);
+      if (openId(data.id)) id = data.id;
+      else {
+        reference = data.ref;
+        listing = parseProjectPlayRef(reference);
+        if (listing?.lane !== 'listing') return reply(400);
+      }
     } catch {
       deadline.check();
       return reply(400);
@@ -97,8 +112,23 @@ export async function recordOpen(request, {env = process.env, store = createOpen
       destinationTimeoutMs, decisionNow, check:deadline.check};
     const visibility = await deadline.run(() => hubVisibilityDecision(options));
     if (!store && visibility === null) { assertJamVisibilityTime(visibility, decisionNow, env); return reply(204); }
-    const target = await deadline.run(() => resolve({kind: 'game', id}, {...options, visibility}));
-    if (!target?.playUrl || !hubTargetVisible({...target, kind:'game'}, visibility)) return reply(404);
+    let target, countId = id;
+    if (listing) {
+      if (!listingsEnabled(env) || !hubConfig(env) || !hubTargetVisible({kind:'game',repositoryId:listing.id},visibility))
+        return reply(404);
+      const listings = getListingStore(env);
+      const readDestination = listingDestinationReader ?? listingRepositoryReader(env);
+      if (!listings || !readDestination) return reply(503);
+      const rows = await deadline.run(()=>listings.listedForPlay(listing.id,listing.runId));
+      const entry = rows.find(row=>row.repositoryId===listing.id && projectPlayRef('listing',row)===reference);
+      if (!entry || !await deadline.run(signal=>readDestination(entry,{signal})) ||
+          !(await deadline.run(()=>listings.stillListed([entry]))).length) return reply(404);
+      target = {repositoryId:entry.repositoryId,playUrl:entry.pagesUrl};
+      countId = listingOpenId(entry);
+    } else {
+      target = await deadline.run(()=>resolve({kind:'game',id},{...options,visibility}));
+    }
+    if (!target?.playUrl || !hubTargetVisible({...target,kind:'game'},visibility)) return reply(404);
     // A catalog-backed resolver can also wait. Gate the resolved numeric
     // identity again immediately before issuing the counter operation.
     const latest = await deadline.run(() => hubVisibilityDecision(options));
@@ -110,7 +140,7 @@ export async function recordOpen(request, {env = process.env, store = createOpen
       assertJamVisibilityTime(latest, decisionNow, env);
       // Once called, an increment can complete after timeout/cancellation. Its
       // outcome is uncertain: return only the existing empty 503 and never retry.
-      return store.increment(id);
+      return store.increment(countId);
     });
     assertJamVisibilityTime(latest, decisionNow, env);
     return reply(204);

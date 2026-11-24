@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import contracts from '../../extension/src/sharing/contracts.js';
 import app from '../../extension/src/github-app/config.json' with {type:'json'};
+import {listingOpenId} from '../lib/hub-opens.mjs';
 import {hubProjectPageResponse} from '../lib/hub-project-page.mjs';
 
 const commit='a'.repeat(40);
@@ -109,7 +110,7 @@ test('published listings fill the same page and check Play only on the later req
       runCreatedAt:new Date(Date.UTC(2026,0,30-index)),title:`Listing ${index}`,author:'student',
       repositoryUrl:`https://github.com/student/game-${repositoryId}`,pagesUrl:`https://student.github.io/game-${repositoryId}/`};
   });
-  const played=[];
+  const played=[],counterReads=[];
   const shared=game(402);
   const opts=options({projects:[{...maintained(401),publishedAt:'2026-01-29T12:00:00Z'}],
     catalogReader:async()=>catalog([shared]),releaseDates:{[`${shared.id}@${shared.version}`]:'2026-01-28T12:00:00Z'},
@@ -126,6 +127,10 @@ test('published listings fill the same page and check Play only on the later req
       },
       stillListed:async entries=>entries
     }),
+    opensStore:{counts:async ids=>{
+      counterReads.push(ids.length);
+      return Object.fromEntries(ids.map(id=>[id,id===listingOpenId(rows[0])?17:0]));
+    }},
     listingDestinationReader:async(_entry,{includeFeedback})=>{
       assert.equal(includeFeedback,true);
       return {stars:4,issuesEnabled:true};
@@ -133,6 +138,9 @@ test('published listings fill the same page and check Play only on the later req
   const first=await request(opts);
   assert.equal(first.status,200,JSON.stringify(first.body));
   assert.equal(first.body.listings.length,22);
+  assert.equal(first.body.listings[0].opens,17);
+  assert.equal(first.body.listings[1].opens,0);
+  assert.ok(counterReads.every(size=>size<=12));
   assert.deepEqual(first.body.order.slice(0,5),['l:700','m:maintained-401','l:701',`r:${shared.id}@${shared.version}`,'l:702']);
   assert.equal(first.body.order.length,24);
   assert.ok(first.body.listings.every(item=>item.stars===4 && item.issuesEnabled===true));
@@ -155,6 +163,17 @@ test('published listings fill the same page and check Play only on the later req
   assert.deepEqual(next.body.order,rows.slice(22).map(item=>`l:${item.repositoryId}`));
   assert.equal(next.body.next,null);
   assert.equal(played.length,22);
+  const countUnavailable=await request({...opts,opensStore:{counts:async()=>{throw new Error('counter down');}}});
+  assert.equal(countUnavailable.status,200);
+  assert.equal(countUnavailable.body.listings.length,22);
+  assert.ok(countUnavailable.body.listings.every(item=>item.opens===undefined));
+  let optionalReads=0;
+  const shortBudget=await request({...opts,responseBudgetMs:300,opensStore:{counts:async()=>{
+    optionalReads++;
+    return new Promise(()=>{});
+  }}});
+  assert.equal(shortBudget.status,200);
+  assert.equal(optionalReads,0);
 });
 
 test('a newly held project disappears on a fresh page check without exposing its metadata',async()=>{
@@ -218,4 +237,34 @@ test('older listings do not consume destination checks when the catalog fills th
   assert.deepEqual(body.listings,[]);
   assert.ok(body.next);
   assert.equal(checked,25);
+});
+
+test('a failed listing check leaves other gallery cards and counts publicly available',async()=>{
+  const makeListing=(repositoryId,order)=>({repositoryId,order,accountId:'7',runId:'42',commit,title:`Listing ${repositoryId}`,
+    author:'student',repositoryUrl:`https://github.com/student/game-${repositoryId}`,
+    pagesUrl:`https://student.github.io/game-${repositoryId}/`,runCreatedAt:new Date('2026-11-01T00:00:00Z')});
+  const unavailable=makeListing('123','2'), available=makeListing('124','1');
+  const seenCounters=[];
+  const opts=options({projects:[maintained(401)],
+    env:{NODE_ENV:'test',ZERO_HUB_LISTINGS_ENABLED:'1',ZERO_HUB_GITHUB_CLIENT_ID:app.clientId,
+      ZERO_HUB_GITHUB_CLIENT_SECRET:'fixture-only-secret-value',ZERO_HUB_GITHUB_SESSION_SECRET:'11'.repeat(32)},
+    getStore:()=>({discover:async()=>[unavailable,available],stillListed:async entries=>entries}),
+    listingDestinationReader:async entry=>{
+      if(entry===unavailable) throw new Error('Private upstream failure');
+      return true;
+    },
+    opensStore:{counts:async ids=>{seenCounters.push(...ids);return {[listingOpenId(available)]:3};}}
+  });
+  const {status,body}=await request(opts);
+  assert.equal(status,200);
+  assert.deepEqual(body.order,['l:124','m:maintained-401']);
+  assert.deepEqual(body.listings.map(item=>[item.id,item.opens]),[['124',3]]);
+  assert.deepEqual(seenCounters,[listingOpenId(available)]);
+  assert.doesNotMatch(JSON.stringify(body),/Private upstream failure|Listing 123/);
+  const noConfirmed=await request({...opts,projects:[],listingDestinationReader:async()=>{throw new Error('offline');}});
+  assert.equal(noConfirmed.status,503);
+  const controller=new AbortController();
+  const cancelled=await hubProjectPageResponse(new Request(origin+'/api/hub/projects/discover',{signal:controller.signal}),
+    {...opts,listingDestinationReader:async()=>{controller.abort();throw new Error('cancelled');}});
+  assert.equal(cancelled.status,503);
 });

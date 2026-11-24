@@ -4,7 +4,7 @@ import {boundedJson, githubApiHeaders} from './hub-github-auth.mjs';
 import {repositoryParts} from './hub-project-status.mjs';
 
 const origin = 'https://api.github.com';
-const unavailable = () => new Error('GitHub listing metadata is unavailable.');
+const unavailable = code => Object.assign(new Error('GitHub listing metadata is unavailable.'),{code});
 const positiveId = value => Number.isSafeInteger(value) && value > 0;
 
 let cachedKey;
@@ -44,7 +44,8 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
     if (direct && response.status === (body ? 201 : 200)) return boundedJson(response,65_536);
     await response.body?.cancel();
     if (direct && !body && [301,302,307,308,404,410].includes(response.status)) return null;
-    throw Object.assign(unavailable(),{status:response.status});
+    const stage = body ? 'listing-token-http' : path.endsWith('/installation') ? 'listing-installation-http' : 'listing-repository-http';
+    throw Object.assign(unavailable(stage),{status:response.status});
   }
 
   return async function read(entry,{signal,includeFeedback=false}) {
@@ -68,10 +69,12 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
       if (!/^ghs_[A-Za-z0-9._-]{10,8000}$/.test(result.token || '') ||
           !Number.isFinite(expiresAt) || expiresAt <= now()+60_000 || expiresAt > now()+3_660_000 ||
           result.repository_selection !== 'selected' || result.permissions?.metadata !== 'read' ||
-          Object.keys(result.permissions).length !== 1 ||
-          !Array.isArray(result.repositories) || result.repositories.length !== 1 ||
-          result.repositories[0]?.id !== repositoryId || result.repositories[0]?.private !== false)
-        throw unavailable();
+          Object.keys(result.permissions).length !== 1)
+        throw unavailable('listing-token-envelope');
+      if (!Array.isArray(result.repositories) || result.repositories.length !== 1 ||
+          result.repositories[0]?.id !== repositoryId || typeof result.repositories[0].private !== 'boolean')
+        throw unavailable('listing-token-repositories');
+      if (result.repositories[0].private) return false;
       grant = {token:result.token,expiresAt:Math.min(expiresAt-60_000,now()+300_000)};
       if (tokens.size >= 64) tokens.delete(tokens.keys().next().value);
       tokens.set(cacheId,grant);
