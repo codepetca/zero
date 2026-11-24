@@ -87,18 +87,26 @@ try {
     $wrapper = Join-Path $project 'mvnw.cmd'
     if (-not (Test-Path -LiteralPath $wrapper -PathType Leaf)) { throw 'Unmodified starter Maven wrapper is missing.' }
     $originalMain = (Get-FileHash -LiteralPath (Join-Path $project 'src\main\java\Main.java') -Algorithm SHA256).Hash
-    $stdout = Join-Path $signals 'prewarm.stdout'
-    $stderr = Join-Path $signals 'prewarm.stderr'
     $prewarmStarted = [datetime]::UtcNow
-    $warm = Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\cmd.exe') -ArgumentList @('/d','/s','/c', ('""' + $wrapper + '" -B -q -DskipTests compile"')) -WorkingDirectory $project -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = Join-Path $env:SystemRoot 'System32\cmd.exe'
+    $startInfo.Arguments = '/d /s /c ""' + $wrapper + '" -B -q -DskipTests compile"'
+    $startInfo.WorkingDirectory = $project
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $warm = [System.Diagnostics.Process]::Start($startInfo)
     try {
+        $stdout = $warm.StandardOutput.ReadToEndAsync()
+        $stderr = $warm.StandardError.ReadToEndAsync()
         $warmDeadline = [datetime]::UtcNow.AddSeconds(300)
         while (-not $warm.WaitForExit(1000)) {
             if ([datetime]::UtcNow -ge $warmDeadline) { $result.prewarm.timedOut=$true; $result.prewarm.restrictedLog=@('Unmodified starter prewarm timed out'); throw 'Unmodified starter prewarm timed out.' }
         }
-        $warm.WaitForExit()
         $result.prewarm.exitCode = $warm.ExitCode
-        $log = (Get-Content -LiteralPath $stdout,$stderr -Raw -ErrorAction SilentlyContinue) -join "`n"
+        if (-not [System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]@($stdout,$stderr), 5000)) { throw 'Prewarm child output did not close.' }
+        $log = @($stdout.Result,$stderr.Result) -join "`n"
         $summary = @()
         if ($log -match 'COMPILATION ERROR') { $summary += 'Maven compilation error marker' }
         if ($log -match 'Could not (resolve|transfer)|Failed to (read artifact|transfer)|Unknown host|Connection timed out') { $summary += 'Dependency download failure marker' }
