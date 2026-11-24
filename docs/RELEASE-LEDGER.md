@@ -1,18 +1,65 @@
 # Zero release ledger
 
-Last reconciled 2026-11-23 (America/Toronto). This is a dated working record,
+Last reconciled 2026-11-24 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.85](https://github.com/codepetca/zero/releases/tag/v0.5.85) is public. All three anonymous downloads match preparation run 45317559051. | Preserve immutable assets. |
-| Website | This promotion selects the verified 0.5.85 downloads and signed build 84 feed. | Check the production download links and feed after deployment. |
-| Mac installer | [0.5.85](https://github.com/codepetca/zero/releases/tag/setup-v0.5.85) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 84 feed references the measured public DMG. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.85.0 x64 from submission 20 is listed in the Canadian Store catalog. | Check distribution on physical and school-managed devices separately. |
-| Windows Portable | [0.5.85 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.85) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.85) both embed the canonical kit from run 45317559051. | The school stages its preferred ZIP under its existing device policy. |
+| GitHub manual kit | [Zero 0.5.86](https://github.com/codepetca/zero/releases/tag/v0.5.86) is public. The three anonymous downloads match preparation run 45410523444. | Preserve immutable assets. |
+| Website | This promotion selects the verified 0.5.86 downloads and signed build 85 feed. | Check the production download links and feed after deployment. |
+| Mac installer | [0.5.86](https://github.com/codepetca/zero/releases/tag/setup-v0.5.86) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 85 feed references the measured public DMG. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.86.0 x64 from submission 21 is listed in the Canadian Store catalog. | Check distribution on physical and school-managed devices separately. |
+| Windows Portable | [0.5.86 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.86) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.86) both embed the canonical kit from run 45410523444. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.86 release promotion — 2026-11-24
+
+[PR #405](https://github.com/codepetca/zero/pull/405) added the sidebar and
+Start Page changes. [PR #406](https://github.com/codepetca/zero/pull/406) corrected
+the Windows compiler path mapping and scoped a read-only fallback for the public
+starter API. Both source PRs passed all 12 checks. The final reviewed head
+`a13e9999dc70aae125c18fd9dd62186a4a2277d2` has the same tree as source merge
+`98fba40f51031f666de9e9a3da6fff02355e39b5`.
+
+[Canonical preparation](https://github.com/codepetca/zero/actions/runs/45410523444)
+passed Project → New with the public starter and exact VSIX, including native and
+WebFX builds. The [hosted Windows run](https://github.com/codepetca/zero/actions/runs/45410523186)
+passed package installation, first run, private JavaFX and Portable cold/warm
+opening. The [exact Store editor trial](https://github.com/codepetca/zero/actions/runs/45412895310)
+used the package payload in an isolated Development Host, alongside separate
+first-run package checks. Physical and school-managed Windows devices and a
+real Mac automatic upgrade remain outside this release's evidence.
+
+The Mac and hosted Windows editors displayed **Zero 0.5.86** on Start Page and
+one **Show Problems** action for a deliberate Java compiler error. On Mac the
+action focused the exact diagnostic. On Windows, the editor recorded one compiler
+diagnostic for the synthetic source after the fix. Both editor sessions used the
+packaged extension and an isolated test workspace with no student account.
+
+Apple accepted the signed installer under submission
+`9577b114-f124-4805-b130-7815978a9c14`. The stapled DMG and its app passed
+Gatekeeper. Seal `ee384cffa63cc239ea316ca775c4f678a0348f3a` records its measured
+installer and signed build 85 feed. The published DMG and both Git source
+companions matched the authenticated draft and the local seal byte-for-byte.
+
+Microsoft Partner Center submission 21 (`1152921505702493592`) used the original
+MSIX from Windows run 45410523186 and was set to publish after certification.
+The Canadian Store catalog listed `Codepet.zerostudio_1.5.86.0_x64__g62pw1js6rhjp`
+at 2026-11-24T14:43:04Z. Both Portable archives, their checksum files and the
+complete bundle's corresponding source files matched their authenticated drafts
+and anonymous public downloads. The complete bundle reuses the verified source
+TAR for unchanged third-party programs and retains its matching source index.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| zero-bootstrap.zip | 5,134,997 | `240c94429f447362eed94061e490533b27bb668f44418d1c638268f4c2b37108` |
+| Zero-0.5.86-macos.dmg | 12,391,468 | `53e4f4fa813591e4a5ee3e61c60381c56e91c15873ca323834d2ebb602efc74e` |
+| Zero-0.5.86-windows-portable-pilot-staging-x64.zip | 5,443,620 | `b973c743d01b6aae6cdfe3c43d33df3c91701df94aeec76db5a0d446e2a5742a` |
+| Zero-0.5.86-windows-portable-bundled-x64.zip | 605,997,605 | `17952cd96f5c23730b013569adf2cfcc5080effd437c8dd13848da3c2581028e` |
+| Zero-0.5.86-windows-portable-sources.tar | 1,470,730,240 | `b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0` |
+| Zero-0.5.86-msix-store-x64.msix | 5,437,020 | `f41c34d2a9a12ff4b862019bf52d12715d400a2c333ecbef8a4476aef4bbd6ce` |
 
 ## Zero 0.5.86 release preparation — 2026-11-24
 
