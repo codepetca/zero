@@ -143,6 +143,63 @@ test('busy guards serialize actions, recover cancellation and keep useful errors
   await f.message(panel, {type:'action', action:'local'});assert.equal(f.commands.length, 2);page.dispose();
 });
 
+test('a verified starter mismatch offers the current channel’s update recovery without repeating Project New', async () => {
+  for (const channel of ['native', 'school', 'manual']) {
+    const f = fake(), check = deferred();
+    f.dependencies.updateRecovery = channel;
+    f.dependencies.executeAction = async command => {
+      f.commands.push(command);
+      if (command === 'zero.newProject') throw Object.assign(Error('source detail'), {code:'ZERO_STARTER_INCOMPATIBLE'});
+      await check.promise;
+    };
+    const {page,panel} = await open(f), browser = domHarness(panel.webview.html);
+    const update = browser.elements.get('check-for-updates');
+    const initial = panel.messages.at(-1).token;
+    await f.message(panel, {type:'checkForUpdates'});
+    await f.message(panel, {type:'action', action:'new'});
+    browser.update(panel.messages.at(-1));
+    assert.match(payload(panel).error, /GitHub starter use different project files/);
+    assert.equal(payload(panel).canRetry, false);
+    assert.equal(update.hidden, channel !== 'native');
+    await panel.receive({type:'checkForUpdates', token:initial});
+    await f.message(panel, {type:'retry'});
+    if (channel === 'native') {
+      update.click();
+      assert.equal(browser.sent.at(-1).type, 'checkForUpdates');
+      const checking = panel.receive({...browser.sent.at(-1), command:'workbench.action.closeWindow'});
+      await f.message(panel, {type:'checkForUpdates'});
+      check.resolve();
+      await checking;
+      assert.deepEqual(f.commands, ['zero.newProject', 'zero.checkForUpdates']);
+      assert.match(payload(panel).error, /then try Project/);
+    } else {
+      await f.message(panel, {type:'checkForUpdates'});
+      assert.deepEqual(f.commands, ['zero.newProject']);
+      assert.match(payload(panel).error, channel === 'school' ? /school IT/ : /Zero installation/);
+    }
+    f.setState({phase:'ready', accountId:'99'});
+    await page.refresh();
+    assert.equal(payload(panel).canCheckForUpdates, false);
+    page.dispose();
+  }
+});
+
+test('a starter mismatch from outside the Start Page opens the same inline recovery', async () => {
+  const f = fake();
+  const page = createStartPage(f.vscode, {...f.dependencies, updateRecovery:'native'});
+  assert.equal(page.showStarterMismatch(), true);
+  const [panel] = f.panels;
+  await panel.receive({type:'ready'});
+  assert.equal(payload(panel).canCheckForUpdates, true);
+  await f.message(panel, {type:'checkForUpdates'});
+  assert.deepEqual(f.commands, ['zero.checkForUpdates']);
+  f.setState({phase:'signed-out'});
+  await page.refresh();
+  assert.equal(page.showStarterMismatch(), false);
+  assert.equal(payload(panel).canCheckForUpdates, false);
+  page.dispose();
+});
+
 test('recent failure remains visible across refreshes with an explicit retry', async () => {
   const f = fake();let count = 0;
   f.dependencies.listRecent = async () => {count++;if (count === 1) throw new Error('disk offline');return [{path:'/retried', lastOpened:1}];};

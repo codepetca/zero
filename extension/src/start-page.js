@@ -2,6 +2,7 @@
 const crypto = require('node:crypto');
 const {controlsStyles} = require('./ui-controls');
 const {icon} = require('./sidebar-icons');
+const {nativeUpdateRecovery} = require('./native-updates');
 const {publishProgressDetails,updatePublishProgress} = require('./publish-progress');
 
 const COMMANDS = Object.freeze({
@@ -17,7 +18,7 @@ const CLOUD = new Set(['new', 'clone']);
 
 // This view owns navigation only. The existing commands retain setup, account,
 // destination and project checks; recent entries come only from the host's list.
-function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], openRecent = async () => {}, executeAction = command => vscode.commands.executeCommand(command), report = () => {}, onDidChangeOpen = () => {}} = {}) {
+function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], openRecent = async () => {}, executeAction = command => vscode.commands.executeCommand(command), report = () => {}, onDidChangeOpen = () => {}, updateRecovery = nativeUpdateRecovery()} = {}) {
   let panel, disposed = false, ready = false, inFlight = false, revision = 0;
   let token, signature, choiceSignature, recentAccount, recent = [], recentState = 'empty', recentRequest = 0, loading;
   let failure, retry;
@@ -52,7 +53,8 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     const items = snapshot.accountId === recentAccount ? recent : [];
     const data = {...snapshot, recentState: snapshot.accountId ? recentState : 'hidden',
       recent: items.map(item => ({label: item.path.split(/[\\/]/).filter(Boolean).at(-1) || item.path, path: item.path})),
-      error: failure || '', canRetry: Boolean(retry)};
+      error: failure || '', canRetry: Boolean(retry && !retry.checkForUpdates),
+      canCheckForUpdates: Boolean(retry?.checkForUpdates && updateRecovery === 'native')};
     const next = JSON.stringify(data);
     if (next !== signature) {
       signature = next;
@@ -124,6 +126,16 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     return false;
   }
 
+  function describeStarterMismatch(accountId) {
+    const nextStep = {
+      native: 'Check for updates, then try Project → New again.',
+      school: 'Ask your teacher or school IT to check for an update.',
+      manual: 'Ask your teacher to check your Zero installation and the GitHub starter.'
+    }[updateRecovery];
+    failure = 'Zero and the GitHub starter use different project files. ' + nextStep;
+    retry = {accountId, checkForUpdates:true};
+  }
+
   async function dispatch(target, action, choice) {
     const before = state();
     const accountId = choice?.accountId ?? before.accountId;
@@ -139,8 +151,12 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
         ? 'zero.recheckGitHubConnection' : COMMANDS[action]);
     } catch (error) {
       if (!current(target) || state().accountId !== accountId) return;
-      failure = `Could not ${choice ? 'open this project' : ({tutorials:'open Zero Docs', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to Zero', connect:'connect to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
-      retry = {action, choice, accountId};
+      if (action === 'new' && error?.code === 'ZERO_STARTER_INCOMPATIBLE') {
+        describeStarterMismatch(accountId);
+      } else {
+        failure = `Could not ${choice ? 'open this project' : ({tutorials:'open Zero Docs', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to Zero', connect:'connect to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
+        retry = {action, choice, accountId};
+      }
       try {report(failure, error?.message || String(error));} catch {}
     } finally {
       inFlight = false;
@@ -161,7 +177,15 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     if (message.type === 'recent' && typeof message.id === 'string' && choices.has(message.id)) {
       return dispatch(target, undefined, choices.get(message.id));
     }
-    if (message.type === 'retry' && retry && retry.accountId === snapshot.accountId) {
+    if (message.type === 'checkForUpdates' && retry?.checkForUpdates &&
+        retry.accountId === snapshot.accountId && !snapshot.busy && updateRecovery === 'native') {
+      inFlight = true;
+      publish();
+      try {await executeAction('zero.checkForUpdates');}
+      catch (error) {report('Could not check for updates.', error?.message || String(error));}
+      finally {inFlight = false;if (current(target)) publish();}
+    }
+    if (message.type === 'retry' && retry && !retry.checkForUpdates && retry.accountId === snapshot.accountId) {
       return dispatch(target, retry.action, retry.choice);
     }
     if (message.type === 'retryRecent' && !snapshot.busy && recentState === 'error') return refresh({recent:true});
@@ -199,6 +223,14 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     return attach(vscode.window.createWebviewPanel('zero.startPage', 'Zero Start Page', {viewColumn, preserveFocus}, options));
   }
 
+  function showStarterMismatch() {
+    const {accountId} = state();
+    if (!accountId || typeof vscode.window.createWebviewPanel !== 'function' || !show()) return false;
+    describeStarterMismatch(accountId);
+    publish();
+    return true;
+  }
+
   const serializer = vscode.window.registerWebviewPanelSerializer?.('zero.startPage', {
     async deserializeWebviewPanel(target) {
       if (disposed || (panel && panel !== target)) {target.dispose();return;}
@@ -207,7 +239,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
   });
 
   return {
-    show, refresh,
+    show, refresh, showStarterMismatch,
     isOpen: () => Boolean(panel) && !disposed,
     owns: tab => Boolean(panel) && (tab === panel || tab?.input?.viewType === 'zero.startPage'),
     dispose() {if (disposed) return;disposed = true;recentRequest++;choices.clear();serializer?.dispose();panel?.dispose();panel = undefined;reportOpen();}
@@ -248,7 +280,7 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
 </div>
 <section id="github-section" aria-label="GitHub access" hidden><p id="guidance" role="status" hidden></p><div id="github-progress" aria-hidden="true" hidden></div><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
-<p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
+<p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button><button id="check-for-updates" hidden>Check for updates</button></div>
 </main><script nonce="${nonce}">
 (() => {
   const publishProgressDetails = ${publishProgressDetails.toString()};
@@ -302,6 +334,7 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
   const send = message => vscode.postMessage({...message, token});
   for (const button of buttons) button.addEventListener('click', () => {for (const menu of dropdowns) if (menu.contains(button)) menu.close(true);send({type:'action',action:button.dataset.action});});
   byId('retry').addEventListener('click', () => send({type:'retry'}));
+  byId('check-for-updates').addEventListener('click', () => send({type:'checkForUpdates'}));
   byId('retry-recent').addEventListener('click', () => send({type:'retryRecent'}));
   window.addEventListener('message', event => {
     const message = event.data;
@@ -333,6 +366,8 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
     byId('error').textContent = state.error;
     byId('retry').hidden = !state.canRetry;
     byId('retry').disabled = state.busy;
+    byId('check-for-updates').hidden = !state.canCheckForUpdates;
+    byId('check-for-updates').disabled = state.busy;
     byId('recent-section').hidden = !signedIn;
     byId('recent-status').textContent = state.recentState === 'loading' ? 'Loading recent projects…' : state.recentState === 'error' ? 'Recent projects could not be loaded.' : state.recent.length ? '' : 'No recent projects yet.';
     byId('retry-recent').hidden = state.recentState !== 'error';
