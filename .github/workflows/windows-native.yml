@@ -145,6 +145,15 @@ jobs:
               $install.firstRun.result -ne 'passed' -or $install.candidateSha256 -cne $candidate.packageSha256) {
             throw 'Verified setup and cleanup must match the original 0.5.86 Store package.'
           }
+          $editor = Get-Content -LiteralPath $env:ZERO_STORE_DIAGNOSTIC_RECEIPT -Raw | ConvertFrom-Json
+          if ($editor.outcome -cne 'passed' -or $editor.startPage -ne $true -or $editor.sourceError -ne $true -or
+              $editor.cleanup -ne $true -or $editor.host.outcome -cne 'passed' -or
+              $editor.host.nativeTask.compilerErrors -ne 1 -or @($editor.recoveryActions).Count -ne 1 -or
+              $editor.recoveryActions[0] -cne 'Show Problems') {
+            throw 'The exact editor must confirm setup, one source diagnostic and one recovery action.'
+          }
+          # Disposable taskkill calls can leave a nonzero native exit status even when cleanup is verified.
+          exit 0
 
       - name: Retain scoped source, install and editor evidence
         if: always()
