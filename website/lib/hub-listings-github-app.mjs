@@ -2,10 +2,13 @@ import {createPrivateKey, sign} from 'node:crypto';
 import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
 import {boundedJson, githubApiHeaders} from './hub-github-auth.mjs';
 import {repositoryParts} from './hub-project-status.mjs';
+import {createHubRequestDeadline} from './hub-request-deadline.mjs';
 
 const origin = 'https://api.github.com';
 const unavailable = code => Object.assign(new Error('GitHub listing metadata is unavailable.'),{code});
 const positiveId = value => Number.isSafeInteger(value) && value > 0;
+const publicRepositoryAt = (repo, repositoryUrl) => repo?.private === false &&
+  typeof repo.html_url === 'string' && repo.html_url.toLowerCase() === repositoryUrl.toLowerCase();
 
 let cachedKey;
 let cachedReader;
@@ -25,7 +28,11 @@ export function listingRepositoryReader(env = process.env) {
 }
 
 export function createListingRepositoryReader({appId, key, fetchImpl = fetch, now = Date.now}) {
-  const tokens = new Map();
+  const observations = new Map();
+  function remember(id, observation) {
+    observations.set(id,observation);
+    if (observations.size > 64) observations.delete(observations.keys().next().value);
+  }
   function appToken() {
     const time = Math.floor(now()/1000);
     const header = Buffer.from(JSON.stringify({alg:'RS256',typ:'JWT'})).toString('base64url');
@@ -36,9 +43,12 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
 
   async function github(path, token, signal, body) {
     const url = origin+path;
+    const headers = githubApiHeaders(token);
+    if (token === null) delete headers.Authorization;
+    if (body) headers['Content-Type'] = 'application/json';
     const response = await fetchImpl(url,{redirect:'manual',cache:'no-store',signal,
       method:body ? 'POST' : 'GET',
-      headers:{...githubApiHeaders(token), ...(body ? {'Content-Type':'application/json'} : {})},
+      headers,
       ...(body ? {body:JSON.stringify(body)} : {})});
     const direct = !response.redirected && (!response.url || response.url === url);
     if (direct && response.status === (body ? 201 : 200)) return boundedJson(response,65_536);
@@ -48,6 +58,18 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
     throw Object.assign(unavailable(stage),{status:response.status});
   }
 
+  async function isReplacement(path, entry, repositoryId, signal) {
+    const deadline = createHubRequestDeadline({budgetMs:1500,signal});
+    try {
+      const repo = await deadline.run(probeSignal=>github(path,null,probeSignal));
+      // Public metadata can disprove the stored binding. Only the App grant can verify it.
+      return publicRepositoryAt(repo,entry.repositoryUrl) && positiveId(repo.id) && repo.id !== repositoryId;
+    } catch {
+      signal?.throwIfAborted();
+      return false;
+    } finally { deadline.dispose(); }
+  }
+
   return async function read(entry,{signal,includeFeedback=false}) {
     const parts = repositoryParts(entry.repositoryUrl);
     const repositoryId = Number(entry.repositoryId);
@@ -55,7 +77,11 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
     if (!parts || !positiveId(repositoryId) || !positiveId(ownerId)) return false;
     const root = '/repos/'+parts.owner+'/'+parts.repo;
     const cacheId = entry.accountId+'/'+entry.repositoryId;
-    let grant = tokens.get(cacheId);
+    let grant = observations.get(cacheId);
+    if (grant?.replacedPath) {
+      if (grant.replacedPath === root && grant.expiresAt > now()) return false;
+      grant = undefined;
+    }
     if (!grant || grant.expiresAt <= now()) {
       const jwt = appToken();
       const installation = await github(root+'/installation',jwt,signal);
@@ -63,8 +89,17 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
       if (!positiveId(installation.id) || String(installation.app_id) !== appId ||
           installation.account?.id !== ownerId || installation.account?.type !== 'User' ||
           installation.permissions?.metadata !== 'read') return false;
-      const result = await github('/app/installations/'+installation.id+'/access_tokens',jwt,signal,
-        {repository_ids:[repositoryId],permissions:{metadata:'read'}});
+      let result;
+      try {
+        result = await github('/app/installations/'+installation.id+'/access_tokens',jwt,signal,
+          {repository_ids:[repositoryId],permissions:{metadata:'read'}});
+      } catch (error) {
+        if (error.status === 422 && await isReplacement(root,entry,repositoryId,signal)) {
+          remember(cacheId,{replacedPath:root,expiresAt:now()+300_000});
+          return false;
+        }
+        throw error;
+      }
       const expiresAt = Date.parse(result.expires_at);
       if (!/^ghs_[A-Za-z0-9._-]{10,8000}$/.test(result.token || '') ||
           !Number.isFinite(expiresAt) || expiresAt <= now()+60_000 || expiresAt > now()+3_660_000 ||
@@ -76,22 +111,20 @@ export function createListingRepositoryReader({appId, key, fetchImpl = fetch, no
         throw unavailable('listing-token-repositories');
       if (result.repositories[0].private) return false;
       grant = {token:result.token,expiresAt:Math.min(expiresAt-60_000,now()+300_000)};
-      if (tokens.size >= 64) tokens.delete(tokens.keys().next().value);
-      tokens.set(cacheId,grant);
+      remember(cacheId,grant);
     }
     try {
       const repo = await github(root,grant.token,signal);
-      if (!repo && tokens.get(cacheId) === grant) tokens.delete(cacheId);
-      const verified = repo?.private === false && repo.has_pages === true && repo.id === repositoryId &&
-        repo.owner?.type === 'User' && repo.owner.id === ownerId && typeof repo.html_url === 'string' &&
-        repo.html_url.toLowerCase() === entry.repositoryUrl.toLowerCase();
+      if (!repo && observations.get(cacheId) === grant) observations.delete(cacheId);
+      const verified = publicRepositoryAt(repo,entry.repositoryUrl) && repo.has_pages === true && repo.id === repositoryId &&
+        repo.owner?.type === 'User' && repo.owner.id === ownerId;
       if (!verified || !includeFeedback) return verified;
       return {
         stars:Number.isSafeInteger(repo.stargazers_count) && repo.stargazers_count >= 0 ? repo.stargazers_count : null,
         issuesEnabled:typeof repo.has_issues === 'boolean' ? repo.has_issues : null
       };
     } catch (error) {
-      if (error.status === 401 && tokens.get(cacheId) === grant) tokens.delete(cacheId);
+      if (error.status === 401 && observations.get(cacheId) === grant) observations.delete(cacheId);
       throw error;
     }
   };

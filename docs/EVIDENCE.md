@@ -14717,3 +14717,16 @@ GPT-6.1 Sol reviews at high reasoning covered recovery and counter authorization
 The recovery follow-up verified that optional metric reads preserve time for final
 visibility checks and that wholly unverified matches still return 503. The counter
 review found no actionable issue.
+
+### Replaced ZeroHub repository URL (2026-11-24)
+
+A read-only production comparison tied the filtered gallery 503 to a listing
+whose saved URL now resolves to a different GitHub repository ID. The web reader
+treats a scoped-token 422 as a confirmed stale listing only when direct public
+GitHub metadata proves that mismatch. Positive listing and Play checks still
+require the exact App grant. The replacement needs its own Pages publication.
+
+TypeScript and 115 focused tests passed with disposable PostgreSQL. Independent
+GPT-6.1 Sol review at medium reasoning found no actionable issue in the reader
+and regression test against `b4f4d297f`. The review also checked failed or
+inconclusive probes, cancellation, the probe timeout and path-scoped cache reuse.
