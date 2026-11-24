@@ -329,4 +329,171 @@ game in your browser and try Restart. The published page and its contents are
 public, so include only material you have permission to share. If publication
 is unavailable for your repository or school account, follow your school or account policy and keep your repository visibility unchanged.
 
+## Restore the finished game
+
+The finished game uses three Java files. Open your Coin game project and find
+the **java** folder in Project Explorer (`src/main/java`).
+
+1. If the game is running, choose **Stop**. Save a copy of any edits you want to keep.
+2. For each file below, replace the entire file with its code block. If a file
+   is missing, right-click **java**, choose **New class…**, and enter its class
+   name (`Main`, `Player`, or `Coin`). Replace the generated code with the
+   matching block.
+3. Save all three files and choose **Run**. Click the canvas and use the arrow
+   keys to collect all three coins. Check that the score reaches 3 and the win
+   message appears. Choose **Restart** to bring back all three coins and reset
+   the score to 0.
+
+### Main.java
+
+```java
+import zero.Color;
+import zero.GameApp;
+import zero.Key;
+import zero.ui.Button;
+import zero.ui.Label;
+import zero.ui.Row;
+
+public class Main extends GameApp {
+    private Player player;
+    private Coin[] coins;
+    private int points;
+    private boolean won;
+    private Label scoreLabel;
+    private Label message;
+
+    @Override public void settings() {
+        padding(20);
+        size(640, 400);
+    }
+
+    @Override public void setup() {
+        scoreLabel = new Label("");
+        message = new Label("");
+        var restartButton = new Button("Restart");
+        restartButton.onClick(() -> restart());
+        controls(new Row(12, scoreLabel, message, restartButton));
+        restart();
+    }
+
+    public void restart() {
+        player = new Player(40, 180);
+        coins = new Coin[] {
+            new Coin(220, 180), new Coin(420, 80), new Coin(540, 300)
+        };
+        points = 0;
+        won = false;
+        scoreLabel.setText("Score: 0");
+        message.setText("Collect all " + coins.length + " coins.");
+        showGame();
+    }
+
+    @Override public void update(double seconds) {
+        if (won) return;
+        int horizontal = 0;
+        int vertical = 0;
+        if (keyDown(Key.LEFT)) horizontal--;
+        if (keyDown(Key.RIGHT)) horizontal++;
+        if (keyDown(Key.UP)) vertical--;
+        if (keyDown(Key.DOWN)) vertical++;
+        player.update(horizontal, vertical, seconds, width(), height());
+
+        for (Coin each : coins) {
+            if (!each.isCollected() && each.touches(player)) {
+                each.collect();
+                points++;
+                scoreLabel.setText("Score: " + points);
+            }
+        }
+        if (points == coins.length) {
+            won = true;
+            message.setText("You win! Choose Restart.");
+        }
+    }
+
+    @Override public void draw() {
+        background(Color.rgb(240, 248, 255));
+        fill(Color.rgb(47, 79, 79));
+        textSize(20);
+        text("Click the canvas, then hold the arrow keys.", 20, 30);
+        for (Coin each : coins) each.draw(this);
+        player.draw(this);
+    }
+
+    public static void main(String[] args) { launch(args); }
+}
+```
+
+### Player.java
+
+```java
+import zero.Color;
+import zero.GameApp;
+
+/** An ordinary object: coordinates change only when update is called. */
+public class Player {
+    private double x;
+    private double y;
+    private final double size = 24;
+    private final double speed = 180;
+
+    public Player(double startX, double startY) {
+        x = startX;
+        y = startY;
+    }
+
+    public void update(int horizontal, int vertical, double seconds,
+                       double canvasWidth, double canvasHeight) {
+        x += horizontal * speed * seconds;
+        y += vertical * speed * seconds;
+        // x and y locate the top-left corner; keep the whole square visible.
+        x = Math.max(0, Math.min(x, canvasWidth - size));
+        y = Math.max(0, Math.min(y, canvasHeight - size));
+    }
+
+    public boolean touches(double coinX, double coinY, double coinSize) {
+        // Squares touch when both their horizontal and vertical ranges meet.
+        return x + size >= coinX && x <= coinX + coinSize
+                && y + size >= coinY && y <= coinY + coinSize;
+    }
+
+    public void draw(GameApp app) {
+        app.fill(Color.rgb(100, 149, 237));
+        app.rect(x, y, size, size);
+    }
+}
+```
+
+### Coin.java
+
+```java
+import zero.Color;
+import zero.GameApp;
+
+/** A coin remembers whether it was collected; Main owns the score. */
+public class Coin {
+    private final double x;
+    private final double y;
+    private final double size = 24;
+    private boolean collected;
+
+    public Coin(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public boolean isCollected() { return collected; }
+
+    public boolean touches(Player player) { return player.touches(x, y, size); }
+
+    public void collect() { collected = true; }
+
+    public void draw(GameApp app) {
+        if (collected) return;
+        app.fill(Color.GOLD);
+        app.rect(x, y, size, size);
+    }
+}
+```
+
 Next: [Make a pet game](13-pet.md).

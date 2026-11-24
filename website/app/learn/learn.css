@@ -320,6 +320,8 @@ html:has(.learn-theme),
   line-height: 1.5;
   letter-spacing: normal;
 }
+.learn-theme .tutorial-reader .reading-section { border: 0; }
+.learn-theme .tutorial-reader .markdown .reading-section > summary h2 { margin: 0; }
 .learn-theme .reader-content { overflow-wrap: anywhere; }
 .learn-theme .reader-content h1 {
   margin: 0 0 var(--zero-space-3);

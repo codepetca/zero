@@ -227,7 +227,7 @@ test("Coin game revisited reopens the project and leaves media as a student chal
   assert.doesNotMatch(challenge, /```java/);
 });
 
-test("every tutorial shows numbered instructions and exact code without a summary or explanation disclosure", () => {
+test("tutorials show numbered instructions directly and preserve all code, including optional recovery", () => {
   for (const lesson of lessons) {
     const name = String(lesson.id).padStart(2, "0");
     const folder = new URL("../../student-template/lessons/", import.meta.url);
@@ -236,7 +236,21 @@ test("every tutorial shows numbered instructions and exact code without a summar
     const html = renderToStaticMarkup(React.createElement(Markdown, {
       remarkPlugins: [remarkGfm], rehypePlugins: [[foldSections, { lesson: true, encouragement: lesson.encouragement }]], children: markdown,
     }));
-    assert.doesNotMatch(html, /<details|<summary|Code and explanation|Done:|lesson-summary/);
+    assert.doesNotMatch(html, /Code and explanation|Done:|lesson-summary/);
+    if (lesson.id === "9") {
+      const [instructions, recovery] = html.split('<details class="reading-section">');
+      assert.doesNotMatch(instructions, /<details|<summary|restore-the-finished-game/);
+      assert.match(instructions, /<h2 id="21-publish-your-game"/);
+      assert.match(recovery, /^<summary><h2 id="restore-the-finished-game">Restore the finished game<\/h2><\/summary>/);
+      const [appendix, ending] = recovery.split("</details>");
+      assert.deepEqual([...appendix.matchAll(/<h3[^>]*>([^<]+)<\/h3>/g)].map(match => match[1]), ["Main.java", "Player.java", "Coin.java"]);
+      assert.equal((appendix.match(/<pre>/g) || []).length, 3);
+      assert.doesNotMatch(appendix, /lesson-encouragement/);
+      assert.match(ending, /lesson-encouragement/);
+      assert.equal((html.match(/<details/g) || []).length, 1);
+    } else {
+      assert.doesNotMatch(html, /<details|<summary/);
+    }
     assert.match(html, /<h2 id="1-/);
     const image = ['16','17'].includes(name) ? '13' : name === '18' ? '09' : name === '19' ? '08' : name;
     assert.ok(html.includes(`<img src="visuals/${image}.svg"`), `Lesson ${name} retains its illustration`);
