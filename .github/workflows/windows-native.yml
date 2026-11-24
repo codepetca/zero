@@ -1,4 +1,4 @@
-name: Zero 0.5.85 Store browser diagnostic
+name: Zero 0.5.86 Store editor diagnostic
 on:
   workflow_dispatch:
     inputs:
@@ -15,11 +15,11 @@ on:
         type: string
         required: true
       source_revision:
-        description: Full reviewed 0.5.85 packaging source revision
+        description: Full reviewed 0.5.86 packaging source revision
         type: string
         required: true
       package_sha256:
-        description: SHA-256 of the original unsigned 0.5.85 Store MSIX
+        description: SHA-256 of the original unsigned 0.5.86 Store MSIX
         type: string
         required: true
 
@@ -28,9 +28,9 @@ permissions:
   contents: read
 
 jobs:
-  store-browser-build:
+  store-editor-proof:
     runs-on: windows-2022
-    timeout-minutes: 22
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -74,31 +74,31 @@ jobs:
               "$($artifact.workflow_run.id)" -ne $runId -or $artifact.workflow_run.head_sha -cne $env:SOURCE_REVISION) {
             throw 'The identified artifact does not belong to the selected Windows packaging attempt.'
           }
-          $output = '.verification/store-browser-proof'
+          $output = '.verification/store-editor-proof'
           if (Test-Path -LiteralPath $output) { throw 'Diagnostic output must be new.' }
           gh run download $runId --repo codepetca/zero --name $name --dir $output
           $current = gh api --method GET "repos/codepetca/zero/actions/runs/$runId/artifacts" -f "name=$name" | ConvertFrom-Json
           if ($current.total_count -ne 1 -or "$($current.artifacts[0].id)" -ne $env:SOURCE_ARTIFACT_ID) {
             throw 'The downloaded artifact name no longer refers to the selected immutable artifact.'
           }
-          $filename = 'Zero-0.5.85-msix-store-x64.msix'
+          $filename = 'Zero-0.5.86-msix-store-x64.msix'
           if (Compare-Object @($filename, 'build-msix.json', 'source-and-kit.json') @(Get-ChildItem -LiteralPath $output -Force -Name)) {
             throw 'Expected only the original package and its two build receipts.'
           }
           $file = Join-Path $output $filename
           $build = Get-Content -LiteralPath (Join-Path $output 'build-msix.json') -Raw | ConvertFrom-Json
           $source = Get-Content -LiteralPath (Join-Path $output 'source-and-kit.json') -Raw | ConvertFrom-Json
-          if ($build.schema -ne 1 -or $build.kind -ne 'msix-store' -or $build.kitVersion -ne '0.5.85' -or
-              $build.packageVersion -ne '1.5.85.0' -or $build.architecture -ne 'x64' -or $build.unsigned -ne $true -or
+          if ($build.schema -ne 1 -or $build.kind -ne 'msix-store' -or $build.kitVersion -ne '0.5.86' -or
+              $build.packageVersion -ne '1.5.86.0' -or $build.architecture -ne 'x64' -or $build.unsigned -ne $true -or
               $build.sourceDirty -ne $false -or $build.sourceRevision -cne $env:SOURCE_REVISION -or
               $build.artifact.filename -cne $filename -or $build.artifact.sha256 -cne $env:PACKAGE_SHA256 -or
               $build.artifact.size -ne (Get-Item -LiteralPath $file).Length -or
               (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant() -cne $env:PACKAGE_SHA256) {
-            throw 'Original 0.5.85 Store package does not match the reviewed source, size and hash.'
+            throw 'Original 0.5.86 Store package does not match the reviewed source, size and hash.'
           }
           if ($source.schema -ne 1 -or $source.sourceRevision -cne $env:SOURCE_REVISION -or $source.githubSha -cne $env:SOURCE_REVISION -or
               $source.eventName -ne 'workflow_dispatch' -or "$($source.runId)" -ne $runId -or "$($source.runAttempt)" -ne $attempt -or
-              $source.kit.kitVersion -ne '0.5.85' -or $build.kit.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+              $source.kit.kitVersion -ne '0.5.86' -or $build.kit.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
               $source.kit.assets.kit.sha256 -cne $build.kit.sha256) {
             throw 'Source-and-kit receipt does not match the packaging attempt and embedded kit.'
           }
@@ -108,31 +108,51 @@ jobs:
             packageSha256 = $env:PACKAGE_SHA256; kitSha256 = $build.kit.sha256
           } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $output 'candidate-proof.json') -Encoding utf8
 
-      - name: Open the exact test-signed package, repair saved tooling and build cold
-        shell: powershell
-        timeout-minutes: 16
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.source_revision }}
+          path: candidate-source
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Focused source-bound Windows regressions
+        shell: pwsh
+        working-directory: candidate-source
         run: |
           $ErrorActionPreference = 'Stop'
-          $output = '.verification/store-browser-proof'
+          $PSNativeCommandUseErrorActionPreference = $true
+          node --test extension/test/start-page.test.js extension/test/runtime-events.test.js extension/test/student-explorer.test.js extension/test/web-publish-ui.test.js
+
+      - name: Open the exact test-signed package and verify the visible editor
+        shell: powershell
+        timeout-minutes: 20
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $output = '.verification/store-editor-proof'
           $candidate = Get-Content -LiteralPath (Join-Path $output 'candidate-proof.json') -Raw | ConvertFrom-Json
           $env:ZERO_STORE_DIAGNOSTIC_KIT_SHA256 = $candidate.kitSha256
-          $env:ZERO_STORE_DIAGNOSTIC_RECEIPT = Join-Path (Resolve-Path -LiteralPath $output).ProviderPath 'browser-proof.json'
+          $env:ZERO_STORE_DIAGNOSTIC_RECEIPT = Join-Path (Resolve-Path -LiteralPath $output).ProviderPath 'editor-proof.json'
           $result = Join-Path $output 'install-msix.json'
-          & ./scripts/test-windows-msix.ps1 -Package (Join-Path $output 'Zero-0.5.85-msix-store-x64.msix') -PackageVersion '1.5.85.0' -Receipt $result -RunFirstRun -RequireGit
+          & ./scripts/test-windows-msix.ps1 -Package (Join-Path $output 'Zero-0.5.86-msix-store-x64.msix') -PackageVersion '1.5.86.0' -Receipt $result -RunFirstRun -RequireGit
           $install = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json
           if ($install.result -ne 'passed' -or -not $install.installVerified -or -not $install.cleanupVerified -or
               $install.firstRun.result -ne 'passed' -or $install.candidateSha256 -cne $candidate.packageSha256) {
-            throw 'Verified setup and cleanup must match the original 0.5.85 Store package.'
+            throw 'Verified setup and cleanup must match the original 0.5.86 Store package.'
           }
 
-      - name: Retain the sanitized source, install and browser receipts
+      - name: Retain scoped source, install and editor evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: zero-085-store-browser-proof-${{ github.run_id }}-${{ github.run_attempt }}
+          name: zero-086-store-editor-proof-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: warn
           retention-days: 14
           path: |
-            .verification/store-browser-proof/candidate-proof.json
-            .verification/store-browser-proof/install-msix.json
-            .verification/store-browser-proof/browser-proof.json
+            .verification/store-editor-proof/candidate-proof.json
+            .verification/store-editor-proof/install-msix.json
+            .verification/store-editor-proof/editor-proof.json
+            .verification/store-editor-proof/start-page.png
+            .verification/store-editor-proof/source-error.png
