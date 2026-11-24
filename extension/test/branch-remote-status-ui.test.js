@@ -130,6 +130,10 @@ test('Project checks main on open and focus, distinguishes access and connection
   assert.ok(sessionReads>beforeRetry.reads);
   assert.match(webview.html,/GitHub connection verified\. Review the operation again\./);
   assert.ok(calls.every(args=>args[0]==='ls-remote'),'Verification only performs reads');
+  verificationError=outage;
+  authEvent({changed:[session]});
+  await waitFor(()=>webview.html.includes('data-branch-state="offline"'));
+  assert.doesNotMatch(webview.html,/GitHub connection verified/);
   mode='simulation';configurationChanged({affectsConfiguration:key=>key==='zero.uploadMode'});assert.match(webview.html,/Simulation — nothing will be uploaded/);assert.doesNotMatch(webview.html,/data-command="zero.checkBranchConnection"/);const beforeSimulation=calls.length;await commands.get('zero.checkBranchConnection')();assert.equal(calls.length,beforeSimulation);
 });
 

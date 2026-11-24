@@ -480,7 +480,17 @@ function activate(context, services = {}) {
   context.subscriptions.push(nativeGitAuthentication);
   void nativeGitAuthentication.refresh();
   const repositories = services.repositories || createGitHubAppRepositories({authentication:auth,configuration:appConfiguration});
-  githubReadiness = createGitHubReadiness({authentication:auth,repositories,installationUrl:appConfiguration && `https://github.com/apps/${appConfiguration.slug}/installations/new`,active:()=>!disposed,onChange:()=>{if (/^(?:Checking GitHub|GitHub sign-in|GitHub setup paused|GitHub is ready for your projects|Install Zero for GitHub\.)/.test(state)) state='';refresh();if(githubReadiness?.phase==='ready'&&Date.now()>=mainUpdateNextAt)void checkForMainUpdates();}});
+  const githubVerificationSuccess = 'GitHub connection verified. Review the operation again.';
+  githubReadiness = createGitHubReadiness({
+    authentication:auth,repositories,
+    installationUrl:appConfiguration && `https://github.com/apps/${appConfiguration.slug}/installations/new`,
+    active:()=>!disposed,
+    onChange:()=>{
+      if (state === githubVerificationSuccess || /^(?:Checking GitHub|GitHub sign-in|GitHub setup paused|GitHub is ready for your projects|Install Zero for GitHub\.)/.test(state)) state='';
+      refresh();
+      if (githubReadiness?.phase === 'ready' && Date.now() >= mainUpdateNextAt) void checkForMainUpdates();
+    },
+  });
   context.subscriptions.push(githubReadiness);
   const githubReady = () => auth.signedIn && githubReadiness.phase === 'ready';
   const cloneRepository = services.cloneRepository || createGitHubAppClone({authentication:auth,repositories});
@@ -574,7 +584,7 @@ function activate(context, services = {}) {
       await githubReadiness.refresh();
       if (disposed || !githubReady()) return;
       auth.assertCurrentNow(ticket);
-      report('GitHub connection verified. Review the operation again.');
+      report(githubVerificationSuccess);
     } finally {
       signingIn = false;
       if (!disposed) refresh();
