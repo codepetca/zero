@@ -21,8 +21,9 @@ $scratch = Join-Path $env:RUNNER_TEMP ('z086-' + [Guid]::NewGuid().ToString('N')
 $profile = Join-Path $scratch 'profile'
 $project = Join-Path $scratch 'project'
 $signals = Join-Path $scratch 'signals'
+$driver = Join-Path $scratch 'driver'
 $result = [ordered]@{schema=1; version='0.5.86'; outcome='failed'; startPage=$false; sourceError=$false; cleanup=$false;
-    execution='exact installed Zero bytes, VS Code supported development/test host, offline policy';
+    execution='exact installed Zero bytes plus synthetic driver, normal VS Code development host, offline policy';
     limits=@('Real MSIX first-run is checked separately. This host deliberately uses ExtensionMode.Development without an account.',
         'Does not establish authenticated installed-student use, physical Windows 10/11, Store signing, live reporting or publication.')}
 function Assert-InstalledVsixSource {
@@ -53,7 +54,7 @@ function Assert-InstalledVsixSource {
 $started = [datetime]::UtcNow
 try {
     $result['installedSource'] = Assert-InstalledVsixSource
-    New-Item -ItemType Directory -Path (Join-Path $profile 'User'),$signals -ErrorAction Stop | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $profile 'User'),$signals,$driver -ErrorAction Stop | Out-Null
     Copy-Item -LiteralPath (Join-Path $Kit 'starter') -Destination $project -Recurse -ErrorAction Stop
     $settings = Get-Content -LiteralPath (Join-Path $Data 'editor\user-data\User\settings.json') -Raw | ConvertFrom-Json
     $settings | Add-Member -NotePropertyName 'zero.automaticPublicProblemReports' -NotePropertyValue $false -Force
@@ -74,21 +75,30 @@ public class Main {
     $env:ZERO_EDITOR_PROOF_EXTENSION = $ExtensionPath
     $env:ZERO_EDITOR_PROOF_PROJECT = $project
     $hostEntry = Join-Path $PSScriptRoot 'windows-editor-proof-086\host.cjs'
+    Copy-Item -LiteralPath $hostEntry -Destination (Join-Path $driver 'host.cjs') -ErrorAction Stop
+    $driverManifest = [ordered]@{name='editor-proof-086';publisher='zero-proof';version='0.0.0';
+        engines=@{vscode='^1.95.0'};activationEvents=@('onStartupFinished');main='./host.cjs';extensionKind=@('workspace')}
+    [IO.File]::WriteAllText((Join-Path $driver 'package.json'), ($driverManifest | ConvertTo-Json -Depth 5), [Text.UTF8Encoding]::new($false))
     $arguments = @('--new-window','--force-renderer-accessibility','--disable-workspace-trust','--skip-welcome','--skip-release-notes',
         '--user-data-dir', $profile, '--extensions-dir', (Join-Path $Data 'editor\extensions'),
-        "--extensionDevelopmentPath=$ExtensionPath", "--extensionTestsPath=$hostEntry", '--disable-extension=redhat.java', $project)
+        "--extensionDevelopmentPath=$ExtensionPath", "--extensionDevelopmentPath=$driver", '--disable-extension=redhat.java', $project)
     $quoted = @($arguments | ForEach-Object { if ($_ -match '["\r\n]') { throw 'Unexpected argument character.' }; '"' + $_ + '"' })
     $process = Start-Process -FilePath $code -ArgumentList $quoted -PassThru
+    $launchedAt = [datetime]::UtcNow
+    $result['driverLaunch'] = 'requested-normal-development-host'
     $state = @{}
     $completed = @{}
     $deadline = [datetime]::UtcNow.AddSeconds($TimeoutSeconds)
     while ([datetime]::UtcNow -lt $deadline) {
+        $progressReceipt = Join-Path $signals 'progress.json'
+        if (Test-Path -LiteralPath $progressReceipt) { $result['driverProgress'] = Get-Content -LiteralPath $progressReceipt -Raw | ConvertFrom-Json }
+        elseif (([datetime]::UtcNow - $launchedAt).TotalSeconds -gt 60) { throw 'The synthetic development driver did not emit its startup receipt within 60 seconds.' }
         $hostReceipt = Join-Path $signals 'host-proof.json'
         if (Test-Path -LiteralPath $hostReceipt) {
             $hostResult = Get-Content -LiteralPath $hostReceipt -Raw | ConvertFrom-Json
             $result['host'] = $hostResult
             if ($hostResult.outcome -eq 'passed' -and $result.startPage -and $result.sourceError) { $result.outcome='passed'; break }
-            throw 'The editor test host did not complete its exact-candidate checks.'
+            throw 'The editor development driver did not complete its exact-candidate checks.'
         }
         $phaseFile = Join-Path $signals 'phase.json'
         if (-not (Test-Path -LiteralPath $phaseFile)) { Start-Sleep -Milliseconds 500; continue }
@@ -141,6 +151,8 @@ public class Main {
     }
     $hostReceipt = Join-Path $signals 'host-proof.json'
     if (Test-Path -LiteralPath $hostReceipt) { $result['host'] = Get-Content -LiteralPath $hostReceipt -Raw | ConvertFrom-Json }
+    $progressReceipt = Join-Path $signals 'progress.json'
+    if (Test-Path -LiteralPath $progressReceipt) { $result['driverProgress'] = Get-Content -LiteralPath $progressReceipt -Raw | ConvertFrom-Json }
     try {
         for ($attempt=0; $attempt -lt 10; $attempt++) {
             try { if (Test-Path -LiteralPath $scratch) { Remove-Item -LiteralPath $scratch -Recurse -Force -ErrorAction Stop }; $result.cleanup=$true; break }

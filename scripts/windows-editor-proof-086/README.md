@@ -13,12 +13,17 @@ package/certificate state.
 
 After real first-run, the scoped helper compares all installed extension files
 except installation-modified `package.json` with the embedded VSIX. VS Code's
-[supported extension test host](https://code.visualstudio.com/api/working-with-extensions/testing-extension#advanced-setup-your-own-runner)
-opens those same installed files, with a new profile and a copied synthetic
-starter project. The existing development-host policy permits offline use.
+[Extension Development Host](https://code.visualstudio.com/api/get-started/your-first-extension)
+opens those same installed files and a tiny synthetic driver as two
+`--extensionDevelopmentPath` entries, with a new profile and a copied synthetic
+starter project. The runtime-created driver uses `onStartupFinished` and records
+its actual `ExtensionContext.extensionMode` before activating Zero or executing
+commands; it requires `ExtensionMode.Development`. No `--extensionTestsPath` is
+passed, since that selects Test mode, which Zero's offline development policy
+does not recognize. The existing Development-mode policy permits offline use.
 No source files in the installed extension are patched, no account is signed
 in, and automatic public reports and telemetry are off in the disposable profile.
-The Java language extension is disabled in the test host so only Zero's actual
+The Java language extension is disabled in the development host so only Zero's actual
 native compiler path can create the source-error diagnostics being asserted.
 
 The test executes public Zero commands and observes public VS Code task and
