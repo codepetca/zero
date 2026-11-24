@@ -569,10 +569,12 @@ function activate(context, services = {}) {
     signingIn = true;
     refresh();
     try {
-      await auth.capture();
+      const ticket = await auth.capture();
       if (disposed) return;
       await githubReadiness.refresh();
-      if (!disposed) report('GitHub connection verified. Review the operation again.');
+      if (disposed || !githubReady()) return;
+      auth.assertCurrentNow(ticket);
+      report('GitHub connection verified. Review the operation again.');
     } finally {
       signingIn = false;
       if (!disposed) refresh();
