@@ -110,7 +110,7 @@ test('Project checks main on open and focus, distinguishes access and connection
   verificationError=Object.assign(new Error('temporary verification outage'),{code:'github-unavailable'});
   authEvent({changed:[session]});
   await waitFor(()=>webview.html.includes('data-branch-state="offline"'));
-  assert.match(webview.html,/GitHub is unreachable\. Try Sync again\./);
+  assert.match(webview.html,/aria-label="Retry GitHub verification"[^>]*>Retry connection<\/button>/);
   const retryButton=webview.html.match(/<button id="branch-sync"[^>]*>/)[0];
   assert.doesNotMatch(retryButton,/ disabled/);
   const expectedScope=retryButton.match(/data-sync-scope="([^"]+)"/)[1];

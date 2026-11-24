@@ -3572,10 +3572,11 @@ function activate(context, services = {}) {
     const upToDate=outgoing===0&&incoming===0&&currentCounts.remoteHead===branchHead&&!pendingUpload&&!pendingLocalCommit;
     const syncDisabled=gitDisabled||branchError||!canSync||upToDate?'disabled':'';
     const showSyncCounts=Number.isSafeInteger(outgoing)&&Number.isSafeInteger(incoming);
-    const syncLabel=showSyncCounts?`Sync with GitHub. ${upToDate?'Up to date. ':''}Outgoing commits: ${outgoing}. Incoming commits: ${incoming}.`:'Sync with GitHub';
+    const retryVerification=canSync&&auth.verificationUnavailable;
+    const syncLabel=retryVerification?'Retry GitHub verification':showSyncCounts?`Sync with GitHub. ${upToDate?'Up to date. ':''}Outgoing commits: ${outgoing}. Incoming commits: ${incoming}.`:'Sync with GitHub';
     const syncCounts=showSyncCounts?` <span aria-hidden="true">↑ ${outgoing}</span><span aria-hidden="true">↓ ${incoming}</span>`:'';
     const branchConnection=branch?`<div class="branch-connection" data-branch-state="${escape(connectionState)}">
-      <button id="branch-sync" class="secondary branch-sync" data-command="zero.syncBranch" data-sync-scope="${syncScope()}" title="${escape(syncLabel)}" aria-label="${escape(syncLabel)}" ${syncDisabled}>Sync${syncCounts}</button>
+      <button id="branch-sync" class="secondary branch-sync" data-command="zero.syncBranch" data-sync-scope="${syncScope()}" title="${escape(syncLabel)}" aria-label="${escape(syncLabel)}" ${syncDisabled}>${retryVerification?'Retry connection':`Sync${syncCounts}`}</button>
     </div>`:'';
     const gitHint=branchError||(branchHead===null?'Make your first commit.':'')||
       (connectionState==='unknown'&&!connected&&repository!=='No repository connected'?repository:'')||

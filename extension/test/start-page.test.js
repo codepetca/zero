@@ -215,6 +215,13 @@ test('GitHub account stays compact while signed-out and setup states keep their 
     assert.equal(b.elements.get('github-progress').hidden, phase !== 'checking');
     assert.equal(action('setup').hidden, phase === 'checking');
   }
+  f.setState({phase:'verification-unavailable'});
+  await page.refresh();b.update(panel.messages.at(-1));
+  assert.equal(action('setup').hidden, false);
+  assert.equal(action('setup').textContent, 'Check again');
+  assert.equal(action('signIn').hidden, true);
+  assert.equal(action('connect').hidden, true);
+  assert.match(b.elements.get('guidance').textContent, /GitHub could not be reached/);
   f.setState({phase:'signed-out'});await page.refresh();b.update(panel.messages.at(-1));
   assert.equal(b.elements.get('github-profile').hidden, true);
   assert.equal(b.elements.get('account').textContent, '');
