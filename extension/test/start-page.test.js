@@ -155,7 +155,6 @@ test('a verified starter mismatch offers the current channel’s update recovery
     const {page,panel} = await open(f), browser = domHarness(panel.webview.html);
     const update = browser.elements.get('check-for-updates');
     const initial = panel.messages.at(-1).token;
-    await f.message(panel, {type:'checkForUpdates'});
     await f.message(panel, {type:'action', action:'new'});
     browser.update(panel.messages.at(-1));
     assert.match(payload(panel).error, /GitHub starter use different project files/);
@@ -179,7 +178,7 @@ test('a verified starter mismatch offers the current channel’s update recovery
     }
     f.setState({phase:'ready', accountId:'99'});
     await page.refresh();
-    assert.equal(payload(panel).canCheckForUpdates, false);
+    assert.equal(payload(panel).error, '');
     page.dispose();
   }
 });
@@ -196,7 +195,10 @@ test('a starter mismatch from outside the Start Page opens the same inline recov
   f.setState({phase:'signed-out'});
   await page.refresh();
   assert.equal(page.showStarterMismatch(), false);
-  assert.equal(payload(panel).canCheckForUpdates, false);
+  assert.equal(payload(panel).error, '');
+  assert.equal(payload(panel).canCheckForUpdates, true);
+  await f.message(panel, {type:'checkForUpdates'});
+  assert.deepEqual(f.commands, ['zero.checkForUpdates', 'zero.checkForUpdates']);
   page.dispose();
 });
 

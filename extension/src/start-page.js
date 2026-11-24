@@ -54,7 +54,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     const data = {...snapshot, recentState: snapshot.accountId ? recentState : 'hidden',
       recent: items.map(item => ({label: item.path.split(/[\\/]/).filter(Boolean).at(-1) || item.path, path: item.path})),
       error: failure || '', canRetry: Boolean(retry && !retry.checkForUpdates),
-      canCheckForUpdates: Boolean(retry?.checkForUpdates && updateRecovery === 'native')};
+      canCheckForUpdates: updateRecovery === 'native'};
     const next = JSON.stringify(data);
     if (next !== signature) {
       signature = next;
@@ -177,8 +177,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     if (message.type === 'recent' && typeof message.id === 'string' && choices.has(message.id)) {
       return dispatch(target, undefined, choices.get(message.id));
     }
-    if (message.type === 'checkForUpdates' && retry?.checkForUpdates &&
-        retry.accountId === snapshot.accountId && !snapshot.busy && updateRecovery === 'native') {
+    if (message.type === 'checkForUpdates' && !snapshot.busy && updateRecovery === 'native') {
       inFlight = true;
       publish();
       try {await executeAction('zero.checkForUpdates');}
@@ -280,7 +279,8 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
 </div>
 <section id="github-section" aria-label="GitHub access" hidden><p id="guidance" role="status" hidden></p><div id="github-progress" aria-hidden="true" hidden></div><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
-<p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button><button id="check-for-updates" hidden>Check for updates</button></div>
+<p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
+<button id="check-for-updates" class="secondary" hidden>Check for updates</button>
 </main><script nonce="${nonce}">
 (() => {
   const publishProgressDetails = ${publishProgressDetails.toString()};

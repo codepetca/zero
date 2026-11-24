@@ -3576,6 +3576,10 @@ function activate(context, services = {}) {
       if(error instanceof BrowserToolingDecision)return handleBrowserToolingDecision(error);
       if(operation){reportAvailable=true;refresh();}
       if(operation && operation!=='publish')problemReporter.failure(error,operation,stage,projectRoot);
+      if(!inline && id==='zero.newProject' && error.code==='ZERO_STARTER_INCOMPATIBLE' && startPage.showStarterMismatch()){
+        output.appendLine(error.message);
+        return;
+      }
       const message = error.zeroRunMessage || error.message;
       const signInUnavailable = /^Zero sign-in was cancelled or unavailable\./.test(message);
       const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;

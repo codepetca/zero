@@ -235,6 +235,21 @@ test('Start Page preserves uncertain repository creation recovery without a retr
   assert.match(f.errors.at(-1),/Resume created project/);
   assert.equal(f.startState.canRetry,false);
 });
+test('both Project New entry points use inline update recovery for a verified starter mismatch',async t=>{
+  const f=await fixture(t,{empty:true,dispatchRegistered:true,initialSession:identitySession,
+    create:async()=>{throw Object.assign(Error('Fixture starter inventory differs.'),{code:'ZERO_STARTER_INCOMPATIBLE'});}});
+  await settle(()=>f.startState?.phase==='ready');
+  await f.startPage.message({type:'action',action:'new',token:f.startPage.restored.token});
+  assert.match(f.startState.error,/GitHub starter use different project files/);
+  const reveals=f.startPage.reveals.length;
+  await f.commands.get('zero.newProject')();
+  assert.ok(f.startPage.reveals.length>reveals);
+  assert.match(f.startState.error,/GitHub starter use different project files/);
+  assert.ok(f.outputLines.includes('Fixture starter inventory differs.'));
+  assert.equal(f.calls.filter(([id])=>id==='createRepository').length,2);
+  assert.equal(f.calls.filter(([id])=>id==='cloneRepository'||id==='vscode.openFolder').length,0);
+  assert.deepEqual(f.errors,[]);
+});
 test('local and cloned projects persist the Start Page handoff before replacing the workspace',async t=>{
   for (const kind of ['local','clone']) {
     const profile=new Map();let target;
