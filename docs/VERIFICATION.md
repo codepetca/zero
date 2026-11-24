@@ -1,3 +1,14 @@
+# Starter preparation fallback local checks — 2026-11-24
+
+116 tests pass across `release-review`, `release-publish`, `verify-project-new`,
+`ci-gate` and `ci-scope`; actionlint passes for `release-review.yml`.
+The new synthetic-token cases preserve public identity/tree/size/second-read
+checks and restrict authentication to one retry at fixed public API endpoints.
+The existing publisher tests still require anonymous starter requests.
+Independent source review, exact-head hosted checks and full manual native/WebFX
+replay remain required before accepting this mitigation for a release.
+See [evidence and primary sources](EVIDENCE.md#manual-preparation-starter-api-fallback--2026-11-24).
+
 # Zero 0.5.85 release verification — 2026-11-23
 
 [Source PR #403](https://github.com/codepetca/zero/pull/403) passed all 12 checks.

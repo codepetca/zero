@@ -155,6 +155,18 @@ same tested tree can resume. If the tree differs, restore the reviewed tree
 before resuming with the same run ID, or review a new candidate and version. Ordinary source PRs can still package
 review artifacts while the public starter is being prepared.
 
+Manual preparation starts each starter API read anonymously. On HTTP403/429,
+it can retry once with that job's existing read-only `GITHUB_TOKEN`, only for
+the fixed public starter metadata, `main` branch and SHA-addressed recursive
+tree endpoints. Repository identity, public/template status, default branch,
+response bounds, exact tree and repeated branch checks remain required.
+Browser/JDK provisioning runs in a separate step. The verifier removes the
+token from its environment before running project code, Maven, Java or Chrome.
+The publisher's final starter check and ordinary local checks remain anonymous.
+This fallback neither adds repository permissions nor proves anonymous API
+availability from the preparation runner; the publisher still requires its own
+anonymous verification before publication.
+
 To run the same check locally with Node 22.23.4 or later in the Node 22 line,
 JDK 21, Chrome and a display (Xvfb on headless Linux):
 
