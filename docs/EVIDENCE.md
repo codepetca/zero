@@ -1,3 +1,47 @@
+# Classroom repair and tutorial source — 2026-11-23
+
+Source `c1f233a21` adds **Repair and continue** to the existing Zero sidebar
+for an eligible exact-version browser-tool repair. The command returns to
+the same project and requested browser action after revalidating the files
+and retaining a local backup. A browser-tool version change still asks for
+confirmation. Normal publication checks and approvals apply on resumption.
+
+The Start Page offers **Check for updates** in native Mac and Store installs
+and gives channel-specific guidance if the installed editor cannot use the
+current GitHub starter. An independent check used the protected inventories
+from the published 0.5.79 and 0.5.84 kits and the same public starter tree
+`369608a5`. The older kit returned the expected mismatch and 0.5.84 passed.
+That check establishes compatibility with the starter at that revision.
+
+Two independent Astra High reviewers examined the integrated code. The
+correction binds publishing Recheck to its original project, refuses repair
+after browser checks are disabled or a recovery journal appears, and ends
+the reveal by focusing the actual Project view. Both Project New entry
+points clear completed progress and guide students who already updated.
+The final focused local run passed 265 tests with one existing skip. The
+targeted review reran seven regressions, all passing. Reporting checks
+passed 52 tests, including the temporary PostgreSQL service exercise.
+The broader run reached 2,661 passes and found ten failures from one missing
+fixture binding in the extracted sidebar renderer. `d19c43265` adds the
+binding and covers the repair state. All 24 tests in the three affected
+suites passed after that change. The full suite awaits an exact-head rerun.
+
+The tutorial audit checked all 20 addressable lessons on the public site.
+Five of 13 listed coding lessons directly offered every required final Java
+file. Five new links bring the local branch to nine of 13 and all five
+unlisted Study lessons also have full final source. The three Greeting and
+Coin refactoring lessons link to existing checkpoint source, with the Java
+and its Copy anchors unchanged. The 51 focused tutorial checks and website
+content build passed. The new lesson links await publication.
+
+The Mac walkthrough used the actual Zero Dev sidebar at `d19c43265`.
+A disposable project with a missing runtime lock showed **Repair and
+continue** inline. The click entered repair progress, restored the exact
+original lock bytes, kept a backup and resumed the requested browser build
+through **Export ready**. A test folder inside the maintainer repository
+also demonstrated refusal and recovery guidance. The final retail Store
+package and signed-in GitHub Pages remain to be checked.
+
 # Zero 0.5.84 classroom fixes — 2026-11-23
 
 Integrated source `df0812cb4956e2dbbb650962a7eddde47cf56c9b` is based on
