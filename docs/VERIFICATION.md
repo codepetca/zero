@@ -1,3 +1,18 @@
+# Zero 0.5.85 release verification — 2026-11-23
+
+[Source PR #403](https://github.com/codepetca/zero/pull/403) passed all 12 checks.
+The signed, notarized Mac installer provisioned the native editor and a signed-in
+Pages publication completed from that editor. The exact submitted Store package
+passed the hosted repair and fresh browser export on a test-signed copy.
+Package 1.5.85.0 x64 appeared in the Canadian Store catalog. The kit, Mac and
+both Portable releases passed anonymous size and checksum verification. The
+reporting reconciliation and tutorial links were verified in production.
+
+The promotion CI exercises the exact public complete Portable ZIP on hosted
+Windows. Production installer links and signed appcast are checked after merge.
+See the [release ledger](RELEASE-LEDGER.md) for runs, artifact identities and
+device coverage.
+
 # AI triage operational acceptance — 2026-11-19
 
 PR396 merged `8d87dcd3c`; all 12 checks pass on reviewed `398962e8b`.
