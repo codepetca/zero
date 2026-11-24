@@ -121,22 +121,22 @@ function sidebarClient() {
       const publishingProgress=document.getElementById('publishing-progress'),progressMarkup=message.publishingProgress || '';
       if(publishingProgress.dataset.content!==progressMarkup){publishingProgress.innerHTML=progressMarkup;publishingProgress.dataset.content=progressMarkup;}
       const recovery = document.getElementById('recovery');
-      const recoveryMode = `${Boolean(message.failed)}:${Boolean(message.reportAvailable)}:${message.repairToken || ''}`;
-      recovery.hidden = !message.failed && !message.reportAvailable && !message.repairToken;
+      const action = message.recoveryAction;
+      const recoveryMode = action ? `${action.command}:${action.repairToken || ''}` : '';
       if (recovery.dataset.mode !== recoveryMode) {
-        const repairHadFocus=Boolean(document.activeElement?.dataset.repairToken);
+        const actionHadFocus = recovery.contains(document.activeElement);
         recovery.dataset.mode = recoveryMode;recovery.replaceChildren();
-        if (message.repairToken) {
-          const button=document.createElement('button');button.className='link';button.dataset.command='zero.repairBrowserTools';button.dataset.repairToken=message.repairToken;button.textContent='Repair and continue';recovery.append(button);
+        if (action) {
+          const button = document.createElement('button');
+          button.className = 'link';
+          button.dataset.command = action.command;
+          if (action.repairToken) button.dataset.repairToken = action.repairToken;
+          button.textContent = action.label;
+          recovery.append(button);
         }
-        if (message.failed) for (const label of ['Problems','Output']) {
-          const button=document.createElement('button'); button.className='link'; button.dataset.command='zero.show'+label; button.textContent='Show '+label; recovery.append(button);
-        }
-        if (message.failed || message.reportAvailable) {
-          const button=document.createElement('button'); button.className='link'; button.dataset.command='zero.reportProblem'; button.textContent='Report a problem'; recovery.append(button);
-        }
-        if(repairHadFocus)status.focus({preventScroll:true});
+        if (actionHadFocus) status.focus({preventScroll:true});
       }
+      recovery.hidden = !action;
     }
   });
   document.getElementById('controls').dataset.content = document.getElementById('controls').innerHTML;

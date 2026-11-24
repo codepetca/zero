@@ -45,8 +45,8 @@ function createBrowserRunCommands(vscode, {onReportManual=()=>{},onReportFailure
     if(selectedRoot!==root){stop();throw Error('The student project changed. Preview a web export from the current project before opening it in your browser.');}
     return opened.openInBrowser();
   }
-  async function diagnostics(error,root) {
-    if (!problems || !root) return;
+  function diagnostics(error,root) {
+    if (!problems || !root) return false;
     let log=error.message;
     if (typeof error.logText==='string') log+='\n'+error.logText;
     const entries=Array.isArray(error.diagnostics) ? error.diagnostics : sourceDiagnostics(log,root);
@@ -67,6 +67,11 @@ function createBrowserRunCommands(vscode, {onReportManual=()=>{},onReportFailure
       grouped.get(absolute).push(diagnostic);
     }
     for (const [filename,items] of grouped) problems.set(vscode.Uri.file(filename),items);
+    return grouped.size > 0;
+  }
+  function showDiagnostics(error,root) {
+    try {return diagnostics(error,root);}
+    catch (failure) {output.appendLine(failure.message);return false;}
   }
   async function showPreview(root,result,id=generation,validator=validate,signal) {
     const validated=await validator({projectRoot:root,result,signal}) || result;
@@ -81,9 +86,9 @@ function createBrowserRunCommands(vscode, {onReportManual=()=>{},onReportFailure
       else if(event.type==='first-frame')setState('App running');
       else if(event.type==='fatal'){
         onReportManual(event.stage,event.code,root);
-        setFailed(true);setState('App stopped with an error. Open Problems or check Zero output.');
-        const detail=event.diagnostic||event.code;output.appendLine(detail);output.show?.(true);
-        void diagnostics({message:detail,diagnostics:runtimeDiagnostics(detail,root)},root).catch(error=>output.appendLine(error.message));
+        const detail=event.diagnostic||event.code;output.appendLine(detail);
+        setFailed(true,showDiagnostics({message:detail,diagnostics:runtimeDiagnostics(detail,root)},root));
+        setState('App stopped with an error.');
         disposeRuntime();updateActive();
       }else if(event.type==='stopped'){disposeRuntime();updateActive();setState('App stopped');}
     };
@@ -120,8 +125,9 @@ function createBrowserRunCommands(vscode, {onReportManual=()=>{},onReportFailure
       if(controller.signal.aborted || id!==generation || disposed)return;
       if(error instanceof BrowserToolingDecision)throw error;
       onReportFailure(error,'web-compile',root);
-      error.zeroRunMessage=root ? 'App could not run. Open Problems or check Zero output.' : error.message;
-      setFailed(true);setState(error.zeroRunMessage);output.appendLine(error.message);output.show?.(true);await diagnostics(error,root);throw error;
+      error.zeroRunMessage=root ? 'App could not run.' : error.message;
+      output.appendLine(error.message);
+      setFailed(true,showDiagnostics(error,root));setState(error.zeroRunMessage);throw error;
     }finally{
       if(operation===controller){operation=undefined;setBusy(false);updateActive();}
     }

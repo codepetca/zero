@@ -156,9 +156,9 @@ async function requestRepair(h,id='zero.exportWeb') {
  await h.commands.get(id)();
  const pending=h.updates.at(-1);
  assert.equal(pending.status,'Some browser tools are missing.');
- assert.equal(pending.failed,false);assert.equal(pending.reportAvailable,false);
- assert.ok(pending.repairToken);
- return pending.repairToken;
+ assert.equal(pending.recoveryAction.command,'zero.repairBrowserTools');
+ assert.ok(pending.recoveryAction.repairToken);
+ return pending.recoveryAction.repairToken;
 }
 
 test('hidden controls reveal inline repair and one click retries just the requested export',async t=>{
@@ -200,7 +200,7 @@ test('a superseded repair click cannot consent to another browser action or chan
  const missing=path.join(h.root,'.zero-build','README.md');await fs.unlink(missing);
  const first=await requestRepair(h),second=await requestRepair(h,'zero.publishWeb');assert.notEqual(first,second);
  await h.commands.get('zero.repairBrowserTools')(first);
- assert.equal(h.updates.at(-1).repairToken,second);
+ assert.equal(h.updates.at(-1).recoveryAction.repairToken,second);
  const edited=path.join(h.root,'.zero-build','builder.json');
  await fs.appendFile(edited,' ');
  await h.commands.get('zero.repairBrowserTools')(second);

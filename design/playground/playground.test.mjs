@@ -88,7 +88,10 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   const error = sidebarSource('error');
   assert.match(error,/Main.java, line 8: add a semicolon/);
   assert.match(error,/zero.showProblems/);
-  assert.match(error, /data-command="zero.reportProblem"/);
+  assert.doesNotMatch(error, /data-command="zero\.(?:reportProblem|showOutput)"/);
+  assert.match(sidebarSource('merge-error'), /data-command="zero.reportProblem"/);
+  assert.doesNotMatch(sidebarSource('merge-error'), /data-command="zero\.(?:showProblems|showOutput)"/);
+  assert.doesNotMatch(sidebarSource('reported-error'), /data-command="zero\.(?:reportProblem|showProblems|showOutput)"/);
   const repair = sidebarSource('repair');
   assert.match(repair,/Some browser tools are missing\./);
   assert.match(repair,/data-repair-token="fixture-repair">Repair and continue<\/button>/);

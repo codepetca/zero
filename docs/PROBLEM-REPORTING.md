@@ -122,6 +122,13 @@ sign-in actions and expected recovery prompts do not automatically open issues.
 Ambiguous student runtime exceptions and broad browser-compiler failures remain
 available through manual reporting.
 
+The sidebar shows the next action for the current error. It offers **Show Problems**
+when diagnostic locations are available, **Repair and continue** for eligible
+browser-tool repair, or **Report a problem** when the student can send a manual
+report. Once the report service acknowledges the automatic report for that
+failure, the duplicate report action disappears. **Show Output** remains available
+from the sidebar menu. The Start Page displays the installed Zero version.
+
 Manual merge reports distinguish checking from changes attempted after Merge
 confirmation. The unreadable merge history and unclassified native task exit
 codes are manual only. Branch creation, creating a project and cloning have
