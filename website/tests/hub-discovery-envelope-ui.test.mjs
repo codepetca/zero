@@ -17,8 +17,8 @@ function harness(projects=[project], enforceJamVisibility=true, fakeTimers=false
   const timerSet=fakeTimers?(fn,delay)=>{const id=++nextTimer;timers.set(id,{at:time+delay,fn});return id;}:setTimeout;
   const timerClear=fakeTimers?id=>timers.delete(id):clearTimeout;
   const advance=ms=>{time+=ms;for(const [id,timer] of [...timers])if(timer.at<=time){timers.delete(id);timer.fn();}};
-  const window={location:{href:'https://zero.test/hub'},addEventListener:(name,fn)=>{listeners[`window:${name}`]=fn;},removeEventListener:()=>{}};
-  const document={visibilityState:'visible',addEventListener:(name,fn)=>{listeners[`document:${name}`]=fn;},removeEventListener:()=>{},querySelectorAll:()=>[]};
+  const window={location:{href:'https://zero.test/hub'},addEventListener:(name,fn)=>{listeners[`window:${name}`]=fn;},removeEventListener:name=>{if(name!=='popstate')delete listeners[`window:${name}`];}};
+  const document={visibilityState:'visible',addEventListener:(name,fn)=>{listeners[`document:${name}`]=fn;},removeEventListener:name=>{delete listeners[`document:${name}`];},querySelectorAll:()=>[]};
   const element=(type,props)=>({type,props:props||{}});
   const react={useRef(initial){const i=cursor++;if(!(i in hooks))hooks[i]={current:initial};return hooks[i];},useState(initial){const i=cursor++;if(!(i in hooks))hooks[i]=typeof initial==='function'?initial():initial;return [hooks[i],value=>{hooks[i]=typeof value==='function'?value(hooks[i]):value;}];},useEffect(fn,deps){const i=cursor++,old=hooks[i];if(!old||deps.some((v,n)=>v!==old.deps[n])){effects.push(()=>{old?.cleanup?.();hooks[i]={deps,cleanup:fn()};});}}};
   const sharing={selectMaintainedProjects:(items,opts)=>opts.kind==='game'&&!opts.id&&!opts.version?items.filter(x=>x.title.toLowerCase().includes(opts.search.toLowerCase())):[],selectReleases:catalog=>catalog.releases,projectSummary:x=>x,maintainedPlayLink:p=>p.web?.url,releaseSummary:(r,p)=>p.find(x=>x.id===r.id&&x.sourceCommit===r.source.commit)?.description||r.description,releaseAuthor:(r,a)=>a.find(x=>x.id===r.id&&x.sourceCommits.includes(r.source.commit))?.author||'fallback',releaseImage:(r,p)=>p.find(x=>x.id===r.id&&x.sourceCommit===r.source.commit)?.image,playLink:()=>'/play',sourceLink:()=>'',dependencySnippet:()=>''};
@@ -58,7 +58,7 @@ test('endpoint supplies maintained cards independently of catalog failure withou
   const cards=h.cards(h.render());assert.equal(cards.length,1);assert.equal(cards[0].title,'Maintained');assert.equal(cards[0].playHref,undefined);
 });
 
-test('Projects show the public card before status, then add Play and stars after revalidation',async()=>{
+test('Projects show the public card before status, then add Play after revalidation',async()=>{
   const h=harness([project],true,false,true);
   const published={...project,web:{provider:'github-pages',url:'https://owner.github.io/repo/',commit:project.sourceCommit,runId:1}};
   h.render();
@@ -67,19 +67,18 @@ test('Projects show the public card before status, then add Play and stars after
   const [pending]=h.cards(h.render());
   assert.equal(pending.title,'Maintained');
   assert.equal(pending.playHref,undefined);
-  assert.equal(pending.siteReachable,false);
-  assert.equal(pending.feedback(),null);
-  assert.equal(pending.feedback('Author','A game.','details').props.children.props.pending,true);
+  assert.equal(pending.feedback,undefined);
+  assert.equal(pending.details('Author').props.pending,true);
 
   reply(statuses(h),{schema:1,items:[{...status,stars:4,issuesEnabled:true,site:{status:'reachable'}}]});await tick();
   assert.equal(h.cards(h.render())[0].playHref,undefined);
   reply(h.calls.find(call=>call.url.includes('revalidate=1')),envelope([published]));await tick();
   const [ready]=h.cards(h.render());
   assert.equal(ready.playHref,published.web.url);
-  assert.equal(ready.siteReachable,true);
-  assert.equal(ready.feedback().props.feedback.stars,4);
-  assert.equal(ready.feedback('Author','A game.','details').props.children.props.pending,false);
-  assert.equal(ready.feedback('Author','A game.','details').props.children.props.feedback.issuesEnabled,true);
+  assert.equal(ready.siteUnavailable,false);
+  assert.equal(ready.feedback,undefined);
+  assert.equal(ready.details('Author').props.pending,false);
+  assert.equal(ready.details('Author').props.feedback.issuesEnabled,true);
 });
 
 test('Projects do not render cards or request status from a failed or ambiguous initial discovery',async()=>{
@@ -92,7 +91,7 @@ test('Projects do not render cards or request status from a failed or ambiguous 
 });
 
 test('paginated Projects retire the old page and reset the cursor on search',async()=>{
-  const h=harness([project],true,false,true);
+  const h=harness([project],true,true,true);
   const render=()=>h.render({paginatedProjects:true});
   const page=(maintained,next=null)=>({...envelope(maintained),listings:[],next});
   render();
@@ -114,7 +113,7 @@ test('paginated Projects retire the old page and reset the cursor on search',asy
   assert.equal(h.cards(render())[0].title,'Second project');
   h.search(render())('needle');
   assert.equal(h.cards(render()).length,0);
-  await new Promise(resolve=>setTimeout(resolve,320));
+  h.advance(300);
   assert.equal(h.calls.at(-1).url,'/api/hub/projects/discover?q=needle');
   reply(h.calls.at(-1),page([]));await tick();render();
 });
@@ -131,7 +130,7 @@ test('server-rendered Projects use their initial metadata once and verify Play p
   const initialProjects={...envelope([]),listings:[published,slow,hidden],next:null};
   const render=()=>h.render({paginatedProjects:true,initialProjects});
   const [pending]=h.cards(render());
-  assert.equal(pending.feedback().props.children.props.children.at(-1),'0');
+  assert.equal(pending.feedback,undefined);
   assert.equal(pending.fallbackPlayHref,`/hub/play?ref=${publishedRef}`);
   assert.equal(pending.playHref,undefined);
   assert.equal(h.calls.some(call=>call.url.includes('/discover')),false);
@@ -148,7 +147,7 @@ test('server-rendered Projects use their initial metadata once and verify Play p
   assert.equal(ready.playHref,url);
   assert.equal(ready.image,thumbnail);
   assert.equal(stillPending.fallbackPlayHref,`/hub/play?ref=${slowRef}`);
-  const details=ready.feedback('Author','','details').props.children.props;
+  const details=ready.details('Author').props;
   assert.equal(details.feedback.issuesEnabled,true);
   assert.equal(details.feedback.site.status,'reachable');
   h.advance(30_000);
@@ -157,16 +156,54 @@ test('server-rendered Projects use their initial metadata once and verify Play p
 
   h.fire('window:blur');
   h.fire('window:focus');
-  assert.equal(h.cards(render()).length,0);
-  assert.equal(readiness(h,slowRef).options.signal.aborted,true);
+  assert.equal(h.cards(render()).length,2);
+  assert.equal(h.calls.some(call=>call.url.includes('/discover')),false);
+  h.document.visibilityState='hidden';h.fire('document:visibilitychange');
+  h.advance(120_000);render();
+  assert.equal(h.calls.some(call=>call.url.includes('/discover')),false);
+  h.document.visibilityState='visible';h.fire('document:visibilitychange');
+  h.advance(59_999);render();
+  assert.equal(h.calls.some(call=>call.url.includes('/discover')),false);
+  h.advance(1);
+  assert.equal(h.cards(render()).length,2);
+  assert.equal(readiness(h,slowRef).options.signal.aborted,false);
   const fresh=h.calls.at(-1);
   assert.equal(fresh.url,'/api/hub/projects/discover?q=');
   reply(fresh,{...envelope([]),listings:[],next:null});await tick();
   assert.equal(h.cards(render()).length,0);
+  assert.equal(readiness(h,slowRef).options.signal.aborted,true);
+});
+
+test('background checks renew Play readiness without borrowing a previous direct URL',async()=>{
+  const h=harness([],true,true);
+  const playRef=`1.listing.235.${'a'.repeat(64)}.42`;
+  const listing={id:'235',identity:'e'.repeat(64),title:'Published app',author:'student',
+    repositoryUrl:'https://github.com/student/app',playRef};
+  const page={...envelope([]),listings:[listing],next:null};
+  const props={paginatedProjects:true,initialProjects:page};
+  const card=()=>h.cards(h.render(props))[0];
+  const url='https://student.github.io/app/';
+  card();
+  h.advance(45_000);
+  reply(readiness(h,playRef),{url,freshForMs:30_000,siteStatus:'reachable'});await tick();
+  assert.equal(card().playHref,url);
+  h.advance(15_000);
+  assert.equal(card().playHref,url);
+  reply(h.calls.at(-1),page);await tick();
+  assert.equal(card().playHref,undefined);
+  assert.equal(card().fallbackPlayHref,`/hub/play?ref=${playRef}`);
+  reply(h.calls.at(-1),{url:null,siteStatus:'unreachable'});await tick();
+  assert.equal(card().siteUnavailable,true);
+  h.advance(60_000);assert.equal(card().siteUnavailable,true);
+  reply(h.calls.at(-1),page);await tick();
+  assert.equal(card().siteUnavailable,true);
+  reply(h.calls.at(-1),{url,freshForMs:30_000,siteStatus:'reachable'});await tick();
+  assert.equal(card().siteUnavailable,false);
+  assert.equal(card().playHref,url);
 });
 
 test('same-document history traversal discards a cached server-rendered project page',async()=>{
-  const h=harness();
+  const h=harness([],true,true);
   const initialProjects={...envelope([project]),listings:[],next:null};
   const props={paginatedProjects:true,initialProjects};
   assert.equal(h.cards(h.render(props)).length,1);
@@ -208,7 +245,7 @@ test('lost visibility authority quarantines only the affected card',async()=>{
 });
 
 test('a failed server-rendered Projects request is retried by the explicit user action',async()=>{
-  const h=harness();
+  const h=harness([],true,true);
   const props={paginatedProjects:true,initialProjects:null};
   const initial=h.render(props);
   assert.equal(h.calls.length,0);

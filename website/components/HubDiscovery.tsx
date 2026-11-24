@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useRef, useState, type ReactNode} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseAuthor, releaseImage, releaseSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import styles from '@/app/hub/hub.module.css';
@@ -10,7 +10,6 @@ import {loadMetricBatches, metricLabel} from '@/lib/hub-metrics-client.mjs';
 import {parseProjectPlayRef} from '@/lib/hub-play-selector.mjs';
 import {HubProjectCard} from './HubProjectCard';
 import {HubPublishedProjects} from './HubPublishedProjects';
-import {HubProjectInfo} from './HubProjectInfo';
 import {HubProjectFeedback, HubProjectDetails, type ProjectFeedback} from './HubProjectFeedback';
 type Artifact = {url:string; size:number; sha256:string};
 type Component = {className:string; description:string; usage:string; api:string[]};
@@ -21,6 +20,7 @@ type Presentation = {id:string;sourceCommit:string;image?:string;description?:st
 type PublishedProject = {playRef?:string;id:string; title:string; author:string; repositoryUrl:string; identity:string; thumbnail?:string; stars?:number|null; issuesEnabled?:boolean|null; gameJamWinner?:boolean};
 type GalleryAllowance = {maintained:string[];releases:string[]};
 type PlayResult = {state:'observed';url?:string;site:ProjectFeedback['site'];thumbnail?:string}|{state:'hidden'|'quarantined'};
+const PROJECT_REFRESH_INTERVAL = 60_000;
 const numericIdentity=(value:unknown)=>typeof value==='string'&&/^[1-9][0-9]{0,19}$/.test(value);
 const sourceIdentity=(value:unknown)=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
 const webIdentity=(web:MaintainedProject['web'])=>web===undefined?null:[web.provider,web.url,web.commit,web.runId];
@@ -144,7 +144,11 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const [feedbackResult, setFeedbackResult] = useState<{key:string; items:Record<string,ProjectFeedback>; failed:boolean; gallery?:GalleryAllowance}|null>(null);
   type Metric = {id:string;kind:string;opens?:number|null;projects?:number|null;observedProjects?:number|null;totalProjects?:number|null};
   const [metrics, setMetrics] = useState<Record<string,Metric>>({});
+  const metricView = useRef('');
   const [retry, setRetry] = useState(0);
+  // Background checks keep the current view and card keys stable.
+  const [projectRefresh, setProjectRefresh] = useState(0);
+  const refresh = projectPage ? projectRefresh : 0;
   const catalogQuery = JSON.stringify(projectPage?[pageUrl,retry]:enforceJamVisibility?[requestedKind,search,id,version,retry]:[practiceOnly,retry]);
   const catalogGeneration = useRef({query:catalogQuery,value:0,search,retry,delay:0});
   if(catalogGeneration.current.query!==catalogQuery) catalogGeneration.current={query:catalogQuery,value:catalogGeneration.current.value+1,search,retry,delay:catalogGeneration.current.search!==search&&catalogGeneration.current.retry===retry?300:0};
@@ -152,18 +156,23 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const catalogKey = `${catalogGeneration.current.value}:${catalogQuery}`;
   const [initialCatalog] = useState(()=>{
     if (!projectPage || initialProjects===undefined || isHistoryRestore()) return null;
-    try { return {key:catalogKey,discovery:checkedDiscovery(initialProjects,validateEarlyProjects,true),error:''}; }
-    catch { return {key:catalogKey,discovery:null,error:'The shared catalog is unavailable. Try again shortly.'}; }
+    try { return {key:catalogKey,refresh,discovery:checkedDiscovery(initialProjects,validateEarlyProjects,true),error:''}; }
+    catch { return {key:catalogKey,refresh,discovery:null,error:'The shared catalog is unavailable. Try again shortly.'}; }
   });
-  const [catalogResult,setCatalogResult] = useState<{key:string;discovery:Discovery|null;error:string;restart?:boolean}|null>(initialCatalog);
-  const [playResult,setPlayResult] = useState<{key:string;items:Record<string,PlayResult>}|null>(null);
+  const [catalogResult,setCatalogResult] = useState<{key:string;refresh:number;discovery:Discovery|null;error:string;restart?:boolean}|null>(initialCatalog);
+  const [playResult,setPlayResult] = useState<{key:string;items:Record<string,{refresh:number; result:PlayResult}>}|null>(null);
   const playItems = playResult?.key===catalogKey ? playResult.items : {};
+  const currentCatalog = catalogResult?.key===catalogKey ? catalogResult : null;
+  const catalogRefresh = currentCatalog?.refresh;
+  const currentPlayItem=(ref:string)=>{
+    const observation=playItems[ref];
+    return observation?.refresh===catalogRefresh ? observation?.result : undefined;
+  };
   const visiblePlayItem=(item:{playRef?:string})=>{
-    const state=item.playRef ? playItems[item.playRef]?.state : undefined;
+    const state=item.playRef ? currentPlayItem(item.playRef)?.state : undefined;
     return state!=='hidden'&&state!=='quarantined';
   };
-  const quarantined=Object.values(playItems).some(item=>item.state==='quarantined');
-  const discovery = catalogResult?.key===catalogKey ? catalogResult.discovery : null;
+  const discovery = currentCatalog?.discovery ?? null;
   const catalog = discovery?.catalog || null;
   const error = catalogResult?.key===catalogKey ? catalogResult.error || (discovery && !catalog ? 'The shared catalog is unavailable. Try again shortly.' : '') : '';
   const restartPage = projectPage && catalogResult?.key===catalogKey && catalogResult.restart;
@@ -175,25 +184,25 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const projects = projectPage ? discovery?.maintained ?? [] :
     selectMaintainedProjects(discovery?.maintained || [], {kind, search, id, version}) as MaintainedProject[];
   useEffect(() => {
-    if (initialCatalog?.key===catalogKey) return;
+    if (initialCatalog?.key===catalogKey && refresh===0) return;
     const controller = new AbortController(); let active = true;
     let timeout:ReturnType<typeof setTimeout>|undefined;
     const load=()=>{
       timeout=setTimeout(() => controller.abort(), 22000);
       void fetch(pageUrl||(practiceOnly?'/api/hub/discovery?practice=1':'/api/hub/discovery'), {cache:'no-store', redirect:'error', signal:controller.signal}).then(async response => {
         if (pageUrl && response.status===409) {
-          if (active) setCatalogResult({key:catalogKey,discovery:null,error:'Projects changed. Return to the first page.',restart:true});
+          if (active) setCatalogResult({key:catalogKey,refresh,discovery:null,error:'Projects changed. Return to the first page.',restart:true});
           return;
         }
         if (!response.ok) throw new Error('The shared catalog is unavailable. Try again shortly.');
         const data = checkedDiscovery(await response.json(),validateEarlyProjects,!!pageUrl);
-        if (active) setCatalogResult({key:catalogKey,discovery:data,error:''});
-      }).catch(() => {if (active) setCatalogResult({key:catalogKey,discovery:null,error:'The shared catalog is unavailable. Try again shortly.'});}).finally(() => clearTimeout(timeout));
+        if (active) setCatalogResult({key:catalogKey,refresh,discovery:data,error:''});
+      }).catch(() => {if (active) setCatalogResult({key:catalogKey,refresh,discovery:null,error:'The shared catalog is unavailable. Try again shortly.'});}).finally(() => clearTimeout(timeout));
     };
     const debounce=searchDelay?setTimeout(load,searchDelay):undefined;
     if(!searchDelay)load();
     return () => {active = false; clearTimeout(debounce); clearTimeout(timeout); controller.abort();};
-  }, [retry, practiceOnly, catalogKey, searchDelay, validateEarlyProjects, pageUrl, initialCatalog]);
+  }, [refresh, practiceOnly, catalogKey, searchDelay, validateEarlyProjects, pageUrl, initialCatalog]);
   let releases:Release[] = [], selectionError = '';
   if (catalog) try {
     if (!['game','library','practice'].includes(requestedKind)) throw new Error('Choose projects, libraries or tutorial practice.');
@@ -228,31 +237,50 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
   const visibilityFailed = requiresGalleryCheck && feedbackResult?.key===feedbackKey && feedbackResult.failed;
   const metricIds = showDiscoveryCards ? '' : [...(projectPage?projects:visibleProjects).map(project=>project.id),
     ...(projectPage?releases:visibleReleases).filter(release=>release.status==='available').map(release=>release.id)].join(',');
+  const quarantined = [...projects,...releases,...listings].some(item=>
+    item.playRef && currentPlayItem(item.playRef)?.state==='quarantined');
   const playRefs = projectPage ? [...new Set([...projects,...releases,...listings].map(item=>item.playRef).filter(validPlayRef))].join(',') : '';
   useEffect(()=>{
+    if (projectPage) {
+      const checkRestored=()=>setRetry(value=>value+1);
+      const returnFromHistory=(event:PageTransitionEvent)=>{if(event.persisted)checkRestored();};
+      const stopObserving=observeProjectHistory(checkRestored);
+      restoredLocation=undefined;
+      window.addEventListener('pageshow',returnFromHistory);
+      return()=>{stopObserving();window.removeEventListener('pageshow',returnFromHistory);};
+    }
     const leave=()=>{leftPage.current=true;};
     const refresh=()=>{
       if(document.visibilityState==='hidden'){leave();return;}
-      if((projectPage&&!leftPage.current)||(!projectPage&&revalidating.current&&!leftPage.current))return;
+      if(revalidating.current&&!leftPage.current)return;
       revalidating.current=true;
       leftPage.current=false;
       setRetry(value=>value+1);
     };
     const returnFromHistory=(event:PageTransitionEvent)=>{if(event.persisted){leave();refresh();}};
-    const stopObserving=projectPage?observeProjectHistory(()=>{leave();refresh();}):undefined;
-    if(projectPage)restoredLocation=undefined;
     window.addEventListener('focus',refresh);
     window.addEventListener('blur',leave);
     window.addEventListener('pageshow',returnFromHistory);
     document.addEventListener('visibilitychange',refresh);
-    return()=>{stopObserving?.();window.removeEventListener('focus',refresh);window.removeEventListener('blur',leave);window.removeEventListener('pageshow',returnFromHistory);document.removeEventListener('visibilitychange',refresh);};
+    return()=>{window.removeEventListener('focus',refresh);window.removeEventListener('blur',leave);window.removeEventListener('pageshow',returnFromHistory);document.removeEventListener('visibilitychange',refresh);};
   },[projectPage]);
   useEffect(()=>{
-    if (catalogResult?.key===catalogKey && (projectPage || !((feedbackIds&&!practiceOnly)||requiresGalleryCheck) || feedbackResult?.key===feedbackKey))
+    if (!projectPage && catalogResult?.key===catalogKey && (!((feedbackIds&&!practiceOnly)||requiresGalleryCheck) || feedbackResult?.key===feedbackKey))
       revalidating.current=false;
   },[catalogResult,catalogKey,projectPage,feedbackIds,practiceOnly,requiresGalleryCheck,feedbackResult,feedbackKey]);
   useEffect(()=>{
-    if (!playRefs) return;
+    if(!projectPage || catalogRefresh!==refresh || restartPage)return;
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    const schedule=()=>{
+      clearTimeout(timer);
+      if(document.visibilityState==='visible')timer=setTimeout(()=>setProjectRefresh(value=>value+1),PROJECT_REFRESH_INTERVAL);
+    };
+    schedule();
+    document.addEventListener('visibilitychange',schedule);
+    return()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',schedule);};
+  },[projectPage,catalogKey,catalogRefresh,refresh,restartPage]);
+  useEffect(()=>{
+    if (!playRefs || catalogRefresh===undefined) return;
     const controller=new AbortController();
     const refs=playRefs.split(',');
     const allowed=new Set(refs);
@@ -263,7 +291,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     let running=0;
     const update=(ref:string,result:PlayResult)=>{
       if(!controller.signal.aborted)setPlayResult(previous=>({key:catalogKey,
-        items:{...(previous?.key===catalogKey?previous.items:{}),[ref]:result}}));
+        items:{...(previous?.key===catalogKey?previous.items:{}),[ref]:{refresh:catalogRefresh,result}}}));
     };
     const load=()=>{
       while (!controller.signal.aborted && running<2 && pending.length) {
@@ -311,7 +339,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     },{rootMargin:'200px'});
     document.querySelectorAll('[data-hub-play-ref]').forEach(card=>observer.observe(card));
     return()=>{observer.disconnect();stop();};
-  },[catalogKey,playRefs]);
+  },[catalogKey,catalogRefresh,playRefs]);
   useEffect(()=>{
     if ((!feedbackIds||practiceOnly)&&!requiresGalleryCheck) return;
     const controller=new AbortController();
@@ -354,7 +382,9 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     return()=>{clearTimeout(debounce);controller.abort();};
   },[kind,feedbackIds,feedbackKey,feedbackDelay,practiceOnly,requiresGalleryCheck,projectPage]);
   useEffect(()=>{
-    const controller=new AbortController(), requested=new Set<string>();setMetrics({});
+    const controller=new AbortController(), requested=new Set<string>();
+    const view=JSON.stringify([catalogKey,metricIds]);
+    if(metricView.current!==view){metricView.current=view;setMetrics({});}
     if(practiceOnly)return()=>controller.abort();
     const ids=new Set(metricIds?metricIds.split(','):[]);
     const load=(visible:string[])=>{
@@ -372,7 +402,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     },{rootMargin:'200px'});
     document.querySelectorAll('[data-hub-project-id]').forEach(card=>observer.observe(card));
     return()=>{observer.disconnect();controller.abort();};
-  },[kind,metricIds,practiceOnly]);
+  },[kind,metricIds,practiceOnly,catalogKey,catalogRefresh]);
   const projectMetric=(id:string)=>{
     const metric=metrics[id], label=practiceOnly?null:metricLabel(kind,metric);
     if(!label)return null;
@@ -381,21 +411,16 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
       <span className="sr-only">. {label.hint}</span>
     </p>;
   };
-  const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string;site?:ProjectFeedback['site']})=>(identity?:ReactNode,description?:string,placement?:'details')=>{
-    const observed=feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined;
-    const cardFeedback=projectPage?{id:entry.id,kind:'game' as const,repositoryUrl:entry.repositoryHref,
-      stars:observed?.stars??null,issuesEnabled:observed?.issuesEnabled??null,site:entry.site??{status:'not-checked' as const}}:observed;
-    if (placement==='details') return <HubProjectInfo title={entry.title} available={cardFeedback?.site.status==='reachable'}>
-      <HubProjectDetails {...entry} feedback={cardFeedback} description={description} pending={showDiscoveryCards}>{identity}</HubProjectDetails>
-    </HubProjectInfo>;
-    if(showDiscoveryCards)return null;
-    return <HubProjectFeedback {...entry} kind={kind==='game'?'game':'library'} compact={kind==='game'} feedback={cardFeedback} metric={projectMetric(entry.id)}>{identity}</HubProjectFeedback>;
-  };
+  const observedFeedback=(id:string, repositoryHref:string)=>feedback[id]?.repositoryUrl===repositoryHref?feedback[id]:undefined;
   function cardPlay(ref?:string) {
-    const play=ref ? playItems[ref] : undefined;
+    const cached=ref ? playItems[ref]?.result : undefined;
+    const play=ref ? currentPlayItem(ref) : undefined;
     return {playRef:ref,fallbackPlayHref:ref?playLinkFor(ref):undefined,
+      // Direct URLs belong to one check. Later checks can use the guarded link
+      // while refreshing, even if cleanup canceled the previous URL's timer.
       playHref:play?.state==='observed'?play.url:undefined,
-      site:play?.state==='observed'?play.site:undefined};
+      site:cached?.state==='observed'?cached.site:undefined,
+      thumbnail:cached?.state==='observed'?cached.thumbnail:undefined};
   }
   function changePage(cursors:string[]) {
     heading.current?.focus();
@@ -414,11 +439,16 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     <div className={gridClassName} aria-busy={projectPage&&!discovery&&!error||undefined}>
     {projectPage&&!discovery&&!error&&<ProjectPlaceholders/>}
     {visibleProjects.map(project => {
-      const launch=projectPage?cardPlay(project.playRef):{site:undefined,playHref:showDiscoveryCards?undefined:maintainedPlayLink(project)};
-      const {site,...playProps}=launch;
-      const siteReachable=projectPage?site?.status==='reachable':feedback[project.id]?.repositoryUrl===project.repositoryUrl&&feedback[project.id]?.site.status==='reachable';
-      return <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}
-        compact siteReachable={siteReachable} image={project.image} {...playProps} repositoryHref={project.repositoryUrl} feedback={projectFeedback({id:project.id,title:project.title,repositoryHref:project.repositoryUrl,playHref:launch.playHref,site,sourceCommit:project.sourceCommit})} />;
+      const {site,thumbnail:_thumbnail,...playProps}=projectPage?cardPlay(project.playRef):
+        {site:undefined,thumbnail:undefined,playHref:showDiscoveryCards?undefined:maintainedPlayLink(project)};
+      const observed=observedFeedback(project.id,project.repositoryUrl), description=projectSummary(project.description);
+      const checked=projectPage ? {...observed,site:site??{status:'not-checked' as const},id:project.id,kind:'game' as const,
+        repositoryUrl:project.repositoryUrl,stars:null,issuesEnabled:observed?.issuesEnabled??null} : observed;
+      return <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={description} author={project.author}
+        compact siteUnavailable={checked?.site.status==='unreachable'} image={project.image} {...playProps} repositoryHref={project.repositoryUrl}
+        metric={showDiscoveryCards?null:projectMetric(project.id)}
+        details={identity=><HubProjectDetails title={project.title} repositoryHref={project.repositoryUrl} playHref={playProps.playHref}
+          sourceCommit={project.sourceCommit} description={description} feedback={checked} pending={showDiscoveryCards}>{identity}</HubProjectDetails>} />;
     })}
     {includeListings && <HubPublishedProjects key={`${search}:${retry}`} search={search}
       hasOtherProjects={visibleProjects.length > 0 || visibleReleases.length > 0 || visibilityPending || !catalog} />}
@@ -428,11 +458,19 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={retryDiscovery}>{restartPage?'First page':'Try again'}</button></div> : !catalog ? (projectPage ? null : <p role="status">Loading {label}…</p>) : selectionError ? <p role="status">{selectionError}</p> : <>
       {!includeListings && !quarantined && !visibleReleases.length && !visibleProjects.length && !visibleListings.length && !visibilityPending && !visibilityFailed && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${label} match this search.` : libraryOwnerId ? 'You have no libraries in the main catalog yet.' : `No ${label} are available yet.`}</p>}
       {visibleReleases.map(release=>{
-        const launch=projectPage?cardPlay(release.playRef):{site:undefined,playHref:showDiscoveryCards?undefined:playLink(release)};
-        const {site,...playProps}=launch;
-        const siteReachable=projectPage?site?.status==='reachable':feedback[release.id]?.repositoryUrl===release.repository.url&&feedback[release.id]?.site.status==='reachable';
-        return <HubProjectCard projectId={!practiceOnly&&release.status==='available'?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
-        compact={release.kind==='game'} siteReachable={siteReachable} version={release.version} repositoryHref={release.repository.url} image={releaseImage(release, projectPreviews)} {...playProps} feedback={!practiceOnly&&release.status==='available'?projectFeedback({id:release.id,title:release.title,repositoryHref:release.repository.url,playHref:launch.playHref,site,sourceCommit:release.source.commit,version:release.version}):undefined}>
+        const {site,thumbnail:_thumbnail,...playProps}=projectPage?cardPlay(release.playRef):
+          {site:undefined,thumbnail:undefined,playHref:showDiscoveryCards?undefined:playLink(release)};
+        const isGame=release.kind==='game', available=release.status==='available';
+        const description=releaseSummary(release, projectPreviews), repositoryHref=release.repository.url;
+        const observed=observedFeedback(release.id,repositoryHref);
+        const checked=projectPage ? {...observed,site:site??{status:'not-checked' as const},id:release.id,kind:'game' as const,
+          repositoryUrl:repositoryHref,stars:null,issuesEnabled:observed?.issuesEnabled??null} : observed;
+        const entry={title:release.title,repositoryHref,playHref:playProps.playHref,sourceCommit:release.source.commit,version:release.version,feedback:checked};
+        return <HubProjectCard projectId={!practiceOnly&&available?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={description} author={releaseAuthor(release, releaseAuthors)}
+        compact={isGame} siteUnavailable={isGame&&checked?.site.status==='unreachable'} version={release.version} repositoryHref={repositoryHref} image={releaseImage(release, projectPreviews)} {...playProps}
+        metric={isGame&&available&&!showDiscoveryCards?projectMetric(release.id):null}
+        details={isGame&&available?identity=><HubProjectDetails {...entry} description={description} pending={showDiscoveryCards}>{identity}</HubProjectDetails>:undefined}
+        feedback={!isGame&&!practiceOnly&&available?<HubProjectFeedback {...entry} id={release.id} kind="library" metric={projectMetric(release.id)} />:undefined}>
         {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
           <p>In the updated Zero editor, choose Libraries and games → {practiceOnly?'Browse tutorial practice':'Browse ZeroHub'} → {release.title} → Add library → Apply. Check the author and exact version before applying.</p>
           <p><a href={`${sourceLink(release)}/examples`}>View examples</a></p>
@@ -444,25 +482,14 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
       })}
     </>}
     {visibleListings.map(item=>{
-      const {site,...playProps}=cardPlay(item.playRef);
-      const observation=item.playRef ? playItems[item.playRef] : undefined;
-      const thumbnail=observation?.state==='observed'?observation.thumbnail:undefined;
-      const reachable=site?.status==='reachable';
+      const {site,thumbnail,...playProps}=cardPlay(item.playRef);
       return <HubProjectCard key={item.identity} title={item.title} description="GitHub Pages app"
       author={item.author} repositoryHref={item.repositoryUrl} {...playProps}
       image={thumbnail??(listingThumbnail(item.thumbnail)?item.thumbnail:undefined)}
-      siteReachable={reachable} compact
-      feedback={(identity,description,placement)=>{
-        if (placement==='details') return <HubProjectInfo title={item.title} available={reachable}>
-          <HubProjectDetails title={item.title} repositoryHref={item.repositoryUrl} playHref={playProps.playHref} description={description}
-            feedback={{id:item.id,kind:'game',repositoryUrl:item.repositoryUrl,stars:item.stars??null,
-              issuesEnabled:item.issuesEnabled??null,site:site??{status:'not-checked'}}}>{identity}</HubProjectDetails>
-        </HubProjectInfo>;
-        return <div className={styles.feedback}><span className={styles.listingStars} title="GitHub repository stars">
-          <Icon name="star" /><span className="sr-only">GitHub repository stars: </span>
-          {item.stars==null?<><span aria-hidden="true">—</span><span className="sr-only">Unavailable</span></>:item.stars.toLocaleString()}
-        </span></div>;
-      }}>
+      siteUnavailable={site?.status==='unreachable'} compact
+      details={identity=><HubProjectDetails title={item.title} repositoryHref={item.repositoryUrl} playHref={playProps.playHref} description="GitHub Pages app"
+        feedback={{id:item.id,kind:'game',repositoryUrl:item.repositoryUrl,stars:null,
+          issuesEnabled:item.issuesEnabled??null,site:site??{status:'not-checked'}}}>{identity}</HubProjectDetails>}>
       {item.gameJamWinner && <span className={styles.winnerBadge}>Game Jam winner</span>}
       {!item.playRef && <a href={item.repositoryUrl}>Open on GitHub</a>}
     </HubProjectCard>;})}

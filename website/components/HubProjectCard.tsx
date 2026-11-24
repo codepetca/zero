@@ -8,8 +8,8 @@ import styles from '@/app/hub/hub.module.css';
 
 type Props = {
   projectId?: string; title: string; description: string; author: string; version?: string;
-  repositoryHref: string; image?: string; playHref?: string; fallbackPlayHref?: string; playRef?: string; compact?: boolean; siteReachable?: boolean;
-  feedback?: (identity?: ReactNode, description?: string, placement?: 'details') => ReactNode; children?: ReactNode;
+  repositoryHref: string; image?: string; playHref?: string; fallbackPlayHref?: string; playRef?: string; compact?: boolean; siteUnavailable?: boolean;
+  details?: (identity: ReactNode) => ReactNode; feedback?: ReactNode; metric?: ReactNode; children?: ReactNode;
 };
 
 // Default card art for projects without a valid image.
@@ -21,10 +21,10 @@ export function ProjectPattern({seed}: {seed: string}) {
   </svg>;
 }
 
-export function HubProjectCard({projectId, title, description, author, version, repositoryHref, image, playHref, fallbackPlayHref, playRef, compact, siteReachable, feedback, children}: Props) {
+export function HubProjectCard({projectId, title, description, author, version, repositoryHref, image, playHref, fallbackPlayHref, playRef, compact, siteUnavailable, details, feedback, metric, children}: Props) {
   const [failedImage, setFailedImage] = useState<string>();
   const pattern = <ProjectPattern seed={projectPatternSeed(author, repositoryHref.split('/').filter(Boolean).at(-1) || title)} />;
-  const destination = playHref || fallbackPlayHref;
+  const destination = siteUnavailable ? undefined : playHref || fallbackPlayHref;
   const playLabel = `${playHref ? 'Play' : 'Check availability and play'} ${title} (opens in a new tab)`;
   const recordOpen = (event: {button: number}) => { if (playHref && projectId && (event.button === 0 || event.button === 1)) recordPlayOpen(projectId); };
   const identity = <p className={styles.metadata}><a href={version ? `https://github.com/${author}` : repositoryHref}>@{author}</a>{version && <> · <a href={repositoryHref} aria-label={`${title} v${version} on GitHub`}>v{version}</a></>}</p>;
@@ -35,23 +35,19 @@ export function HubProjectCard({projectId, title, description, author, version, 
     {destination && <span className={styles.playOverlay} aria-hidden="true"><span><Icon name="play" className={styles.playIcon} /></span></span>}
   </>;
   if (compact) return <article className={styles.projectCard} data-hub-project-id={projectId} data-hub-play-ref={playRef}>
-    {destination ? <a className={styles.playImage} data-muted={!siteReachable || undefined} href={destination} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={playLabel}>
+    {destination ? <a className={styles.playImage} href={destination} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={playLabel}>
       {preview}
     </a> : <div className={styles.playImage} data-muted>{preview}</div>}
     <div className={styles.projectHeading}>
-      <h3 className={styles.imageTitle}><span title={title}>{title}</span></h3>
-      {feedback ? feedback(identity, description, 'details') : <HubProjectInfo title={title} available={!!siteReachable}><p>{description}</p>{identity}</HubProjectInfo>}
-    </div>
-    <div className={styles.cardFooter}>
-      {children}
-      {feedback?.()}
+      <HubProjectInfo title={title}>{details ? details(identity) : <><p>{description}</p>{identity}</>}{children}</HubProjectInfo>
+      {metric}
     </div>
   </article>;
   return <article className={styles.card} data-hub-project-id={projectId} data-hub-play-ref={playRef}>
     {destination ? <a className={styles.playImage} href={destination} onClick={recordOpen} onAuxClick={event=>{if(event.button===1)recordOpen(event);}} target="_blank" rel="noopener noreferrer" aria-label={playLabel}>{preview}</a> : image && <img className={styles.thumbnail} src={image} alt={`${title} screenshot`} loading="lazy" />}
     <div className={styles.cardContent}>
       <h3>{title}</h3><p className={styles.description}>{description}</p>
-      {identity}{feedback?.()}
+      {identity}{feedback}
       {children}
     </div>
   </article>;

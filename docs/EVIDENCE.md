@@ -14667,3 +14667,17 @@ In a disposable macOS VS Code 1.147.0 source host, cancellation preserved the
 file. Confirmation moved a file and a nonempty folder to Trash, refreshed the
 tree and kept the java root available for creation. The owner directed that the
 manual Windows smoke be skipped. The PR records the final review and CI result.
+
+### ZeroHub Projects gallery (2026-11-24)
+
+The project title opens details, play counts sit at the top right and the bottom
+of the preview stays clear. Confirmed unreachable previews disable Play. Visible
+tabs check for updates one minute after each completed catalog check, with the
+current cards displayed while the request is pending.
+
+The web-only port on `45682b372` preserves the guarded Play path, individual
+visibility checks and short expiry for direct Play URLs. TypeScript and 50
+focused tests passed, including server-prefetched projects, history restoration,
+hidden tabs and reachability changes during background refresh. Independent
+GPT-6.1 Sol review at medium reasoning found no actionable issue. The PR records
+CI and production verification.
