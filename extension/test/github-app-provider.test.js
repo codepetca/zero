@@ -223,6 +223,7 @@ test('a temporary verification outage requires fresh review and keeps the saved 
     && !/private|sign-in changed|Sign in to Zero/.test(error.message);
   await assert.rejects(auth.assertCurrent(ticket), unavailable);
   await assert.rejects(auth.capture(), unavailable);
+  assert.equal(auth.verificationUnavailable, true);
   assert.match(auth.status, /verification unavailable/);
   assert.doesNotMatch(auth.status, /Sign in to Zero/);
   assert.throws(() => auth.assertCurrentNow(ticket));
@@ -230,6 +231,7 @@ test('a temporary verification outage requires fresh review and keeps the saved 
   offline = false;
   const next = await auth.capture();
   await auth.assertCurrent(next);
+  assert.equal(auth.verificationUnavailable, false);
   assert.equal(next.session.accountId, ticket.session.accountId);
   assert.ok(next.revision > ticket.revision);
   await assert.rejects(auth.assertCurrent(ticket), /account or sign-in changed/);
@@ -249,6 +251,7 @@ test('revalidation of a revoked connection asks for sign-in', async t => {
   revoked = true;
   await assert.rejects(auth.assertCurrent(ticket), error => error.kind === 'auth' && /Sign in to Zero/.test(error.message));
   assert.equal(f.data.has(SECRET_KEY), false);
+  assert.equal(auth.verificationUnavailable, false);
   assert.throws(() => auth.assertCurrentNow(ticket));
 });
 

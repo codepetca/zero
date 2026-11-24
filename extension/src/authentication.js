@@ -121,6 +121,7 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
       if (lastError?.code === 'github-unavailable') return 'GitHub verification unavailable. Check your connection and try again.';
       return unavailable ? 'GitHub sign-in unavailable. Try Sign in to Zero; local running still works.' : 'Not signed in';
     },
+    get verificationUnavailable() { return lastError?.code === 'github-unavailable'; },
     get signedIn() { return Boolean(current); },
     get sessionId() { return current?.id; },
     get revision() { return revision; },
