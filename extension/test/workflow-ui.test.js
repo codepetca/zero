@@ -237,6 +237,20 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   choice = undefined;
   assert.doesNotMatch([...errors,...logs].join('\n'), /PRIVATE_GIT_OUTPUT/);
   assert.deepEqual({saved,prepared,executed,transportDispatches},beforeBlockedMerge);
+  {
+    const prepareStart = workflow.prepareStart;
+    const previousReports = manualReports.length;
+    workflow.prepareStart = async () => {throw new Error('This project contains a nested repository.');};
+    choice = 'start';
+    try {
+      await commands.get('zero.startChange')();
+      await commands.get('zero.chooseBranch')();
+      assert.deepEqual(manualReports.slice(previousReports), [
+        ['branch-create','git',undefined,root],
+        ['branch-create','git',undefined,root]
+      ]);
+    } finally {workflow.prepareStart = prepareStart;choice = undefined;}
+  }
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['start','finish','switch']);
   warningChoice='Merge';let releasePrepare;prepareGate=new Promise(resolve=>{releasePrepare=resolve;});const preparedBeforeFinish=prepared;const pending=commands.get('zero.finishChange')();await waitFor(()=>prepared>preparedBeforeFinish, 'Finish preparation should start directly');
   const before={saved,prepared,authCalls};for(const id of ['zero.startChange','zero.finishChange','zero.syncProject','zero.uploadToGitHub','zero.githubAccount','zero.chooseRepository','zero.chooseBranch','zero.connectRepository','zero.signInToGitHub'])await commands.get(id)();

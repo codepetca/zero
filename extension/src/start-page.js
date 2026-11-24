@@ -120,7 +120,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     if (action === 'local' || action === 'tutorials') return Boolean(snapshot.accountId);
     if (action === 'signIn') return snapshot.phase === 'signed-out';
     if (action === 'connect') return snapshot.phase === 'connect';
-    if (action === 'setup') return Boolean(snapshot.accountId) && ['install', 'unavailable'].includes(snapshot.phase);
+    if (action === 'setup') return snapshot.phase === 'verification-unavailable' || Boolean(snapshot.accountId) && ['install', 'unavailable'].includes(snapshot.phase);
     return false;
   }
 
@@ -135,7 +135,8 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     try {
       // There is no await between the current-account check and invocation.
       if (choice) await openRecent({...choice.item}, accountId);
-      else await executeAction(COMMANDS[action]);
+      else await executeAction(action === 'setup' && before.phase === 'verification-unavailable'
+        ? 'zero.recheckGitHubConnection' : COMMANDS[action]);
     } catch (error) {
       if (!current(target) || state().accountId !== accountId) return;
       failure = `Could not ${choice ? 'open this project' : ({tutorials:'open Zero Docs', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to Zero', connect:'connect to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
@@ -313,12 +314,15 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
       button.disabled = state.busy || (['new','clone'].includes(action) && !ready) || (['local','tutorials'].includes(action) && !signedIn);
       if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
       if (action === 'connect') button.hidden = state.phase !== 'connect';
-      if (action === 'setup') {button.hidden = !signedIn || !['install','unavailable'].includes(state.phase);button.textContent = state.phase === 'install' ? 'Install Zero for GitHub' : 'Check again';}
+      if (action === 'setup') {
+        button.hidden = state.phase !== 'verification-unavailable' && (!signedIn || !['install','unavailable'].includes(state.phase));
+        button.textContent = state.phase === 'install' ? 'Install Zero for GitHub' : 'Check again';
+      }
     }
     for (const menu of dropdowns) menu.refresh(state.busy || !signedIn);
     byId('account').textContent = state.accountLabel;
     byId('github-profile').hidden = !state.accountLabel;
-    const guidance = ready || ['signed-out','connect'].includes(state.phase) ? '' : state.phase === 'install' ? 'Give Zero access to your selected repositories on GitHub, then return here.' : state.phase === 'checking' ? 'Checking GitHub access…' : 'GitHub access could not be checked. Try again, or open a local project.';
+    const guidance = ready || ['signed-out','connect'].includes(state.phase) ? '' : state.phase === 'install' ? 'Give Zero access to your selected repositories on GitHub, then return here.' : state.phase === 'checking' ? 'Checking GitHub access…' : state.phase === 'verification-unavailable' ? 'GitHub could not be reached. Check again when your connection is available.' : 'GitHub access could not be checked. Try again, or open a local project.';
     byId('github-section').hidden = !guidance;
     byId('guidance').hidden = !guidance;
     if (byId('guidance').textContent !== guidance) byId('guidance').textContent = guidance;

@@ -76,6 +76,17 @@ test('message allowlist rejects arbitrary commands, paths, URLs, inherited names
   await f.message(panel, {type:'action', action:'local'});assert.deepEqual(f.commands, ['zero.openLocalProject']);page.dispose();
 });
 
+test('Start Page retries unavailable verification without opening sign-in or project actions', async () => {
+  const f = fake({phase:'verification-unavailable'}), {page, panel} = await open(f);
+  for (const action of ['new','clone','signIn','connect','setup']) await f.message(panel, {type:'action', action});
+  assert.deepEqual(f.commands, ['zero.recheckGitHubConnection']);
+  f.setState({phase:'signed-out'});await page.refresh();
+  await f.message(panel, {type:'action', action:'setup'});
+  await f.message(panel, {type:'action', action:'signIn'});
+  assert.deepEqual(f.commands, ['zero.recheckGitHubConnection','zero.signInToGitHub']);
+  page.dispose();
+});
+
 test('opaque recent IDs capture vetted entries and never accept webview destination fields', async () => {
   const f = fake();const item = {path:'/Projects/Greeting', lastOpened:123, repositoryUrl:'https://github.com/student/greeting'};
   f.dependencies.listRecent = async () => [item];

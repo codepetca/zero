@@ -514,7 +514,7 @@ function activate(context, services = {}) {
   startPage=createStartPage(vscode,{
     onDidChangeOpen:refreshSidebarShortcut,
     executeAction:command=>vscode.commands.executeCommand(command,startPageInvocation),
-    getState:()=>({phase:auth.signedIn ? githubReadiness.phase : hasLocalZeroAccount ? 'connect' : 'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
+    getState:()=>({phase:auth.signedIn ? githubReadiness.phase : auth.verificationUnavailable ? 'verification-unavailable' : hasLocalZeroAccount ? 'connect' : 'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
     listRecent:accountId=>recentProjects.list(accountId),
     openRecent:async(item,accountId)=>{
       const generation=runGeneration;
@@ -563,6 +563,20 @@ function activate(context, services = {}) {
     } catch (error) {
       if (!disposed) throw error;
     } finally { signingIn = false; if (!disposed) refresh(); }
+  }
+  async function recheckGitHubConnection() {
+    if (disposed || isBusy() || !auth.verificationUnavailable) return;
+    signingIn = true;
+    refresh();
+    try {
+      await auth.capture();
+      if (disposed) return;
+      await githubReadiness.refresh();
+      if (!disposed) report('GitHub connection verified. Review the operation again.');
+    } finally {
+      signingIn = false;
+      if (!disposed) refresh();
+    }
   }
   let localBranchMenu;
   async function repositoryStatus({forceBranchCheck=false,suppressRemoteChecks=false,localCommit,confirmedBranch}={}) {
@@ -1456,8 +1470,12 @@ function activate(context, services = {}) {
     const missing=kind==='sync'?observedMissing(projectRoot):undefined;
     changing = true; refresh();
     let reviewedAccountId,confirmedBranch;
-    let mergeStage = 'checking', operationRoot;
-    if (kind === 'finish') problemReporter.breadcrumb('merge', mergeStage, 'started');
+    const reportOperation = kind === 'finish' ? 'merge' : kind === 'start' ? 'branch-create' : undefined;
+    let reportStage = kind === 'finish' ? 'checking' : 'git', operationRoot;
+    if (reportOperation) {
+      reportAvailable = false;
+      problemReporter.breadcrumb(reportOperation, reportStage, 'started');
+    }
     try {
       const root = await project();
       operationRoot = root;
@@ -1567,8 +1585,8 @@ function activate(context, services = {}) {
           if (result.needsPush) {
             const choice=await vscode.window.showWarningMessage('Retry the earlier merge?',{modal:true,detail:`Push commit ${result.candidate} to refs/heads/main in ${result.page}. Your newer branch commits stay on this branch. The final GitHub check and non-force push are not atomic: if main is deleted or rewound in between, the push may recreate or fast-forward it.`},'Merge');
             if (choice!=='Merge') return;
-            mergeStage = 'merging';
-            problemReporter.breadcrumb('merge', mergeStage, 'started');
+            reportStage = 'merging';
+            problemReporter.breadcrumb('merge', reportStage, 'started');
             await beforeNetwork();
             result=await workflowLocalPhase(root,{...options,allowPush:true},phase=>workflow.recoverPendingFinish(recoveryPlan,phase));
           }
@@ -1598,8 +1616,8 @@ function activate(context, services = {}) {
             const detail = `GitHub main in ${plan.page} already includes ${plan.branch}. Update local main to the reviewed commit and switch to it. Your feature branch stays available.`;
             if (await vscode.window.showWarningMessage('Switch to updated main?', {modal:true, detail}, 'Switch to main') !== 'Switch to main') return;
           } else if(await vscode.window.showWarningMessage(`Merge ${plan.branch} into main?`,{modal:true},'Merge')!=='Merge'){state='Merge cancelled';return;}
-          mergeStage = 'merging';
-          problemReporter.breadcrumb('merge', mergeStage, 'started');
+          reportStage = 'merging';
+          problemReporter.breadcrumb('merge', reportStage, 'started');
         }
         if (updating && plan.cleanMerge) {
           if (quiet) throw Object.assign(new Error('Review the merge from the branch menu.'), {nativeUpdateHandoff:true});
@@ -1651,9 +1669,9 @@ function activate(context, services = {}) {
       if (!quiet&&kind!=='start'&&vscode.window.withProgress) return await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title,cancellable:false},execute);
       return await execute();
     } catch(error) {
-      if (kind === 'finish') {
+      if (reportOperation) {
         reportAvailable = true;
-        problemReporter.recordManual('merge', mergeStage, error?.code, operationRoot || projectRoot);
+        problemReporter.recordManual(reportOperation, reportStage, error?.code, operationRoot || projectRoot);
       }
       if (error.workflowRecovery) await rememberPush(error.workflowRecovery,reviewedAccountId);
       if (error.conflict&&!quiet) await conflictHelp();
@@ -1814,6 +1832,7 @@ function activate(context, services = {}) {
   async function syncBranch(expectedScope) {
     if(isBusy())return;
     if(typeof expectedScope==='string'&&expectedScope!==syncScope())throw new Error('The branch or account changed. Try Sync again.');
+    if (auth.verificationUnavailable && uploadMode() === 'live') return recheckGitHubConnection();
     const selection={root:projectRoot,branch,head:branchHead,remote:`${repository}.git`,account:auth.accountId,session:auth.sessionId,authEpoch:branchAuthEpoch};
     changing=true;blockedSync=undefined;
     state='Syncing with GitHub…';refresh();
@@ -2006,6 +2025,7 @@ function activate(context, services = {}) {
       }
     },
     'zero.signInToGitHub': signIn,
+    'zero.recheckGitHubConnection': recheckGitHubConnection,
     'zero.setupGitHub': async () => {
       if (disposed || isBusy()) return;
       signingIn = true;refresh();
@@ -3457,8 +3477,6 @@ function activate(context, services = {}) {
     'zero.publishAndOpenWeb':'publish',
     'zero.syncBranch':'sync',
     'zero.commitChanges':'commit',
-    'zero.startChange':'branch-create',
-    'zero.finishChange':'merge',
     'zero.newProject':'project-create',
     'zero.cloneRepository':'project-clone',
     'zero.openLocalProject':'project-open',
@@ -3467,16 +3485,13 @@ function activate(context, services = {}) {
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async (...args) => {
     const operation=reportOperation(id);
     const stage = operation === 'run-native' ? 'preparing' : 'unknown';
-    if(operation){
-      reportAvailable=false;
-      if(operation!=='merge')problemReporter.breadcrumb(operation,stage,'started');
-    }
+    if(operation){reportAvailable=false;problemReporter.breadcrumb(operation,stage,'started');}
     const inline=args[0]===startPageInvocation;
     if(inline)args.shift();
     try {await action(...args);} catch(error) {
       if(error.code==='ZERO_BROWSER_TOOLING_UPDATE_CANCELLED'){report(error.message);return;}
       if(operation){reportAvailable=true;refresh();}
-      if(operation && operation!=='publish' && operation!=='merge')problemReporter.failure(error,operation,stage,projectRoot);
+      if(operation && operation!=='publish')problemReporter.failure(error,operation,stage,projectRoot);
       const message = error.zeroRunMessage || error.message;
       const signInUnavailable = /^Zero sign-in was cancelled or unavailable\./.test(message);
       const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
@@ -3550,8 +3565,8 @@ function activate(context, services = {}) {
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
     const showRepository = projectRoot && (ready || phase==='unavailable' || connected || branch || branchDetached || branchError);
     const observed=branchRemoteStatus&&currentBranchObservation(branchRemoteStatus)?branchRemoteStatus:undefined;
-    const connectionState=uploadMode()!=='live'?'simulation':!connected?(repository==='No repository connected'?'local':'unknown'):!auth.signedIn?'auth':observed?.checkedAt&&Date.now()-observed.checkedAt>=120000?'stale':observed?.state||'unknown';
-    const canSync=connected&&auth.signedIn&&Boolean(branchHead)&&uploadMode()==='live';
+    const connectionState=uploadMode()!=='live'?'simulation':!connected?(repository==='No repository connected'?'local':'unknown'):auth.verificationUnavailable?'offline':!auth.signedIn?'auth':observed?.checkedAt&&Date.now()-observed.checkedAt>=120000?'stale':observed?.state||'unknown';
+    const canSync=connected&&(auth.signedIn||auth.verificationUnavailable)&&Boolean(branchHead)&&uploadMode()==='live';
     const currentCounts=observed?.state===connectionState?observed:undefined;
     const outgoing=currentCounts?.outgoing,incoming=currentCounts?.incoming;
     const upToDate=outgoing===0&&incoming===0&&currentCounts.remoteHead===branchHead&&!pendingUpload&&!pendingLocalCommit;
