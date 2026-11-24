@@ -11,6 +11,7 @@ const {assertShareable, isLocalPracticeMarker} = require('./lesson-projects');
 const {prepareUpload, assertNoUrlRewrites, validBranch} = require('./github');
 const {finishMessage,readFinishedBranch,validFinishedBranch}=require('./finished-change-marker');
 const {mergeGitDiagnostic} = require('./merge-git-diagnostic');
+const {refuseGitlinks, deletedSource, replacesRegularFile} = require('./git-path-review');
 const {updateDirectMain,checkoutDirectMain,updateCheckedOutFeature,adoptReviewedMain,preflightDirectMain,attachSameTreeMain,deleteDirectFeature}=require('./direct-main-transaction');
 // Only equal-tree, ref-only fast-forwards may use this path.
 const ENABLE_REFTABLE_REF_ONLY = true;
@@ -105,7 +106,7 @@ async function state(project, run, {full = false, connected = false, allowMerge 
   }
   const statusArgs=['status','--porcelain=v1','-z','--untracked-files=all'];
   const status=localOnly?await run(root,['-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false',...statusArgs],{env:switchEnvironment()}):await run(root,['-c','core.fsmonitor=false',...statusArgs]);
-  if ((await run(root, ['ls-files', '--stage', '-z'])).split('\0').some(entry => entry.startsWith('160000 '))) throw new Error('Nested repositories or submodules are not supported. Open a standalone student project.');
+  refuseGitlinks((await run(root, ['ls-files', '--stage', '-z'])).split('\0'));
   const current = {root, ...repository, ...refs, status, gitDir: await fs.realpath(gitDir), worktrees};
   if (!full) return current;
   const source = await prepareUpload(root, (cwd,args,options)=>run(cwd,args[0]==='status'?['-c','core.fsmonitor=false',...args]:args,options));
@@ -151,18 +152,24 @@ async function readWorkflowOrigin(root,run,requireOrigin) {
 // carrying these exact edits, and changes during the prompt require a retry.
 async function startFingerprint(current, run) {
   const digest = crypto.createHash('sha256');
-  digest.update(await run(current.root, ['ls-files', '--stage', '-z']));
+  const staged = await run(current.root, ['ls-files', '--stage', '-z']);
+  digest.update(staged);
+  const entries = staged.split('\0');
   const records = current.status.split('\0').filter(Boolean);
   for (let i = 0; i < records.length; i++) {
     const record = records[i], kind = record.slice(0, 2);
     const names = [record.slice(3)];
     if (/[RC]/.test(kind)) names.push(records[++i]);
-    for (const name of names) {
+    for (const [position, name] of names.entries()) {
       const file = path.resolve(current.root, name);
       if (!file.startsWith(`${current.root}${path.sep}`)) throw new Error('Git includes a path outside the student project.');
       digest.update(JSON.stringify(name));
       try {
         const info = await fs.lstat(file);
+        if (info.isDirectory() && await replacesRegularFile(current, name, deletedSource(kind, position === 1), entries, run)) {
+          digest.update('replaced-by-directory');
+          continue;
+        }
         digest.update(JSON.stringify([info.mode, info.size]));
         if (info.isSymbolicLink()) digest.update(await fs.readlink(file));
         else if (info.isFile()) for await (const chunk of createReadStream(file)) digest.update(chunk);
@@ -342,6 +349,16 @@ async function matchingFeature(current, pending, run) {
   catch (error) { if (error.code === 128) return false; throw error; }
   return shaPattern.test(head) && await ancestor(run, current.root, pending.feature, head);
 }
+async function archivedTree(root, commit, run) {
+  try { return await run(root, ['rev-parse', `${commit}^{tree}`]); }
+  catch (error) {
+    if (error.code !== 128) throw error;
+    const failure = new Error('Git could not read the files from an earlier merge in this branch’s history. Open Source Control to inspect the history before trying the merge again.');
+    failure.code = 'ZERO_MERGE_HISTORY_UNREADABLE';
+    throw keepMergeDiagnostic(failure, error);
+  }
+}
+
 // Retired candidates are hints, not authority: accept only exact, direct
 // object-named refs with a valid boundary for this feature and both histories.
 async function archivedFinishIn(current, descendant, run, {includeOnMain = false, confirmIncluded = false} = {}) {
@@ -354,9 +371,9 @@ async function archivedFinishIn(current, descendant, run, {includeOnMain = false
     if (await run(current.root, ['cat-file', '-t', id]) !== 'commit') continue;
     const parents = (await run(current.root, ['rev-list', '--parents', '-n', '1', id])).split(' ');
     if (parents.length !== 3 || parents[0] !== id || await readFinishedBranch(current.root,id,run) !== current.branch ||
-        await run(current.root, ['rev-parse', `${id}^{tree}`]) !== await run(current.root, ['rev-parse', `${parents[2]}^{tree}`]) ||
-        !(await ancestor(run, current.root, parents[1], parents[2])) || !(await ancestor(run, current.root, parents[2], current.head)) ||
-        !(await ancestor(run, current.root, id, descendant))) continue;
+        !(await ancestor(run, current.root, id, descendant)) ||
+        await archivedTree(current.root, id, run) !== await archivedTree(current.root, parents[2], run) ||
+        !(await ancestor(run, current.root, parents[1], parents[2])) || !(await ancestor(run, current.root, parents[2], current.head))) continue;
     if (!confirmIncluded && await ancestor(run, current.root, id, current.mainHead) &&
         !(includeOnMain && (current.head === parents[2] || current.head === descendant))) continue;
     matches.push({id, feature:parents[2]});
@@ -1188,7 +1205,7 @@ async function cleanupState(root, run, expectedLayout) {
   await refuseFinishReplacements(layout, run);
   const entries = (await run(root, ['ls-files', '--stage', '-v', '-z'])).split('\0').filter(Boolean);
   if (entries.some(entry => /^[a-zS] /.test(entry))) throw new Error('Git index flags can hide local changes. Check native Source Control before cleaning up this branch.');
-  if (entries.some(entry => /^[A-Z] 160000 /.test(entry))) throw new Error('Nested repositories or submodules are not supported. Open a standalone student project.');
+  refuseGitlinks(entries.map(entry => entry.slice(2)));
   const current = await state(root, run);
   clean(current);
   if (current.branch !== 'main' || current.head !== current.mainHead) throw new Error('Switch to clean main before deleting a finished local feature.');

@@ -1551,3 +1551,159 @@ for(const archived of [false,true])test(`Sync preserves confirmed merge evidence
  assert.equal(await core.git(f.root,['rev-parse','HEAD']),newer);assert.equal(await core.git(f.root,['show-ref']),before);
  assert.equal(f.calls.filter(args=>args[0]==='push').length,pushes);
 });
+
+test('retired finish validates trees only for an ancestor of the reviewed descendant', async t => {
+  for (const relevant of [false, true]) await t.test(relevant ? 'required history' : 'unrelated history', async t => {
+    const f = await fixture(t);
+    const {head:base} = await start(f);
+    const feature = await commit(f.root, 'Score.java', 'score');
+    const tree = await core.git(f.root, ['rev-parse', 'HEAD^{tree}']);
+    // Remove only the synthetic archive tree. The current and parent trees remain readable.
+    const blob = await core.git(f.root, ['rev-parse', 'HEAD:Score.java']);
+    const rawTree = path.join(f.parent, 'archive-tree');
+    await fs.writeFile(rawTree, Buffer.concat([Buffer.from('100644 archived-score\0'), Buffer.from(blob, 'hex')]));
+    const oldTree = await core.git(f.root, ['hash-object', '-w', '-t', 'tree', rawTree]);
+    const archive = await core.git(f.root, ['commit-tree', oldTree, '-p', base, '-p', feature, '-m',
+      'Zero: finish add-score\n\nZero-Finished-Change: 1\nZero-Change-Branch: add-score']);
+    await core.git(f.root, ['update-ref', 'refs/zero/retired-finish/' + archive, archive]);
+    if (relevant) {
+      const tip = await core.git(f.root, ['commit-tree', tree, '-p', archive, '-m', 'Later feature work']);
+      await core.git(f.root, ['update-ref', 'refs/heads/add-score', tip, feature]);
+    }
+    await fs.unlink(path.join(f.root, '.git', 'objects', oldTree.slice(0,2), oldTree.slice(2)));
+    const before = await core.git(f.root, ['show-ref']);
+    if (relevant) {
+      await assert.rejects(workflow.prepareFinish(f.root, f.options), error =>
+        error.code === 'ZERO_MERGE_HISTORY_UNREADABLE' && /Source Control/.test(error.message));
+      assert.equal(f.calls.length, 0);
+    } else {
+      assert.equal((await workflow.prepareFinish(f.root, f.options)).head, feature);
+      assert.ok(f.calls.every(args => args[0] === 'ls-remote'));
+    }
+    assert.equal(await core.git(f.root, ['show-ref']), before);
+  });
+});
+
+test('New branch and Commit carry a tracked file replaced by ordinary project files', async t => {
+  for (const stage of [false, true]) await t.test(stage ? 'staged' : 'unstaged', async t => {
+    const f = await fixture(t);
+    const old = path.join(f.root, 'Main.java');
+    await fs.unlink(old);
+    await fs.mkdir(old);
+    await fs.writeFile(path.join(old, 'Asset.txt'), 'reviewed');
+    if (stage) await core.git(f.root, ['add', '-A']);
+    const start = await workflow.prepareStart(f.root, 'assets', f.options);
+    const initial = await core.git(f.root, ['status', '--porcelain=v1', '-z', '--untracked-files=all']);
+    await fs.writeFile(path.join(old, 'Asset.txt'), 'modified');
+    await assert.rejects(workflow.startPrepared(start, f.options), /changed after review/);
+    await fs.writeFile(path.join(old, 'Asset.txt'), 'reviewed');
+    await workflow.startPrepared(await workflow.prepareStart(f.root, 'assets', f.options), f.options);
+    assert.equal(await core.git(f.root, ['status', '--porcelain=v1', '-z', '--untracked-files=all']), initial);
+    await workflow.switchPrepared(await workflow.prepareSwitch(f.root, 'main', f.options), f.options);
+    assert.equal(await core.git(f.root, ['status', '--porcelain=v1', '-z', '--untracked-files=all']), initial);
+    const github = require('../src/github');
+    const saved = await github.uploadPrepared(await github.prepareLocalCommit(f.root), 'Save assets', {localOnly:true});
+    assert.equal(saved.committed, true);
+    assert.equal(await core.git(f.root, ['show', 'HEAD:Main.java/Asset.txt']), 'reviewed');
+    assert.equal(await core.git(f.root, ['status', '--porcelain']), '');
+    assert.deepEqual(f.calls, []);
+  });
+});
+
+test('New branch and Commit identify a nested repository before and after staging', async t => {
+  const f = await fixture(t);
+  const inner = path.join(f.root, 'lesson');
+  await fs.mkdir(inner);
+  await core.git(inner, ['init', '-b', 'main']);
+  await core.git(inner, ['-c','user.name=Test','-c','user.email=test@example.invalid','commit','--allow-empty','-m','Nested history']);
+  const head = await core.git(inner, ['rev-parse', 'HEAD']);
+  for (const staged of [false, true]) {
+    if (staged) await core.git(f.root, ['add', '--', 'lesson']);
+    for (const prepare of [() => workflow.prepareStart(f.root,'new',f.options), () => require('../src/github').prepareLocalCommit(f.root)]) {
+      await assert.rejects(prepare(), error => /Nested repositories/.test(error.message) && error.message.includes('“lesson”') && !error.message.includes(f.root));
+    }
+  }
+  const {refuseGitlinks} = require('../src/git-path-review');
+  assert.throws(() => refuseGitlinks(['160000 ' + head + ' 0\tlesson\nprivate-text']),
+    error => /Nested repositories/.test(error.message) && !error.message.includes('private-text'));
+  assert.equal(await core.git(inner, ['rev-parse', 'HEAD']), head);
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+});
+
+test('isolated merge ownership refusal hands off without trusting the folder or contacting GitHub', async t => {
+  const f = await fixture(t);
+  await start(f);
+  await commit(f.root, 'Game.java', 'game');
+  const refs = await core.git(f.root, ['show-ref']);
+  const run = async (root, args, options) => {
+    if (args.includes('--show-ref-format')) {
+      assert.equal(options.env.GIT_CONFIG_GLOBAL, os.devNull);
+      assert.equal(options.env.GIT_CONFIG_NOSYSTEM, '1');
+      assert.ok(!args.some(arg => arg.includes('safe.directory')));
+      // Exercise Git's ownership check without changing actual file ownership.
+      return core.git(root, args, {...options, env:{...options.env,LC_ALL:'C',GIT_TEST_ASSUME_DIFFERENT_OWNER:'1'}});
+    }
+    return f.run(root, args, options);
+  };
+  await assert.rejects(workflow.prepareFinish(f.root,{...f.options,run}), error =>
+    error.nativeUpdateHandoff === true && /ownership.*Source Control/.test(error.message) && !error.message.includes(f.root));
+  assert.deepEqual(f.calls, []);
+  assert.equal(await core.git(f.root, ['show-ref']), refs);
+});
+
+test('Commit preserves later unreviewed files when saving a file-to-directory replacement', async t => {
+  const f = await fixture(t);
+  const dir = path.join(f.root, 'Main.java');
+  const github = require('../src/github');
+  await fs.unlink(dir);
+  await fs.mkdir(dir);
+  await fs.writeFile(path.join(dir, 'asset.txt'), 'reviewed');
+  const plan = await github.prepareLocalCommit(f.root);
+  let injected = false;
+  const run = async (root, args, options) => {
+    if (!injected && args.includes('add')) {
+      injected = true;
+      await fs.writeFile(path.join(dir, 'late.txt'), 'later edit');
+    }
+    return core.git(root, args, options);
+  };
+  await assert.rejects(github.uploadPrepared(plan, 'Save', {localOnly:true,run}), /No commit was made/);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), plan.head);
+  assert.equal(await core.git(f.root, ['ls-files', '--', 'Main.java/late.txt']), '');
+  assert.equal(await fs.readFile(path.join(dir, 'late.txt'), 'utf8'), 'later edit');
+});
+
+test('ordinary replacements can be empty or contain the renamed original file', async t => {
+  for (const rename of [false, true]) await t.test(rename ? 'staged rename source' : 'empty replacement', async t => {
+    const f = await fixture(t);
+    const dir = path.join(f.root,'Main.java');
+    const original = await fs.readFile(dir);
+    await fs.unlink(dir);
+    await fs.mkdir(dir);
+    if (rename) {
+      await fs.writeFile(path.join(dir,'Moved.java'),original);
+      await core.git(f.root,['add','-A']);
+      assert.match(await core.git(f.root,['status','--porcelain']), /^R /);
+    }
+    await workflow.startPrepared(await workflow.prepareStart(f.root,'assets',f.options),f.options);
+    const github = require('../src/github');
+    await github.uploadPrepared(await github.prepareLocalCommit(f.root),'Save replacement',{localOnly:true});
+    assert.equal(await core.git(f.root,['status','--porcelain']), '');
+    assert.equal((await fs.lstat(dir)).isDirectory(),true);
+  });
+});
+
+test('replacement directories do not allow a tracked symlink deletion to be carried', {skip:process.platform === 'win32'}, async t => {
+  const f = await fixture(t);
+  const link = path.join(f.root,'alias');
+  await fs.symlink('Main.java',link);
+  await core.git(f.root,['add','alias']);
+  await core.git(f.root,['commit','-m','Track link']);
+  await fs.unlink(link);
+  await fs.mkdir(link);
+  await fs.writeFile(path.join(link,'child'),'content');
+  await assert.rejects(require('../src/github').prepareLocalCommit(f.root),/special files/);
+  await assert.rejects(workflow.prepareStart(f.root,'feature',f.options),/not a regular file/);
+  await core.git(f.root,['add','-A']);
+  await assert.rejects(workflow.prepareStart(f.root,'feature',f.options),/not a regular file/);
+});

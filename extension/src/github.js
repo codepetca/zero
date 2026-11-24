@@ -5,6 +5,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const core = require('./core');
 const {assertShareable} = require('./lesson-projects');
+const {refuseGitlinks, checkNestedMarker, deletedSource, replacesRegularFile} = require('./git-path-review');
 const reviewedPlans = new WeakSet();
 const localPlans = new WeakSet();
 
@@ -39,7 +40,7 @@ async function localRepositoryRoot(project,run) {
   await assertShareable(project);
   return core.inspectGitLayout(project,run);
 }
-async function inspect(project, run, {allowMissingRemote=false}={}) {
+async function inspect(project, run, {allowMissingRemote=false, replacedDirectories}={}) {
   const layout=allowMissingRemote?await localRepositoryRoot(project,run):undefined;
   const root = layout?layout.root:await core.assertRepositoryRoot(project, run);
   await assertNoUrlRewrites(root, run);
@@ -75,18 +76,26 @@ async function inspect(project, run, {allowMissingRemote=false}={}) {
   } else repository={page:null,remote:null};
   if (await run(root, ['ls-files', '--cached', '--ignored', '--exclude-standard', '-z'])) throw new Error('Ignored files are already staged or tracked. Remove them from Git tracking before uploading; local ignored files will be preserved.');
   const entries = nul(await run(root, ['ls-files', '--stage', '-z']));
-  if (entries.some(entry => entry.startsWith('160000 '))) throw new Error('Nested repositories or submodules are not supported. Open a standalone student project.');
+  refuseGitlinks(entries);
   const status = await run(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all']);
   // NUL-delimited output is kept raw so leading spaces in filenames survive.
   const records = nul(status);
   const changes = [];
+  const deleted = new Map();
   for (let i = 0; i < records.length; i++) {
     const entry = records[i];
     const kind = entry.slice(0, 2);
     const filename = entry.slice(3);
     if (/U|AA|DD/.test(kind)) throw new Error('Resolve Git conflicts before uploading.');
     changes.push({path: filename, kind: kind.trim()});
-    if (/[RC]/.test(kind)) changes.push({path: records[++i], kind: 'previous path'});
+    const source = deletedSource(kind);
+    if (source) deleted.set(filename, source);
+    if (/[RC]/.test(kind)) {
+      const previous = records[++i];
+      changes.push({path: previous, kind: 'previous path'});
+      const previousSource = deletedSource(kind, true);
+      if (previousSource) deleted.set(previous, previousSource);
+    }
   }
   const files = nul(await run(root, ['ls-files', '--cached', '--others', '--exclude-standard', '-z'])).sort();
   const digest = crypto.createHash('sha256');
@@ -95,11 +104,16 @@ async function inspect(project, run, {allowMissingRemote=false}={}) {
     if (!absolute.startsWith(`${root}${path.sep}`)) throw new Error('Git includes a path outside the student project.');
     // Detect repositories even when Git represents the directory as untracked.
     for (let directory = absolute; directory !== root; directory = path.dirname(directory)) {
-      try { await fs.access(path.join(directory, '.git')); throw new Error('Nested repositories are not supported. Open a standalone student project.'); }
-      catch (error) { if (!['ENOENT', 'ENOTDIR'].includes(error.code)) throw error; }
+      await checkNestedMarker(root, directory);
     }
     try {
       const stat = await fs.lstat(absolute);
+      if (stat.isDirectory() && await replacesRegularFile({root, head}, filename, deleted.get(filename), entries, run)) {
+        // This deleted index leaf disappears after staging. Its replacement
+        // files have their own entries in the same working-content digest.
+        replacedDirectories?.add(filename);
+        continue;
+      }
       const content = crypto.createHash('sha256');
       let type;
       if (stat.isSymbolicLink()) { type = 'symlink'; content.update(await fs.readlink(absolute)); }
@@ -157,8 +171,9 @@ async function uploadPrepared(plan, message, {run = core.git, networkRun, before
     if(!localPlans.has(plan))return core.assertRepositoryRoot(plan.root,run);
     if((await localRepositoryRoot(plan.root,run)).identity!==plan.repositoryIdentity)throw new Error('The project Git metadata changed after review. Review the commit again.');
   };
-  const inspection=()=>inspect(plan.root,run,{allowMissingRemote:localPlans.has(plan)});
-  const current = await inspection();
+  const inspection=replacedDirectories=>inspect(plan.root,run,{allowMissingRemote:localPlans.has(plan), replacedDirectories});
+  const replacedDirectories = new Set();
+  const current = await inspection(replacedDirectories);
   if (!sameReview(plan, current)) throw new Error('The project, branch, repository, or files changed after review. Review the upload again.');
   let committed = false;
   let stagingAttempted = false, commitAttempted = false;
@@ -177,9 +192,12 @@ async function uploadPrepared(plan, message, {run = core.git, networkRun, before
       const indexed = new Set(nul(await run(plan.root, ['ls-files', '--cached', '-z'])));
       const paths = [];
       for (const filename of new Set(plan.changes.map(change => change.path))) {
+        if (replacedDirectories.has(filename)) continue;
         if (indexed.has(filename)) paths.push(filename);
         else {
-          try { await fs.lstat(path.join(plan.root, filename)); paths.push(filename); }
+          // A staged deletion or rename source can now be a directory. Its
+          // actual changed children already have individual literal pathspecs.
+          try { if (!(await fs.lstat(path.join(plan.root, filename))).isDirectory()) paths.push(filename); }
           catch (error) { if (error.code !== 'ENOENT') throw error; }
         }
       }
@@ -188,6 +206,16 @@ async function uploadPrepared(plan, message, {run = core.git, networkRun, before
       await rootGuard();
       binding?.assertCurrentNow();
       stagingAttempted = true;
+      // Stage only tracked removals here. A directory-wide add could include
+      // new children that appeared after the student reviewed the operation.
+      if (replacedDirectories.size) {
+        await execute(run, plan.root, ['--literal-pathspecs', 'add', '-u', '--', ...replacedDirectories], 'stage the reviewed deletions');
+        if (paths.length) {
+          await beforeUpload();
+          await rootGuard();
+          binding?.assertCurrentNow();
+        }
+      }
       if (paths.length) await execute(run, plan.root, ['--literal-pathspecs', 'add', '-A', '--', ...paths], 'stage the reviewed files');
       const staged = await inspection();
       if (staged.contentFingerprint !== plan.contentFingerprint || staged.head !== plan.head || staged.remote !== plan.remote || staged.branch !== plan.branch || staged.repositoryIdentity!==plan.repositoryIdentity) throw new Error('The project changed while staging. Review the upload again before committing.');
