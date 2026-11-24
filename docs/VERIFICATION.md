@@ -1,3 +1,22 @@
+# Zero 0.5.86 release verification — 2026-11-24
+
+Source PRs [#405](https://github.com/codepetca/zero/pull/405) and
+[#406](https://github.com/codepetca/zero/pull/406) passed all 12 checks. The
+[canonical run](https://github.com/codepetca/zero/actions/runs/45410523444) used
+the release VSIX and the public starter for Project → New and built the native
+and WebFX outputs.
+
+The packaged Mac extension and the [exact Windows Store package](https://github.com/codepetca/zero/actions/runs/45412895310)
+displayed the release version on Start Page. A deliberate native compile error
+produced a source diagnostic and one **Show Problems** action on both systems.
+The Mac action opened the exact error. The Windows trial used a separately
+test-signed MSIX and an isolated editor, with real first-run setup verified.
+Apple notarization, Gatekeeper, the Mac download bytes and the sealed build 85
+appcast were verified independently of the Mac editor exercise.
+
+See the [release ledger](RELEASE-LEDGER.md) for published artifact identities,
+Store distribution evidence and remaining device coverage.
+
 # Starter preparation fallback local checks — 2026-11-24
 
 116 tests pass across `release-review`, `release-publish`, `verify-project-new`,
@@ -5,8 +24,8 @@
 The new synthetic-token cases preserve public identity/tree/size/second-read
 checks and restrict authentication to one retry at fixed public API endpoints.
 The existing publisher tests still require anonymous starter requests.
-Independent source review, exact-head hosted checks and full manual native/WebFX
-replay remain required before accepting this mitigation for a release.
+Independent source review, exact-head hosted checks and the manual native/WebFX
+replay passed in PR #406 and preparation run 45410523444.
 See [evidence and primary sources](EVIDENCE.md#manual-preparation-starter-api-fallback--2026-11-24).
 
 # Zero 0.5.85 release verification — 2026-11-23
