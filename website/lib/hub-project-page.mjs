@@ -3,14 +3,15 @@ import {createHash} from 'node:crypto';
 import contracts from '../../extension/src/sharing/contracts.js';
 import projects from '../content/projects.json' with {type:'json'};
 import previews from '../content/project-previews.json' with {type:'json'};
+import sharedGameDates from '../content/shared-game-publication-dates.json' with {type:'json'};
 import authors from '../content/release-authors.json' with {type:'json'};
 import {hubDiscoveryResponse, maintainedTarget, presentationFor, MAX_MAINTAINED_DISCOVERY_PROJECTS} from './hub-discovery.mjs';
 import {readCatalog} from './sharing-catalog.mjs';
 import {selectMaintainedProjects, selectReleases} from './sharing-client.mjs';
 import {hubTargetVisible, hubVisibilityDecision} from './hub-project-status.mjs';
 import {readJamHubVisibility, assertJamVisibilityTime} from './jam-hub-visibility.mjs';
-import {claimPublicHubRequest, readProjectListingPage} from './hub-listings-http.mjs';
-import {listingsEnabled} from './hub-listings-store.mjs';
+import {bindProjectListingEntries, claimPublicHubRequest, observeProjectListingPlay} from './hub-listings-http.mjs';
+import {configuredListingsStore, listingsEnabled} from './hub-listings-store.mjs';
 import {hubConfig, json, seal, unseal} from './hub-github-auth.mjs';
 import {jamsPreviewAvailable} from './jams-visibility.mjs';
 import {createHubRequestDeadline} from './hub-request-deadline.mjs';
@@ -25,33 +26,59 @@ const invalid = () => json({error:'Invalid Projects page.'}, 400);
 const restart = () => json({code:'restart',error:'Projects changed. Return to the first page.'}, 409);
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
-function readCursor(token, search) {
+function readCursor(token, search, config) {
   if (!token || !/^[A-Za-z0-9_-]{1,2048}$/.test(token)) return null;
   try {
     const cursor = JSON.parse(Buffer.from(token, 'base64url').toString('utf8'));
-    if (cursor?.v !== 1 || cursor.search !== hash(search) || !/^[a-f0-9]{64}$/.test(cursor.revision) ||
-        typeof cursor.position !== 'string' || cursor.position.length > 1200 ||
-        typeof cursor.listing !== 'boolean') return null;
-    if (!cursor.listing) {
-      const key = JSON.parse(cursor.position);
-      if (!Array.isArray(key) || key.length!==3 || ![0,1].includes(key[0]) ||
-          typeof key[1]!=='string' || key[1].length>160 || !/^[a-z0-9-]{1,128}$/.test(key[2])) return null;
-    }
-    return cursor;
+    if (cursor?.search !== hash(search) || !/^[a-f0-9]{64}$/.test(cursor.revision)) return null;
+    if (cursor.v === 1 || cursor.v === 2 && cursor.sealed !== !!config) return {restart:true};
+    if (cursor.v !== 2 || typeof cursor.position !== 'string') return null;
+    const decoded = config ? unseal(cursor.position,CURSOR_PURPOSE,config) : JSON.parse(cursor.position);
+    if (decoded?.search !== cursor.search || decoded.revision !== cursor.revision) return null;
+    const position = decoded.position;
+    if (!Array.isArray(position) || position.length !== 3) return null;
+    const [time,lane,key] = position;
+    if (!Number.isSafeInteger(time) || time < 0 || time > 8.64e15 || ![0,1,2].includes(lane) || typeof key !== 'string') return null;
+    if (lane === 2 ? !config || time === 0 || !/^[1-9][0-9]{0,18}$/.test(key) || BigInt(key) > ORDER_MAX
+      : !/^[a-z0-9:@.-]{1,180}$/.test(key)) return null;
+    return {revision:cursor.revision,position};
   } catch { return null; }
 }
 
-function writeCursor(search, revision, position, listing) {
-  return Buffer.from(JSON.stringify({v:1,search:hash(search),revision,position,listing})).toString('base64url');
+function writeCursor(search, revision, position, config) {
+  const payload = {search:hash(search),revision,position};
+  return Buffer.from(JSON.stringify({v:2,search:payload.search,revision,sealed:!!config,
+    position:config ? seal(payload,CURSOR_PURPOSE,config) : JSON.stringify(payload)})).toString('base64url');
 }
 
 const maintainedKey = project => `m:${project.id}`;
 const releaseKey = release => `r:${release.id}@${release.version}`;
-const sortPosition = (lane, {title,id}) => JSON.stringify([lane,title.replace(/[\u0000-\u001f]/g,' ').toLowerCase().slice(0,160),id]);
+const listingKey = entry => `l:${entry.repositoryId}`;
+const epoch = value => {
+  const time = value instanceof Date ? value.getTime() : typeof value === 'string' ? Date.parse(value) : NaN;
+  return Number.isSafeInteger(time) && time > 0 ? time : 0;
+};
+
+// Equal dates keep a stable order across sources and listing pages.
+function comparePosition(left,right) {
+  const [leftTime,leftLane,leftKey] = left;
+  const [rightTime,rightLane,rightKey] = right;
+  if (leftTime !== rightTime) return rightTime - leftTime;
+  if (leftLane !== rightLane) return leftLane - rightLane;
+  if (leftKey === rightKey) return 0;
+  return leftLane === 2 ? (BigInt(leftKey) > BigInt(rightKey) ? -1 : 1) : (leftKey < rightKey ? -1 : 1);
+}
+
+function listingPosition(entry) {
+  const time = epoch(entry.runCreatedAt);
+  if (!time) throw new Error('Invalid listing publication date.');
+  return [time,2,entry.order];
+}
+
 const publicRelease = release => ({kind:'game',repositoryId:release.repository.id});
 const publicListing = entry => ({kind:'game',repositoryId:entry.repositoryId});
 
-function selectCandidates(projectRecords, catalog, search) {
+function selectCandidates(projectRecords, catalog, search, dates) {
   if (!Array.isArray(projectRecords) || projectRecords.length > MAX_MAINTAINED_DISCOVERY_PROJECTS)
     throw new Error('Invalid maintained projects.');
   const original = new Map();
@@ -63,11 +90,16 @@ function selectCandidates(projectRecords, catalog, search) {
   }
   const maintained = selectMaintainedProjects([...original.values()].map(item=>item.target), {search});
   const releases = catalog ? selectReleases(catalog, {kind:'game',search}) : [];
-  const candidates = maintained.map(target=>({key:maintainedKey(target),position:sortPosition(0,target),target,project:original.get(target.id).project}));
+  const candidates = maintained.map(target=>{
+    const {project} = original.get(target.id);
+    const key = maintainedKey(target);
+    return {key,position:[epoch(project.publishedAt),0,key],target,project};
+  });
   for (const release of releases) {
-    candidates.push({key:releaseKey(release),position:sortPosition(1,release),target:publicRelease(release),release});
+    const key = releaseKey(release);
+    candidates.push({key,position:[epoch(dates[key.slice(2)]),1,key],target:publicRelease(release),release});
   }
-  candidates.sort((left,right)=>left.position<right.position?-1:left.position>right.position?1:0);
+  candidates.sort((left,right)=>comparePosition(left.position,right.position));
   return candidates;
 }
 
@@ -85,7 +117,8 @@ function listingDto(entry, visibility, env) {
  * a position in a validated catalog, and never authorizes a visibility result. */
 export async function hubProjectPageResponse(request, {env=process.env, catalogReader=readCatalog,
   visibilityReader=readJamHubVisibility, destinationReader, pagesBindingReader, projects:projectRecords=projects,
-  previews:previewRecords=previews, authors:authorRecords=authors, getStore, listingDestinationReader, playReader,
+  previews:previewRecords=previews, authors:authorRecords=authors, releaseDates=sharedGameDates,
+  getStore=configuredListingsStore, listingDestinationReader, playReader,
   responseBudgetMs=18_000, decisionNow=Date.now}={}) {
   const params = new URL(request.url).searchParams;
   const search = (params.get('q') ?? '').trim();
@@ -93,18 +126,12 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
   const revalidate = params.get('revalidate');
   if (search.length > 200 || [...params.keys()].some(key=>!['q','cursor','revalidate'].includes(key) || params.getAll(key).length!==1) ||
       revalidate !== null && revalidate !== '1') return invalid();
-  const cursor = cursorValue === null ? null : readCursor(cursorValue, search);
-  if (cursorValue !== null && !cursor) return invalid();
   const config = listingsEnabled(env) ? hubConfig(env) : null;
-  const includeListings = config!==null;
-  let listingBefore = null;
-  if (cursor?.listing) {
-    if (!includeListings || !config) return restart();
-    const position = unseal(cursor.position,CURSOR_PURPOSE,config);
-    if (position?.revision !== cursor.revision || position.search !== cursor.search ||
-        !/^[1-9][0-9]{0,18}$/.test(position.order) || BigInt(position.order)>ORDER_MAX) return invalid();
-    listingBefore = position.order;
-  }
+  const cursor = cursorValue === null ? null : readCursor(cursorValue, search, config);
+  if (cursorValue !== null && !cursor) return invalid();
+  if (cursor?.restart) return restart();
+  const after = cursor?.position;
+  const listingBefore = after ? {publishedAt:new Date(after[0]).toISOString(),order:after[1]===2 ? after[2] : null} : null;
   const releaseAdmission = claimPublicHubRequest();
   if (!releaseAdmission) return error();
   const started = performance.now();
@@ -126,67 +153,100 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
         .finally(()=>catalogDeadline.dispose())
     ]);
     initial = visibility;
-    const candidates = selectCandidates(projectRecords,catalog,search);
-    const revision = hash([catalog,projectRecords,includeListings]);
+    const candidates = selectCandidates(projectRecords,catalog,search,releaseDates);
+    const revision = hash([catalog,projectRecords,releaseDates,!!config]);
     if (cursor && cursor.revision!==revision) return restart();
 
-    // A client can provide an arbitrary sort boundary. Never disclose whether
-    // its guessed position belongs to a project that visibility would hide.
-    const eligible = cursor?.listing ? [] : candidates.filter(item=>(!cursor || item.position>cursor.position) && hubTargetVisible(item.target,initial));
-    const confirmed = [];
+    const eligible = candidates.filter(item=>(!after || comparePosition(item.position,after)>0) && hubTargetVisible(item.target,initial));
+    const store = config ? getStore(env) : null;
+    const excluded = initial?.heldRepositoryIds?.() ?? [];
+    const listingRows = [];
+    let nextListingCursor = listingBefore;
+    let listingsExhausted = !store;
+    let catalogIndex = 0;
     let scanned = 0;
-    while (scanned<eligible.length && scanned<SCAN_LIMIT && confirmed.length<=PROJECT_PAGE_SIZE) {
+    const confirmed = [];
+
+    // Merge raw candidates first so repository checks are spent on the page
+    // and its lookahead. Refill either lane only when the merge needs it.
+    while (confirmed.length <= PROJECT_PAGE_SIZE && scanned < SCAN_LIMIT) {
+      const window = [];
       const limit = Math.min(PROJECT_PAGE_SIZE+1-confirmed.length,SCAN_LIMIT-scanned);
-      const window = eligible.slice(scanned,scanned+limit);
+      while (window.length < limit) {
+        if (!listingRows.length && !listingsExhausted) {
+          const rows = await deadline.run(()=>store.discover(nextListingCursor,search,excluded,PROJECT_PAGE_SIZE+1,{byPublication:true}));
+          listingRows.push(...rows.map(entry=>({key:listingKey(entry),position:listingPosition(entry),entry,target:publicListing(entry)})));
+          listingsExhausted = rows.length < PROJECT_PAGE_SIZE+1;
+          const last = rows.at(-1);
+          if (last) nextListingCursor = {publishedAt:last.runCreatedAt,order:last.order};
+        }
+        const catalogItem = eligible[catalogIndex];
+        const listingItem = listingRows[0];
+        if (!catalogItem && !listingItem) break;
+        if (listingItem && (!catalogItem || comparePosition(listingItem.position,catalogItem.position)<0)) {
+          window.push(listingRows.shift());
+        } else {
+          window.push(catalogItem);
+          catalogIndex++;
+        }
+      }
+      if (!window.length) break;
       scanned += window.length;
-      const response = await deadline.run(signal=>hubDiscoveryResponse(new Request(new URL('/api/hub/discovery',request.url),{signal}),{
-        env,visibilityReader:readVisibility,destinationReader,pagesBindingReader,decisionNow,
-        projects:window.flatMap(item=>item.project?[item.project]:[]),previews:[],authors:[],
-        catalogReader:async()=>({...catalog,schema:1,revision:catalog?.revision ?? '0'.repeat(40),
-          releases:window.flatMap(item=>item.release?[item.release]:[])})
-      }));
-      if (!response.ok) throw new Error('Project projection unavailable.');
-      const projection = await deadline.run(()=>response.json());
-      if (projection.catalog===null) throw new Error('Project projection unavailable.');
-      const bound = new Map([
-        ...projection.maintained.map(project=>[maintainedKey(project),{project,target:{...project,kind:'game'}}]),
-        ...projection.catalog.releases.map(release=>[releaseKey(release),{release,target:publicRelease(release)}])
-      ]);
-      for (const {key,position} of window) {
-        if (bound.has(key)) confirmed.push({position,...bound.get(key)});
+      const catalogWindow = window.filter(item=>!item.entry);
+      const bound = new Map();
+      if (catalogWindow.length) {
+        const response = await deadline.run(signal=>hubDiscoveryResponse(new Request(new URL('/api/hub/discovery',request.url),{signal}),{
+          env,visibilityReader:readVisibility,destinationReader,pagesBindingReader,decisionNow,
+          projects:catalogWindow.flatMap(item=>item.project?[item.project]:[]),previews:[],authors:[],
+          catalogReader:async()=>({...catalog,schema:1,revision:catalog?.revision ?? '0'.repeat(40),
+            releases:catalogWindow.flatMap(item=>item.release?[item.release]:[])})
+        }));
+        if (!response.ok) throw new Error('Project projection unavailable.');
+        const projection = await deadline.run(()=>response.json());
+        if (projection.catalog===null) throw new Error('Project projection unavailable.');
+        for (const project of projection.maintained) bound.set(maintainedKey(project),{project,target:{...project,kind:'game'}});
+        for (const release of projection.catalog.releases) bound.set(releaseKey(release),{release,target:publicRelease(release)});
+      }
+      const listingWindow = window.flatMap(item=>item.entry?[item.entry]:[]);
+      const linkedListings = new Map();
+      if (listingWindow.length) {
+        const entries = await deadline.run(signal=>bindProjectListingEntries(listingWindow,{env,signal,visibility:initial,destinationReader:listingDestinationReader}));
+        for (const entry of entries) linkedListings.set(entry.order,entry);
+      }
+      for (const {key,position,entry,target} of window) {
+        if (entry) {
+          const linked = linkedListings.get(entry.order);
+          if (linked) confirmed.push({key,position,entry:linked,target});
+        } else if (bound.has(key)) confirmed.push({key,position,...bound.get(key)});
       }
     }
-    if (scanned<eligible.length && confirmed.length<=PROJECT_PAGE_SIZE) return error();
-    let moreUnscanned = scanned<eligible.length;
-    if (includeListings && confirmed.length<=PROJECT_PAGE_SIZE) {
-      const limit = Math.max(1,PROJECT_PAGE_SIZE-confirmed.length);
-      const listing = await deadline.run(signal=>readProjectListingPage({env,signal,search,before:listingBefore,limit,
-        visibility:initial,getStore,destinationReader:listingDestinationReader,playReader,
-        checkPlay:revalidate==='1' && confirmed.length<PROJECT_PAGE_SIZE,
+    const moreUnscanned = catalogIndex < eligible.length || listingRows.length > 0 || !listingsExhausted;
+    if (store && revalidate==='1') {
+      const shown = confirmed.slice(0,PROJECT_PAGE_SIZE).filter(item=>item.entry);
+      const entries = shown.map(item=>item.entry);
+      await deadline.run(signal=>observeProjectListingPlay(entries,{signal,playReader,
         playBudgetMs:()=>Math.min(4000,Math.max(0,responseBudgetMs-(performance.now()-started)-3500))}));
-      for (const entry of listing.lookahead ? [...listing.entries,listing.lookahead] : listing.entries)
-        confirmed.push({entry,target:publicListing(entry)});
-      moreUnscanned ||= listing.more;
-    } else if (includeListings) {
-      moreUnscanned = true;
+      shown.forEach((item,index)=>{item.entry=entries[index];});
     }
+    // Catalog binding and optional Play checks can take time. Confirm that
+    // listing rows still represent the verified publications before emitting.
+    const verifiedListings = confirmed.flatMap(item=>item.entry?[item.entry]:[]);
+    const currentOrders = new Set(verifiedListings.length
+      ? (await deadline.run(()=>store.stillListed(verifiedListings)))
+        .map(entry=>entry.order) : []);
     const final = await deadline.run(signal=>readVisibility({signal}));
-    const visible = confirmed.filter(item=>hubTargetVisible(item.target,final));
+    const visible = confirmed.filter(item=>(!item.entry || currentOrders.has(item.entry.order)) && hubTargetVisible(item.target,final));
     if (visible.length<=PROJECT_PAGE_SIZE && moreUnscanned) return error();
     const page = visible.slice(0,PROJECT_PAGE_SIZE);
-    let next = null;
-    if (visible.length>PROJECT_PAGE_SIZE) {
-      const last = page.at(-1);
-      if (last.entry && !config) return error();
-      const position = last.entry ? seal({order:last.entry.order,revision,search:hash(search)},CURSOR_PURPOSE,config) : last.position;
-      next = writeCursor(search,revision,position,!!last.entry);
-    }
+    const next = visible.length>PROJECT_PAGE_SIZE
+      ? writeCursor(search,revision,page.at(-1).position,config) : null;
     const projectedCatalog = catalog && {schema:1,revision:catalog.revision,releases:page.flatMap(item=>
       item.release?[{...item.release,playRef:projectPlayRef('release',item.release)}]:[])};
     const result = {schema:1,maintained:page.flatMap(item=>
       item.project?[{...item.project,playRef:projectPlayRef('maintained',item.project)}]:[]),
       catalog:projectedCatalog,presentation:presentationFor(projectedCatalog,previewRecords,authorRecords),
-      listings:page.flatMap(item=>item.entry?[listingDto(item.entry,final,env)]:[]),next};
+      listings:page.flatMap(item=>item.entry?[listingDto(item.entry,final,env)]:[]),
+      order:page.map(item=>item.key),next};
     deadline.check();
     assertJamVisibilityTime(final,decisionNow,env);
     return json(result);

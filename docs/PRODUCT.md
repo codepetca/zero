@@ -535,7 +535,10 @@ updates in the background a minute after each completed catalog check.
 On desktop, Projects uses a compact grid of square cards. The grid uses
 roomier cards when the sidebar stacks above the content pane.
 Projects shows up to 24 cards at a time across maintained games, shared games
-and published app listings. Search covers the full catalog. **Next page** and
+and published app listings. The gallery and search results are sorted newest
+first across all three sources. Published apps use the latest verified Pages run
+date. Maintained and shared games use recorded publication dates, with undated
+entries last. Search covers the full catalog. **Next page** and
 **Previous page** load the requested page and its current public results.
 Report a problem opens a prefilled GitHub issue for the user to review and submit.
 Select a project title to open its details. A confirmed unreachable game has a

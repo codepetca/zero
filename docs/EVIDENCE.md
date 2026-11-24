@@ -14681,3 +14681,21 @@ focused tests passed, including server-prefetched projects, history restoration,
 hidden tabs and reachability changes during background refresh. Independent
 GPT-6.1 Sol review at medium reasoning found no actionable issue. The PR records
 CI and production verification.
+
+### Newest-first ZeroHub gallery (2026-11-24)
+
+The Projects browse and search pages merge maintained games, shared releases and
+published apps by date before selecting 24 projects and the lookahead. Apps use
+the verified Pages run date. The maintained Drawing Pad date comes from the
+public gallery change `be60b72e7`. Shared dates come from the first availability
+commits in the public registry, sequences 8, 13, 19, 41, 69, 83 and 205.
+Undated entries sort at the end. Old pagination cursors offer a first-page restart.
+
+TypeScript passed. The focused gallery suite passed 62 checks and the listing
+suite passed 15 with a disposable PostgreSQL instance. Local Chrome used
+controlled responses to verify cross-source card order and 24-card pagination
+in both directions. Independent GPT-6.1 Sol review at high reasoning found that
+the initial implementation could bind older listings outside the merged page.
+The fix merges raw candidates before destination checks, with a regression
+covering 25 catalog checks and zero destination checks for older listings.
+The targeted follow-up review passed the corrected merge and continuation, including mixed sources, equal timestamps, rejected destinations and listing-window refill.

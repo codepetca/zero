@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState, type ReactElement} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseAuthor, releaseImage, releaseSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import styles from '@/app/hub/hub.module.css';
@@ -36,7 +36,7 @@ function gameIdentity(release:Release) {
   return JSON.stringify([release.id,release.kind,release.version,release.status,release.repository.id,release.repository.ownerId,release.repository.url,
     release.source.commit,release.source.folder,webIdentity(release.web)]);
 }
-type Discovery = {schema:1;maintained:MaintainedProject[];catalog:Catalog|null;catalogError?:string;presentation:Presentation[];listings?:PublishedProject[];next?:string|null};
+type Discovery = {schema:1;maintained:MaintainedProject[];catalog:Catalog|null;catalogError?:string;presentation:Presentation[];listings?:PublishedProject[];order?:string[];next?:string|null};
 
 const validPlayRef=(value:unknown):value is string=>typeof value==='string'&&!!parseProjectPlayRef(value);
 const listingThumbnail=(value:unknown):value is string=>typeof value==='string'&&/^\/api\/hub\/listings\/thumbnail\/[1-9][0-9]{0,19}\/[a-f0-9]{40}$/.test(value);
@@ -55,6 +55,13 @@ function validProjectPage(data:Discovery) {
         (item.issuesEnabled != null && typeof item.issuesEnabled !== 'boolean') ||
         typeof item.identity!=='string' || !/^[a-f0-9]{64}$/.test(item.identity) || identities.has(item.id)) return false;
     identities.add(item.id);
+  }
+  if (data.order !== undefined) {
+    const keys = new Set([...data.maintained.map(item=>`m:${item.id}`),
+      ...(data.catalog?.releases ?? []).map(item=>`r:${item.id}@${item.version}`),
+      ...data.listings.map(item=>`l:${item.id}`)]);
+    if (!Array.isArray(data.order) || data.order.length!==keys.size ||
+      !data.order.every(key=>keys.delete(key))) return false;
   }
   return true;
 }
@@ -430,6 +437,59 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     if (restartPage) changePage([]);
     setRetry(value=>value+1);
   }
+  const projectCards = visibleProjects.map(project => {
+    const {site,thumbnail:_thumbnail,...playProps}=projectPage?cardPlay(project.playRef):
+      {site:undefined,thumbnail:undefined,playHref:showDiscoveryCards?undefined:maintainedPlayLink(project)};
+    const observed=observedFeedback(project.id,project.repositoryUrl), description=projectSummary(project.description);
+    const checked=projectPage ? {...observed,site:site??{status:'not-checked' as const},id:project.id,kind:'game' as const,
+      repositoryUrl:project.repositoryUrl,stars:null,issuesEnabled:observed?.issuesEnabled??null} : observed;
+    return [`m:${project.id}`, <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={description} author={project.author}
+      compact siteUnavailable={checked?.site.status==='unreachable'} image={project.image} {...playProps} repositoryHref={project.repositoryUrl}
+      metric={showDiscoveryCards?null:projectMetric(project.id)}
+      details={identity=><HubProjectDetails title={project.title} repositoryHref={project.repositoryUrl} playHref={playProps.playHref}
+        sourceCommit={project.sourceCommit} description={description} feedback={checked} pending={showDiscoveryCards}>{identity}</HubProjectDetails>} />] as const;
+  });
+  const releaseCards = visibleReleases.map(release=>{
+    const {site,thumbnail:_thumbnail,...playProps}=projectPage?cardPlay(release.playRef):
+      {site:undefined,thumbnail:undefined,playHref:showDiscoveryCards?undefined:playLink(release)};
+    const isGame=release.kind==='game', available=release.status==='available';
+    const description=releaseSummary(release, projectPreviews), repositoryHref=release.repository.url;
+    const observed=observedFeedback(release.id,repositoryHref);
+    const checked=projectPage ? {...observed,site:site??{status:'not-checked' as const},id:release.id,kind:'game' as const,
+      repositoryUrl:repositoryHref,stars:null,issuesEnabled:observed?.issuesEnabled??null} : observed;
+    const entry={title:release.title,repositoryHref,playHref:playProps.playHref,sourceCommit:release.source.commit,version:release.version,feedback:checked};
+    return [`r:${release.id}@${release.version}`, <HubProjectCard projectId={!practiceOnly&&available?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={description} author={releaseAuthor(release, releaseAuthors)}
+    compact={isGame} siteUnavailable={isGame&&checked?.site.status==='unreachable'} version={release.version} repositoryHref={repositoryHref} image={releaseImage(release, projectPreviews)} {...playProps}
+    metric={isGame&&available&&!showDiscoveryCards?projectMetric(release.id):null}
+    details={isGame&&available?identity=><HubProjectDetails {...entry} description={description} pending={showDiscoveryCards}>{identity}</HubProjectDetails>:undefined}
+    feedback={!isGame&&!practiceOnly&&available?<HubProjectFeedback {...entry} id={release.id} kind="library" metric={projectMetric(release.id)} />:undefined}>
+    {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
+      <p>In the updated Zero editor, choose Libraries and games → {practiceOnly?'Browse tutorial practice':'Browse ZeroHub'} → {release.title} → Add library → Apply. Check the author and exact version before applying.</p>
+      <p><a href={`${sourceLink(release)}/examples`}>View examples</a></p>
+      {release.components?.map(component=><div key={component.className}><h4>{component.className}</h4>{component.description && <p>{component.description}</p>}<CodeBlock><code>{`import ${component.className};${component.usage ? `\n\n${component.usage}` : ''}`}</code></CodeBlock><details><summary>Public API</summary><CodeBlock><code>{component.api.join('\n')}</code></CodeBlock></details></div>)}
+      {!release.components?.length && <p>Read the exact source for this library’s Java API and examples. Namespace: <code>{release.namespace}</code>.</p>}
+      <details><summary>Manual Maven setup</summary><p>Add these entries to pom.xml.</p><CodeBlock><code>{dependencySnippet(release)}</code></CodeBlock><div className="resource-links"><a href={release.artifacts.jar?.url}>Download JAR</a><a href={release.artifacts.pom?.url}>View POM</a></div></details>
+    </details> : null}
+      </HubProjectCard>] as const;
+  });
+  const listingCards = visibleListings.map(item=>{
+    const {site,thumbnail,...playProps}=cardPlay(item.playRef);
+    return [`l:${item.id}`, <HubProjectCard key={item.identity} title={item.title} description="GitHub Pages app"
+    author={item.author} repositoryHref={item.repositoryUrl} {...playProps}
+    image={thumbnail??(listingThumbnail(item.thumbnail)?item.thumbnail:undefined)}
+    siteUnavailable={site?.status==='unreachable'} compact
+    details={identity=><HubProjectDetails title={item.title} repositoryHref={item.repositoryUrl} playHref={playProps.playHref} description="GitHub Pages app"
+      feedback={{id:item.id,kind:'game',repositoryUrl:item.repositoryUrl,stars:null,
+        issuesEnabled:item.issuesEnabled??null,site:site??{status:'not-checked'}}}>{identity}</HubProjectDetails>}>
+    {item.gameJamWinner && <span className={styles.winnerBadge}>Game Jam winner</span>}
+    {!item.playRef && <a href={item.repositoryUrl}>Open on GitHub</a>}
+    </HubProjectCard>] as const;
+  });
+  const pageCards = [...projectCards,...releaseCards,...listingCards];
+  const cardsByKey = new Map<string,ReactElement>(pageCards);
+  const orderedCards = discovery?.order
+    ? discovery.order.map(key=>cardsByKey.get(key))
+    : pageCards.map(([,card])=>card);
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h1 id="sharing-heading" ref={heading} tabIndex={projectPage?-1:undefined}>{libraryOwnerId?'My Libraries':practiceOnly?'Tutorial practice':kind === 'game' ? 'Projects' : 'Libraries'}</h1>
       {!id && !version && <div className={styles.search}><Icon name="search" /><input id="sharing-search" type="search" aria-label={libraryOwnerId?'Search my libraries':'Search ZeroHub'} value={search} onChange={event=>{setSearch(event.target.value);if(projectPage)setPageCursors([]);}} maxLength={200} placeholder={libraryOwnerId?'Search my libraries':'search zerohub'} /></div>}
@@ -438,18 +498,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     {projectPage&&!discovery&&!error&&<p className="sr-only" role="status">Loading projects…</p>}
     <div className={gridClassName} aria-busy={projectPage&&!discovery&&!error||undefined}>
     {projectPage&&!discovery&&!error&&<ProjectPlaceholders/>}
-    {visibleProjects.map(project => {
-      const {site,thumbnail:_thumbnail,...playProps}=projectPage?cardPlay(project.playRef):
-        {site:undefined,thumbnail:undefined,playHref:showDiscoveryCards?undefined:maintainedPlayLink(project)};
-      const observed=observedFeedback(project.id,project.repositoryUrl), description=projectSummary(project.description);
-      const checked=projectPage ? {...observed,site:site??{status:'not-checked' as const},id:project.id,kind:'game' as const,
-        repositoryUrl:project.repositoryUrl,stars:null,issuesEnabled:observed?.issuesEnabled??null} : observed;
-      return <HubProjectCard projectId={project.id} key={project.id} title={project.title} description={description} author={project.author}
-        compact siteUnavailable={checked?.site.status==='unreachable'} image={project.image} {...playProps} repositoryHref={project.repositoryUrl}
-        metric={showDiscoveryCards?null:projectMetric(project.id)}
-        details={identity=><HubProjectDetails title={project.title} repositoryHref={project.repositoryUrl} playHref={playProps.playHref}
-          sourceCommit={project.sourceCommit} description={description} feedback={checked} pending={showDiscoveryCards}>{identity}</HubProjectDetails>} />;
-    })}
+    {projectPage ? orderedCards : projectCards.map(([,card])=>card)}
     {includeListings && <HubPublishedProjects key={`${search}:${retry}`} search={search}
       hasOtherProjects={visibleProjects.length > 0 || visibleReleases.length > 0 || visibilityPending || !catalog} />}
     {visibilityPending && !showDiscoveryCards && <p role="status">Checking project availability…</p>}
@@ -457,42 +506,8 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     {visibilityFailed && <div role="status"><p>Project availability is unavailable. Try again shortly.</p><button className={styles.retry} onClick={()=>{setFeedbackResult(null);setRetry(value=>value+1);}}>Try again</button></div>}
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={retryDiscovery}>{restartPage?'First page':'Try again'}</button></div> : !catalog ? (projectPage ? null : <p role="status">Loading {label}…</p>) : selectionError ? <p role="status">{selectionError}</p> : <>
       {!includeListings && !quarantined && !visibleReleases.length && !visibleProjects.length && !visibleListings.length && !visibilityPending && !visibilityFailed && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${label} match this search.` : libraryOwnerId ? 'You have no libraries in the main catalog yet.' : `No ${label} are available yet.`}</p>}
-      {visibleReleases.map(release=>{
-        const {site,thumbnail:_thumbnail,...playProps}=projectPage?cardPlay(release.playRef):
-          {site:undefined,thumbnail:undefined,playHref:showDiscoveryCards?undefined:playLink(release)};
-        const isGame=release.kind==='game', available=release.status==='available';
-        const description=releaseSummary(release, projectPreviews), repositoryHref=release.repository.url;
-        const observed=observedFeedback(release.id,repositoryHref);
-        const checked=projectPage ? {...observed,site:site??{status:'not-checked' as const},id:release.id,kind:'game' as const,
-          repositoryUrl:repositoryHref,stars:null,issuesEnabled:observed?.issuesEnabled??null} : observed;
-        const entry={title:release.title,repositoryHref,playHref:playProps.playHref,sourceCommit:release.source.commit,version:release.version,feedback:checked};
-        return <HubProjectCard projectId={!practiceOnly&&available?release.id:undefined} key={`${release.id}/${release.version}`} title={release.title} description={description} author={releaseAuthor(release, releaseAuthors)}
-        compact={isGame} siteUnavailable={isGame&&checked?.site.status==='unreachable'} version={release.version} repositoryHref={repositoryHref} image={releaseImage(release, projectPreviews)} {...playProps}
-        metric={isGame&&available&&!showDiscoveryCards?projectMetric(release.id):null}
-        details={isGame&&available?identity=><HubProjectDetails {...entry} description={description} pending={showDiscoveryCards}>{identity}</HubProjectDetails>:undefined}
-        feedback={!isGame&&!practiceOnly&&available?<HubProjectFeedback {...entry} id={release.id} kind="library" metric={projectMetric(release.id)} />:undefined}>
-        {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
-          <p>In the updated Zero editor, choose Libraries and games → {practiceOnly?'Browse tutorial practice':'Browse ZeroHub'} → {release.title} → Add library → Apply. Check the author and exact version before applying.</p>
-          <p><a href={`${sourceLink(release)}/examples`}>View examples</a></p>
-          {release.components?.map(component=><div key={component.className}><h4>{component.className}</h4>{component.description && <p>{component.description}</p>}<CodeBlock><code>{`import ${component.className};${component.usage ? `\n\n${component.usage}` : ''}`}</code></CodeBlock><details><summary>Public API</summary><CodeBlock><code>{component.api.join('\n')}</code></CodeBlock></details></div>)}
-          {!release.components?.length && <p>Read the exact source for this library’s Java API and examples. Namespace: <code>{release.namespace}</code>.</p>}
-          <details><summary>Manual Maven setup</summary><p>Add these entries to pom.xml.</p><CodeBlock><code>{dependencySnippet(release)}</code></CodeBlock><div className="resource-links"><a href={release.artifacts.jar?.url}>Download JAR</a><a href={release.artifacts.pom?.url}>View POM</a></div></details>
-        </details> : null}
-      </HubProjectCard>;
-      })}
+      {!projectPage && releaseCards.map(([,card])=>card)}
     </>}
-    {visibleListings.map(item=>{
-      const {site,thumbnail,...playProps}=cardPlay(item.playRef);
-      return <HubProjectCard key={item.identity} title={item.title} description="GitHub Pages app"
-      author={item.author} repositoryHref={item.repositoryUrl} {...playProps}
-      image={thumbnail??(listingThumbnail(item.thumbnail)?item.thumbnail:undefined)}
-      siteUnavailable={site?.status==='unreachable'} compact
-      details={identity=><HubProjectDetails title={item.title} repositoryHref={item.repositoryUrl} playHref={playProps.playHref} description="GitHub Pages app"
-        feedback={{id:item.id,kind:'game',repositoryUrl:item.repositoryUrl,stars:null,
-          issuesEnabled:item.issuesEnabled??null,site:site??{status:'not-checked'}}}>{identity}</HubProjectDetails>}>
-      {item.gameJamWinner && <span className={styles.winnerBadge}>Game Jam winner</span>}
-      {!item.playRef && <a href={item.repositoryUrl}>Open on GitHub</a>}
-    </HubProjectCard>;})}
     </div>
     {projectPage && !restartPage && (pageCursors.length>0 || nextPage) && <nav aria-label="Projects pages" className="resource-links">
       {pageCursors.length>0 && <button className={styles.retry} type="button" onClick={()=>changePage(pageCursors.slice(0,-1))}>Previous page</button>}
