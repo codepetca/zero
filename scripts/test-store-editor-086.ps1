@@ -1,7 +1,7 @@
 # Temporary exact-candidate check on a disposable hosted desktop. No sign-in,
 # student data, network debug port, editor internals or package-source patches.
 [CmdletBinding()]
-param([Parameter(Mandatory)][string]$Data, [Parameter(Mandatory)][string]$ExtensionPath,
+param([Parameter(Mandatory)][string]$Data, [Parameter(Mandatory)][string]$CodeExecutable, [Parameter(Mandatory)][string]$ExtensionPath,
       [Parameter(Mandatory)][string]$Kit, [Parameter(Mandatory)][string]$Receipt,
       [ValidateRange(60,600)][int]$TimeoutSeconds = 240)
 Set-StrictMode -Version Latest
@@ -15,11 +15,8 @@ if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'workflow_disp
     throw 'Manual dispatch on a disposable x64 hosted Windows runner is required.'
 }
 if ((Test-Path -LiteralPath $Receipt) -or -not [IO.Path]::IsPathRooted($Receipt)) { throw 'A new absolute receipt is required.' }
-$manifest = Get-Content -LiteralPath (Join-Path $Kit 'setup\windows-downloads.json') -Raw | ConvertFrom-Json
-$pin = $manifest.architectures.x64.vscode.sha256
-if ($pin -cnotmatch '^[a-f0-9]{64}$') { throw 'Invalid pinned VS Code.' }
-$code = Join-Path $Data ("runtime\vscode-$pin\Code.exe")
-if (-not (Test-Path -LiteralPath $code -PathType Leaf)) { throw 'The actual private VS Code runtime is missing.' }
+$code = (Resolve-Path -LiteralPath $CodeExecutable).ProviderPath
+if ((Split-Path -Leaf $code) -ine 'Code.exe' -or -not (Test-Path -LiteralPath $code -PathType Leaf)) { throw 'The first-run editor executable is missing.' }
 $scratch = Join-Path $env:RUNNER_TEMP ('z086-' + [Guid]::NewGuid().ToString('N').Substring(0,8))
 $profile = Join-Path $scratch 'profile'
 $project = Join-Path $scratch 'project'

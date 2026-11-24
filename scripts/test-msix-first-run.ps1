@@ -283,4 +283,8 @@ $env:ZERO_KIT_DIR = $kit
 $env:ZERO_NODE_EXECUTABLE = $node
 $env:ZERO_JAVA_HOME = $physicalJava
 $env:Path = "$env:SystemRoot\System32;$env:SystemRoot;$env:SystemRoot\System32\WindowsPowerShell\v1.0"
-& (Join-Path $PSScriptRoot 'test-store-editor-086.ps1') -Data $data -ExtensionPath $zeroExtension[0].FullName -Kit $kit -Receipt $editorReceipt
+$testedEditor = Get-Process -Id $editorWindowState.ProcessId -ErrorAction Stop
+if (-not $testedEditor.Path -or (Split-Path -Leaf $testedEditor.Path) -ine 'Code.exe') {
+    throw 'The editor that completed first-run must expose its actual Code.exe path.'
+}
+& (Join-Path $PSScriptRoot 'test-store-editor-086.ps1') -Data $data -CodeExecutable $testedEditor.Path -ExtensionPath $zeroExtension[0].FullName -Kit $kit -Receipt $editorReceipt
