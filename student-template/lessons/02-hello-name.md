@@ -53,7 +53,7 @@ Copy the block over the matching line in `setup()`:
 ## 5. Run and try two names
 
 `name.getText()` reads what is in the field **when the button is clicked**.
-Click **Run**, type `Sam`, then click **Say hello**. The label should say **Hello, Sam!**. Try your own name and check that the greeting changes. You have now grown one project across three lessons. Next you will start a new **Coin game** project.
+Click **Run**, type `Sam`, then click **Say hello**. The label should say **Hello, Sam!**. Try your own name and check that the greeting changes. You have now grown one project across three lessons. Compare your file with the [finished Main.java](../../teaching/checkpoints/2/Main.java). Next you will start a new **Coin game** project.
 
 ### Layout and appearance
 

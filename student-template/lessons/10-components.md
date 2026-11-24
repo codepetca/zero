@@ -242,7 +242,9 @@ into **main** in lesson 11.
 After writing your own code, compare [game Main](../../teaching/checkpoints/10/game/Main.java),
 [ScoreDisplay.java](../../teaching/checkpoints/10/game/ScoreDisplay.java) and
 [PlayerInput.java](../../teaching/checkpoints/10/game/PlayerInput.java). Checkpoint
-10 keeps arrow-only input.
+10 keeps arrow-only input. The other two files in the finished game are
+[Player.java](../../teaching/checkpoints/10/game/Player.java) and
+[Coin.java](../../teaching/checkpoints/10/game/Coin.java).
 
 PlayerInput owns direction queries; ScoreDisplay owns presentation; game Main
 owns the score and rules. These helpers belong to your project, alongside Main

@@ -67,7 +67,7 @@ Replace the matching line with the copied code:
         Label greeting = new Label("Hello, Java!");
 ```
 
-Click **Run** again. The window should now say **Hello, Java!**.
+Click **Run** again. The window should now say **Hello, Java!**. Compare your file with the [finished Main.java](../../teaching/checkpoints/0/Main.java).
 Keep this **same Greeting project** for lessons 2 and 3. You will add to this
 code rather than replace `Main.java`.
 
