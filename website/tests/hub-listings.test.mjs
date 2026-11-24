@@ -239,6 +239,17 @@ test('Postgres serializes concurrent replacement, protection transfer, update, m
   const older = await store.mine(account, history.next);
   assert.ok(older.projects.some(project=>project.repositoryId === '21'));
   assert.deepEqual(older.projects.filter(project=>project.listed).map(project=>project.repositoryId), ['83']);
+
+  const galleryOwner = String(Number(account)+2);
+  for (const [id,day] of [[84,3],[85,1],[86,3]]) {
+    await store.savePublication(galleryOwner,10,{...item(id),title:'gallery-date-'+id,runCreatedAt:new Date(Date.UTC(2026,0,day))});
+  }
+  const first = await store.discover(null,'gallery-date-',[],1,{byPublication:true});
+  assert.deepEqual(first.map(project=>project.repositoryId),['86']);
+  const next = await store.discover({publishedAt:first[0].runCreatedAt,order:first[0].order},
+    'gallery-date-',[],2,{byPublication:true});
+  assert.deepEqual(next.map(project=>project.repositoryId),['84','85']);
+
 });
 
 test('central listing grants augment legacy access and outages do not silently downgrade it', async () => {

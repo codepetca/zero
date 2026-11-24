@@ -118,6 +118,20 @@ test('paginated Projects retire the old page and reset the cursor on search',asy
   reply(h.calls.at(-1),page([]));await tick();render();
 });
 
+test('the Projects grid renders the server order across lanes and rejects incomplete orders',()=>{
+  const listing={id:'235',identity:'e'.repeat(64),title:'Published app',author:'student',
+    repositoryUrl:'https://github.com/student/app'};
+  const page={...envelope([project],{schema:1,releases:[release]}),listings:[listing],next:null,
+    order:['l:235','r:shared@1','m:maintained']};
+  const h=harness([],true,true);
+  assert.deepEqual(h.cards(h.render({paginatedProjects:true,initialProjects:page})).map(card=>card.title),
+    ['Published app','Shared','Maintained']);
+  h.unmount();
+  const invalid={...page,order:['l:235','m:maintained','l:235']};
+  assert.deepEqual(h.cards(h.render({paginatedProjects:true,initialProjects:invalid})),[]);
+  h.unmount();
+});
+
 test('server-rendered Projects use their initial metadata once and verify Play per card',async()=>{
   const h=harness([],true,true,true);
   const publishedRef=`1.listing.235.${'a'.repeat(64)}.42`;

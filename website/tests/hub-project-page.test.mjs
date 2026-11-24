@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import contracts from '../../extension/src/sharing/contracts.js';
 import app from '../../extension/src/github-app/config.json' with {type:'json'};
 import {hubProjectPageResponse} from '../lib/hub-project-page.mjs';
@@ -104,16 +105,25 @@ test('server search finds matches beyond the first page, and cursors bind to que
 test('published listings fill the same page and check Play only on the later request',async()=>{
   const rows=Array.from({length:30},(_,index)=>{
     const repositoryId=String(700+index);
-    return {repositoryId,accountId:'7',order:String(1000-index),commit,runId:'123',title:`Listing ${index}`,author:'student',
+    return {repositoryId,accountId:'7',order:String(1000-index),commit,runId:'123',
+      runCreatedAt:new Date(Date.UTC(2026,0,30-index)),title:`Listing ${index}`,author:'student',
       repositoryUrl:`https://github.com/student/game-${repositoryId}`,pagesUrl:`https://student.github.io/game-${repositoryId}/`};
   });
   const played=[];
-  const opts=options({projects:[maintained(401)],catalogReader:async()=>catalog([game(402)]),
+  const shared=game(402);
+  const opts=options({projects:[{...maintained(401),publishedAt:'2026-01-29T12:00:00Z'}],
+    catalogReader:async()=>catalog([shared]),releaseDates:{[`${shared.id}@${shared.version}`]:'2026-01-28T12:00:00Z'},
     env:{NODE_ENV:'test',ZERO_HUB_LISTINGS_ENABLED:'1',ZERO_HUB_GITHUB_CLIENT_ID:app.clientId,
       ZERO_HUB_GITHUB_CLIENT_SECRET:'fixture-only-secret-value',ZERO_HUB_GITHUB_SESSION_SECRET:'11'.repeat(32)},
     getStore:()=>({
-      discover:async(before,search,excluded,limit)=>rows.filter(row=>(before===null||+row.order<+before)&&
-        (!search||row.title.toLowerCase().includes(search))&&!excluded.includes(row.repositoryId)).slice(0,limit),
+      discover:async(before,search,excluded,limit,{byPublication})=>{
+        assert.equal(byPublication,true);
+        const time=before&&new Date(before.publishedAt).getTime();
+        return rows.filter(row=>(!before || row.runCreatedAt<time ||
+          +row.runCreatedAt===time && (before.order===null || BigInt(row.order)<BigInt(before.order))) &&
+          (!search||row.title.toLowerCase().includes(search))&&!excluded.includes(row.repositoryId))
+          .sort((a,b)=>b.runCreatedAt-a.runCreatedAt || Number(BigInt(b.order)-BigInt(a.order))).slice(0,limit);
+      },
       stillListed:async entries=>entries
     }),
     listingDestinationReader:async(_entry,{includeFeedback})=>{
@@ -123,6 +133,8 @@ test('published listings fill the same page and check Play only on the later req
   const first=await request(opts);
   assert.equal(first.status,200,JSON.stringify(first.body));
   assert.equal(first.body.listings.length,22);
+  assert.deepEqual(first.body.order.slice(0,5),['l:700','m:maintained-401','l:701',`r:${shared.id}@${shared.version}`,'l:702']);
+  assert.equal(first.body.order.length,24);
   assert.ok(first.body.listings.every(item=>item.stars===4 && item.issuesEnabled===true));
   assert.ok(first.body.listings.every(item=>typeof item.playRef==='string'));
   assert.equal(new Set(first.body.listings.map(item=>item.playRef)).size,22);
@@ -140,6 +152,7 @@ test('published listings fill the same page and check Play only on the later req
   const next=await request(opts,{cursor:first.body.next});
   assert.equal(next.status,200);
   assert.deepEqual(next.body.listings.map(item=>item.id),rows.slice(22).map(item=>item.repositoryId));
+  assert.deepEqual(next.body.order,rows.slice(22).map(item=>`l:${item.repositoryId}`));
   assert.equal(next.body.next,null);
   assert.equal(played.length,22);
 });
@@ -161,4 +174,48 @@ test('published listing discovery retains the legacy configuration gate',async()
   assert.equal(result.status,200);
   assert.equal(result.body.maintained.length,1);
   assert.deepEqual(result.body.listings,[]);
+});
+
+test('publication dates also order catalog-only projects and retire pre-sort cursors',async()=>{
+  const older=game(600,'A first title'), rel=game(601,'Z newest title'), unknown=game(602,'A undated title');
+  const opts=options({projects:[{...maintained(603),publishedAt:'2026-10-16T00:00:00Z'}],
+    catalogReader:async()=>catalog([older,rel,unknown]),
+    releaseDates:{[`${older.id}@${older.version}`]:'2026-10-14T00:00:00Z',
+      [`${rel.id}@${rel.version}`]:'2026-10-17T00:00:00Z'}});
+  const {status,body}=await request(opts);
+  assert.equal(status,200);
+  assert.deepEqual(body.order,[`r:${rel.id}@${rel.version}`,'m:maintained-603',
+    `r:${older.id}@${older.version}`,`r:${unknown.id}@${unknown.version}`]);
+  const search=createHash('sha256').update(JSON.stringify('')).digest('hex');
+  const cursor=Buffer.from(JSON.stringify({v:1,revision:'a'.repeat(64),search,position:'[0,"item","id"]',listing:false})).toString('base64url');
+  const stale=await request(opts,{cursor});
+  assert.equal(stale.status,409);
+  assert.equal(stale.body.code,'restart');
+});
+
+test('older listings do not consume destination checks when the catalog fills the page',async()=>{
+  const releases=Array.from({length:25},(_,index)=>game(500+index));
+  const releaseDates=Object.fromEntries(releases.map(release=>[
+    `${release.id}@${release.version}`,'2026-11-01T00:00:00Z'
+  ]));
+  const rows=Array.from({length:25},(_,index)=>{
+    const repositoryId=String(700+index);
+    return {repositoryId,accountId:'7',order:String(1000-index),commit,runId:'123',
+      runCreatedAt:new Date('2026-10-01T00:00:00Z'),title:`Listing ${repositoryId}`,author:'student',
+      repositoryUrl:`https://github.com/student/game-${repositoryId}`,pagesUrl:`https://student.github.io/game-${repositoryId}/`};
+  });
+  const opts=options({catalogReader:async()=>catalog(releases),releaseDates,
+    env:{NODE_ENV:'test',ZERO_HUB_LISTINGS_ENABLED:'1',ZERO_HUB_GITHUB_CLIENT_ID:app.clientId,
+      ZERO_HUB_GITHUB_CLIENT_SECRET:'fixture-only-secret-value',ZERO_HUB_GITHUB_SESSION_SECRET:'11'.repeat(32)},
+    getStore:()=>({discover:async()=>rows,stillListed:async()=>assert.fail('old listings should not be bound')}),
+    listingDestinationReader:async()=>assert.fail('old listings should not be read from GitHub')});
+  let checked=0;
+  const readDestination=opts.destinationReader;
+  opts.destinationReader=async url=>{checked++;return readDestination(url);};
+  const {status,body}=await request(opts);
+  assert.equal(status,200,JSON.stringify(body));
+  assert.equal(body.catalog.releases.length,24);
+  assert.deepEqual(body.listings,[]);
+  assert.ok(body.next);
+  assert.equal(checked,25);
 });

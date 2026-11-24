@@ -27,47 +27,27 @@ export function claimPublicHubRequest() {
   };
 }
 
-// The caller owns cursor validation, the request claim, and the final fresh
-// visibility decision. Raw order and lookahead remain server-side only.
-export async function readProjectListingPage({env = process.env, signal, search = '', before = null,
-  limit, excluded = [], visibility, getStore = configuredListingsStore, destinationReader,
-  playReader = publicListingPlayUrl, checkPlay = false, playBudgetMs = 4000}) {
-  if (!Number.isInteger(limit) || limit < 1 || limit > 24) throw new Error('Invalid listing page size');
-  const store = getStore(env);
-  if (!store) return {entries:[], more:false, lookahead:null};
+export async function bindProjectListingEntries(candidates, {env,signal,visibility,destinationReader}) {
+  if (!candidates.length) return [];
   const readDestination = destinationReader ?? listingRepositoryReader(env);
   if (!readDestination) throw new Error('Listing destination reader unavailable');
-  const omit = [...new Set([...excluded.map(item => typeof item === 'string' ? item : item?.repositoryId ?? item?.id),
-    ...(visibility?.heldRepositoryIds?.() ?? [])].filter(Boolean))];
-  const visible = entry => hubTargetVisible({kind:'game', repositoryId:entry.repositoryId}, visibility);
-  const windowSize = Math.max(listingPageSize+1,limit+1);
-  let order = before, exhausted = false;
-  const observed = [];
-  for (let attempt = 0; attempt < 4 && !exhausted && observed.length <= limit; attempt++) {
+  const confirmed = [];
+  for (let offset = 0; offset < candidates.length; offset += 4) {
     signal?.throwIfAborted();
-    const candidates = await store.discover(order, search, omit, windowSize);
-    exhausted = candidates.length < windowSize;
-    order = candidates.at(-1)?.order ?? order;
-    for (let offset = 0; offset < candidates.length && observed.length <= limit;) {
-      signal?.throwIfAborted();
-      const batch = candidates.slice(offset,offset+Math.min(4,limit+1-observed.length));
-      offset += batch.length;
-      const checked = await Promise.all(batch.map(async entry => {
-        if (!visible(entry)) return null;
-        const result = await readDestination(entry, {signal,includeFeedback:true});
-        if (!result) return null;
-        return result === true ? entry : {...entry,feedback:result};
-      }));
-      observed.push(...checked.filter(Boolean));
-    }
+    const batch = await Promise.all(candidates.slice(offset,offset+4).map(async entry=>{
+      if (!hubTargetVisible({kind:'game',repositoryId:entry.repositoryId},visibility)) return null;
+      const result = await readDestination(entry,{signal,includeFeedback:true});
+      return result === true ? entry : result ? {...entry,feedback:result} : null;
+    }));
+    confirmed.push(...batch.filter(Boolean));
   }
-  // If the bounded scan cannot prove exhaustion or a visible next entry, do
-  // not silently truncate the discovery results.
-  if (!exhausted && observed.length <= limit) throw new Error('Listing scan budget exhausted');
-  const selected = observed.slice(0, limit);
-  const lookahead = observed[limit] ?? null;
+  return confirmed;
+}
+
+// Playback checks fill in optional links on a fixed, already selected page.
+export async function observeProjectListingPlay(selected, {signal,playReader=publicListingPlayUrl,playBudgetMs=4000}) {
   const budget = typeof playBudgetMs==='function' ? playBudgetMs() : playBudgetMs;
-  if (checkPlay && selected.length && budget>0) {
+  if (selected.length && budget>0) {
     const playDeadline = createHubRequestDeadline({budgetMs:budget,signal});
     try {
       await playDeadline.run(async playSignal => {
@@ -85,6 +65,39 @@ export async function readProjectListingPage({env = process.env, signal, search 
     } catch { signal?.throwIfAborted(); }
     finally { playDeadline.dispose(); }
   }
+}
+
+// The caller owns cursor validation, the request claim, and the final fresh
+// visibility decision. Raw order and lookahead remain server-side only.
+export async function readProjectListingPage({env = process.env, signal, search = '', before = null,
+  limit, excluded = [], visibility, getStore = configuredListingsStore, destinationReader,
+  playReader = publicListingPlayUrl, checkPlay = false, playBudgetMs = 4000}) {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 24) throw new Error('Invalid listing page size');
+  const store = getStore(env);
+  if (!store) return {entries:[], more:false, lookahead:null};
+  const omit = [...new Set([...excluded.map(item => typeof item === 'string' ? item : item?.repositoryId ?? item?.id),
+    ...(visibility?.heldRepositoryIds?.() ?? [])].filter(Boolean))];
+  const windowSize = Math.max(listingPageSize+1,limit+1);
+  let order = before, exhausted = false;
+  const observed = [];
+  for (let attempt = 0; attempt < 4 && !exhausted && observed.length <= limit; attempt++) {
+    signal?.throwIfAborted();
+    const candidates = await store.discover(order, search, omit, windowSize);
+    exhausted = candidates.length < windowSize;
+    order = candidates.at(-1)?.order ?? order;
+    for (let offset = 0; offset < candidates.length && observed.length <= limit;) {
+      signal?.throwIfAborted();
+      const batch = candidates.slice(offset,offset+Math.min(4,limit+1-observed.length));
+      offset += batch.length;
+      observed.push(...await bindProjectListingEntries(batch,{env,signal,visibility,destinationReader}));
+    }
+  }
+  // If the bounded scan cannot prove exhaustion or a visible next entry, do
+  // not silently truncate the discovery results.
+  if (!exhausted && observed.length <= limit) throw new Error('Listing scan budget exhausted');
+  const selected = observed.slice(0, limit);
+  const lookahead = observed[limit] ?? null;
+  if (checkPlay) await observeProjectListingPlay(selected,{signal,playReader,playBudgetMs});
   signal?.throwIfAborted();
   const current = await store.stillListed([...selected, ...(lookahead ? [lookahead] : [])]);
   signal?.throwIfAborted();

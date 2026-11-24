@@ -127,13 +127,21 @@ export function createHubListingsStore(pool) {
     return {projects:rows.map(project), next:more ? rows.at(-1).repository_id : null};
   }
 
-  async function discover(before, search, excluded, limit = listingPageSize + 1) {
+  async function discover(before, search, excluded, limit = listingPageSize + 1, {byPublication = false} = {}) {
     if (!Number.isInteger(limit) || limit < 1 || limit > 25) throw new Error('Invalid discovery limit');
+    const position = byPublication
+      ? `($1::timestamptz IS NULL OR run_created_at < $1 OR
+          (run_created_at = $1 AND ($5::bigint IS NULL OR listed_order < $5)))`
+      : '($1::bigint IS NULL OR listed_order < $1)';
+    const sort = byPublication ? 'run_created_at DESC, listed_order DESC' : 'listed_order DESC';
+    const args = byPublication
+      ? [before?.publishedAt ?? null, search, excluded, limit, before?.order ?? null]
+      : [before, search, excluded, limit];
     const {rows} = await pool.query(`SELECT account_id, ${fields} FROM ${table} WHERE listed_order IS NOT NULL
-      AND ($1::bigint IS NULL OR listed_order < $1)
+      AND ${position}
       AND ($2 = '' OR strpos(lower(title || ' ' || author), lower($2)) > 0)
       AND repository_id <> ALL($3::text[])
-      ORDER BY listed_order DESC LIMIT $4`, [before, search, excluded, limit]);
+      ORDER BY ${sort} LIMIT $4`, args);
     return rows.map(row => ({...project(row), accountId:row.account_id, order:row.listed_order}));
   }
 
