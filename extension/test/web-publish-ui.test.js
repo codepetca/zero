@@ -6,7 +6,7 @@ function dirtyDocument({file='/student/src/main/java/Main.java',scheme='file',sa
   document.save=save||async function(){document.isDirty=false;return true;};
   return document;
 }
-function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError,beforeBuildReview,listPublication,onReportFailure,onReportStage,onReportSuccess}={}) {
+function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError,beforeBuildReview,onToolingDecision,listPublication,onReportFailure,onReportStage,onReportSuccess}={}) {
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,upgrade=false,uploaded=0,sha='a'.repeat(40);
   const progress=[],messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
@@ -27,7 +27,7 @@ function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/s
     if(reviewed.sha!==sha)throw Error('The app changed while checking its published version.');
     const live=await publisher.check();if(live.status==='live')onCurrent?.(live);return live;
   };
-  const api=createWebPublishCommands(vscode,{onReportFailure,onReportStage,onReportSuccess,project:resolveProject || (async()=>active),connectedRepository,assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,beforeBuildReview,listPublication,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);assert.equal(options.expectedPlan,uploadPlan);assert.equal(options.expectedAccount,'1');await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
+  const api=createWebPublishCommands(vscode,{onToolingDecision,onReportFailure,onReportStage,onReportSuccess,project:resolveProject || (async()=>active),connectedRepository,assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,beforeBuildReview,listPublication,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);assert.equal(options.expectedPlan,uploadPlan);assert.equal(options.expectedAccount,'1');await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {api,auth,progress,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
@@ -40,8 +40,19 @@ test('browser tooling review precedes review and setup upload for a new build',a
   assert.equal(result.status,'live');assert.equal(hookCalls,1);assert.equal(h.uploaded,1);assert.equal(h.published,1);
 });
 test('cancelled browser tooling review prevents publishing review and upload',async t=>{
-  const h=fixture(t,{beforeBuildReview:async()=>{throw Error('Browser tooling update cancelled');}});
-  await assert.rejects(h.api.publish(),/update cancelled/);assert.equal(h.reviewed,0);assert.equal(h.uploaded,0);assert.equal(h.published,0);assert.equal(h.busy,false);
+  const {BrowserToolingDecision}=require('../src/browser-tooling-decision');
+  const h=fixture(t,{onReportFailure:()=>assert.fail('A declined review is not a publishing failure'),beforeBuildReview:async()=>{throw new BrowserToolingDecision();}});
+  await assert.rejects(h.api.publish(),/Browser action cancelled/);assert.equal(h.reviewed,0);assert.equal(h.uploaded,0);assert.equal(h.published,0);assert.equal(h.busy,false);
+});
+test('a publish recheck can offer the same inline repair before the next review',async t=>{
+  const {BrowserToolingDecision}=require('../src/browser-tooling-decision');
+  const decision=new BrowserToolingDecision({token:'reviewed'}),offered=deferred();
+  let checks=0;
+  const h=fixture(t,{beforeBuildReview:async()=>{if(++checks===2)throw decision;},onToolingDecision:offered.resolve,
+    onReportFailure:()=>assert.fail('Waiting for an inline repair is not a publishing failure')});
+  h.publisher.review=async()=>({status:'action-required',action:{message:'Check again.'}});
+  h.choices.push('Recheck');await h.api.publish();
+  assert.equal(await offered.promise,decision);assert.equal(h.uploaded,0);assert.equal(h.busy,false);
 });
 test('simulation skips browser tooling review',async t=>{
   let hookCalls=0;const h=fixture(t,{beforeBuildReview:async()=>{hookCalls++;}});h.simulation=true;

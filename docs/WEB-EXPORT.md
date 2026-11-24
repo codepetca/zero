@@ -71,9 +71,10 @@ those files unchanged. An explicit browser action in a trusted workspace verifie
 the saved closure, runs a frozen copy with a separate Node/JDK process, withholds
 GitHub credentials, and checks its inputs and output before accepting the build.
 If inventoried files are missing from otherwise unchanged current browser
-tools, explicit browser actions offer **Repair Browser Tools**. Repair verifies
-the installed inventory, requires confirmation and keeps the incomplete tools
-folder as a local backup. Other incomplete or modified tool sets still stop
+tools, the Zero sidebar shows **Some browser tools are missing.** Choose
+**Repair and continue** to restore them and retry the original browser action.
+Zero verifies the installed inventory and keeps the incomplete tools folder as
+a local backup. Zero Output shows the backup location. Other incomplete or modified tool sets still stop
 with recovery guidance.
 Current runtime requirements and standalone commands live in that project's
 `.zero-build/README.md`; no central historical-kit database is required.

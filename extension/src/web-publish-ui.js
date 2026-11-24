@@ -1,4 +1,5 @@
 'use strict';
+const {BrowserToolingDecision} = require('./browser-tooling-decision');
 const path = require('node:path');
 const fs = require('node:fs');
 const {createGitHubPagesPublisher} = require('./web-publish-github');
@@ -38,7 +39,7 @@ function dirtyBuildDocuments(vscode,root) {
   });
 }
 
-function createWebPublishCommands(vscode,{onReportStage=()=>{},onReportFailure=()=>{},onReportSuccess=()=>{},project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,listPublication,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
+function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{},onReportFailure=()=>{},onReportSuccess=()=>{},project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,listPublication,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,recheckDispatch=false,lastLive;
   let root,stageProgress,openingRequested=false;
   const clearProgress=()=>{stageProgress=undefined;setProgress(undefined);};
@@ -191,13 +192,13 @@ function createWebPublishCommands(vscode,{onReportStage=()=>{},onReportFailure=(
     progress(listing?.listingMessage ? `${message} · ${listing.listingMessage}` : message,`Your playable app is live: ${current.url}`);
     return {...current,opened:opened!==false};
   }
-  async function publish({open=false,recheckRoot}={}) {
+  async function publish({open=false,recheckRoot,expectedRoot}={}) {
     if(disposed || publishing || isBusy())return;
     publishing=true;setBusy(true);controller=new AbortController();openingRequested=open;
     try {
       root=await project();
       if(disposed || controller.signal.aborted)return;
-      if(recheckRoot && root!==recheckRoot)return;
+      if(typeof expectedRoot==='string' && root!==expectedRoot || recheckRoot && root!==recheckRoot)return;
       if(isSimulation(root)){progress('Simulation only — no publishing files, sign-in, upload or public website changed.');return {status:'simulated'};}
       if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before publishing its browser game.');
       const expected=root;
@@ -230,13 +231,16 @@ function createWebPublishCommands(vscode,{onReportStage=()=>{},onReportFailure=(
         if(current.opened!==false)onReportSuccess(expected,'opening');return current;
       }
     } catch(error) {
-      if (!controller?.signal.aborted) onReportFailure(error,root);
+      if (!(error instanceof BrowserToolingDecision) && !controller?.signal.aborted) onReportFailure(error,root);
       throw error;
     } finally {
       clearProgress();controller=undefined;publishing=false;setBusy(false);
       const dispatch=recheckDispatch, retry=recheckRequested || dispatch, checkRoot=root;
       recheckDispatch=false;recheckRequested=false;
-      if(retry && !disposed)queueMicrotask(()=>{void publish({open,recheckRoot:dispatch ? checkRoot : undefined}).catch(error=>progress(error.message));});
+      if(retry && !disposed)queueMicrotask(()=>{void publish({open,recheckRoot:dispatch ? checkRoot : undefined}).catch(error=>{
+        if(error instanceof BrowserToolingDecision && onToolingDecision)return onToolingDecision(error);
+        progress(error.message);
+      });});
     }
   }
   async function publishOnce(expected,{reuse=false,recovering=false}={}) {
@@ -291,7 +295,7 @@ function createWebPublishCommands(vscode,{onReportStage=()=>{},onReportFailure=(
         if(current.status==='live')return {...current,alreadyCurrent:true};
         if(current.status!=='stale'){await showAction(current);return current;}
       }
-      await beforeBuildReview(expected,{signal:controller.signal});
+      await beforeBuildReview(expected,{signal:controller.signal,open:reuse});
       await stillPublishable(expected);
       let review;
       try {review=await publisher.review(expected,{signal:controller.signal});}
@@ -409,7 +413,7 @@ function createWebPublishCommands(vscode,{onReportStage=()=>{},onReportFailure=(
     if(typeof saved.url!=='string')return false;
     try {const url=new URL(saved.url);return url.protocol==='https:' && Boolean(url.hostname) && !url.username && !url.password && !url.search && !url.hash;}catch{return false;}
   }
-  const publishAndOpen=()=>publish({open:true});
+  const publishAndOpen=expectedRoot=>publish({open:true,expectedRoot});
   async function viewPublishedApp() {
     if(disposed || publishing || isBusy())return;
     publishing=true;setBusy(true);controller=new AbortController();openingRequested=false;
@@ -493,6 +497,6 @@ function createWebPublishCommands(vscode,{onReportStage=()=>{},onReportFailure=(
       return {provider:'github-pages',url:checked.url,commit,runId:checked.resume.runId};
     } finally {controller=undefined;publishing=false;setBusy(false);}
   }
-  return {publish,publishAndOpen,hasPublishedApp,verifiedPublication,commands:{'zero.publishWeb':()=>publish(),'zero.publishAndOpenWeb':publishAndOpen,'zero.copyPublishedWebLink':()=>publishedLink(false),'zero.openPublishedWeb':()=>publishedLink(true),'zero.viewPublishedWeb':viewPublishedApp},disposables:[{dispose(){disposed=true;controller?.abort();clearProgress();}}]};
+  return {publish,publishAndOpen,hasPublishedApp,verifiedPublication,commands:{'zero.publishWeb':expectedRoot=>publish({expectedRoot}),'zero.publishAndOpenWeb':publishAndOpen,'zero.copyPublishedWebLink':()=>publishedLink(false),'zero.openPublishedWeb':()=>publishedLink(true),'zero.viewPublishedWeb':viewPublishedApp},disposables:[{dispose(){disposed=true;controller?.abort();clearProgress();}}]};
 }
 module.exports={createWebPublishCommands};

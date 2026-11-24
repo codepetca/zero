@@ -1,4 +1,5 @@
 'use strict';
+const {BrowserToolingDecision} = require('./browser-tooling-decision');
 const path = require('node:path');
 const os = require('node:os');
 const {createManagedWebPreview} = require('./web-run-preview');
@@ -117,6 +118,7 @@ function createBrowserRunCommands(vscode, {onReportManual=()=>{},onReportFailure
       await showPreview(root,result,id,validate,controller.signal);
     }catch(error){
       if(controller.signal.aborted || id!==generation || disposed)return;
+      if(error instanceof BrowserToolingDecision)throw error;
       onReportFailure(error,'web-compile',root);
       error.zeroRunMessage=root ? 'App could not run. Open Problems or check Zero output.' : error.message;
       setFailed(true);setState(error.zeroRunMessage);output.appendLine(error.message);output.show?.(true);await diagnostics(error,root);throw error;

@@ -51,7 +51,7 @@ function sidebarClient() {
     const button = event.target.closest('button[data-command]');
     if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true') {
       for (const config of menus) if (menuElement(config)?.contains(button)) closeMenu(config,true);
-      api.postMessage({command:button.dataset.command,...(button.dataset.command==='zero.commitChanges'?{commitMessage:document.getElementById('commit-message')?.value || ''}:{}),...(button.dataset.recovery?{recovery:button.dataset.recovery}:{}),...(button.dataset.syncScope?{syncScope:button.dataset.syncScope}:{}),...(button.dataset.branchChoice?{branchChoice:button.dataset.branchChoice}:{})});
+      api.postMessage({command:button.dataset.command,...(button.dataset.repairToken?{repairToken:button.dataset.repairToken}:{}),...(button.dataset.command==='zero.commitChanges'?{commitMessage:document.getElementById('commit-message')?.value || ''}:{}),...(button.dataset.recovery?{recovery:button.dataset.recovery}:{}),...(button.dataset.syncScope?{syncScope:button.dataset.syncScope}:{}),...(button.dataset.branchChoice?{branchChoice:button.dataset.branchChoice}:{})});
     }
   });
   document.addEventListener('keydown', event => {
@@ -121,16 +121,21 @@ function sidebarClient() {
       const publishingProgress=document.getElementById('publishing-progress'),progressMarkup=message.publishingProgress || '';
       if(publishingProgress.dataset.content!==progressMarkup){publishingProgress.innerHTML=progressMarkup;publishingProgress.dataset.content=progressMarkup;}
       const recovery = document.getElementById('recovery');
-      const recoveryMode = `${Boolean(message.failed)}:${Boolean(message.reportAvailable)}`;
-      recovery.hidden = !message.failed && !message.reportAvailable;
+      const recoveryMode = `${Boolean(message.failed)}:${Boolean(message.reportAvailable)}:${message.repairToken || ''}`;
+      recovery.hidden = !message.failed && !message.reportAvailable && !message.repairToken;
       if (recovery.dataset.mode !== recoveryMode) {
+        const repairHadFocus=Boolean(document.activeElement?.dataset.repairToken);
         recovery.dataset.mode = recoveryMode;recovery.replaceChildren();
+        if (message.repairToken) {
+          const button=document.createElement('button');button.className='link';button.dataset.command='zero.repairBrowserTools';button.dataset.repairToken=message.repairToken;button.textContent='Repair and continue';recovery.append(button);
+        }
         if (message.failed) for (const label of ['Problems','Output']) {
           const button=document.createElement('button'); button.className='link'; button.dataset.command='zero.show'+label; button.textContent='Show '+label; recovery.append(button);
         }
         if (message.failed || message.reportAvailable) {
           const button=document.createElement('button'); button.className='link'; button.dataset.command='zero.reportProblem'; button.textContent='Report a problem'; recovery.append(button);
         }
+        if(repairHadFocus)status.focus({preventScroll:true});
       }
     }
   });

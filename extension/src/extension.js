@@ -1,4 +1,5 @@
 'use strict';
+const {BrowserToolingDecision} = require('./browser-tooling-decision');
 const editor = require('vscode');
 const {minimalPrompts} = require('./prompts');
 const {createWorkOSFirstUse} = require('./workos-first-use');
@@ -225,7 +226,7 @@ function activate(context, services = {}) {
   let browserBusy = false;
   let browserActive = false;
   let publishingWeb = false, publishProgress;
-  let exportReadyRoot;
+  let exportReadyRoot, pendingBrowserRepair;
   let branch = '';
   let branchHead,mainLocalHead,branchRemoteStatus,branchAuthHint,branchAuthEpoch=0,branchCheckRunning=false,branchCheckPending=false,branchCheckNextAt=0;
   const branchCheckWaiters=new Set();
@@ -303,7 +304,7 @@ function activate(context, services = {}) {
     const original = !practice && !await lessonProjects.tutorialMarker(root);
     if(savedBuilderInspectedRoot!==root){savedBuilderInspectedRoot=root;try{await readSavedBuilder(root,{metadataOnly:true});}catch(error){output.appendLine(error.message);}}
     if(!sameWorkspace())throw new Error('The project changed. Try again in the current workspace.');
-    if(savedChecksRoot&&savedChecksRoot!==root){savedChecks.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;}
+    if(savedChecksRoot&&savedChecksRoot!==root){savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;}
     if(projectRoot!==root){projectDirty=undefined;projectDirtyError=undefined;projectDirtyGeneration++;}
     projectRoot = root; localPractice = practice; originalWork = original;
     return root;
@@ -2869,15 +2870,18 @@ function activate(context, services = {}) {
       await guard();result=await execute(guard);completed=true;return result;
     });}catch(error){if(completed)error.message+=` The project operation may have completed; inspect the project before retrying.${result?.recoveryPath?` Recovery copies: ${result.recoveryPath}.`:''}`;throw error;}
   }
-  async function updateProject(root,{signal,required=false}={}) {
+  async function assertBrowserRecoveryClear(root) {
+    const recoveries=await require('./project-update').listRecoveries({projectRoot:root});
+    if(recoveries.some(item=>item.status==='incomplete'))throw new Error('An incomplete project update must be recovered before browser actions. Keep its recovery copies.');
+  }
+  async function updateProject(root,{signal,required=false,restart}={}) {
     const current=projectUpdateGuard(root,signal);
     await current();
     const upgrade=require('./project-update');
     if(required) {
-      const recoveries=await upgrade.listRecoveries({projectRoot:root});
+      await assertBrowserRecoveryClear(root);
       await current();
-      if(recoveries.some(item=>item.status==='incomplete'))throw new Error('An incomplete project update must be recovered before browser actions. Keep its recovery copies.');
-      return updateBrowserTooling(root,{signal});
+      return updateBrowserTooling(root,{signal,restart});
     }
     const plan=await upgrade.planUpdate({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
     await current();
@@ -2896,31 +2900,93 @@ function activate(context, services = {}) {
     report('Project updated · test and commit',`Project updated. ${result.backupPath?`Previous files saved at ${result.backupPath}. `:''}Test the app and browser build, review local library requirements, and commit the changed project files.`);
     return true;
   }
-  async function updateBrowserTooling(root,{signal}={}) {
+  async function updateBrowserTooling(root,{signal,restart}) {
     const current=projectUpdateGuard(root,signal);
+    const generation=runGeneration;
     await current();
     const upgrade=require('./project-builder-upgrade');
     const plan=await upgrade.planUpgrade({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
     await current();
     if(!plan.changed)return false;
-    const action = plan.repairing ? 'Repair' : 'Update';
-    const updateChoice={title:`${action} Browser Tools`};
-    const detail=plan.repairing
-      ? 'Some saved browser tool files are missing. Zero can restore them from this installation and keep a backup of the current tools folder. Review and commit the restored files after testing.'
-      : 'Replace this project’s .zero-build folder with the browser tools included in your installed Zero. Your Java, assets and framework files stay unchanged. The previous browser tools are kept in a local backup. This may affect browser builds; review and commit the changed files after testing.';
-    const choice=await vscode.window.showWarningMessage(`${action} browser tools for ${path.basename(root)}?`,{modal:true,detail},updateChoice,{title:'Cancel',isCloseAffordance:true});
+    if(plan.repairing){
+      const identity=await fs.lstat(root);
+      throw new BrowserToolingDecision({plan,identity,signal,generation,restart,token:crypto.randomUUID()});
+    }
+    const updateChoice={title:'Update Browser Tools'};
+    const detail='Replace this project’s .zero-build folder with the browser tools included in your installed Zero. Your Java, assets and framework files stay unchanged. The previous browser tools are kept in a local backup. This may affect browser builds; review and commit the changed files after testing.';
+    const choice=await vscode.window.showWarningMessage(`Update browser tools for ${path.basename(root)}?`,{modal:true,detail},updateChoice,{title:'Cancel',isCloseAffordance:true});
     await current();
-    if(choice!==updateChoice)throw Object.assign(new Error('Browser action cancelled. No browser tools were changed.'),{code:'ZERO_BROWSER_TOOLING_UPDATE_CANCELLED'});
+    if(choice!==updateChoice)throw new BrowserToolingDecision();
+    await applyBrowserTooling(plan,current);
+    return true;
+  }
+  async function applyBrowserTooling(plan,current) {
+    const root=plan.projectRoot,upgrade=require('./project-builder-upgrade');
     const result=await withProjectUpdateMutation(root,current,guard=>upgrade.applyUpgrade(plan,{assertCurrent:guard}));
     if(result.backupPath)output.appendLine(`Previous browser tools: ${result.backupPath}`);
     if(result.cleanupWarning)output.appendLine(result.cleanupWarning);
     await current();
     const completed = plan.repairing ? 'Browser tools repaired' : 'Browser tools updated';
     report(completed,`${completed}. ${result.backupPath?`Previous tools saved at ${result.backupPath}. `:''}Test the app and review the changed .zero-build files before committing.`);
-    return true;
   }
-  async function withCurrentBrowserTooling(operation,options) {
-    await updateProject(options.projectRoot,{signal:options.signal,required:true});
+  function clearBrowserRepair() {
+    if(!pendingBrowserRepair)return;
+    pendingBrowserRepair.signal?.removeEventListener('abort',clearBrowserRepair);
+    pendingBrowserRepair=undefined;
+    if(!disposed)refresh();
+  }
+  async function offerBrowserRepair(request) {
+    clearBrowserRepair();
+    if(disposed || request.signal?.aborted || request.generation!==runGeneration || projectRoot!==request.plan.projectRoot)return;
+    pendingBrowserRepair=request;
+    state='';
+    request.signal?.addEventListener('abort',clearBrowserRepair,{once:true});
+    // Commands also run from editor menus when the controls view is hidden.
+    if(![...controlViews].some(view=>view.visible)) {
+      try {await actions['zero.showSidebar']();}
+      catch(error){
+        if(pendingBrowserRepair!==request)return;
+        clearBrowserRepair();
+        const message='Open the Zero sidebar and try the browser action again.';
+        report(message,error.message);void vscode.window.showErrorMessage(message);return;
+      }
+    }
+    refresh();
+  }
+  async function handleBrowserToolingDecision(error) {
+    if(error.repair)await offerBrowserRepair(error.repair);else report(error.message);
+  }
+  actions['zero.repairBrowserTools']=async token=>{
+    const request=pendingBrowserRepair;
+    if(!request || token!==request.token || isBusy())return;
+    clearBrowserRepair();
+    const {plan,signal,generation,identity}=request,root=plan.projectRoot;
+    const guard=projectUpdateGuard(root,signal);
+    const current=async()=>{
+      await guard();
+      const selected=await fs.lstat(root);
+      if(disposed || signal?.aborted || vscode.workspace.isTrusted!==true || generation!==runGeneration || selected.dev!==identity.dev || selected.ino!==identity.ino)throw Error('The project changed. Choose the browser action again.');
+    };
+    maintenanceBusy=true;
+    report('Repairing browser tools…');
+    try {
+      await current();
+      await assertBrowserRecoveryClear(root);
+      await applyBrowserTooling(plan,current);
+      await current();
+    } catch(error) {
+      const detail=`${error.message} Review .zero-build and restore missing tools from a backup or Git history if needed.`;
+      if(!disposed && generation===runGeneration && projectRoot===root){
+        report('Browser repair stopped. See Zero Output for recovery steps.',detail);
+        output.show(true);
+      }else output.appendLine(detail);
+      return;
+    } finally {maintenanceBusy=false;if(!disposed)refresh();}
+    await request.restart(root);
+  };
+  const resumeCommand=id=>root=>vscode.commands.executeCommand(id,root);
+  async function withCurrentBrowserTooling(operation,options,restart) {
+    await updateProject(options.projectRoot,{signal:options.signal,required:true,restart});
     return operation({...options,explicitAction:true});
   }
   const savedProblems=vscode.languages?.createDiagnosticCollection('zero-browser-compatibility');
@@ -2951,18 +3017,18 @@ function activate(context, services = {}) {
   const sourceWatcher=vscode.workspace.createFileSystemWatcher('**/*');
   for(const method of ['onDidCreate','onDidChange','onDidDelete'])sourceWatcher[method]?.(projectFilesChanged,undefined,context.subscriptions);
   context.subscriptions.push(sourceWatcher,{dispose(){savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedProblems?.dispose();}});
-  actions['zero.enableBrowserChecks']=async()=>{
+  actions['zero.enableBrowserChecks']=async expectedRoot=>{
     if(isBusy())return;
     const attempt=++savedChecksEnableGeneration,controller=new AbortController();savedPreparation=controller;maintenanceBusy=true;refresh();
     const current=()=>!disposed&&attempt===savedChecksEnableGeneration&&!controller.signal.aborted;
     try{
-      const root=await runnableProject();if(!current())return;
+      const root=await runnableProject();if(!current() || typeof expectedRoot==='string' && root!==expectedRoot)return;
       if(vscode.workspace.isTrusted!==true)throw Error('Trust your own project before enabling its saved browser tooling.');
       if(!await vscode.workspace.saveAll(false))throw Error('Save your files before preparing browser checks.');
       if(!current())return;
       savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=root;savedChecksState={status:'unavailable',message:'Preparing verified dependencies for browser checks.'};savedProblems?.clear();refresh();
       const work=async(progress,token)=>{const listener=token?.onCancellationRequested(()=>controller.abort());
-        try{await withCurrentBrowserTooling(savedBuilder.prepareBrowserChecks,{projectRoot:root,cacheRoot:webCacheRoot,signal:controller.signal,onProgress:message=>{if(!current())return;output.appendLine(message);progress?.report({message:String(message)});}});}finally{listener?.dispose();}};
+        try{await withCurrentBrowserTooling(savedBuilder.prepareBrowserChecks,{projectRoot:root,cacheRoot:webCacheRoot,signal:controller.signal,onProgress:message=>{if(!current())return;output.appendLine(message);progress?.report({message:String(message)});}},expected=>current() && vscode.commands.executeCommand('zero.enableBrowserChecks',expected));}finally{listener?.dispose();}};
       if(vscode.window.withProgress)await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:'Prepare browser checks for this project',cancellable:true},work);else await work();
       if(!current())return;const selected=await project();if(!current()||selected!==root)return;
       const host=createSavedSourceHost({projectRoot:root,cacheRoot:webCacheRoot,builder:savedBuilder});
@@ -2979,7 +3045,12 @@ function activate(context, services = {}) {
       }});
       savedChecks=checks;await checks.enable({explicitAction:true});if(!current()){checks.dispose();return;}
       checks.changed({dirty:hasDirtySource(),reason:'Saved source ready for checking.'});await checks.flush();
-    }catch(error){if(current()&&error.name!=='AbortError')throw error;}
+    }catch(error){
+      if(current()&&error.name!=='AbortError'){
+        if(error instanceof BrowserToolingDecision)savedChecksState=undefined;
+        throw error;
+      }
+    }
     finally{if(savedPreparation===controller)savedPreparation=undefined;maintenanceBusy=false;refresh();}
   };
   actions['zero.disableBrowserChecks']=()=>{
@@ -2987,10 +3058,10 @@ function activate(context, services = {}) {
     if(!savedChecks)savedChecksState={status:'unavailable',message:'Browser checks are disabled.'};refresh();
   };
 
-  const buildWithSavedProject=options=>withCurrentBrowserTooling(savedBuilder.ensureValidatedExport,options);
+  const buildWithSavedProject=restart=>options=>withCurrentBrowserTooling(savedBuilder.ensureValidatedExport,options,restart);
   const validateWithSavedProject=options=>savedBuilder.validateExport({...options,explicitAction:true});
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
-  const browserRun=createBrowserRunCommands(vscode,{onReportManual:(stage,code,root)=>problemReporter.recordManual('run-browser',stage,code,root),onReportFailure:(error,stage,root)=>problemReporter.failure(error,'run-browser',stage,root),project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
+  const browserRun=createBrowserRunCommands(vscode,{onReportManual:(stage,code,root)=>problemReporter.recordManual('run-browser',stage,code,root),onReportFailure:(error,stage,root)=>problemReporter.failure(error,'run-browser',stage,root),project:runnableProject,output,ensureValidatedExport:buildWithSavedProject(root=>browserRun.run(root)),validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
   Object.assign(actions,browserRun.commands);
   actions['zero.runApp']=expectedRoot=>{
     if (stopPromise) return stopPromise;
@@ -3012,7 +3083,7 @@ function activate(context, services = {}) {
   };
   context.subscriptions.push(...browserRun.disposables);
   let reportPublishStage='unknown';
-  const webPublish=createWebPublishCommands(vscode,{onReportStage:stage=>{reportPublishStage=stage;problemReporter.breadcrumb('publish',stage,'started');},onReportFailure:(error,root)=>problemReporter.failure(error,'publish',reportPublishStage,root),onReportSuccess:(root,stage)=>{void problemReporter.success('publish',root,stage).catch(()=>{});},project,assertProjectNow:assertGitProjectNow,connectedRepository:()=>repository,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},setProgress:value=>{publishProgress=value;refresh();},output,listPublication:createHubPublishListing(auth),workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true}),validateExport:validateWithSavedProject,beforeBuildReview:(root,{signal})=>updateProject(root,{signal,required:true}),assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
+  const webPublish=createWebPublishCommands(vscode,{onToolingDecision:handleBrowserToolingDecision,onReportStage:stage=>{reportPublishStage=stage;problemReporter.breadcrumb('publish',stage,'started');},onReportFailure:(error,root)=>problemReporter.failure(error,'publish',reportPublishStage,root),onReportSuccess:(root,stage)=>{void problemReporter.success('publish',root,stage).catch(()=>{});},project,assertProjectNow:assertGitProjectNow,connectedRepository:()=>repository,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},setProgress:value=>{publishProgress=value;refresh();},output,listPublication:createHubPublishListing(auth),workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true}),validateExport:validateWithSavedProject,beforeBuildReview:(root,{signal,open})=>updateProject(root,{signal,required:true,restart:resumeCommand(open?'zero.publishAndOpenWeb':'zero.publishWeb')}),assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
   const sharingHandoff=async(root,action)=>{
@@ -3464,7 +3535,7 @@ function activate(context, services = {}) {
     }});
     Object.assign(actions,studentExplorer.commands);context.subscriptions.push(studentExplorer);
   }
-  const webExport=createWebExportCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject,validateExport:savedBuilder.validateRetainedExport,setAvailable:root=>{exportReadyRoot=root;},publish:()=>webPublish.publish(),openPreview:(root,result)=>browserRun.preview(root,result,{retained:true}),isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
+  const webExport=createWebExportCommands(vscode,{project:runnableProject,output,ensureValidatedExport:buildWithSavedProject(resumeCommand('zero.exportWeb')),validateExport:savedBuilder.validateRetainedExport,setAvailable:root=>{exportReadyRoot=root;},publish:()=>webPublish.publish(),openPreview:(root,result)=>browserRun.preview(root,result,{retained:true}),isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);
   if (firstUse.enabled) {
@@ -3495,13 +3566,14 @@ function activate(context, services = {}) {
     'zero.signInToGitHub':'sign-in'
   })[id];
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async (...args) => {
+    if(pendingBrowserRepair && !['zero.repairBrowserTools','zero.showSidebar','zero.showOutput'].includes(id))clearBrowserRepair();
     const operation=reportOperation(id);
     const stage = operation === 'run-native' ? 'preparing' : 'unknown';
     if(operation){reportAvailable=false;problemReporter.breadcrumb(operation,stage,'started');}
     const inline=args[0]===startPageInvocation;
     if(inline)args.shift();
     try {await action(...args);} catch(error) {
-      if(error.code==='ZERO_BROWSER_TOOLING_UPDATE_CANCELLED'){report(error.message);return;}
+      if(error instanceof BrowserToolingDecision)return handleBrowserToolingDecision(error);
       if(operation){reportAvailable=true;refresh();}
       if(operation && operation!=='publish')problemReporter.failure(error,operation,stage,projectRoot);
       const message = error.zeroRunMessage || error.message;
@@ -3602,7 +3674,8 @@ function activate(context, services = {}) {
     const feedback=staleGitFeedback?'':state;
     const commitFeedback=feedback==='Committed locally'&&connectionState==='auth'
       ? `${feedback}. ${branchStatusMessage(connectionState)}` : feedback;
-    const status=uploadProgress||commitFeedback||(showRepository&&!localPractice&&!updateRecovery&&!updateRecoveryError?(gitHint||''):'');
+    const repair=projectRoot && pendingBrowserRepair?.plan.projectRoot===projectRoot ? pendingBrowserRepair : undefined;
+    const status=repair?'Some browser tools are missing.':uploadProgress||commitFeedback||(showRepository&&!localPractice&&!updateRecovery&&!updateRecoveryError?(gitHint||''):'');
     const githubPanel = !showRepository ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${branchControl}${githubActions}${branchConnection}${gitRecoveryActions}`}`;
     const fileActions=projectRoot && !studentView ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>New${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newPackage','New package…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
@@ -3615,16 +3688,20 @@ function activate(context, services = {}) {
     const publishingProgress=publishProgressHtml(publishProgress?.root===projectRoot?publishProgress:undefined);
     // Keep the controls document alive across progress updates; VS Code owns the file tree.
     if (renderedWebviews.has(webview) && webview.postMessage) {
-      void webview.postMessage({type:'sidebar.update',controls,fileActions,status,failed:buildFailed,reportAvailable,publishingProgress}); return;
+      void webview.postMessage({type:'sidebar.update',controls,fileActions,status,repairToken:repair?.token,failed:buildFailed&&!repair,reportAvailable:reportAvailable&&!repair,publishingProgress}); return;
     }
     renderedWebviews.add(webview);
-    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" tabindex="-1" class="muted status" role="status" aria-live="polite">${escape(status)}</p><div id="publishing-progress">${publishingProgress}</div><div id="recovery" ${buildFailed || reportAvailable ? '' : 'hidden'}>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}${buildFailed || reportAvailable ? '<button class="link" data-command="zero.reportProblem">Report a problem</button>' : ''}</div></div><div id="file-actions" class="file-actions">${fileActions}</div><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
+    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" tabindex="-1" class="muted status" role="status" aria-live="polite">${escape(status)}</p><div id="publishing-progress">${publishingProgress}</div><div id="recovery" ${repair || buildFailed || reportAvailable ? '' : 'hidden'}>${repair ? `<button class="link" data-command="zero.repairBrowserTools" data-repair-token="${escape(repair.token)}">Repair and continue</button>` : ''}${!repair && buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}${!repair && (buildFailed || reportAvailable) ? '<button class="link" data-command="zero.reportProblem">Report a problem</button>' : ''}</div></div><div id="file-actions" class="file-actions">${fileActions}</div><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
   }
   const controlsProvider={resolveWebviewView(candidate) {
     controlViews.add(candidate); candidate.webview.options = {enableScripts:true, localResourceRoots:[]};
     candidate.webview.onDidReceiveMessage(message => {
       if (!message || typeof message !== 'object' || disposed) return;
       if (message.type === 'sidebar.ready') {refresh();return;}
+      if(message.command==='zero.repairBrowserTools'){
+        if(typeof message.repairToken==='string')vscode.commands.executeCommand(message.command,message.repairToken);
+        return;
+      }
       if(message.command==='zero.switchStudentBranch'){
         if(typeof message.branchChoice==='string')vscode.commands.executeCommand(message.command,message.branchChoice);
         return;
@@ -3699,13 +3776,13 @@ function activate(context, services = {}) {
     }).catch(error => output.appendLine(`Getting started: ${error.message}`));
   };
   context.subscriptions.push(watcher, metadataWatcher,{dispose:()=>clearTimeout(metadataRefreshTimer)}, vscode.workspace.onDidChangeWorkspaceFolders(event => {
-    runGeneration++;
+    clearBrowserRepair();runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
     savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;savedProblems?.clear();
     state='';projectRoot = undefined;projectDirty=undefined;projectDirtyError=undefined;projectDirtyGeneration++;clearTimeout(projectDirtyTimer);clearDirtyMetadataWatch();mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0; repositoryStatus(); void introduceAfterConnection({revealSidebar:Boolean(event?.added?.length), addedFolders:event?.added});
     void configureProjectGitIdentity();
   }));
-  context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});
+  context.subscriptions.push({dispose:() => {clearBrowserRepair();runGeneration++;if (execution) execution.terminate();}});
   context.subscriptions.push(createNativeUpdateReload(vscode, {context,
     isBusy:()=>disposed || isBusy() || auth.busy || Boolean(appProvider?.busy || execution || pendingLaunch || nativeStarting || browserActive),
     log:message=>output.appendLine(message)}));
