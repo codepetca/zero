@@ -1,18 +1,58 @@
 # Zero release ledger
 
-Last reconciled 2026-11-19 (America/Toronto). This is a dated working record,
+Last reconciled 2026-11-23 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.84](https://github.com/codepetca/zero/releases/tag/v0.5.84) is public. All three anonymous downloads match preparation run 44652490676. | Preserve immutable assets. |
-| Website | This promotion selects the verified 0.5.84 downloads and signed build 83 feed. | Check the production download links and feed after deployment. |
-| Mac installer | [0.5.84](https://github.com/codepetca/zero/releases/tag/setup-v0.5.84) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 83 feed references the measured public DMG. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) submission 19 includes package 1.5.84.0 and is set to publish after certification. | Verify Store availability for submission 19. |
-| Windows Portable | [0.5.84 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.84) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.84) both embed the canonical kit from run 44652490676. | The school stages its preferred ZIP under its existing device policy. |
+| GitHub manual kit | [Zero 0.5.85](https://github.com/codepetca/zero/releases/tag/v0.5.85) is public. All three anonymous downloads match preparation run 45317559051. | Preserve immutable assets. |
+| Website | This promotion selects the verified 0.5.85 downloads and signed build 84 feed. | Check the production download links and feed after deployment. |
+| Mac installer | [0.5.85](https://github.com/codepetca/zero/releases/tag/setup-v0.5.85) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 84 feed references the measured public DMG. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.85.0 x64 from submission 20 is listed in the Canadian Store catalog. | Check distribution on physical and school-managed devices separately. |
+| Windows Portable | [0.5.85 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.85) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.85) both embed the canonical kit from run 45317559051. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.85 release promotion — 2026-11-23
+
+[PR #403](https://github.com/codepetca/zero/pull/403) merged the classroom fixes
+after all 12 checks passed. The [canonical kit run](https://github.com/codepetca/zero/actions/runs/45317559051)
+and [hosted Windows run](https://github.com/codepetca/zero/actions/runs/45317559369)
+passed on `b51a113d7e7094c1d5df45cbbf7d000c9996dbb0`. The production reporting
+reconciliation run [45319248175](https://github.com/codepetca/zero/actions/runs/45319248175)
+passed on that merge. Nine of thirteen listed coding lessons linked to complete
+final Java source on the live site.
+
+Apple accepted the signed installer. The stapled DMG passed validation and
+provisioned the 0.5.85 editor on the release Mac. Seal
+`e2d93c65c2fc0e24fbadd8155f1a5ecf83d2cdb6` records the measured installer. This
+promotion uses the sealed, signed build 84 appcast. In the installed editor,
+updating older browser tools, committing and syncing a synthetic project, and
+publishing with a signed-in GitHub account succeeded. The
+[Pages run](https://github.com/armorup/zero-pages-publish-check-20261114/actions/runs/45318850298)
+passed and the resulting site responded anonymously.
+
+The [exact Store package check](https://github.com/codepetca/zero/actions/runs/45316979400)
+used a separately test-signed copy of the original MSIX on hosted Windows. Zero
+restored a missing runtime lock, kept a backup, and completed a fresh browser
+build with the packaged Node and JDK. Partner Center submission 20
+(`1152921505702488907`) used the measured original MSIX. The Canadian Store
+catalog listed package `1.5.85.0` x64 at 2026-11-24T03:43:13Z. Physical school
+devices and an installed Mac auto-update remain outside this evidence.
+
+The kit, Mac installer and source companions, small Portable ZIP, and complete
+Portable ZIP with source companions passed anonymous download size and SHA256
+verification. The native and Portable drafts were verified before publication.
+Promotion CI opens the exact public complete ZIP on Windows.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| zero-bootstrap.zip | 5,134,463 | `df48eecb04aaa51940a6f5852ee90d5b3d13c7cceac1627387c8ecfbfdfc4759` |
+| Zero-0.5.85-macos.dmg | 12,387,375 | `c49dc82e4576018ee1d19cfbc7aa793f981eba7c014fa1bc4da9f67ba6b75bfd` |
+| Zero-0.5.85-windows-portable-bundled-x64.zip | 605,997,051 | `f8e8958a32c94d16f8b5d30841eee1f691f9d3177c19a97167efed396cf76c6b` |
+| Zero-0.5.85-windows-portable-sources.tar | 1,470,730,240 | `b2ac332967bc8044b18ad5f11a913a862dd2d5939bc7b4e094309c12d8fb9fe0` |
+| Zero-0.5.85-msix-store-x64.msix | 5,436,575 | `005e2f1d25c9d94b1f13ecdd091e9a31dd087ed8dbb1dec903bfc3c4660f6773` |
 
 ## Zero 0.5.85 release preparation — 2026-11-23
 
