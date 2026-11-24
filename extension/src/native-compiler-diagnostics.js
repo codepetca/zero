@@ -12,8 +12,11 @@ function createNativeCompilerDiagnostics({root,pathApi=path,onChange=()=>{}}) {
     text=stripVTControlCharacters(text);
     if(/^\[INFO\] --- javafx:[^\s]+:run(?:\s|$)/.test(text)){compiling=false;return;}
     const match=/^\[ERROR\] (.+\.java):\[(\d+),(\d+)\]\s*(.*)$/.exec(text);
-    if(!match || items.length>=200 || !pathApi.isAbsolute(match[1]))return;
-    const relative=pathApi.relative(root,match[1]);
+    if(!match || items.length>=200)return;
+    // Maven may render a Windows file URI's path as /C:/project/Main.java.
+    const reportedFile=pathApi.sep==='\\' ? match[1].replace(/^\/(?=[a-z]:[\\/])/i,'') : match[1];
+    if(!pathApi.isAbsolute(reportedFile))return;
+    const relative=pathApi.relative(root,reportedFile);
     if(!relative || relative==='..' || relative.startsWith('..'+pathApi.sep) || pathApi.isAbsolute(relative))return;
     const file=pathApi.resolve(root,relative),line=Number(match[2]),column=Number(match[3]);
     if(!Number.isSafeInteger(line) || !Number.isSafeInteger(column) || line<1 || column<1 || line>1000000 || column>1000000)return;

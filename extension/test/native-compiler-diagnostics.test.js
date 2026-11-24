@@ -59,6 +59,21 @@ test('Windows source diagnostics survive terminal color and drive casing while s
   assert.deepEqual(changed,[[{file:'D:\\Student\\My Project\\src\\main\\java\\Main.java',line:8,column:5,message:"';' expected"}]]);
 });
 
+test('Windows Maven compiler reports project files with a slash before the drive letter',t=>{
+  t.mock.method(process,'cwd',()=>'C:\\Windows\\System32');
+  const project='C:\\Student\\My Project';
+  const changed=[];
+  const compiler=createNativeCompilerDiagnostics({root:project,pathApi:path.win32,onChange:items=>changed.push(items)});
+  compiler.push(error('/C:/Student/My Project/src/main/java/Main.java',3,60));
+  assert.deepEqual(changed,[[{file:'C:\\Student\\My Project\\src\\main\\java\\Main.java',line:3,column:60,message:"';' expected"}]]);
+  compiler.push(error('C:/Student/My Project/src/main/java/Main.java',3,60),'stderr');
+  compiler.push(error('/C:/Student/My Project/../Main.java'));
+  compiler.push(error('/D:/Student/My Project/src/main/java/Main.java'));
+  compiler.push(error('/C:Student/My Project/src/main/java/Main.java'));
+  compiler.end();
+  assert.equal(changed.length,1);
+});
+
 test('many distinct errors are capped and finalization retains the delivered failures',()=>{
   let latest=[];const compiler=createNativeCompilerDiagnostics({root,onChange:items=>{latest=items;}});
   for(let line=1;line<=250;line++)compiler.push(error(file,line,1));
