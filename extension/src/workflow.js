@@ -11,7 +11,7 @@ const {assertShareable, isLocalPracticeMarker} = require('./lesson-projects');
 const {prepareUpload, assertNoUrlRewrites, validBranch} = require('./github');
 const {finishMessage,readFinishedBranch,validFinishedBranch}=require('./finished-change-marker');
 const {mergeGitDiagnostic} = require('./merge-git-diagnostic');
-const {refuseGitlinks, deletedSource, replacesRegularFile} = require('./git-path-review');
+const {refuseGitlinks, indexEntriesByPath, deletedSource, replacesRegularFile} = require('./git-path-review');
 const {updateDirectMain,checkoutDirectMain,updateCheckedOutFeature,adoptReviewedMain,preflightDirectMain,attachSameTreeMain,deleteDirectFeature}=require('./direct-main-transaction');
 // Only equal-tree, ref-only fast-forwards may use this path.
 const ENABLE_REFTABLE_REF_ONLY = true;
@@ -154,7 +154,7 @@ async function startFingerprint(current, run) {
   const digest = crypto.createHash('sha256');
   const staged = await run(current.root, ['ls-files', '--stage', '-z']);
   digest.update(staged);
-  const entries = staged.split('\0');
+  const entries = indexEntriesByPath(staged.split('\0').filter(Boolean));
   const records = current.status.split('\0').filter(Boolean);
   for (let i = 0; i < records.length; i++) {
     const record = records[i], kind = record.slice(0, 2);
@@ -350,7 +350,7 @@ async function matchingFeature(current, pending, run) {
   return shaPattern.test(head) && await ancestor(run, current.root, pending.feature, head);
 }
 async function archivedTree(root, commit, run) {
-  try { return await run(root, ['rev-parse', `${commit}^{tree}`]); }
+  try { return await run(root, ['rev-parse', '--verify', `${commit}^{tree}`]); }
   catch (error) {
     if (error.code !== 128) throw error;
     const failure = new Error('Git could not read the files from an earlier merge in this branch’s history. Open Source Control to inspect the history before trying the merge again.');
@@ -372,10 +372,10 @@ async function archivedFinishIn(current, descendant, run, {includeOnMain = false
     const parents = (await run(current.root, ['rev-list', '--parents', '-n', '1', id])).split(' ');
     if (parents.length !== 3 || parents[0] !== id || await readFinishedBranch(current.root,id,run) !== current.branch ||
         !(await ancestor(run, current.root, id, descendant)) ||
-        await archivedTree(current.root, id, run) !== await archivedTree(current.root, parents[2], run) ||
         !(await ancestor(run, current.root, parents[1], parents[2])) || !(await ancestor(run, current.root, parents[2], current.head))) continue;
     if (!confirmIncluded && await ancestor(run, current.root, id, current.mainHead) &&
         !(includeOnMain && (current.head === parents[2] || current.head === descendant))) continue;
+    if (await archivedTree(current.root, id, run) !== await archivedTree(current.root, parents[2], run)) continue;
     matches.push({id, feature:parents[2]});
   }
   if (matches.length > 1) throw new Error('More than one earlier merge needs attention. Check native Source Control; all commits are preserved.');

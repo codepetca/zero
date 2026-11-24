@@ -1552,32 +1552,40 @@ for(const archived of [false,true])test(`Sync preserves confirmed merge evidence
  assert.equal(f.calls.filter(args=>args[0]==='push').length,pushes);
 });
 
-test('retired finish validates trees only for an ancestor of the reviewed descendant', async t => {
-  for (const relevant of [false, true]) await t.test(relevant ? 'required history' : 'unrelated history', async t => {
+test('retired finish validates trees only for graph-eligible history', async t => {
+  for (const scenario of ['unrelated history', 'required history', 'already on local main']) await t.test(scenario, async t => {
     const f = await fixture(t);
     const {head:base} = await start(f);
     const feature = await commit(f.root, 'Score.java', 'score');
     const tree = await core.git(f.root, ['rev-parse', 'HEAD^{tree}']);
-    // Remove only the synthetic archive tree. The current and parent trees remain readable.
+    // The archive and its original feature share the removed tree. Current tips stay readable.
     const blob = await core.git(f.root, ['rev-parse', 'HEAD:Score.java']);
     const rawTree = path.join(f.parent, 'archive-tree');
     await fs.writeFile(rawTree, Buffer.concat([Buffer.from('100644 archived-score\0'), Buffer.from(blob, 'hex')]));
     const oldTree = await core.git(f.root, ['hash-object', '-w', '-t', 'tree', rawTree]);
-    const archive = await core.git(f.root, ['commit-tree', oldTree, '-p', base, '-p', feature, '-m',
+    const oldFeature = await core.git(f.root, ['commit-tree', oldTree, '-p', feature, '-m', 'Earlier feature work']);
+    const archive = await core.git(f.root, ['commit-tree', oldTree, '-p', base, '-p', oldFeature, '-m',
       'Zero: finish add-score\n\nZero-Finished-Change: 1\nZero-Change-Branch: add-score']);
     await core.git(f.root, ['update-ref', 'refs/zero/retired-finish/' + archive, archive]);
-    if (relevant) {
-      const tip = await core.git(f.root, ['commit-tree', tree, '-p', archive, '-m', 'Later feature work']);
+    let parent = archive;
+    if (scenario === 'already on local main') {
+      parent = await core.git(f.root, ['commit-tree', tree, '-p', archive, '-m', 'Later main']);
+      await core.git(f.root, ['update-ref', 'refs/heads/main', parent, base]);
+      await core.git(f.root, ['push', f.bare, parent + ':refs/heads/main']);
+    }
+    let tip = feature;
+    if (scenario !== 'unrelated history') {
+      tip = await core.git(f.root, ['commit-tree', tree, '-p', parent, '-m', 'Later feature work']);
       await core.git(f.root, ['update-ref', 'refs/heads/add-score', tip, feature]);
     }
     await fs.unlink(path.join(f.root, '.git', 'objects', oldTree.slice(0,2), oldTree.slice(2)));
     const before = await core.git(f.root, ['show-ref']);
-    if (relevant) {
+    if (scenario === 'required history') {
       await assert.rejects(workflow.prepareFinish(f.root, f.options), error =>
         error.code === 'ZERO_MERGE_HISTORY_UNREADABLE' && /Source Control/.test(error.message));
       assert.equal(f.calls.length, 0);
     } else {
-      assert.equal((await workflow.prepareFinish(f.root, f.options)).head, feature);
+      assert.equal((await workflow.prepareFinish(f.root, f.options)).head, tip);
       assert.ok(f.calls.every(args => args[0] === 'ls-remote'));
     }
     assert.equal(await core.git(f.root, ['show-ref']), before);
@@ -1705,5 +1713,36 @@ test('replacement directories do not allow a tracked symlink deletion to be carr
   await assert.rejects(require('../src/github').prepareLocalCommit(f.root),/special files/);
   await assert.rejects(workflow.prepareStart(f.root,'feature',f.options),/not a regular file/);
   await core.git(f.root,['add','-A']);
+  await assert.rejects(require('../src/github').prepareLocalCommit(f.root),/special files/);
   await assert.rejects(workflow.prepareStart(f.root,'feature',f.options),/not a regular file/);
+});
+
+test('Commit requests a new review if a changed file becomes a directory before staging', async t => {
+  const f = await fixture(t);
+  const file = path.join(f.root, 'new-file');
+  await fs.writeFile(file, 'reviewed');
+  const github = require('../src/github');
+  const plan = await github.prepareLocalCommit(f.root);
+  let guards = 0;
+  const beforeUpload = async () => {
+    if (++guards === 2) {
+      await fs.unlink(file);
+      await fs.mkdir(file);
+      await fs.writeFile(path.join(file, 'later'), 'new work');
+    }
+  };
+  await assert.rejects(github.uploadPrepared(plan, 'Save', {localOnly:true,beforeUpload}), /directory after review/);
+  assert.equal(await core.git(f.root, ['ls-files', '--', 'new-file']), '');
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), plan.head);
+});
+
+test('Commit rechecks a newly created empty directory at a reviewed deletion', async t => {
+  const f = await fixture(t);
+  const file = path.join(f.root, 'Main.java');
+  await fs.unlink(file);
+  const github = require('../src/github');
+  const plan = await github.prepareLocalCommit(f.root);
+  await fs.mkdir(file);
+  await assert.rejects(github.uploadPrepared(plan, 'Save', {localOnly:true}), /changed after review/);
+  assert.equal(await core.git(f.root, ['rev-parse', 'HEAD']), plan.head);
 });

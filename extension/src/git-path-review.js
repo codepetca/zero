@@ -11,6 +11,10 @@ function nestedRepository(name, indexed = false) {
   return new Error(`${lead}${where} Keep both repositories and open the intended project folder in its own window.`);
 }
 
+function indexEntriesByPath(entries) {
+  return new Map(entries.map(entry => [entry.slice(entry.indexOf('\t') + 1), entry]));
+}
+
 function refuseGitlinks(entries) {
   for (const entry of entries) {
     if (entry.startsWith('160000 ')) throw nestedRepository(entry.slice(entry.indexOf('\t') + 1), true);
@@ -35,11 +39,10 @@ async function replacesRegularFile({root, head}, name, source, entries, run) {
   const absolute = path.resolve(root, name);
   if (await fs.realpath(absolute) !== absolute) return false;
   await checkNestedMarker(root, absolute);
-  if (source === 'index') return entries.some(entry =>
-    /^(100644|100755) [a-f0-9]+ 0\t/.test(entry) && entry.slice(entry.indexOf('\t') + 1) === name);
-  if (source !== 'head' || !head) return false;
+  if (source === 'index') return /^(100644|100755) [a-f0-9]+ 0\t/.test(entries.get(name) || '');
+  if (source !== 'head' || !head || entries.has(name)) return false;
   const row = await run(root, ['--literal-pathspecs', 'ls-tree', '-z', head, '--', name]);
   return /^(100644|100755) blob [a-f0-9]+\t/.test(row) && row.slice(row.indexOf('\t') + 1) === name + '\0';
 }
 
-module.exports = {refuseGitlinks, checkNestedMarker, deletedSource, replacesRegularFile};
+module.exports = {refuseGitlinks, indexEntriesByPath, checkNestedMarker, deletedSource, replacesRegularFile};
