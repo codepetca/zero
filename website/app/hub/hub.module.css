@@ -71,9 +71,9 @@
 .siteStatus[data-status="reachable"] :global(.icon) { color: light-dark(#15803d, #4ade80); }
 .siteStatus[data-status="unreachable"] :global(.icon) { color: light-dark(#a17a00, #facc15); }
 
-/* One square per project. Title and actions stay visible over the preview. */
+/* The title and play count share the top of the square preview. */
 .projectCards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 16px; }
-.projectCard { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); position: relative; width: 100%; max-width: 100%; min-width: 0; min-height: calc(8em + 96px); aspect-ratio: 1; isolation: isolate; border-radius: 6px; background: var(--zero-surface); color: white; font-size: 16px; line-height: 1.45; }
+.projectCard { position: relative; width: 100%; min-width: 0; aspect-ratio: 1; isolation: isolate; border-radius: 6px; background: var(--zero-surface); color: white; font-size: 16px; line-height: 1.45; }
 .projectPlaceholder, .searchPlaceholder { border-radius: 6px; background: var(--zero-border, var(--outline)); opacity: .25; }
 .projectPlaceholder { aspect-ratio: 1; min-height: calc(8em + 96px); font-size: 16px; }
 .searchPlaceholder { width: min(100%, 28rem); height: 46px; margin: 0 0 16px; }
@@ -84,57 +84,40 @@
 .projectCard .playImage { position: absolute; inset: 0; width: 100%; height: 100%; }
 .projectCard .thumbnail, .projectCard .playPlaceholder { width: 100%; height: 100%; }
 .projectCard [data-muted] .thumbnail, .projectCard [data-muted] .pattern { filter: grayscale(1); opacity: .45; }
-.projectHeading { position: relative; z-index: 2; display: flex; align-items: flex-start; gap: 4px; padding-bottom: 12px; border-radius: 6px 6px 0 0; background: linear-gradient(rgb(0 0 0 / 88%) 0%, rgb(0 0 0 / 80%) 75%, transparent 100%); }
-.projectCard .imageTitle { flex: 1; min-width: 0; margin: 0; padding: 8px 10px; font-size: 18px; line-height: 1.4; }
-.projectHeading .infoButton { flex: none; }
-.imageTitle > span { display: block; box-sizing: border-box; width: fit-content; max-width: 100%; overflow: hidden; white-space: nowrap; padding-right: 1em; mask-image: linear-gradient(to right, #000 calc(100% - 1em), transparent); }
-.projectCard .cardFooter { align-self: end; position: relative; z-index: 2; padding: 16px 10px 8px; border-radius: 0 0 6px 6px; background: linear-gradient(transparent, rgb(0 0 0 / 88%) 16px); }
-.projectCard .feedback { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; }
-.projectCard .projectActions { margin-left: auto; }
-.projectCard .siteStatus { margin: 0 0 4px; gap: 4px; font-size: 12px; line-height: 1.4; color: white; }
-.projectCard .siteStatus time { white-space: normal; }
-.listingStars { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-inline-start: auto; color: white; }
-.projectCard .starButton { min-width: 44px; padding: 6px 8px; background: transparent; color: white; }
-.projectCard .reportLink { min-width: 32px; }
-.projectCard .metadata { font-size: 14px; line-height: 1.4; }
-.projectCard .metadata a, .projectCard .reportLink, .projectCard .feedbackError { color: white; }
-.projectCard .feedbackError { flex-basis: 100%; margin: 4px 0 0; font-size: 14px; }
+.projectHeading { position: relative; z-index: 2; display: flex; align-items: flex-start; gap: 4px; padding: 0 10px 10px; border-radius: 6px 6px 0 0; background: linear-gradient(rgb(0 0 0 / 88%) 0%, rgb(0 0 0 / 80%) 75%, transparent 100%); }
+.projectCard .imageTitle { flex: 1; min-width: 0; margin: 0; font-size: 18px; line-height: 1.4; }
+.imageTitle button { display: block; max-width: 100%; min-height: 44px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.imageTitle button:hover { text-decoration: underline; }
+.imageTitle span { display: block; overflow: hidden; white-space: nowrap; padding-right: .5em; mask-image: linear-gradient(to right, #000 calc(100% - .5em), transparent); }
 .projectCard .playOverlay { background: none; }
 .projectCard .playOverlay > span { background: rgb(0 0 0 / 80%); }
-.projectCard .siteStatus[data-status="reachable"] :global(.icon) { color: #4ade80; }
-.projectCard .siteStatus[data-status="unreachable"] :global(.icon) { color: #facc15; }
 
 @media (width > 800px) {
+  .compactProjectCards .projectPlaceholder { min-height: calc(8em + 62px); }
   .compactProjectCards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 10px; }
-  .compactProjectCards .projectCard, .compactProjectCards .projectPlaceholder { min-height: calc(8em + 62px); }
-  .compactProjectCards .imageTitle { font-size: 16px; padding: 6px 8px; }
-  .compactProjectCards .cardFooter { padding: 14px 8px 6px; }
+  .compactProjectCards .projectHeading { padding-inline: 8px; }
+  .compactProjectCards .imageTitle { font-size: 16px; }
 }
 
 .metrics { margin: 0 0 4px; color: var(--muted); font-size: 14px; line-height: 1.4; }
-.projectCard .metrics { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: white; font-size: 12px; }
+.projectHeading .metrics { display: inline-flex; align-items: center; min-height: 44px; gap: 4px; margin: 0; color: white; font-size: 12px; }
 .playCountIcon { width: 14px; height: 14px; flex: none; fill: currentColor; }
 
-.infoButton, .infoHeading button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 8px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
-.infoButton[data-available="true"] { color: light-dark(#15803d, #4ade80); }
-.infoButton[data-available="false"] { color: light-dark(#a17a00, #facc15); }
-.projectCard .infoButton[data-available="true"] { color: #4ade80; }
-.projectCard .infoButton[data-available="false"] { color: #facc15; }
-.infoButton:focus-visible, .infoHeading button:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
+.infoHeading button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 8px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.imageTitle button:focus-visible, .infoHeading button:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
 .projectInfo { width: 360px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); box-sizing: border-box; overflow: auto; margin: auto; padding: 16px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 8px; background: var(--zero-page); color: var(--ink); box-shadow: 0 12px 36px rgb(0 0 0 / 30%); }
 .infoHeading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .infoHeading h4 { margin: 0; overflow-wrap: anywhere; }
-.projectCard .projectInfo .siteStatus { flex-wrap: wrap; color: var(--ink); margin: 12px 0; font-size: 14px; }
-.projectCard .projectInfo .metadata { margin: 12px 0; }
-.projectCard .projectInfo .metadata a, .projectCard .projectInfo .reportLink { color: var(--purple); }
+.projectInfo .siteStatus { flex-wrap: wrap; color: var(--ink); margin: 12px 0; }
+.projectInfo .siteStatus time { white-space: normal; }
+.projectInfo .metadata { margin: 12px 0; overflow-wrap: anywhere; }
 .projectInfo .reportLink { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
 .projectInfo .siteStatus:not([data-status="reachable"]) :global(.icon) { color: light-dark(#a17a00, #facc15); }
-.projectCard .projectInfo .siteStatus[data-status="reachable"] :global(.icon) { color: light-dark(#15803d, #4ade80); }
 .detailActions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .detailActions .metadata { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .detailActions .reportLink { flex: none; margin-left: auto; }
 
-.winnerBadge { display: inline-block; color: white; font-size: 13px; font-weight: 600; border: 1px solid currentColor; border-radius: 4px; padding: 3px 7px; }
+.winnerBadge { display: inline-block; font-size: 13px; font-weight: 600; border: 1px solid currentColor; border-radius: 4px; padding: 3px 7px; }
 
 .progress { display: flex; align-items: center; gap: .65em; }
 .progress::before {

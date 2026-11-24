@@ -520,8 +520,8 @@ as the main heading and the lesson title below it. Docs and ZeroHub retain their
 section heading and muted topic subtitle.
 Purple eyebrow labels and back controls are removed; top navigation, reader
 sidebars and Next lesson remain available. Hub browsing/downloads remain public.
-An optional GitHub connection lets users star and unstar repositories directly
-on ZeroHub, with one star per GitHub account per repository. The browser uses the
+An optional GitHub connection lets users star and unstar library repositories
+directly on ZeroHub, with one star per GitHub account per repository. The browser uses the
 same App with a separate credential family and an eight-hour reconnect policy.
 Its ordinary user token can carry the App/user intersection of installed
 repository permissions; the current star routes do not make that token star-only.
@@ -529,18 +529,21 @@ Desktop and browser sessions do not pair or transfer credentials automatically.
 Short-lived browser sessions require reconnection after expiry. Public counts may lag; no separate vote store
 is created. Site checks show cached page reachability, not verified gameplay.
 Projects shows cards as soon as discovery confirms they are public. Play
-availability and stars arrive afterward. A follow-up visibility check can
-remove a card that is no longer eligible.
+availability and play counts arrive afterward. A follow-up visibility check can
+remove a card that is no longer eligible. The visible Projects tab checks for
+updates in the background a minute after each completed catalog check.
 On desktop, Projects uses a compact grid of square cards. The grid uses
 roomier cards when the sidebar stacks above the content pane.
 Projects shows up to 24 cards at a time across maintained games, shared games
 and published app listings. Search covers the full catalog. **Next page** and
 **Previous page** load the requested page and its current public results.
 Report a problem opens a prefilled GitHub issue for the user to review and submit.
-Project details show a green circled check for reachable sites and a yellow
-warning for unavailable or unknown checks, followed by a local check time such
+Select a project title to open its details. A confirmed unreachable game has a
+muted preview and its Play link is disabled. Details show a green circled check
+for reachable sites and a yellow warning for unavailable or unknown checks,
+followed by a local check time such
 as **Oct 20 · 12:56 PM** when known. Reporting uses a flag icon inside the details.
-Stars show a borderless star icon and count, filled when starred. Accessible
+Library stars show a borderless star icon and count, filled when starred. Accessible
 labels describe each control and status; unavailable star counts use an em dash.
 See [ZeroHub feedback](ZEROHUB-FEEDBACK.md) for setup and limits.
 ZeroHub displays aggregate Play-link activations as opens and library adoption
