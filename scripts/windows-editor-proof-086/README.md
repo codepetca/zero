@@ -27,6 +27,15 @@ already verified private JDK 21 as `JAVA_HOME` and on its isolated `PATH`. The
 five-minute prewarm must exit successfully, leave `Main.java` unchanged and
 produce `Main.class`; otherwise the walkthrough fails before source mutation.
 Its receipt retains only exit status, duration and fixed restricted log markers.
+After the intentional source error is written, a separate diagnostic invokes the
+same Windows command shape and `clean compile javafx:run` arguments as Native
+Run, in the disposable project with the same private JDK. It is bounded to 90
+seconds plus 10 seconds for process-tree cleanup. `compiler-log.json` retains at
+most 12 sanitized `Main.java` lines: fixture-only paths, known compiler messages,
+Maven prefix and escaped ANSI sequences, with absolute-path, drive case,
+separator, fixture-case-match and locale flags. Raw Maven output is never saved.
+This is parser diagnosis, not a product fix or native editor acceptance result;
+the receipt remains available when the later UI assertion fails.
 No source files in the installed extension are patched, no account is signed
 in, and automatic public reports and telemetry are off in the disposable profile.
 The Java language extension is disabled in the development host so only Zero's actual

@@ -130,6 +130,14 @@ public class Main {
 }
 '@
     [IO.File]::WriteAllText((Join-Path $project 'src\main\java\Main.java'), $source, [Text.UTF8Encoding]::new($false))
+    # Diagnostic evidence only. Reproduce Native Run's wrapper arguments in the
+    # disposable fixture; retain Main.java lines through a strict sanitizer.
+    $compilerReceipt = Join-Path (Split-Path -Parent $Receipt) 'compiler-log.json'
+    if (Test-Path -LiteralPath $compilerReceipt) { throw 'Compiler diagnosis receipt must be new.' }
+    & $env:ZERO_NODE_EXECUTABLE (Join-Path $PSScriptRoot 'windows-editor-proof-086\compiler-log.cjs') $project $compilerReceipt
+    $diagnosticExit = $LASTEXITCODE
+    if (Test-Path -LiteralPath $compilerReceipt) { $result['compilerLogDiagnosis'] = Get-Content -LiteralPath $compilerReceipt -Raw | ConvertFrom-Json }
+    if ($diagnosticExit -ne 0) { throw 'Bounded synthetic compiler log diagnosis failed; native UI proof was not attempted.' }
     $env:ZERO_EDITOR_PROOF_DIRECTORY = $signals
     $env:ZERO_EDITOR_PROOF_EXTENSION = $ExtensionPath
     $env:ZERO_EDITOR_PROOF_PROJECT = $project
