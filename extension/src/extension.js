@@ -2874,14 +2874,14 @@ function activate(context, services = {}) {
     const recoveries=await require('./project-update').listRecoveries({projectRoot:root});
     if(recoveries.some(item=>item.status==='incomplete'))throw new Error('An incomplete project update must be recovered before browser actions. Keep its recovery copies.');
   }
-  async function updateProject(root,{signal,required=false,restart}={}) {
+  async function updateProject(root,{signal,required=false,restart,canContinue}={}) {
     const current=projectUpdateGuard(root,signal);
     await current();
     const upgrade=require('./project-update');
     if(required) {
       await assertBrowserRecoveryClear(root);
       await current();
-      return updateBrowserTooling(root,{signal,restart});
+      return updateBrowserTooling(root,{signal,restart,canContinue});
     }
     const plan=await upgrade.planUpdate({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
     await current();
@@ -2900,7 +2900,7 @@ function activate(context, services = {}) {
     report('Project updated · test and commit',`Project updated. ${result.backupPath?`Previous files saved at ${result.backupPath}. `:''}Test the app and browser build, review local library requirements, and commit the changed project files.`);
     return true;
   }
-  async function updateBrowserTooling(root,{signal,restart}) {
+  async function updateBrowserTooling(root,{signal,restart,canContinue}) {
     const current=projectUpdateGuard(root,signal);
     const generation=runGeneration;
     await current();
@@ -2910,7 +2910,7 @@ function activate(context, services = {}) {
     if(!plan.changed)return false;
     if(plan.repairing){
       const identity=await fs.lstat(root);
-      throw new BrowserToolingDecision({plan,identity,signal,generation,restart,token:crypto.randomUUID()});
+      throw new BrowserToolingDecision({plan,identity,signal,generation,restart,canContinue,token:crypto.randomUUID()});
     }
     const updateChoice={title:'Update Browser Tools'};
     const detail='Replace this project’s .zero-build folder with the browser tools included in your installed Zero. Your Java, assets and framework files stay unchanged. The previous browser tools are kept in a local backup. This may affect browser builds; review and commit the changed files after testing.';
@@ -2937,13 +2937,16 @@ function activate(context, services = {}) {
   }
   async function offerBrowserRepair(request) {
     clearBrowserRepair();
-    if(disposed || request.signal?.aborted || request.generation!==runGeneration || projectRoot!==request.plan.projectRoot)return;
+    if(disposed || request.signal?.aborted || request.canContinue?.()===false || request.generation!==runGeneration || projectRoot!==request.plan.projectRoot)return;
     pendingBrowserRepair=request;
     state='';
     request.signal?.addEventListener('abort',clearBrowserRepair,{once:true});
     // Commands also run from editor menus when the controls view is hidden.
     if(![...controlViews].some(view=>view.visible)) {
-      try {await actions['zero.showSidebar']();}
+      try {
+        const view=studentExplorer?.isPreview()?'zero.studentControls':'zero.controls';
+        await vscode.commands.executeCommand(view+'.focus');
+      }
       catch(error){
         if(pendingBrowserRepair!==request)return;
         clearBrowserRepair();
@@ -2960,18 +2963,18 @@ function activate(context, services = {}) {
     const request=pendingBrowserRepair;
     if(!request || token!==request.token || isBusy())return;
     clearBrowserRepair();
-    const {plan,signal,generation,identity}=request,root=plan.projectRoot;
+    const {plan,signal,generation,identity,canContinue}=request,root=plan.projectRoot;
     const guard=projectUpdateGuard(root,signal);
     const current=async()=>{
       await guard();
+      await assertBrowserRecoveryClear(root);
       const selected=await fs.lstat(root);
-      if(disposed || signal?.aborted || vscode.workspace.isTrusted!==true || generation!==runGeneration || selected.dev!==identity.dev || selected.ino!==identity.ino)throw Error('The project changed. Choose the browser action again.');
+      if(disposed || signal?.aborted || canContinue?.()===false || vscode.workspace.isTrusted!==true || generation!==runGeneration || selected.dev!==identity.dev || selected.ino!==identity.ino)throw Error('The project changed or the action was cancelled. Choose the browser action again.');
     };
     maintenanceBusy=true;
     report('Repairing browser tools…');
     try {
       await current();
-      await assertBrowserRecoveryClear(root);
       await applyBrowserTooling(plan,current);
       await current();
     } catch(error) {
@@ -2985,8 +2988,8 @@ function activate(context, services = {}) {
     await request.restart(root);
   };
   const resumeCommand=id=>root=>vscode.commands.executeCommand(id,root);
-  async function withCurrentBrowserTooling(operation,options,restart) {
-    await updateProject(options.projectRoot,{signal:options.signal,required:true,restart});
+  async function withCurrentBrowserTooling(operation,options,restart,canContinue) {
+    await updateProject(options.projectRoot,{signal:options.signal,required:true,restart,canContinue});
     return operation({...options,explicitAction:true});
   }
   const savedProblems=vscode.languages?.createDiagnosticCollection('zero-browser-compatibility');
@@ -3028,7 +3031,7 @@ function activate(context, services = {}) {
       if(!current())return;
       savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=root;savedChecksState={status:'unavailable',message:'Preparing verified dependencies for browser checks.'};savedProblems?.clear();refresh();
       const work=async(progress,token)=>{const listener=token?.onCancellationRequested(()=>controller.abort());
-        try{await withCurrentBrowserTooling(savedBuilder.prepareBrowserChecks,{projectRoot:root,cacheRoot:webCacheRoot,signal:controller.signal,onProgress:message=>{if(!current())return;output.appendLine(message);progress?.report({message:String(message)});}},expected=>current() && vscode.commands.executeCommand('zero.enableBrowserChecks',expected));}finally{listener?.dispose();}};
+        try{await withCurrentBrowserTooling(savedBuilder.prepareBrowserChecks,{projectRoot:root,cacheRoot:webCacheRoot,signal:controller.signal,onProgress:message=>{if(!current())return;output.appendLine(message);progress?.report({message:String(message)});}},expected=>current() && vscode.commands.executeCommand('zero.enableBrowserChecks',expected),current);}finally{listener?.dispose();}};
       if(vscode.window.withProgress)await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:'Prepare browser checks for this project',cancellable:true},work);else await work();
       if(!current())return;const selected=await project();if(!current()||selected!==root)return;
       const host=createSavedSourceHost({projectRoot:root,cacheRoot:webCacheRoot,builder:savedBuilder});
@@ -3574,9 +3577,11 @@ function activate(context, services = {}) {
     if(inline)args.shift();
     try {await action(...args);} catch(error) {
       if(error instanceof BrowserToolingDecision)return handleBrowserToolingDecision(error);
+      const starterMismatch = id==='zero.newProject' && error.code==='ZERO_STARTER_INCOMPATIBLE';
+      if(starterMismatch && state==='Checking the GitHub starter…')state='';
       if(operation){reportAvailable=true;refresh();}
       if(operation && operation!=='publish')problemReporter.failure(error,operation,stage,projectRoot);
-      if(!inline && id==='zero.newProject' && error.code==='ZERO_STARTER_INCOMPATIBLE' && startPage.showStarterMismatch()){
+      if(!inline && starterMismatch && startPage.showStarterMismatch()){
         output.appendLine(error.message);
         return;
       }

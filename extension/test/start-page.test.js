@@ -171,6 +171,7 @@ test('a verified starter mismatch offers the current channel’s update recovery
       await checking;
       assert.deepEqual(f.commands, ['zero.newProject', 'zero.checkForUpdates']);
       assert.match(payload(panel).error, /then try Project/);
+      assert.match(payload(panel).error, /ask your teacher to check the starter/);
     } else {
       await f.message(panel, {type:'checkForUpdates'});
       assert.deepEqual(f.commands, ['zero.newProject']);

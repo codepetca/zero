@@ -128,7 +128,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
 
   function describeStarterMismatch(accountId) {
     const nextStep = {
-      native: 'Check for updates, then try Project → New again.',
+      native: 'Check for updates, then try Project → New again. If Zero is up to date, ask your teacher to check the starter.',
       school: 'Ask your teacher or school IT to check for an update.',
       manual: 'Ask your teacher to check your Zero installation and the GitHub starter.'
     }[updateRecovery];

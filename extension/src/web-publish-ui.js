@@ -237,7 +237,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       clearProgress();controller=undefined;publishing=false;setBusy(false);
       const dispatch=recheckDispatch, retry=recheckRequested || dispatch, checkRoot=root;
       recheckDispatch=false;recheckRequested=false;
-      if(retry && !disposed)queueMicrotask(()=>{void publish({open,recheckRoot:dispatch ? checkRoot : undefined}).catch(error=>{
+      if(retry && checkRoot && !disposed)queueMicrotask(()=>{void publish({open,expectedRoot:checkRoot,recheckRoot:dispatch ? checkRoot : undefined}).catch(error=>{
         if(error instanceof BrowserToolingDecision && onToolingDecision)return onToolingDecision(error);
         progress(error.message);
       });});

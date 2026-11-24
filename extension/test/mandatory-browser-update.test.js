@@ -163,10 +163,12 @@ async function requestRepair(h,id='zero.exportWeb') {
 
 test('hidden controls reveal inline repair and one click retries just the requested export',async t=>{
  const h=await fixture(t,{current:true});await h.openSidebar(false);
+ h.vscode.workspace.getConfiguration=section=>({get:(key,fallback)=>section==='chat' && key==='disableAIFeatures' ? true : fallback});
  const missing=path.join(h.root,'.zero-build','README.md');
  await fs.unlink(missing);
  const token=await requestRepair(h);
  assert.ok(h.executed.some(([id])=>id==='zero.controls.focus'));
+ assert.equal(h.executed.at(-1)[0],'zero.controls.focus','Focusing Project is the final reveal even in the Secondary Side Bar');
  assert.equal(h.attempts,0);assert.deepEqual(h.prompts,[]);assert.deepEqual(h.errors,[]);
  await assert.rejects(fs.stat(missing),{code:'ENOENT'});
  await h.commands.get('zero.repairBrowserTools')('outdated');
@@ -220,4 +222,27 @@ test('workspace changes, cancellation and lost trust discard repair authority',a
  await h.commands.get('zero.repairBrowserTools')(untrusted);
  assert.equal(h.attempts,0);await assert.rejects(fs.stat(missing),{code:'ENOENT'});
  assert.ok(!(await fs.readdir(h.root)).some(name=>name.startsWith('.zero-build-backup-')));
+});
+
+test('a new recovery journal or disabling checks before the first write stops an accepted repair',async t=>{
+ for(const mode of ['recovery journal','disable checks'])await t.test(mode,async t=>{
+  const h=await fixture(t,{current:true});await h.openSidebar();
+  const missing=path.join(h.root,'.zero-build','README.md');await fs.unlink(missing);
+  const token=await requestRepair(h,mode==='disable checks'?'zero.enableBrowserChecks':'zero.exportWeb');
+  const upgrade=require('../src/project-builder-upgrade'),apply=upgrade.applyUpgrade;
+  t.mock.method(upgrade,'applyUpgrade',async(...args)=>{
+   if(mode==='disable checks')await h.commands.get('zero.disableBrowserChecks')();
+   else {
+    const recovery=path.join(h.root,'.zero-update-interrupted');
+    await fs.mkdir(recovery);
+    await fs.writeFile(path.join(recovery,'journal.json'),'{}');
+   }
+   return apply(...args);
+  });
+  await h.click(token);
+  await assert.rejects(fs.stat(missing),{code:'ENOENT'});
+  assert.ok(!(await fs.readdir(h.root)).some(name=>name.startsWith('.zero-build-backup-')));
+  assert.equal(h.attempts,0);
+  assert.match(h.updates.at(-1).status,/repair stopped/i);
+ });
 });

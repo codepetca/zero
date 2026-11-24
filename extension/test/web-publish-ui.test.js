@@ -54,6 +54,22 @@ test('a publish recheck can offer the same inline repair before the next review'
   h.choices.push('Recheck');await h.api.publish();
   assert.equal(await offered.promise,decision);assert.equal(h.uploaded,0);assert.equal(h.busy,false);
 });
+test('a publish recheck cannot continue in a different workspace project',async t=>{
+  const roots=[];
+  const h=fixture(t,{beforeBuildReview:async root=>roots.push(root),
+    onToolingDecision:()=>assert.fail('A stale notification must not offer repair')});
+  h.publisher.review=async()=>({status:'action-required',action:{message:'Check again.'}});
+  h.vscode.window.showInformationMessage=async()=>{
+    h.active='/second-project';
+    return 'Recheck';
+  };
+  await h.api.publish();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(roots,['/student']);
+  assert.equal(h.uploaded,0);
+  assert.equal(h.published,0);
+  assert.equal(h.busy,false);
+});
 test('simulation skips browser tooling review',async t=>{
   let hookCalls=0;const h=fixture(t,{beforeBuildReview:async()=>{hookCalls++;}});h.simulation=true;
   assert.equal((await h.api.publish()).status,'simulated');assert.equal(hookCalls,0);assert.equal(h.reviewed,0);assert.equal(h.uploaded,0);
