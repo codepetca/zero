@@ -1,5 +1,6 @@
 'use strict';
 const crypto = require('node:crypto');
+const {version} = require('../package.json');
 const {controlsStyles} = require('./ui-controls');
 const {icon} = require('./sidebar-icons');
 const {nativeUpdateRecovery} = require('./native-updates');
@@ -269,6 +270,7 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
 <header class="start-intro">
 <h1 id="start-title" tabindex="-1">Learn to Build</h1>
 <p>Starting from zero</p>
+<p class="muted">Zero ${version}</p>
 </header>
 <div class="start-actions">
 <button class="primary" data-action="signIn" hidden>${icon('CircleUserRound')}<span>Sign in to Zero</span></button>

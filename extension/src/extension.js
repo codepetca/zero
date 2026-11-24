@@ -172,7 +172,7 @@ async function verifiedUnbornBranch(root,branch) {
 function activate(context, services = {}) {
   const vscode = minimalPrompts(editor);
   const env = services.env || process.env;
-  const problemReporter = createProblemReporter(vscode, context, {env,getProject:()=>projectRoot});
+  const problemReporter = createProblemReporter(vscode, context, {env,getProject:()=>projectRoot,onAutomaticAcceptance:()=>refresh()});
   context.subscriptions.push(problemReporter);
   const launchedForZero = path.isAbsolute(env.ZERO_KIT_DIR || '');
   for (const [id, action] of Object.entries(createNativeUpdateCommands(vscode))) {
@@ -285,7 +285,7 @@ function activate(context, services = {}) {
   let startPage;
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'live') : 'live';
   let runQueue = Promise.resolve();
-  let state = '', reportAvailable = false;
+  let state = '', errorAction;
   let gitFeedback,blockedSync;
   let authFeedback;
   let buildFailed = false;
@@ -691,13 +691,13 @@ function activate(context, services = {}) {
     let timer;
     try {await Promise.race([ending, new Promise((_, reject) => {timer = setTimeout(() => reject(new Error('The app task has not stopped. Close its terminal before restarting.')), 10000);})]);}
     finally {clearTimeout(timer);}
-    if (!execution) {state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped'; refresh();}
+    if (!execution) {state = buildFailed ? 'App ended with an error.' : 'App stopped'; refresh();}
   }
   async function stopRequested() {
     runGeneration++;
     if (pendingLaunch) await pendingLaunch.catch(() => {});
     await stop();
-    state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped'; refresh();
+    state = buildFailed ? 'App ended with an error.' : 'App stopped'; refresh();
   }
   const nativeTaskStates = new WeakMap();
   // Configured tasks are reconstructed by VS Code; their CustomExecution is
@@ -715,6 +715,7 @@ function activate(context, services = {}) {
       diagnostic.source='Zero native runtime';if(!grouped.has(item.file))grouped.set(item.file,[]);grouped.get(item.file).push(diagnostic);
     }
     for(const [file,items]of grouped)nativeProblems.set(vscode.Uri.file(file),items);
+    return grouped.size > 0;
   }
   function nativeRuntimeState(task, event) {
     const metadata = nativeTaskState(task);
@@ -724,7 +725,13 @@ function activate(context, services = {}) {
     if (disposed || metadata.generation !== runGeneration || nativeTaskState(execution?.task) !== metadata || stoppedTasks.has(execution)) return;
     if (event.type === 'ui-ready') state = 'App UI ready';
     else if (event.type === 'first-frame') state = 'App running · first game frame ready';
-    else if (event.type === 'fatal') {problemReporter.recordManual('run-native',event.stage,event.code,metadata.root);buildFailed = true;state = `App failed (${event.stage}/${event.code}). Check Problems or the task terminal.`;publishRuntimeProblems(metadata,event);}
+    else if (event.type === 'fatal') {
+      problemReporter.recordManual('run-native',event.stage,event.code,metadata.root);
+      buildFailed = true;
+      metadata.runtimeProblems = publishRuntimeProblems(metadata,event);
+      errorAction = metadata.runtimeProblems ? 'problems' : 'report';
+      state = `App failed (${event.stage}/${event.code}).`;
+    }
     else if (event.type === 'stopped') state = 'App stopped';
     if (event.diagnostic) output.appendLine(`[Native ${event.stage}/${event.code}] ${event.diagnostic}`);
     refresh();
@@ -747,6 +754,19 @@ function activate(context, services = {}) {
     const compileError = Boolean(metadata.compilerItems?.length);
     problemReporter.recordManual('run-native', compileError ? 'native-compile' : 'unknown',
       compileError ? 'MANUAL_REPORT' : 'ZERO_NATIVE_PROCESS_FAILED', metadata.root);
+  }
+  function finishNativeTask(metadata, active) {
+    const exitCode = metadata?.exitCode ?? taskExitCodes.get(active);
+    buildFailed = Boolean(metadata?.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata?.custom || !stoppedTasks.has(active)));
+    errorAction = undefined;
+    if (buildFailed) {
+      if (metadata && !metadata.fatal && !stoppedTasks.has(active)) recordNativeTaskFailure(metadata);
+      // The fallback task has VS Code's Java problem matcher instead of the
+      // diagnostics collection maintained by CustomExecution.
+      errorAction = metadata?.compilerItems?.length || metadata?.runtimeProblems || metadata?.custom === false ? 'problems' : 'report';
+    }
+    state = buildFailed ? 'App ended with an error.' : 'App stopped';
+    refresh();
   }
   async function makeTask(root, definition = {type:'zero',task:'run',instanceId:crypto.randomUUID()}, scope = vscode.TaskScope.Workspace) {
     if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
@@ -805,16 +825,16 @@ function activate(context, services = {}) {
       metadata.reconciled = true;
       compilerProblems?.clear();nativeProblems?.clear();
       publishCompilerProblems(metadata,active);
-      if (metadata.fatal) {problemReporter.recordManual('run-native',metadata.fatal.stage,metadata.fatal.code,metadata.root);publishRuntimeProblems(metadata,metadata.fatal);}
-      const exitCode = metadata.exitCode ?? taskExitCodes.get(active);
-      buildFailed = Boolean(metadata.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata.custom || !stoppedTasks.has(active)));
-      if(buildFailed && !metadata.fatal && !stoppedTasks.has(active))recordNativeTaskFailure(metadata);
-      state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
-      refresh();return;
+      if (metadata.fatal) {
+        problemReporter.recordManual('run-native',metadata.fatal.stage,metadata.fatal.code,metadata.root);
+        metadata.runtimeProblems = publishRuntimeProblems(metadata,metadata.fatal);
+      }
+      finishNativeTask(metadata,active);return;
     }
     if (execution && execution !== active) {stoppedTasks.add(execution); execution.terminate();}
     execution = active;
     buildFailed = false;
+    errorAction = undefined;
     ending = new Promise(resolve => taskFinishes.set(active, resolve));
     compilerProblems?.clear();nativeProblems?.clear();
     if(metadata)publishCompilerProblems(metadata);
@@ -833,11 +853,7 @@ function activate(context, services = {}) {
     taskFinishes.delete(event.execution); finish();
     if (execution === event.execution) {
       execution = undefined;
-      const exitCode = metadata?.exitCode ?? taskExitCodes.get(event.execution);
-      buildFailed = Boolean(metadata?.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata?.custom || !stoppedTasks.has(event.execution)));
-      if(buildFailed && metadata && !metadata.fatal && !stoppedTasks.has(event.execution))recordNativeTaskFailure(metadata);
-      state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
-      refresh();
+      finishNativeTask(metadata,event.execution);
     }
   }), vscode.tasks.onDidEndTaskProcess(event => {
     taskExitCodes.set(event.execution, event.exitCode);
@@ -1481,12 +1497,11 @@ function activate(context, services = {}) {
       if (isBusy()) return;
     }
     const missing=kind==='sync'?observedMissing(projectRoot):undefined;
-    changing = true; refresh();
+    changing = true; errorAction = undefined; refresh();
     let reviewedAccountId,confirmedBranch;
     const reportOperation = kind === 'finish' ? 'merge' : kind === 'start' ? 'branch-create' : undefined;
     let reportStage = kind === 'finish' ? 'checking' : 'git', operationRoot;
     if (reportOperation) {
-      reportAvailable = false;
       problemReporter.breadcrumb(reportOperation, reportStage, 'started');
     }
     try {
@@ -1683,7 +1698,7 @@ function activate(context, services = {}) {
       return await execute();
     } catch(error) {
       if (reportOperation) {
-        reportAvailable = true;
+        if (!error.conflict && !error.nativeUpdateHandoff && !error.workflowRecovery && !error.recoveryPath) errorAction = 'report';
         problemReporter.recordManual(reportOperation, reportStage, error?.code, operationRoot || projectRoot);
       }
       if (error.workflowRecovery) await rememberPush(error.workflowRecovery,reviewedAccountId);
@@ -3064,7 +3079,7 @@ function activate(context, services = {}) {
   const buildWithSavedProject=restart=>options=>withCurrentBrowserTooling(savedBuilder.ensureValidatedExport,options,restart);
   const validateWithSavedProject=options=>savedBuilder.validateExport({...options,explicitAction:true});
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
-  const browserRun=createBrowserRunCommands(vscode,{onReportManual:(stage,code,root)=>problemReporter.recordManual('run-browser',stage,code,root),onReportFailure:(error,stage,root)=>problemReporter.failure(error,'run-browser',stage,root),project:runnableProject,output,ensureValidatedExport:buildWithSavedProject(root=>browserRun.run(root)),validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
+  const browserRun=createBrowserRunCommands(vscode,{onReportManual:(stage,code,root)=>problemReporter.recordManual('run-browser',stage,code,root),onReportFailure:(error,stage,root)=>problemReporter.failure(error,'run-browser',stage,root),project:runnableProject,output,ensureValidatedExport:buildWithSavedProject(root=>browserRun.run(root)),validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:(failed,hasProblems)=>{buildFailed=failed;errorAction=failed?(hasProblems?'problems':'report'):undefined;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
   Object.assign(actions,browserRun.commands);
   actions['zero.runApp']=expectedRoot=>{
     if (stopPromise) return stopPromise;
@@ -3572,14 +3587,17 @@ function activate(context, services = {}) {
     if(pendingBrowserRepair && !['zero.repairBrowserTools','zero.showSidebar','zero.showOutput'].includes(id))clearBrowserRepair();
     const operation=reportOperation(id);
     const stage = operation === 'run-native' ? 'preparing' : 'unknown';
-    if(operation){reportAvailable=false;problemReporter.breadcrumb(operation,stage,'started');}
+    if (operation) {
+      if (errorAction) {errorAction = undefined;refresh();}
+      problemReporter.breadcrumb(operation,stage,'started');
+    }
     const inline=args[0]===startPageInvocation;
     if(inline)args.shift();
     try {await action(...args);} catch(error) {
       if(error instanceof BrowserToolingDecision)return handleBrowserToolingDecision(error);
       const starterMismatch = id==='zero.newProject' && error.code==='ZERO_STARTER_INCOMPATIBLE';
       if(starterMismatch && state==='Checking the GitHub starter…')state='';
-      if(operation){reportAvailable=true;refresh();}
+      if(operation && !error.zeroRunMessage) errorAction='report';
       if(operation && operation!=='publish')problemReporter.failure(error,operation,stage,projectRoot);
       if(!inline && starterMismatch && startPage.showStarterMismatch()){
         output.appendLine(error.message);
@@ -3684,6 +3702,12 @@ function activate(context, services = {}) {
     const commitFeedback=feedback==='Committed locally'&&connectionState==='auth'
       ? `${feedback}. ${branchStatusMessage(connectionState)}` : feedback;
     const repair=projectRoot && pendingBrowserRepair?.plan.projectRoot===projectRoot ? pendingBrowserRepair : undefined;
+    let recoveryAction;
+    if (repair) recoveryAction = {command:'zero.repairBrowserTools',label:'Repair and continue',repairToken:repair.token};
+    else if (errorAction === 'problems') recoveryAction = {command:'zero.showProblems',label:'Show Problems'};
+    else if (errorAction === 'report' && !problemReporter.latestAutomaticallyAccepted(projectRoot)) {
+      recoveryAction = {command:'zero.reportProblem',label:'Report a problem'};
+    }
     const status=repair?'Some browser tools are missing.':uploadProgress||commitFeedback||(showRepository&&!localPractice&&!updateRecovery&&!updateRecoveryError?(gitHint||''):'');
     const githubPanel = !showRepository ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${branchControl}${githubActions}${branchConnection}${gitRecoveryActions}`}`;
     const fileActions=projectRoot && !studentView ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>New${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newPackage','New package…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '';
@@ -3697,10 +3721,12 @@ function activate(context, services = {}) {
     const publishingProgress=publishProgressHtml(publishProgress?.root===projectRoot?publishProgress:undefined);
     // Keep the controls document alive across progress updates; VS Code owns the file tree.
     if (renderedWebviews.has(webview) && webview.postMessage) {
-      void webview.postMessage({type:'sidebar.update',controls,fileActions,status,repairToken:repair?.token,failed:buildFailed&&!repair,reportAvailable:reportAvailable&&!repair,publishingProgress}); return;
+      void webview.postMessage({type:'sidebar.update',controls,fileActions,status,recoveryAction,publishingProgress}); return;
     }
     renderedWebviews.add(webview);
-    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" tabindex="-1" class="muted status" role="status" aria-live="polite">${escape(status)}</p><div id="publishing-progress">${publishingProgress}</div><div id="recovery" ${repair || buildFailed || reportAvailable ? '' : 'hidden'}>${repair ? `<button class="link" data-command="zero.repairBrowserTools" data-repair-token="${escape(repair.token)}">Repair and continue</button>` : ''}${!repair && buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}${!repair && (buildFailed || reportAvailable) ? '<button class="link" data-command="zero.reportProblem">Report a problem</button>' : ''}</div></div><div id="file-actions" class="file-actions">${fileActions}</div><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
+    const recoveryMode = recoveryAction ? `${recoveryAction.command}:${recoveryAction.repairToken || ''}` : '';
+    const recoveryButton = recoveryAction ? `<button class="link" data-command="${recoveryAction.command}"${repair ? ` data-repair-token="${escape(repair.token)}"` : ''}>${recoveryAction.label}</button>` : '';
+    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" tabindex="-1" class="muted status" role="status" aria-live="polite">${escape(status)}</p><div id="publishing-progress">${publishingProgress}</div><div id="recovery" data-mode="${escape(recoveryMode)}" ${recoveryAction ? '' : 'hidden'}>${recoveryButton}</div></div><div id="file-actions" class="file-actions">${fileActions}</div><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
   }
   const controlsProvider={resolveWebviewView(candidate) {
     controlViews.add(candidate); candidate.webview.options = {enableScripts:true, localResourceRoots:[]};
@@ -3788,7 +3814,7 @@ function activate(context, services = {}) {
     clearBrowserRepair();runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
     savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;savedProblems?.clear();
-    state='';projectRoot = undefined;projectDirty=undefined;projectDirtyError=undefined;projectDirtyGeneration++;clearTimeout(projectDirtyTimer);clearDirtyMetadataWatch();mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0; repositoryStatus(); void introduceAfterConnection({revealSidebar:Boolean(event?.added?.length), addedFolders:event?.added});
+    state='';errorAction=undefined;projectRoot = undefined;projectDirty=undefined;projectDirtyError=undefined;projectDirtyGeneration++;clearTimeout(projectDirtyTimer);clearDirtyMetadataWatch();mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0; repositoryStatus(); void introduceAfterConnection({revealSidebar:Boolean(event?.added?.length), addedFolders:event?.added});
     void configureProjectGitIdentity();
   }));
   context.subscriptions.push({dispose:() => {clearBrowserRepair();runGeneration++;if (execution) execution.terminate();}});

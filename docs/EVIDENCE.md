@@ -1,3 +1,17 @@
+# Sidebar error actions and installed version — 2026-11-24
+
+The Start Page reads the extension package version and shows it below the tagline.
+The sidebar selects one recovery action for the current error. The report action
+disappears when the service acknowledges that same automatic report. Compile
+diagnostics, browser repair, and the local output command remain available.
+
+`npm run check` and the focused editor, report, native task, browser, publishing,
+Git, and playground suites passed with 219 passes and one existing skip. The Zero
+Dev browser preview showed the signed-out Start Page version and the expected
+actions for a compile error, a manual merge report, and an acknowledged automatic
+report. These preview states use synthetic data. Installed package acceptance
+is a release check.
+
 # Classroom repair and tutorial source — 2026-11-23
 
 Source `c1f233a21` adds **Repair and continue** to the existing Zero sidebar

@@ -131,7 +131,8 @@ function classify(error) {
 
 function createProblemReporter(vscode, context, {
   send = globalThis.fetch, now = Date.now, retryDelay = 30000,
-  timeoutMs = TIMEOUT, env = process.env, getProject = () => undefined
+  timeoutMs = TIMEOUT, env = process.env, getProject = () => undefined,
+  onAutomaticAcceptance = () => {}
 } = {}) {
   let disposed = false;
   let active;
@@ -278,6 +279,10 @@ function createProblemReporter(vscode, context, {
         if (result.status === 'delivered' || result.status === 'pending') {
           const failed = failures.get(item.report.operation);
           if (failed?.report.reportId === item.report.reportId) failed.accepted = true;
+          if (latest?.automaticReportId === item.report.reportId && !latest.accepted) {
+            latest.accepted = true;
+            try { onAutomaticAcceptance(); } catch {}
+          }
         }
         // The same id is retried for server-side idempotency.
         if (result.status === 'retry' || result.status === 'pending') {
@@ -316,13 +321,14 @@ function createProblemReporter(vscode, context, {
     if (!enabled()) return;
     const code = classify(error);
     if (!code) return;
+    const snapshot = latest;
     const generation = consentGeneration;
     void makeReport('automatic', operation, stage, code, scope).then(report => {
       if (!report || !enabled() || generation !== consentGeneration) return;
-      enqueue(report, scope, generation);
+      enqueue(report, scope, generation, snapshot);
     }).catch(() => {});
   }
-  function enqueue(report, scope, generation = consentGeneration) {
+  function enqueue(report, scope, generation = consentGeneration, snapshot) {
     void serialize(async () => {
       if (!enabled() || generation !== consentGeneration) return;
       const duplicate = queue.find(item =>
@@ -333,6 +339,7 @@ function createProblemReporter(vscode, context, {
         // A persisted report has no project identity, so it must never be
         // associated with a current project's later recovery.
         if (report.outcome === 'failed' && scope && queueScopes.get(duplicate.report.reportId) === scope) {
+          if (snapshot && snapshot === latest) snapshot.automaticReportId = duplicate.report.reportId;
           const prior = failures.get(report.operation);
           if (prior?.report.reportId !== duplicate.report.reportId) {
             failures.set(report.operation, {scope, report:duplicate.report});
@@ -340,6 +347,7 @@ function createProblemReporter(vscode, context, {
         }
         return;
       }
+      if (snapshot && snapshot === latest) snapshot.automaticReportId = report.reportId;
       if (report.outcome === 'failed' && typeof scope === 'string' && scope) {
         failures.set(report.operation, {scope, report});
         queueScopes.set(report.reportId, scope);
@@ -505,6 +513,7 @@ function createProblemReporter(vscode, context, {
 
   return {
     breadcrumb, recordManual, failure, success, manual, flush, offerFirstRunChoice,
+    latestAutomaticallyAccepted: scope => latest?.scope === scope && latest?.accepted === true,
     dispose() {
       disposed = true;
       clearTimeout(timer);

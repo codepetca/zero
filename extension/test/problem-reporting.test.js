@@ -5,14 +5,14 @@ const {createProblemReporter,classify,KEY}=require('../src/problem-reporting');
 const {validateProblemReport}=require('../src/problem-report-contract');
 const receipt='c4ebd3bc-a08e-4a8c-847c-7ac13f32c898';
 const response=(status='delivered')=>({status:202,json:async()=>({status,receipt})});
-function fixture({enabled=true,legacyEnabled=false,telemetry=true,stored,legacyStored,send,timeoutMs=30,project}={}) {
+function fixture({enabled=true,legacyEnabled=false,telemetry=true,stored,legacyStored,send,timeoutMs=30,project,onAutomaticAcceptance}={}) {
   let setting=enabled,telemetryListener,configListener,answers=[],notifications=[],copied=[],currentProject=project;
   const storage=new Map(),updates=[];
   if(stored!==undefined)storage.set(KEY,stored);
   if(legacyStored!==undefined)storage.set('zero.problemReports.queue',legacyStored);
   const vscode={version:'1.95.0',ExtensionMode:{Development:2},env:{clipboard:{writeText:async value=>copied.push(value)},isTelemetryEnabled:telemetry,onDidChangeTelemetryEnabled:cb=>(telemetryListener=cb,{dispose(){}})},workspace:{getConfiguration:()=>({get:(key,fallback)=>key==='automaticPublicProblemReports'?setting:key==='automaticProblemReports'?legacyEnabled:fallback,inspect:key=>key==='automaticPublicProblemReports'?{globalValue:setting}:undefined}),onDidChangeConfiguration:cb=>(configListener=cb,{dispose(){}})},window:{showInputBox:async()=>assert.fail('Structured reports must not ask for text'),showInformationMessage:async(...args)=>{notifications.push(args);return answers.shift();}}};
   const context={extensionMode:2,extension:{packageJSON:{version:'0.5.80'}},globalState:{get:key=>storage.get(key),update:async(key,value)=>{updates.push({key,value});if(value===undefined)storage.delete(key);else storage.set(key,structuredClone(value));}}};
-  const reporter=createProblemReporter(vscode,context,{send,timeoutMs,retryDelay:100000,getProject:()=>currentProject});
+  const reporter=createProblemReporter(vscode,context,{send,timeoutMs,retryDelay:100000,getProject:()=>currentProject,onAutomaticAcceptance});
   return {reporter,vscode,get store(){return storage.get(KEY);},get legacyStore(){return storage.get('zero.problemReports.queue');},updates,answers,notifications,copied,setProject(value){currentProject=value;},setEnabled(value){setting=value;configListener({affectsConfiguration:()=>true});},setTelemetry(value){vscode.env.isTelemetryEnabled=value;telemetryListener(value);}};
 }
 const tick=()=>new Promise(resolve=>setTimeout(resolve,10));
@@ -36,6 +36,24 @@ test('classification rejects expected and untrusted generic failures',()=>{
   assert.equal(classify(Object.assign(new Error('update required'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'})),undefined);
   assert.equal(classify(Object.assign(new Error('student runtime'),{code:'STARTUP_FAILED'})),undefined);
   assert.equal(classify(Object.assign(new TypeError('cancel'),{name:'AbortError'})),undefined);
+});
+test('only an accepted automatic report covers the latest failure in the same project',async t=>{
+  const project='/project';
+  let complete, updates=0;
+  let started;
+  const sending=new Promise(resolve=>{started=resolve;});
+  const f=fixture({project,timeoutMs:1000,onAutomaticAcceptance:()=>updates++,send:()=>new Promise(resolve=>{complete=resolve;started();})});
+  t.after(()=>f.reporter.dispose());
+  f.reporter.failure(bad(),'publish','deploying',project);
+  await sending;
+  assert.equal(f.reporter.latestAutomaticallyAccepted(project),false);
+  complete(response('pending'));
+  await tick();
+  assert.equal(updates,1);
+  assert.equal(f.reporter.latestAutomaticallyAccepted(project),true);
+  assert.equal(f.reporter.latestAutomaticallyAccepted('/other'),false);
+  f.reporter.recordManual('merge','checking','MANUAL_REPORT',project);
+  assert.equal(f.reporter.latestAutomaticallyAccepted(project),false);
 });
 test('disabled and telemetry opt-out do not transmit; automatic payload is bounded and contains no error text',async()=>{
   const sent=[];const f=fixture({enabled:false,send:async(_,options)=>{sent.push(JSON.parse(options.body));return response();}});

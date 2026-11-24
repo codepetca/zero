@@ -34,8 +34,13 @@ export function sidebarSource(state = 'ready', {connected = false, studentExplor
     githubReady:()=>connected && phase === 'ready', githubReadiness:{phase},vscode:{workspace:{isTrusted:true}},
     repository: connected ? 'https://github.com/student/greeting' : 'No repository connected', auth: { signedIn: signedIn, accountId:'1', accountLabel: signedIn ? 'armorup' : '' },
     syncScope:()=>'fixture',localBranchMenu:{root:activeRoot,branch:fixtureBranch,choices:localBranches.map((name,index)=>({name,token:`fixture-${index}`}))},branch:fixtureBranch,branchHead:fixtureHead,branchError:fixtureError,branchDetached: false, branchRemoteStatus:undefined,branchCheckRunning:false,currentBranchObservation:()=>false,branchStatusMessage:branchRemote.statusMessage,recentHistory:undefined, mainUpdateStatus:undefined,currentMainObservation:()=>false,projectDirty:fixtureDirty,projectUnsaved:fixtureUnsaved,projectDirtyError:undefined,pendingLocalCommit:undefined, updateRecovery:undefined,updateRecoveryError:undefined,pendingUpload:undefined,pendingDirty:false,pendingMatchesHead:false,gitRecoveryPanel,uploadProgress: '', uploadMode: () => 'simulation', execution: null, pendingLaunch:undefined, nativeStarting:0, stopPromise:state==='stopping'?Promise.resolve():undefined, browserBusy:state==='building', browserActive:['building','running'].includes(state), localPractice: state === 'practice', originalWork: state !== 'practice',
-    gitFeedback:undefined,state: publishing?.status || (state === 'error' ? 'Your app could not build. Main.java, line 8: add a semicolon after the greeting. Choose Show Problems to find the line.' : ''),
-    buildFailed: state === 'error', reportAvailable: state === 'error',
+    gitFeedback:undefined,state: publishing?.status || ({
+      error:'Your app could not build. Main.java, line 8: add a semicolon after the greeting.',
+      'merge-error':'Zero could not finish merging this branch.',
+      'reported-error':'Zero could not finish the browser build.'
+    })[state] || '',
+    errorAction: state === 'error' ? 'problems' : ['merge-error','reported-error'].includes(state) ? 'report' : undefined,
+    problemReporter: {latestAutomaticallyAccepted: () => state === 'reported-error'},
   }, { timeout: 1000 });
   return webview.html;
 }
