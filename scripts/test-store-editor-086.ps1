@@ -51,6 +51,14 @@ function Assert-InstalledVsixSource {
     if ($count -lt 10) { throw 'VSIX has insufficient source files.' }
     return [ordered]@{vsixSha256=(Get-FileHash -LiteralPath $vsix -Algorithm SHA256).Hash.ToLowerInvariant(); matchedPackagedFiles=$count; packageJson='version/identity checked separately; install metadata excluded'}
 }
+function Save-SyntheticScreen([string]$Name) {
+    Add-Type -AssemblyName System.Drawing
+    $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+    $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height)
+    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    try { $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bounds.Size); $bitmap.Save((Join-Path (Split-Path -Parent $Receipt) $Name), [Drawing.Imaging.ImageFormat]::Png) }
+    finally { $graphics.Dispose(); $bitmap.Dispose() }
+}
 $started = [datetime]::UtcNow
 try {
     $result['installedSource'] = Assert-InstalledVsixSource
@@ -63,6 +71,49 @@ try {
     $settings | Add-Member -NotePropertyName 'security.workspace.trust.enabled' -NotePropertyValue $false -Force
     $settings | Add-Member -NotePropertyName 'workbench.startupEditor' -NotePropertyValue 'none' -Force
     $settings | ConvertTo-Json -Depth 15 | Set-Content -LiteralPath (Join-Path $profile 'User\settings.json') -Encoding utf8
+    # Warm only dependencies/classes using the unchanged disposable starter.
+    # Native Run below still owns the actual broken-source compilation proof.
+    $result['prewarm'] = [ordered]@{outcome='failed'; exitCode=$null; timedOut=$false; restrictedLog=@()}
+    $javaHome = (Resolve-Path -LiteralPath $env:ZERO_JAVA_HOME).ProviderPath
+    if (-not $javaHome.StartsWith((Join-Path $Data 'runtime\jdk-'), [StringComparison]::OrdinalIgnoreCase)) { throw 'Prewarm Java is outside the already verified private runtime.' }
+    $javaBin = Join-Path $javaHome 'bin'
+    $javac = Join-Path $javaBin 'javac.exe'
+    $javaVersion = @(& $javac -version 2>&1)
+    $versionMatch = [regex]::Match(($javaVersion -join ''), '^javac (21\.[0-9.]+)(?:\+[^\s]+)?$')
+    if ($LASTEXITCODE -ne 0 -or $javaVersion.Count -ne 1 -or -not $versionMatch.Success) { throw 'Prewarm requires the verified private Java 21 compiler.' }
+    $result.prewarm['javaVersion'] = $versionMatch.Groups[1].Value
+    $env:JAVA_HOME = $javaHome
+    $env:Path = "$javaBin;$env:Path"
+    $wrapper = Join-Path $project 'mvnw.cmd'
+    if (-not (Test-Path -LiteralPath $wrapper -PathType Leaf)) { throw 'Unmodified starter Maven wrapper is missing.' }
+    $originalMain = (Get-FileHash -LiteralPath (Join-Path $project 'src\main\java\Main.java') -Algorithm SHA256).Hash
+    $stdout = Join-Path $signals 'prewarm.stdout'
+    $stderr = Join-Path $signals 'prewarm.stderr'
+    $prewarmStarted = [datetime]::UtcNow
+    $warm = Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\cmd.exe') -ArgumentList @('/d','/s','/c', ('""' + $wrapper + '" -B -q -DskipTests compile"')) -WorkingDirectory $project -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru
+    try {
+        $warmDeadline = [datetime]::UtcNow.AddSeconds(300)
+        while (-not $warm.WaitForExit(1000)) {
+            if ([datetime]::UtcNow -ge $warmDeadline) { $result.prewarm.timedOut=$true; $result.prewarm.restrictedLog=@('Unmodified starter prewarm timed out'); throw 'Unmodified starter prewarm timed out.' }
+        }
+        $warm.WaitForExit()
+        $result.prewarm.exitCode = $warm.ExitCode
+        $log = (Get-Content -LiteralPath $stdout,$stderr -Raw -ErrorAction SilentlyContinue) -join "`n"
+        $summary = @()
+        if ($log -match 'COMPILATION ERROR') { $summary += 'Maven compilation error marker' }
+        if ($log -match 'Could not (resolve|transfer)|Failed to (read artifact|transfer)|Unknown host|Connection timed out') { $summary += 'Dependency download failure marker' }
+        if ($log -match 'JAVA_HOME|UnsupportedClassVersionError|invalid target release') { $summary += 'Java environment failure marker' }
+        if ($log -match 'Failed to execute goal') { $summary += 'Maven goal failure marker' }
+        $result.prewarm.restrictedLog = @($summary)
+        if ($warm.ExitCode -ne 0) { throw 'Unmodified starter compile failed; native source-error proof was not attempted.' }
+        if ((Get-FileHash -LiteralPath (Join-Path $project 'src\main\java\Main.java') -Algorithm SHA256).Hash -cne $originalMain -or -not (Test-Path -LiteralPath (Join-Path $project 'target\classes\Main.class') -PathType Leaf)) { throw 'Prewarm did not compile the unchanged starter.' }
+        $result.prewarm.outcome='passed'
+        $result.prewarm.restrictedLog=@('Unmodified starter compile passed')
+    } finally {
+        $result.prewarm['elapsedSeconds'] = [math]::Round(([datetime]::UtcNow - $prewarmStarted).TotalSeconds)
+        if (-not $warm.HasExited) { try { & (Join-Path $env:SystemRoot 'System32\taskkill.exe') /PID $warm.Id /T /F 2>&1 | Out-Null } catch { } }
+        $warm.Dispose()
+    }
     $source = @'
 public class Main {
     public static void main(String[] args) {
@@ -128,12 +179,7 @@ public class Main {
         }
         if ($proved) {
             # Screenshots contain only the disposable profile and synthetic project.
-            Add-Type -AssemblyName System.Drawing
-            $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-            $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height)
-            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-            try { $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bounds.Size); $bitmap.Save((Join-Path (Split-Path -Parent $Receipt) "$phase.png"), [Drawing.Imaging.ImageFormat]::Png) }
-            finally { $graphics.Dispose(); $bitmap.Dispose() }
+            Save-SyntheticScreen "$phase.png"
             [IO.File]::WriteAllText((Join-Path $signals "$phase.ack"), 'verified')
             $completed[$phase] = $true
         }
@@ -142,7 +188,10 @@ public class Main {
     if ($result.outcome -ne 'passed') { throw 'Visible Windows editor checks timed out.' }
     $result['retainedSource'] = Assert-InstalledVsixSource
 } catch {
-    $result['failure'] = 'editor-host-or-accessibility-check-failed'
+    $result['failure'] = if ($result.Contains('prewarm') -and $result.prewarm.outcome -ne 'passed') { 'unchanged-starter-prewarm-failed' } else { 'editor-host-or-accessibility-check-failed' }
+    if ($result.Contains('driverLaunch')) {
+        try { Save-SyntheticScreen 'failure-console.png'; $result['failureScreenshot']=$true } catch { $result['failureScreenshot']=$false }
+    }
     throw
 } finally {
     # Only processes tied to this exact disposable profile are ours to stop.

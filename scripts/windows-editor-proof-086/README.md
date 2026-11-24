@@ -21,6 +21,12 @@ its actual `ExtensionContext.extensionMode` before activating Zero or executing
 commands; it requires `ExtensionMode.Development`. No `--extensionTestsPath` is
 passed, since that selects Test mode, which Zero's offline development policy
 does not recognize. The existing Development-mode policy permits offline use.
+Before replacing `Main.java` with the intentional error, the helper compiles the
+unchanged disposable starter with `mvnw.cmd -B -q -DskipTests compile`, using the
+already verified private JDK 21 as `JAVA_HOME` and on its isolated `PATH`. The
+five-minute prewarm must exit successfully, leave `Main.java` unchanged and
+produce `Main.class`; otherwise the walkthrough fails before source mutation.
+Its receipt retains only exit status, duration and fixed restricted log markers.
 No source files in the installed extension are patched, no account is signed
 in, and automatic public reports and telemetry are off in the disposable profile.
 The Java language extension is disabled in the development host so only Zero's actual
@@ -35,6 +41,11 @@ visible `Show Problems` button. Visible `Show Output` and `Report a problem`
 buttons are forbidden in that state. The check observes the entire owned window,
 which is stronger than merely checking one inline region. Synthetic screenshots
 and sanitized JSON receipts are retained for 14 days as workflow artifacts.
+Native task start/end/process events, exit code and source diagnostic counts are
+reported every two seconds during the bounded wait. The diagnostic must identify
+`Zero Java compiler`; a custom task need not emit process events. On failure the
+driver focuses the synthetic task terminal and retains `failure-console.png`
+alongside the last counters, without copying raw logs into JSON.
 
 Only the newly created profile/project and processes bound to that profile are
 removed by the helper. The existing first-run harness's cleanup receipt still

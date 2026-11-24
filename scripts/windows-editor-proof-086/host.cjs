@@ -42,9 +42,9 @@ async function run(context) {
     driverExtensionMode:context.extensionMode,
     execution:'installed extension bytes and synthetic driver in normal VS Code development host; offline policy',
     limitations:['No authenticated student session, Store signing, physical Windows, browser build or live publication acceptance.']};
-  async function progress(next) {
+  async function progress(next, fields = {}) {
     stage = next;
-    await writeJson('progress.json', {schema:1, stage, driverExtensionMode:context.extensionMode, elapsedSeconds:Math.round((Date.now()-started)/1000)});
+    await writeJson('progress.json', {schema:1, stage, driverExtensionMode:context.extensionMode, elapsedSeconds:Math.round((Date.now()-started)/1000), ...fields});
   }
   try {
     // Persist before activating Zero or executing any command. A missing receipt
@@ -75,16 +75,28 @@ async function run(context) {
     const main = vscode.Uri.file(path.join(root, 'src', 'main', 'java', 'Main.java'));
     const text = await fs.readFile(main.fsPath, 'utf8');
     assert.ok(text.includes('ZERO_SYNTHETIC_COMPILER_ERROR'));
-    let taskEnded = false;
-    const listener = vscode.tasks.onDidEndTask(event => {
-      if (event.execution.task.definition.type === 'zero' && ['run', 'native-run'].includes(event.execution.task.definition.task)) taskEnded = true;
-    });
+    const matchesTask = task => task.definition.type === 'zero' && ['run', 'native-run'].includes(task.definition.task);
+    const lifecycle = {started:0, ended:0, processStarted:0, processEnded:0, exitCode:null};
+    const snapshot = () => ({...lifecycle,
+      activeTasks:vscode.tasks.taskExecutions.filter(item => matchesTask(item.task)).length,
+      mainErrors:vscode.languages.getDiagnostics(main).filter(item => item.severity === vscode.DiagnosticSeverity.Error).length,
+      compilerErrors:vscode.languages.getDiagnostics(main).filter(item => item.severity === vscode.DiagnosticSeverity.Error && item.source === 'Zero Java compiler').length});
+    const listeners = [
+      vscode.tasks.onDidStartTask(event => { if (matchesTask(event.execution.task)) lifecycle.started++; }),
+      vscode.tasks.onDidEndTask(event => { if (matchesTask(event.execution.task)) lifecycle.ended++; }),
+      vscode.tasks.onDidStartTaskProcess(event => { if (matchesTask(event.execution.task)) lifecycle.processStarted++; }),
+      vscode.tasks.onDidEndTaskProcess(event => { if (matchesTask(event.execution.task)) { lifecycle.processEnded++; lifecycle.exitCode=Number.isInteger(event.exitCode)?event.exitCode:null; } })
+    ];
     try {
       await bounded(() => vscode.commands.executeCommand('zero.runNativeApp'));
-      await progress('awaiting-native-compiler-diagnostic');
-      await wait(async () => taskEnded && vscode.languages.getDiagnostics(main).some(item => item.severity === vscode.DiagnosticSeverity.Error));
-    } finally { listener.dispose(); }
-    const errors = vscode.languages.getDiagnostics(main).filter(item => item.severity === vscode.DiagnosticSeverity.Error);
+      let lastProgress = 0;
+      await wait(async () => {
+        const current = snapshot();
+        if (Date.now()-lastProgress >= 2000) { await progress('awaiting-native-compiler-diagnostic', {nativeTask:current}); lastProgress=Date.now(); }
+        return current.ended > 0 && current.compilerErrors > 0;
+      });
+    } finally { receipt.nativeTask=snapshot(); for (const listener of listeners) listener.dispose(); }
+    const errors = vscode.languages.getDiagnostics(main).filter(item => item.severity === vscode.DiagnosticSeverity.Error && item.source === 'Zero Java compiler');
     assert.ok(errors.length > 0);
     assert.ok(errors.some(item => item.range.start.line >= 0 && item.range.start.line < text.split('\n').length));
     receipt.compilerError = {source:'synthetic Main.java', diagnostics:errors.length, localSourceLine:true};
@@ -98,6 +110,9 @@ async function run(context) {
   } catch (error) {
     receipt.stage = stage;
     receipt.failure = error?.code === 'ERR_ASSERTION' ? 'assertion' : 'host-check-or-timeout';
+    // Public command exposes the synthetic task console for the failure capture;
+    // no terminal contents, source text or raw logs enter the JSON receipt.
+    await bounded(() => vscode.commands.executeCommand('workbench.action.terminal.focus'), 10).catch(() => {});
     throw error;
   } finally {
     await writeJson('host-proof.json', receipt);

@@ -159,3 +159,4 @@ jobs:
             .verification/store-editor-proof/editor-proof.json
             .verification/store-editor-proof/start-page.png
             .verification/store-editor-proof/source-error.png
+            .verification/store-editor-proof/failure-console.png
