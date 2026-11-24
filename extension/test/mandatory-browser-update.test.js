@@ -5,6 +5,7 @@ const {appSessions}=require('./fixtures/app-sessions');
 const {loadBundle}=require('../src/lesson-projects');
 const format=require('../src/project-builder-format');
 const {readSavedBuilder}=require('../src/project-builder');
+const {createWebPublishCommands}=require('../src/web-publish-ui');
 const disposable=()=>({dispose(){}}),extensionPath=path.resolve(__dirname,'..');
 
 async function fixture(t,{current=false,onPrompt=async()=>undefined}={}) {
@@ -13,19 +14,26 @@ async function fixture(t,{current=false,onPrompt=async()=>undefined}={}) {
  await fs.writeFile(path.join(root,'zero.json'),'{}');
  const builder=path.join(root,'.zero-build');
  if(!current){await fs.appendFile(path.join(builder,'README.md'),'\nOlder fixture.\n');const manifest=JSON.parse(await fs.readFile(path.join(builder,'builder.json')));const files=await Promise.all(manifest.files.map(async f=>({path:f.path,bytes:await fs.readFile(path.join(builder,...f.path.split('/')))})));await fs.writeFile(path.join(builder,'builder.json'),JSON.stringify(format.createBuilderManifest(files),null,2)+'\n');}
- const old=await readSavedBuilder(root),commands=new Map(),errors=[],prompts=[],logs=[];let attempts=0,completed=0,controlsProvider;
- const vscode={authentication:{getSession:async()=>null,onDidChangeSessions:disposable,registerAuthenticationProvider:disposable},workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],isTrusted:true,textDocuments:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},window:{createOutputChannel:()=>({appendLine:v=>logs.push(v),show(){},dispose(){}}),registerWebviewViewProvider:(_id,value)=>{controlsProvider=value;return disposable();},registerTreeDataProvider:disposable,showErrorMessage:async v=>errors.push(v),showWarningMessage:async(...args)=>{prompts.push(args);return onPrompt(vscode,args);}},tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},Uri:{file:fsPath=>({fsPath})}};
+ const old=await readSavedBuilder(root),commands=new Map(),errors=[],prompts=[],logs=[],executed=[],updates=[],publicationPrompts=[],folderListeners=[];
+ let attempts=0,completed=0,publicationReviews=0,controlsProvider,receive,repairClick;
+ const vscode={authentication:{getSession:async()=>null,onDidChangeSessions:disposable,registerAuthenticationProvider:disposable},workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],isTrusted:true,textDocuments:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:listener=>{folderListeners.push(listener);return disposable();},onDidChangeConfiguration:disposable},window:{createOutputChannel:()=>({appendLine:v=>logs.push(v),show(){},dispose(){}}),registerWebviewViewProvider:(_id,value)=>{controlsProvider=value;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async(...args)=>{publicationPrompts.push(args);},showErrorMessage:async v=>errors.push(v),showWarningMessage:async(...args)=>{prompts.push(args);return onPrompt(vscode,args);}},tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(id,...args)=>{executed.push([id,...args]);if(id==='zero.repairBrowserTools')return repairClick=commands.get(id)(...args);if(args.length && commands.has(id))return commands.get(id)(...args);}},Uri:{file:fsPath=>({fsPath})}};
  const originalLoad=Module._load,filename=require.resolve('../src/extension'),oldCache=require.cache[filename];delete require.cache[filename];
- Module._load=function(id,...args){if(id==='vscode')return vscode;const value=originalLoad.call(this,id,...args);if(id==='./project-builder')return {...value,createProjectBuilder:()=>({ensureValidatedExport:async()=>{attempts++;if(!current&&(await readSavedBuilder(root)).profileHash===old.profileHash)throw Object.assign(Error('Update required'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});completed++;return {sitePath:path.join(root,'site'),buildId:'test'};},validateExport:async()=>{},validateRetainedExport:async()=>{},assertBuildInputsAtCommit:async()=>{}})};return value;};
+ Module._load=function(id,...args){if(id==='vscode')return vscode;
+ if(id==='./web-publish-ui')return {createWebPublishCommands:(editor,deps)=>createWebPublishCommands(editor,{...deps,publisherFactory:()=>({
+  review:async()=>{publicationReviews++;return {status:'review',account:'1',repository:'https://github.com/student/game',publicUrl:'https://student.github.io/game/',sha:'a'.repeat(40)};},
+  verifyCurrent:async()=>({status:'stale'})
+ })})};
+ const value=originalLoad.call(this,id,...args);if(id==='./project-builder')return {...value,createProjectBuilder:()=>({ensureValidatedExport:async()=>{attempts++;if(!current&&(await readSavedBuilder(root)).profileHash===old.profileHash)throw Object.assign(Error('Update required'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});completed++;return {sitePath:path.join(root,'site'),buildId:'test'};},validateExport:async()=>{},validateRetainedExport:async()=>{},assertBuildInputsAtCommit:async()=>{}})};return value;};
  let extension;try{extension=require(filename);}finally{Module._load=originalLoad;}
  const subscriptions=[];t.after(()=>{for(const item of subscriptions)item.dispose();delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
  const provider=appSessions(vscode,{dispose(){},async removeSession(){}});
  extension.activate({extensionMode:2,subscriptions,extensionPath,workspaceState:{get:key=>key.startsWith('zero.webPublish.')?undefined:true,update:async()=>{}}},{env:{},repositoryLedgerFactory,provider});
- return {root,old,vscode,commands,errors,prompts,logs,get attempts(){return attempts;},get completed(){return completed;},async openSidebar(){
+ return {root,old,vscode,commands,errors,prompts,logs,executed,updates,publicationPrompts,folderListeners,get publicationReviews(){return publicationReviews;},
+ click:token=>{receive({command:'zero.repairBrowserTools',repairToken:token});return repairClick;},get attempts(){return attempts;},get completed(){return completed;},async openSidebar(visible=true){
   const {promise,resolve}=Promise.withResolvers();
   const onControls=html=>{if(html.includes('data-command="zero.toggleApp"'))resolve(html);};
-  const webview={html:'',onDidReceiveMessage:disposable,postMessage:({controls})=>onControls(controls)};
-  controlsProvider.resolveWebviewView({webview,onDidDispose:disposable});
+  const webview={html:'',onDidReceiveMessage:listener=>{receive=listener;return disposable();},postMessage:message=>{updates.push(message);onControls(message.controls);}};
+  controlsProvider.resolveWebviewView({webview,visible,onDidDispose:disposable});
   onControls(webview.html);
   return promise;
  }};
@@ -142,4 +150,99 @@ test('explicit project update and recovery do not mutate project files',async t=
  await h.commands.get('zero.recoverProjectUpdate')();
  assert.equal(calls,0);assert.equal((await readSavedBuilder(h.root)).profileHash,before);
  assert.equal(h.errors.filter(value=>/temporarily unavailable/.test(value)).length,2);
+});
+
+async function requestRepair(h,id='zero.exportWeb') {
+ await h.commands.get(id)();
+ const pending=h.updates.at(-1);
+ assert.equal(pending.status,'Some browser tools are missing.');
+ assert.equal(pending.failed,false);assert.equal(pending.reportAvailable,false);
+ assert.ok(pending.repairToken);
+ return pending.repairToken;
+}
+
+test('hidden controls reveal inline repair and one click retries just the requested export',async t=>{
+ const h=await fixture(t,{current:true});await h.openSidebar(false);
+ h.vscode.workspace.getConfiguration=section=>({get:(key,fallback)=>section==='chat' && key==='disableAIFeatures' ? true : fallback});
+ const missing=path.join(h.root,'.zero-build','README.md');
+ await fs.unlink(missing);
+ const token=await requestRepair(h);
+ assert.ok(h.executed.some(([id])=>id==='zero.controls.focus'));
+ assert.equal(h.executed.at(-1)[0],'zero.controls.focus','Focusing Project is the final reveal even in the Secondary Side Bar');
+ assert.equal(h.attempts,0);assert.deepEqual(h.prompts,[]);assert.deepEqual(h.errors,[]);
+ await assert.rejects(fs.stat(missing),{code:'ENOENT'});
+ await h.commands.get('zero.repairBrowserTools')('outdated');
+ await Promise.all([h.click(token),h.click(token)]);
+ assert.equal(h.completed,1);assert.deepEqual(h.errors,[]);
+ assert.equal((await readSavedBuilder(h.root)).profileHash,h.old.profileHash);
+ const backups=(await fs.readdir(h.root)).filter(name=>name.startsWith('.zero-build-backup-'));
+ assert.equal(backups.length,1);await assert.rejects(fs.stat(path.join(h.root,backups[0],'.zero-build','README.md')),{code:'ENOENT'});
+ assert.ok(h.updates.some(message=>message.status==='Repairing browser tools…'));
+ assert.equal(h.updates.at(-1).status,'Export ready');assert.equal(h.publicationReviews,0);
+});
+
+test('a repair click resumes the selected publish mode and still requires public destination consent',async t=>{
+ const h=await fixture(t,{current:true});await h.openSidebar();
+ for(const id of ['zero.publishWeb','zero.publishAndOpenWeb']) {
+  await fs.unlink(path.join(h.root,'.zero-build','README.md'));
+  const before=h.publicationReviews;
+  const token=await requestRepair(h,id);
+  assert.equal(h.publicationReviews,before);assert.deepEqual(h.prompts,[]);
+  await h.commands.get('zero.repairBrowserTools')(token);
+  assert.ok(h.executed.some(([resumed,root])=>resumed===id && root===h.root));
+  assert.equal(h.publicationReviews,before+1);assert.equal(h.publicationPrompts.at(-1)[0],'Publish app?');
+  assert.equal(h.publicationPrompts.at(-1)[1].modal,true);assert.equal(h.attempts,0);assert.deepEqual(h.errors,[]);
+ }
+});
+
+test('a superseded repair click cannot consent to another browser action or changed files',async t=>{
+ const h=await fixture(t,{current:true});await h.openSidebar();
+ const missing=path.join(h.root,'.zero-build','README.md');await fs.unlink(missing);
+ const first=await requestRepair(h),second=await requestRepair(h,'zero.publishWeb');assert.notEqual(first,second);
+ await h.commands.get('zero.repairBrowserTools')(first);
+ assert.equal(h.updates.at(-1).repairToken,second);
+ const edited=path.join(h.root,'.zero-build','builder.json');
+ await fs.appendFile(edited,' ');
+ await h.commands.get('zero.repairBrowserTools')(second);
+ assert.match(h.updates.at(-1).status,/repair stopped/i);assert.ok(h.logs.some(line=>/backup or Git history/.test(line)));
+ await assert.rejects(fs.stat(missing),{code:'ENOENT'});assert.ok((await fs.readFile(edited,'utf8')).endsWith(' '));
+ assert.equal(h.publicationReviews,0);assert.equal(h.attempts,0);
+ assert.ok(!(await fs.readdir(h.root)).some(name=>name.startsWith('.zero-build-backup-')));
+});
+
+test('workspace changes, cancellation and lost trust discard repair authority',async t=>{
+ const h=await fixture(t,{current:true});await h.openSidebar();
+ const missing=path.join(h.root,'.zero-build','README.md');await fs.unlink(missing);
+ const changed=await requestRepair(h);
+ for(const listener of h.folderListeners)listener({added:[],removed:[]});
+ await h.commands.get('zero.repairBrowserTools')(changed);
+ const cancelled=await requestRepair(h,'zero.enableBrowserChecks');
+ await h.commands.get('zero.disableBrowserChecks')();await h.commands.get('zero.repairBrowserTools')(cancelled);
+ const untrusted=await requestRepair(h);h.vscode.workspace.isTrusted=false;
+ await h.commands.get('zero.repairBrowserTools')(untrusted);
+ assert.equal(h.attempts,0);await assert.rejects(fs.stat(missing),{code:'ENOENT'});
+ assert.ok(!(await fs.readdir(h.root)).some(name=>name.startsWith('.zero-build-backup-')));
+});
+
+test('a new recovery journal or disabling checks before the first write stops an accepted repair',async t=>{
+ for(const mode of ['recovery journal','disable checks'])await t.test(mode,async t=>{
+  const h=await fixture(t,{current:true});await h.openSidebar();
+  const missing=path.join(h.root,'.zero-build','README.md');await fs.unlink(missing);
+  const token=await requestRepair(h,mode==='disable checks'?'zero.enableBrowserChecks':'zero.exportWeb');
+  const upgrade=require('../src/project-builder-upgrade'),apply=upgrade.applyUpgrade;
+  t.mock.method(upgrade,'applyUpgrade',async(...args)=>{
+   if(mode==='disable checks')await h.commands.get('zero.disableBrowserChecks')();
+   else {
+    const recovery=path.join(h.root,'.zero-update-interrupted');
+    await fs.mkdir(recovery);
+    await fs.writeFile(path.join(recovery,'journal.json'),'{}');
+   }
+   return apply(...args);
+  });
+  await h.click(token);
+  await assert.rejects(fs.stat(missing),{code:'ENOENT'});
+  assert.ok(!(await fs.readdir(h.root)).some(name=>name.startsWith('.zero-build-backup-')));
+  assert.equal(h.attempts,0);
+  assert.match(h.updates.at(-1).status,/repair stopped/i);
+ });
 });

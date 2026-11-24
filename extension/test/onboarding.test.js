@@ -89,7 +89,7 @@ async function fixture(t, {workosReceipt=false, boundReceipt=false, studentExplo
   }
   await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
   const secrets=workosReceipt ? {get:async()=>{receiptReads++;return savedReceipt && JSON.stringify(savedReceipt);},onDidChange:fn=>{receiptChanged=fn;return disposable();}} : undefined;
-  extension.activate({extensionPath,subscriptions,extensionMode:workosReceipt?1:2,secrets,...(reportChoice?{globalStorageUri:{fsPath:path.join(root,'report-choice')}}:{}),globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value){calls.push(['createRepository',value]);return create(value);}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
+  extension.activate({extensionPath,subscriptions,extensionMode:workosReceipt?1:2,secrets,...(reportChoice?{globalStorageUri:{fsPath:path.join(root,'report-choice')}}:{}),globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value,options){calls.push(['createRepository',value]);return create(value,options);}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
@@ -234,6 +234,23 @@ test('Start Page preserves uncertain repository creation recovery without a retr
   assert.equal(profile.get('zero.repositoryCreationRecovery').repositoryUrl,repositoryUrl);
   assert.match(f.errors.at(-1),/Resume created project/);
   assert.equal(f.startState.canRetry,false);
+});
+test('both Project New entry points use inline update recovery for a verified starter mismatch',async t=>{
+  const f=await fixture(t,{empty:true,dispatchRegistered:true,initialSession:identitySession,
+    create:async(_value,{onProgress})=>{onProgress('Checking the GitHub starter…');throw Object.assign(Error('Fixture starter inventory differs.'),{code:'ZERO_STARTER_INCOMPATIBLE'});}});
+  await settle(()=>f.startState?.phase==='ready');
+  await f.startPage.message({type:'action',action:'new',token:f.startPage.restored.token});
+  assert.match(f.startState.error,/GitHub starter use different project files/);
+  assert.equal(f.startState.status,'');
+  const reveals=f.startPage.reveals.length;
+  await f.commands.get('zero.newProject')();
+  assert.ok(f.startPage.reveals.length>reveals);
+  assert.match(f.startState.error,/GitHub starter use different project files/);
+  assert.equal(f.startState.status,'');
+  assert.ok(f.outputLines.includes('Fixture starter inventory differs.'));
+  assert.equal(f.calls.filter(([id])=>id==='createRepository').length,2);
+  assert.equal(f.calls.filter(([id])=>id==='cloneRepository'||id==='vscode.openFolder').length,0);
+  assert.deepEqual(f.errors,[]);
 });
 test('local and cloned projects persist the Start Page handoff before replacing the workspace',async t=>{
   for (const kind of ['local','clone']) {

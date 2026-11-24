@@ -281,6 +281,12 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  await commands.get('zero.runApp')();assert.equal(compilerErrors.size,0);assert.deepEqual(browserErrors.get('other.java'),['unrelated']);
  const recovered=launches.at(-1);recovered.child.stdout.emit('data',Buffer.from('[INFO] --- javafx:0.0.8:run (default-cli) @ my-app ---\n'));
  assert.equal(compilerErrors.size,0);assert.equal(runtimeErrors.size,0);await commands.get('zero.stopApp')();
+ await commands.get('zero.runApp')();
+ finish(latestApp(),1);
+ const processReport=await reportLatest();
+ assert.equal(processReport.operation,'run-native');
+ assert.equal(processReport.stage,'unknown');
+ assert.equal(processReport.code,'ZERO_NATIVE_PROCESS_FAILED');
  assert.equal(preparations,0);assert.equal(checks,0,'Opening and native Run do not execute browser checks');const nativeBeforeChecks=launches.length;
  await commands.get('zero.enableBrowserChecks')();assert.equal(preparations,1);assert.equal(checks,1);assert.match(webview.html,/Browser checks: compatible/);assert.equal(launches.length,nativeBeforeChecks);
  const document={uri:{fsPath:path.join(root,'src/main/java/Main.java')},isDirty:true};vscode.workspace.textDocuments=[document];edited({document});assert.match(webview.html,/Browser checks: stale/);assert.equal(checks,1);

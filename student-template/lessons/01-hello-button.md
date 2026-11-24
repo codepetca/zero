@@ -49,6 +49,6 @@ The button's action changes the **existing** label. The label must stay in
 ## 4. Run and click Say hello
 
 Click **Run**, then click **Say hello**. The label should change from **Hello, Java!** to **You did it!**. Try changing `You did it!` to your own short message and rerun. Keep this
-Greeting project for lesson 3.
+Greeting project for lesson 3. You can compare your file with the [finished Main.java](../../teaching/checkpoints/1/Main.java).
 
 Next: [Greet by name](02-hello-name.md).

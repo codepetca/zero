@@ -17,6 +17,13 @@ In an older released Zero, choose **Tutorial options → Tutorial docs** to open
 
 Already have a project? On the Start Page, choose **Project → Open** to open a local project, or **Project → Clone** to download your GitHub repository.
 
+During the soft rollout, update Zero as soon as an update is offered. On Mac,
+choose **Zero: Check for Updates** from the Command Palette. For the Microsoft
+Store edition, open Microsoft Store and check for updates in Downloads. If your
+school provides a Portable copy, ask your teacher or school IT for the latest kit.
+If an old tutorial project stops building after an update, start a fresh project
+and use the lesson’s final source to bring it back to the same point.
+
 ## Before lesson 0: GitHub and privacy
 
 [Lesson 0: Back to Zero](https://zero.codepet.ca/tutorials/15) can be read without a project or account. To create and save a tutorial project, use your own [GitHub account](https://github.com/signup). Follow any applicable device and network policies. Keep passwords, tokens and other private information out of your project files.
@@ -77,6 +84,7 @@ Run and test your app first. Check that the tested version is on GitHub **main**
 - **“JavaFX runtime components are missing”?** Use Zero's **Run** instead of the Java debugger. It uses the project's JavaFX dependencies. If that fails, use **Test installation**.
 - **Zero could not prepare Git?** Fully quit Zero and VS Code, then reopen the Zero app. On Windows, connect to the internet so Zero can download Git if needed. If a school laptop blocks the download, ask school IT for help. Older Zero releases and manual ZIP setups need a working Git installation. If GitHub already has your project, choose **Clone from GitHub** and select the existing repository.
 - **The starter version differs?** Update Zero, then try **Project → New** again. If it persists, tell your teacher which version you have.
+- **Some browser tools are missing?** Choose **Repair and continue** in the Zero sidebar when it appears. Zero repairs the saved tools and resumes the browser action.
 - **Publishing needs newer browser tools?** Choose **Update Browser Tools** when prompted, then test your app and review the changed files before committing. Zero keeps the previous tools in a local backup and leaves your Java and assets unchanged. If the tools cannot be updated, keep a backup and copy your Java and assets into a new project.
 - **A merge fails?** Open Source Control and share the error with your teacher.
 - **GitHub says “Sudo authentication failed” after you enter the emailed code?** On GitHub’s **Confirm access** page, try another verification method if one is offered. If the email code keeps failing, try [resetting your GitHub password](https://github.com/password_reset). Then return to Zero and reconnect the same GitHub account.

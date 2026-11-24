@@ -28,6 +28,7 @@ export function sidebarSource(state = 'ready', {connected = false, studentExplor
   runInNewContext(`${source.slice(start, end)}\nrender(webview,studentExplorer);`, {
     ENABLE_REF_ONLY_REVIEW:refOnlyReview[1]==='true',webPublish:{hasPublishedApp:scope=>state.startsWith('published') && publishedLinkController.hasPublishedApp(scope)},
     publishProgressHtml:publishProgressComponent.publishProgressHtml,publishProgress:publishing?.publishProgress,
+    pendingBrowserRepair:state === 'repair' ? {plan:{projectRoot:activeRoot},token:'fixture-repair'} : undefined,
     path,isSetupProject:setupProject.isSetupProject,assets:{canCopyPaths:()=>false},context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,savedChecksRoot:undefined,savedChecksState:undefined,browserRun:{canOpenInBrowser:state==='running'},
     projectRoot: state === 'empty' ? undefined : activeRoot, renderedWebviews: new WeakSet(), sidebarScript: sidebarClient.sidebarScript, crypto, webview, studentExplorer, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => Boolean(publishing?.publishProgress||publishing?.busy)||['building','stopping','busy'].includes(state),
     githubReady:()=>connected && phase === 'ready', githubReadiness:{phase},vscode:{workspace:{isTrusted:true}},

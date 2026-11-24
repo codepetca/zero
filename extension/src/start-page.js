@@ -2,6 +2,7 @@
 const crypto = require('node:crypto');
 const {controlsStyles} = require('./ui-controls');
 const {icon} = require('./sidebar-icons');
+const {nativeUpdateRecovery} = require('./native-updates');
 const {publishProgressDetails,updatePublishProgress} = require('./publish-progress');
 
 const COMMANDS = Object.freeze({
@@ -17,7 +18,7 @@ const CLOUD = new Set(['new', 'clone']);
 
 // This view owns navigation only. The existing commands retain setup, account,
 // destination and project checks; recent entries come only from the host's list.
-function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], openRecent = async () => {}, executeAction = command => vscode.commands.executeCommand(command), report = () => {}, onDidChangeOpen = () => {}} = {}) {
+function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], openRecent = async () => {}, executeAction = command => vscode.commands.executeCommand(command), report = () => {}, onDidChangeOpen = () => {}, updateRecovery = nativeUpdateRecovery()} = {}) {
   let panel, disposed = false, ready = false, inFlight = false, revision = 0;
   let token, signature, choiceSignature, recentAccount, recent = [], recentState = 'empty', recentRequest = 0, loading;
   let failure, retry;
@@ -52,7 +53,8 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     const items = snapshot.accountId === recentAccount ? recent : [];
     const data = {...snapshot, recentState: snapshot.accountId ? recentState : 'hidden',
       recent: items.map(item => ({label: item.path.split(/[\\/]/).filter(Boolean).at(-1) || item.path, path: item.path})),
-      error: failure || '', canRetry: Boolean(retry)};
+      error: failure || '', canRetry: Boolean(retry && !retry.checkForUpdates),
+      canCheckForUpdates: updateRecovery === 'native'};
     const next = JSON.stringify(data);
     if (next !== signature) {
       signature = next;
@@ -120,8 +122,18 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     if (action === 'local' || action === 'tutorials') return Boolean(snapshot.accountId);
     if (action === 'signIn') return snapshot.phase === 'signed-out';
     if (action === 'connect') return snapshot.phase === 'connect';
-    if (action === 'setup') return Boolean(snapshot.accountId) && ['install', 'unavailable'].includes(snapshot.phase);
+    if (action === 'setup') return snapshot.phase === 'verification-unavailable' || Boolean(snapshot.accountId) && ['install', 'unavailable'].includes(snapshot.phase);
     return false;
+  }
+
+  function describeStarterMismatch(accountId) {
+    const nextStep = {
+      native: 'Check for updates, then try Project → New again. If Zero is up to date, ask your teacher to check the starter.',
+      school: 'Ask your teacher or school IT to check for an update.',
+      manual: 'Ask your teacher to check your Zero installation and the GitHub starter.'
+    }[updateRecovery];
+    failure = 'Zero and the GitHub starter use different project files. ' + nextStep;
+    retry = {accountId, checkForUpdates:true};
   }
 
   async function dispatch(target, action, choice) {
@@ -135,11 +147,16 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     try {
       // There is no await between the current-account check and invocation.
       if (choice) await openRecent({...choice.item}, accountId);
-      else await executeAction(COMMANDS[action]);
+      else await executeAction(action === 'setup' && before.phase === 'verification-unavailable'
+        ? 'zero.recheckGitHubConnection' : COMMANDS[action]);
     } catch (error) {
       if (!current(target) || state().accountId !== accountId) return;
-      failure = `Could not ${choice ? 'open this project' : ({tutorials:'open Zero Docs', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to Zero', connect:'connect to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
-      retry = {action, choice, accountId};
+      if (action === 'new' && error?.code === 'ZERO_STARTER_INCOMPATIBLE') {
+        describeStarterMismatch(accountId);
+      } else {
+        failure = `Could not ${choice ? 'open this project' : ({tutorials:'open Zero Docs', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to Zero', connect:'connect to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
+        retry = {action, choice, accountId};
+      }
       try {report(failure, error?.message || String(error));} catch {}
     } finally {
       inFlight = false;
@@ -160,7 +177,14 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     if (message.type === 'recent' && typeof message.id === 'string' && choices.has(message.id)) {
       return dispatch(target, undefined, choices.get(message.id));
     }
-    if (message.type === 'retry' && retry && retry.accountId === snapshot.accountId) {
+    if (message.type === 'checkForUpdates' && !snapshot.busy && updateRecovery === 'native') {
+      inFlight = true;
+      publish();
+      try {await executeAction('zero.checkForUpdates');}
+      catch (error) {report('Could not check for updates.', error?.message || String(error));}
+      finally {inFlight = false;if (current(target)) publish();}
+    }
+    if (message.type === 'retry' && retry && !retry.checkForUpdates && retry.accountId === snapshot.accountId) {
       return dispatch(target, retry.action, retry.choice);
     }
     if (message.type === 'retryRecent' && !snapshot.busy && recentState === 'error') return refresh({recent:true});
@@ -198,6 +222,14 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     return attach(vscode.window.createWebviewPanel('zero.startPage', 'Zero Start Page', {viewColumn, preserveFocus}, options));
   }
 
+  function showStarterMismatch() {
+    const {accountId} = state();
+    if (!accountId || typeof vscode.window.createWebviewPanel !== 'function' || !show()) return false;
+    describeStarterMismatch(accountId);
+    publish();
+    return true;
+  }
+
   const serializer = vscode.window.registerWebviewPanelSerializer?.('zero.startPage', {
     async deserializeWebviewPanel(target) {
       if (disposed || (panel && panel !== target)) {target.dispose();return;}
@@ -206,7 +238,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
   });
 
   return {
-    show, refresh,
+    show, refresh, showStarterMismatch,
     isOpen: () => Boolean(panel) && !disposed,
     owns: tab => Boolean(panel) && (tab === panel || tab?.input?.viewType === 'zero.startPage'),
     dispose() {if (disposed) return;disposed = true;recentRequest++;choices.clear();serializer?.dispose();panel?.dispose();panel = undefined;reportOpen();}
@@ -248,6 +280,7 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
 <section id="github-section" aria-label="GitHub access" hidden><p id="guidance" role="status" hidden></p><div id="github-progress" aria-hidden="true" hidden></div><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
 <p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
+<button id="check-for-updates" class="secondary" hidden>Check for updates</button>
 </main><script nonce="${nonce}">
 (() => {
   const publishProgressDetails = ${publishProgressDetails.toString()};
@@ -301,6 +334,7 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
   const send = message => vscode.postMessage({...message, token});
   for (const button of buttons) button.addEventListener('click', () => {for (const menu of dropdowns) if (menu.contains(button)) menu.close(true);send({type:'action',action:button.dataset.action});});
   byId('retry').addEventListener('click', () => send({type:'retry'}));
+  byId('check-for-updates').addEventListener('click', () => send({type:'checkForUpdates'}));
   byId('retry-recent').addEventListener('click', () => send({type:'retryRecent'}));
   window.addEventListener('message', event => {
     const message = event.data;
@@ -313,12 +347,15 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
       button.disabled = state.busy || (['new','clone'].includes(action) && !ready) || (['local','tutorials'].includes(action) && !signedIn);
       if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
       if (action === 'connect') button.hidden = state.phase !== 'connect';
-      if (action === 'setup') {button.hidden = !signedIn || !['install','unavailable'].includes(state.phase);button.textContent = state.phase === 'install' ? 'Install Zero for GitHub' : 'Check again';}
+      if (action === 'setup') {
+        button.hidden = state.phase !== 'verification-unavailable' && (!signedIn || !['install','unavailable'].includes(state.phase));
+        button.textContent = state.phase === 'install' ? 'Install Zero for GitHub' : 'Check again';
+      }
     }
     for (const menu of dropdowns) menu.refresh(state.busy || !signedIn);
     byId('account').textContent = state.accountLabel;
     byId('github-profile').hidden = !state.accountLabel;
-    const guidance = ready || ['signed-out','connect'].includes(state.phase) ? '' : state.phase === 'install' ? 'Give Zero access to your selected repositories on GitHub, then return here.' : state.phase === 'checking' ? 'Checking GitHub access…' : 'GitHub access could not be checked. Try again, or open a local project.';
+    const guidance = ready || ['signed-out','connect'].includes(state.phase) ? '' : state.phase === 'install' ? 'Give Zero access to your selected repositories on GitHub, then return here.' : state.phase === 'checking' ? 'Checking GitHub access…' : state.phase === 'verification-unavailable' ? 'GitHub could not be reached. Check again when your connection is available.' : 'GitHub access could not be checked. Try again, or open a local project.';
     byId('github-section').hidden = !guidance;
     byId('guidance').hidden = !guidance;
     if (byId('guidance').textContent !== guidance) byId('guidance').textContent = guidance;
@@ -329,6 +366,8 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
     byId('error').textContent = state.error;
     byId('retry').hidden = !state.canRetry;
     byId('retry').disabled = state.busy;
+    byId('check-for-updates').hidden = !state.canCheckForUpdates;
+    byId('check-for-updates').disabled = state.busy;
     byId('recent-section').hidden = !signedIn;
     byId('recent-status').textContent = state.recentState === 'loading' ? 'Loading recent projects…' : state.recentState === 'error' ? 'Recent projects could not be loaded.' : state.recent.length ? '' : 'No recent projects yet.';
     byId('retry-recent').hidden = state.recentState !== 'error';

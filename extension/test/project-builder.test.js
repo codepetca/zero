@@ -6,12 +6,29 @@ const os=require('node:os');
 const path=require('node:path');
 const {EventEmitter}=require('node:events');
 const {PassThrough}=require('node:stream');
-const {createProjectBuilder,readSavedBuilder,sanitizeEnvironment,locateRuntimes,runProtocol}=require('../src/project-builder');
+const {createProjectBuilder,readSavedBuilder,browserCacheRoot,sanitizeEnvironment,locateRuntimes,runProtocol,_test:{builderCacheRoot}}=require('../src/project-builder');
 const {zipFiles}=require('../src/web-export/zip');
 const {validateRetainedExport}=require('../src/retained-web-export');
 const format=require('../src/project-builder-format');
 async function root(t){const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-builder-host-test-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));return dir;}
 async function saved(t){const dir=await root(t),{prepareProjectBuilder}=await import('../../scripts/prepare-project-builder.mjs');await prepareProjectBuilder({destination:path.join(dir,'.zero-build')});return dir;}
+test('Windows uses a short host cache with just the saved builder closure as its partition', async t=>{
+ const editorStorage=path.join(os.tmpdir(),'packaged-editor-profile','user-data','User','globalStorage','zero.zero');
+ const cache=browserCacheRoot(editorStorage,'win32');
+ const builder=await readSavedBuilder(await saved(t));
+ assert.equal(cache,path.join(os.tmpdir(),'zero-web'));
+ assert.equal(builderCacheRoot(cache,builder,'win32'),cache);
+ const runtime=builder.files.find(file=>file.path==='runtime-lock.json');
+ const windowsClosure=path.join(cache,builder.manifest.closureSha256);
+ const changedFiles=builder.files.filter(file=>file.path!=='builder.json').map(file=>file===runtime
+  ? {...file,bytes:Buffer.concat([file.bytes,Buffer.from('\n')])}
+  : file);
+ const changedClosure=format.createBuilderManifest(changedFiles).closureSha256;
+ assert.notEqual(path.join(cache,changedClosure),windowsClosure);
+ const macCache=browserCacheRoot(editorStorage,'darwin');
+ assert.equal(macCache,path.join(editorStorage,'web-compiler'));
+ assert.equal(builderCacheRoot(macCache,builder,'darwin'),path.join(macCache,builder.manifest.closureSha256+'-'+format.sha256(runtime.bytes)));
+});
 async function output(t){const dir=await root(t),folder=path.join(dir,'.zero/web-export'),site=path.join(folder,'site');await fs.mkdir(site,{recursive:true});const files=[{path:'index.html',bytes:Buffer.from('<h1>old game</h1>')},{path:'zero_web.nocache.js',bytes:Buffer.from('old loader')},{path:'ABC.cache.js',bytes:Buffer.from('old runtime')}];for(const file of files)await fs.writeFile(path.join(site,file.path),file.bytes);await fs.writeFile(path.join(folder,'web-export.zip'),zipFiles(files));const manifest={schemaVersion:1,buildId:'old-A',compatibility:{status:'passed'},sourceHash:'a'.repeat(64),profileHash:'b'.repeat(64),sitePath:'/historical/project/.zero/web-export/site',zipPath:'/historical/project/.zero/web-export/web-export.zip',totalBytes:files.reduce((n,f)=>n+f.bytes.length,0),files:files.map(f=>({path:f.path,bytes:f.bytes.length,sha256:format.sha256(f.bytes)}))};await fs.writeFile(path.join(folder,'manifest.json'),JSON.stringify(manifest));return {dir,folder,site,manifest};}
 function childFactory(response,{code=0,stderr='',onRequest=()=>{}}={}){return(_node,_args,options)=>{const child=new EventEmitter();child.stdout=new PassThrough();child.stderr=new PassThrough();child.stdin=new PassThrough();child.kill=()=>{};let input='';child.stdin.on('data',chunk=>input+=chunk);child.stdin.on('finish',()=>{onRequest(JSON.parse(input),options);setImmediate(()=>{if(stderr)child.stderr.write(stderr);child.stdout.end(typeof response==='string'?response:JSON.stringify(response));child.emit('close',code);});});return child;};}
 test('saved metadata inspection is data-only, complete and immutable on open',async t=>{const dir=await saved(t),marker=path.join(dir,'executed');const before=await readSavedBuilder(dir);assert.ok(before.files.length>25);assert.ok(before.runtime.pins.length);await fs.writeFile(path.join(dir,'.zero-build/run.cjs'),`require('fs').writeFileSync(${JSON.stringify(marker)},'executed')`);assert.equal((await readSavedBuilder(dir,{metadataOnly:true})).metadataOnly,true);await assert.rejects(readSavedBuilder(dir),/changed|missing|undeclared/);await assert.rejects(fs.stat(marker),{code:'ENOENT'});assert.equal((await fs.readFile(path.join(dir,'.zero-build/builder.json'),'utf8')),before.files.find(f=>f.path==='builder.json').bytes.toString());});

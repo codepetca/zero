@@ -70,8 +70,12 @@ source and Maven setup. A newer editor reads bounded metadata on open and leaves
 those files unchanged. An explicit browser action in a trusted workspace verifies
 the saved closure, runs a frozen copy with a separate Node/JDK process, withholds
 GitHub credentials, and checks its inputs and output before accepting the build.
-Missing tools or saved files produce a tooling-unavailable result; the editor
-does not silently use its latest compiler. Publish no longer upgrades helpers.
+If inventoried files are missing from otherwise unchanged current browser
+tools, the Zero sidebar shows **Some browser tools are missing.** Choose
+**Repair and continue** to restore them and retry the original browser action.
+Zero verifies the installed inventory and keeps the incomplete tools folder as
+a local backup. Zero Output shows the backup location. Other incomplete or modified tool sets still stop
+with recovery guidance.
 Current runtime requirements and standalone commands live in that project's
 `.zero-build/README.md`; no central historical-kit database is required.
 
@@ -303,9 +307,11 @@ existing published kits and the inactive public publication policy remain unchan
 
 Generated output replaces `.zero/web-export/{site,web-export.zip,manifest.json}` and
 stays ignored by Git. No JDK, Maven installation or compiler is shipped in the
-playable ZIP. The first local export downloads compiler dependencies into Zero's
-per-installation cache; later projects reuse them. These downloads are larger
-than a game's playable output and are developer/student machine cache space.
+playable ZIP. The first local export downloads compiler dependencies for later
+projects to reuse. Windows keeps that cache in the user's temporary directory
+so the Store editor profile does not lengthen compiler paths. If Windows clears
+the cache, the next build downloads the dependencies again. These downloads
+can be larger than a game's playable output.
 
 The measured full game export with controls was 8.2 MB uncompressed / 7.0 MB
 ZIP, including audio and required runtime notices/corresponding source archives.

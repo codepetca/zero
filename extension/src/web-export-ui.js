@@ -1,4 +1,5 @@
 'use strict';
+const {BrowserToolingDecision} = require('./browser-tooling-decision');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
@@ -93,7 +94,7 @@ function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,
     if(!publish)throw new Error('Use Publish app in the Zero sidebar to set up your playable link.');
     await publish();
   }
-  async function exportWeb() {
+  async function exportWeb(expectedRoot) {
     if(isBusy())return;
     if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before compiling its Java code for the web.');
     setBusy(true);
@@ -101,6 +102,7 @@ function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,
     controller=new AbortController();
     try {
       root=await project();
+      if(typeof expectedRoot==='string' && expectedRoot!==root)return;
       if(!await vscode.workspace.saveAll(false))throw new Error('Save your files before exporting for the web.');
       if(disposed || await project()!==root)throw new Error('The project changed. Choose Export for web again.');
       output.appendLine('Export for web — compiling a browser copy. Your Java source stays unchanged.');
@@ -117,6 +119,7 @@ function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,
       setAvailable(root);
       report('Export ready',`Web export ready${Number.isFinite(result.totalBytes) ? ` · ${(result.totalBytes/1_000_000).toFixed(1)} MB` : ''}. Preview before sharing.`);
     } catch(error) {
+      if(error instanceof BrowserToolingDecision)throw error;
       setState(controller.signal.aborted ? 'Web export cancelled. Your previous successful export is preserved.' : 'Web export failed. Check the Zero output for the source error.');
       output.show?.(true);
       throw error;

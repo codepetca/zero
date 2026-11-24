@@ -1,7 +1,9 @@
 'use strict';
 const {execFile, spawn} = require('node:child_process');
+const os = require('node:os');
 const path = require('node:path');
 const {promisify} = require('node:util');
+const {windowsNativeRoot} = require('./managed-java');
 const executeFile = promisify(execFile);
 
 // Wait only for process creation, never for the native updater window to close.
@@ -35,6 +37,25 @@ function windowsUpdaterPath(environment) {
     throw new Error('Local application data path is unavailable');
   }
   return path.win32.join(local, 'Zero', 'Zero.exe');
+}
+
+function nativeUpdateRecovery({platform = process.platform, environment = process.env,
+  home = os.homedir(), sourceDirectory = __dirname} = {}) {
+  if (platform === 'darwin' &&
+      path.posix.dirname(path.posix.dirname(sourceDirectory)) === path.posix.join(home, 'Library', 'Application Support', 'Zero', 'editor', 'extensions')) {
+    return 'native';
+  }
+  if (platform === 'win32') {
+    const marker = environment.ZERO_WINDOWS_DISTRIBUTION;
+    if (marker === 'store' || marker === 'portable') {
+      try {
+        if (windowsNativeRoot(environment.LOCALAPPDATA, sourceDirectory, marker)) return marker === 'store' ? 'native' : 'school';
+      } catch {
+        // Unrecognized layouts receive the manual guidance.
+      }
+    }
+  }
+  return 'manual';
 }
 
 function createNativeUpdateCommands(vscode, {
@@ -87,4 +108,4 @@ function createNativeUpdateCommands(vscode, {
   };
 }
 
-module.exports = {createNativeUpdateCommands};
+module.exports = {createNativeUpdateCommands,nativeUpdateRecovery};

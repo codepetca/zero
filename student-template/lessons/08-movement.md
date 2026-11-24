@@ -49,7 +49,7 @@ In Project Explorer, right-click **java** and choose:
 
 **New class…**
 
-Name the class `Player`. Player owns position; Main decides when to update and draw it. Type this class, then try changing its color or speed:
+Name the class `Player`. When `Player.java` opens, select all the text, paste the complete code block below, and save the file.
 
 ```java
 import zero.Color;
@@ -81,7 +81,7 @@ public class Player {
 }
 ```
 
-The `Math.max`/`Math.min` lines keep the whole square on screen. `x` and `y` are its top-left corner. At 180 pixels per second, a 0.05-second update moves 9 pixels.
+Player owns its position. Main decides when to update and draw it. The `Math.max`/`Math.min` lines keep the whole square on screen. `x` and `y` are its top-left corner. At 180 pixels per second, a 0.05-second update moves 9 pixels. Try changing the player's color or speed.
 
 ## 4. Add imports and the player field
 

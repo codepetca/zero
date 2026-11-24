@@ -83,7 +83,17 @@ async function preflightDirectMain(root,gitDir,{run=core.git,allowReftable=false
  if(typeof root!=='string'||!path.isAbsolute(root)||typeof gitDir!=='string'||gitDir!==path.join(root,'.git')||typeof run!=='function')throw unsupported();
  const environment=ambient(),identity=anchor(root),env=isolatedEnv();
  const git=args=>run(root,['-c','core.fsmonitor=false',...args],{env});
- let format;try{format=await git(['rev-parse','--show-ref-format']);}catch(error){if(error.code!==129)throw error;format='--show-ref-format';}
+ let format;
+ try {format=await git(['rev-parse','--show-ref-format']);}
+ catch(error) {
+  // This isolated probe intentionally ignores global ownership exceptions.
+  // Offer the editor's existing handoff only for Git's recognized diagnostic.
+  if(error.code===128 && /^Git rev-parse failed \(exit 128\)\. fatal: detected dubious ownership in repository\.$/i.test(error.mergeGitDetail||'')) {
+   throw Object.assign(new Error('Git could not verify ownership of this project folder for the merge. Open Source Control and check that this is your own project before continuing.'),{nativeUpdateHandoff:true});
+  }
+  if(error.code!==129)throw error;
+  format='--show-ref-format';
+ }
  if(format==='--show-ref-format'){
   // Older Git can echo an unknown rev-parse option. Accept only its ordinary
   // files backend after excluding an explicit extension and reftable storage.

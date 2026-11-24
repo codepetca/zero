@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {EventEmitter} = require('node:events');
-const {createNativeUpdateCommands} = require('../src/native-updates');
+const {createNativeUpdateCommands,nativeUpdateRecovery} = require('../src/native-updates');
 
 function fixture(options) {
   const errors = [], calls = [];
@@ -42,6 +42,25 @@ test('programmatic requests on unsupported platforms explain availability withou
     assert.equal(errors.length, 2);
     assert.ok(errors.every(text => /only on macOS and Windows/.test(text)));
   }
+});
+
+test('inline update recovery uses native handoff only for the installed Mac or Store editor', () => {
+  assert.equal(nativeUpdateRecovery({platform:'darwin', home:'/Users/student',
+    sourceDirectory:'/Users/student/Library/Application Support/Zero/editor/extensions/zero.zero-0.5.84/src'}), 'native');
+  assert.equal(nativeUpdateRecovery({platform:'darwin', home:'/Users/student',
+    sourceDirectory:'/Users/student/.vscode/extensions/zero.zero-0.5.84/src'}), 'manual');
+  const local = 'C:\\Users\\student\\AppData\\Local';
+  function windows(marker, data) {
+    return nativeUpdateRecovery({platform:'win32',
+      environment:{LOCALAPPDATA:local, ZERO_WINDOWS_DISTRIBUTION:marker},
+      sourceDirectory:local+'\\'+data+'\\editor\\extensions\\zero.zero-0.5.84\\src'});
+  }
+  assert.equal(windows('store', 'ZeroStudioStoreData'), 'native');
+  assert.equal(windows('store', 'Packages\\Codepet.zerostudio_g62pw1js6rhjp\\LocalCache\\Local\\ZeroStudioStoreData'), 'native');
+  assert.equal(windows('portable', 'ZeroPortableData'), 'school');
+  assert.equal(windows(undefined, 'ZeroStudioStoreData'), 'manual', 'No Store handoff without its launcher marker');
+  assert.equal(windows('store', 'ZeroPortableData'), 'manual');
+  assert.equal(windows(undefined, 'ZeroData'), 'manual', 'The standalone preview uses manual updates');
 });
 
 test('missing app, denied opening and timeout errors give usable recovery without leaking process output', async () => {

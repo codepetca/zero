@@ -5,19 +5,21 @@
 const REPORT_SCHEMA_VERSION = 2;
 const MAX_REPORT_BYTES = 8192;
 const OPERATIONS = Object.freeze([
-  'run-native', 'run-browser', 'publish', 'sync', 'commit',
-  'project-create', 'project-open', 'sign-in', 'manual'
+  'run-native', 'run-browser', 'publish', 'sync', 'commit', 'branch-create', 'merge',
+  'project-create', 'project-clone', 'project-open', 'sign-in', 'manual'
 ]);
 const STAGES = Object.freeze([
   'unknown', 'checking', 'preparing', 'native-compile', 'web-compile',
   'startup', 'frame-update', 'frame-draw', 'ui-callback', 'shutdown',
   'building', 'uploading', 'deploying', 'verifying', 'opening', 'sign-in',
-  'project-read', 'git', 'manual'
+  'project-read', 'git', 'merging', 'manual'
 ]);
 const REPORT_CODES = Object.freeze({
   ZERO_BUILDER_UPDATE_REQUIRED: 'The project browser tools differ from the installed Zero tools.',
   ZERO_BUILDER_UNAVAILABLE: 'The project browser tools are unavailable.',
   ZERO_BUILDER_OPERATION_FAILED: 'The browser builder could not complete the operation.',
+  ZERO_MERGE_HISTORY_UNREADABLE: 'Git could not read history required for a merge.',
+  ZERO_NATIVE_PROCESS_FAILED: 'The native app task ended with an error before Zero could identify the cause.',
   ZERO_INTERNAL_TYPE_ERROR: 'An unexpected type error occurred in Zero.',
   ZERO_INTERNAL_REFERENCE_ERROR: 'An unexpected reference error occurred in Zero.',
   ZERO_INTERNAL_RANGE_ERROR: 'An unexpected range error occurred in Zero.',
@@ -38,7 +40,7 @@ const REPORT_CODES = Object.freeze({
 const MANUAL_ONLY_CODES = new Set([
   'ZERO_BUILDER_UPDATE_REQUIRED', 'ZERO_BUILDER_OPERATION_FAILED', 'STARTUP_FAILED', 'ASSET_MISSING',
   'FRAME_EXCEPTION', 'UI_CALLBACK_FAILED', 'PROMISE_REJECTED', 'SHUTDOWN_FAILED',
-  'MANUAL_REPORT'
+  'ZERO_MERGE_HISTORY_UNREADABLE', 'ZERO_NATIVE_PROCESS_FAILED', 'MANUAL_REPORT'
 ]);
 const ENVIRONMENT_KEYS = Object.freeze([
   'zeroVersion', 'editorVersion', 'os', 'osVersion', 'architecture',

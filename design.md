@@ -8,6 +8,13 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
+Owner browser repair refinement, 2026-11-23. Show **Repair and continue** in
+the existing sidebar feedback when a requested browser action needs eligible
+same-version repairs. One click confirms repair and resumes the requested
+action. Use the same feedback area for progress and recovery guidance.
+Keep explicit confirmation for a change of browser tools version. Surface
+an editor update check when it gives the student a next step.
+
 Owner reporting refinements, 2026-11-18–19. Keep sidebar error messages concise
 and useful. Offer the public-reporting choice once during first-run setup, then
 send eligible errors silently after affirmative consent. Manual reporting also

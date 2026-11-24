@@ -1,3 +1,126 @@
+# Classroom repair and tutorial source — 2026-11-23
+
+Source `c1f233a21` adds **Repair and continue** to the existing Zero sidebar
+for an eligible exact-version browser-tool repair. The command returns to
+the same project and requested browser action after revalidating the files
+and retaining a local backup. A browser-tool version change still asks for
+confirmation. Normal publication checks and approvals apply on resumption.
+
+The Start Page offers **Check for updates** in native Mac and Store installs
+and gives channel-specific guidance if the installed editor cannot use the
+current GitHub starter. An independent check used the protected inventories
+from the published 0.5.79 and 0.5.84 kits and the same public starter tree
+`369608a5`. The older kit returned the expected mismatch and 0.5.84 passed.
+That check establishes compatibility with the starter at that revision.
+
+Two independent Astra High reviewers examined the integrated code. The
+correction binds publishing Recheck to its original project, refuses repair
+after browser checks are disabled or a recovery journal appears, and ends
+the reveal by focusing the actual Project view. Both Project New entry
+points clear completed progress and guide students who already updated.
+The final focused local run passed 265 tests with one existing skip. The
+targeted review reran seven regressions, all passing. Reporting checks
+passed 52 tests, including the temporary PostgreSQL service exercise.
+The broader run reached 2,661 passes and found ten failures from one missing
+fixture binding in the extracted sidebar renderer. `d19c43265` adds the
+binding and covers the repair state. All 24 tests in the three affected
+suites passed after that change. The full suite awaits an exact-head rerun.
+
+The tutorial audit checked all 20 addressable lessons on the public site.
+Five of 13 listed coding lessons directly offered every required final Java
+file. Five new links bring the local branch to nine of 13 and all five
+unlisted Study lessons also have full final source. The three Greeting and
+Coin refactoring lessons link to existing checkpoint source, with the Java
+and its Copy anchors unchanged. The 51 focused tutorial checks and website
+content build passed. The new lesson links await publication.
+
+The Mac walkthrough used the actual Zero Dev sidebar at `d19c43265`.
+A disposable project with a missing runtime lock showed **Repair and
+continue** inline. The click entered repair progress, restored the exact
+original lock bytes, kept a backup and resumed the requested browser build
+through **Export ready**. A test folder inside the maintainer repository
+also demonstrated refusal and recovery guidance. The final retail Store
+package and signed-in GitHub Pages remain to be checked.
+
+# Zero 0.5.84 classroom fixes — 2026-11-23
+
+Integrated source `df0812cb4956e2dbbb650962a7eddde47cf56c9b` is based on
+`8255f71c7`. The Windows cache fix was tested on a hosted Windows runner,
+as recorded below. A repair regression used the registered Export command
+with a disposable project. Accepting repair restores matching saved browser
+tools and resumes the export. Declining leaves the project intact. Repair
+requires every remaining tool file to match the installed manifest and keeps
+a backup. A missing runtime lock reproduces the tooling-check category in
+report [#9](https://github.com/codepetca/zero-reports/issues/9). Its payload
+cannot identify the missing or damaged file. All 65 installed builder files
+match the baseline byte for byte.
+
+Disposable Git repositories cover Merge when an ineligible archived tree
+is unreadable, continued refusal when required history is unreadable,
+and ordinary file-to-folder transitions for branches and commits. Staged
+symlinks, nested repositories and gitlinks retain their safety handoffs.
+Two Astra High reviewers independently checked the Git, authentication and
+diagnostic changes. Their findings led to the staged-symlink and archived
+ancestry checks, explicit GitHub connection retry, and unified branch
+failure reporting for the two entry points.
+The integration run at `92fdaeb2e` passed 278 tests with seven existing skips.
+It covered Git workflows, registered editor commands, report classification,
+browser tools and lesson generation.
+
+A temporary GitHub verification failure invalidates the operation under
+review. The sidebar retry verifies the connection without starting a new
+upload. A registered-command test simulated a second outage after initial
+reconnection, verified recovery using the refreshed control, and checked
+that a later outage clears recovery feedback. The security review confirmed
+the ticket check; the compatibility review checked the status transitions.
+The final authentication and editor command run passed 75 tests with one
+existing skip. Repository configuration, syntax, command contracts and
+documentation-link checks passed.
+The full suite on `df0812cb4` passed 2,661 tests with 155 existing skips.
+It ran in DevQ job 647 with inherited Git overrides removed, allowing
+fixtures to use their own temporary global configuration.
+
+The Coin Game instructions clarify how to replace the generated Java class.
+The movement, one-coin, restart and three-coin stages compiled in sequence
+with arm64 JDK 17 and JavaFX 21.0.12 on macOS. The local checkpoint opened, a
+coin was collected, and Restart worked. The original compiler error from the
+reported project is still unknown.
+
+The report service passed 24 tests, including normalized intake through
+temporary PostgreSQL. The added operation, stage and native exit codes
+stay within the structured report contract. Deploy the compatible report
+service before releasing an editor that sends the additional values.
+Reports [#12](https://github.com/codepetca/zero-reports/issues/12),
+[#13](https://github.com/codepetca/zero-reports/issues/13),
+[#14](https://github.com/codepetca/zero-reports/issues/14) and
+[#15](https://github.com/codepetca/zero-reports/issues/15) lack the
+original failure details needed to confirm their causes. The final retail
+Windows Store package and signed-in Pages publish remain unverified.
+
+# Windows Store browser build cache — 2026-11-23
+
+Zero 0.5.84 appended a host cache identity and a second copy of the saved builder
+closure hash to the Store editor's deep storage path. The source fix at
+`a61b5cace` moves the Windows cache into a short directory under the current
+user's temporary directory. The saved builder still partitions the cache by its
+full verified closure hash, which covers the runtime lock. Independent review
+confirmed that all 65 saved-builder files are byte-identical to the baseline.
+
+The [hosted Windows regression](https://github.com/codepetca/zero/actions/runs/45251247642)
+installed and opened a test-signed copy of Store package `1.5.84.0` on Windows
+Server 2022 x64. The released host reproduced `ENOENT` in `mkdtemp` at 285
+characters. The fixed adapter used the same starter and package-provisioned
+Node 22.23.4 and JDK 21.0.12.1. A cold build and revalidation of the same
+export succeeded in 101 seconds. The harness ran the adapters under standalone
+Node against the installed package files. Retail Store activation of a fixed
+package and a signed-in GitHub Pages deployment remain separate checks.
+
+Reports [#10](https://github.com/codepetca/zero-reports/issues/10) and
+[#11](https://github.com/codepetca/zero-reports/issues/11) record the same
+build-stage error code. The cause of each event remains unverified. Report
+[#9](https://github.com/codepetca/zero-reports/issues/9) stopped during its
+earlier tooling check.
+
 # Git merge, sync, and browser diagnostic path — 2026-11-19
 
 On `8e754368a`, disposable clones reproduced a conflict-free split between

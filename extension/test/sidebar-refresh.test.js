@@ -55,3 +55,14 @@ test('keyboard conflict choice retains focus across busy and announces the next 
  h.emit({type:'sidebar.update',controls:'complete',status:'Main updated',failed:false});
  assert.equal(h.document.activeElement,h.nodes['run-status']);
 });
+
+test('the repair button sends its displayed request and clears after the operation starts',()=>{
+ const h=sidebarDOM();
+ h.emit({type:'sidebar.update',status:'Some browser tools are missing.',repairToken:'first-request'});
+ const recovery=h.nodes.recovery,button=recovery.firstElementChild;
+ assert.equal(button.textContent,'Repair and continue');assert.equal(recovery.childElementCount,1);
+ button.focus();h.clickCommand(button);
+ assert.equal(h.sent.at(-1).command,'zero.repairBrowserTools');assert.equal(h.sent.at(-1).repairToken,'first-request');
+ h.emit({type:'sidebar.update',status:'Repairing browser tools…'});
+ assert.equal(recovery.childElementCount,0);assert.equal(recovery.hidden,true);assert.equal(h.document.activeElement,h.nodes['run-status']);
+});

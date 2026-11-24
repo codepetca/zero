@@ -76,6 +76,17 @@ test('message allowlist rejects arbitrary commands, paths, URLs, inherited names
   await f.message(panel, {type:'action', action:'local'});assert.deepEqual(f.commands, ['zero.openLocalProject']);page.dispose();
 });
 
+test('Start Page retries unavailable verification without opening sign-in or project actions', async () => {
+  const f = fake({phase:'verification-unavailable'}), {page, panel} = await open(f);
+  for (const action of ['new','clone','signIn','connect','setup']) await f.message(panel, {type:'action', action});
+  assert.deepEqual(f.commands, ['zero.recheckGitHubConnection']);
+  f.setState({phase:'signed-out'});await page.refresh();
+  await f.message(panel, {type:'action', action:'setup'});
+  await f.message(panel, {type:'action', action:'signIn'});
+  assert.deepEqual(f.commands, ['zero.recheckGitHubConnection','zero.signInToGitHub']);
+  page.dispose();
+});
+
 test('opaque recent IDs capture vetted entries and never accept webview destination fields', async () => {
   const f = fake();const item = {path:'/Projects/Greeting', lastOpened:123, repositoryUrl:'https://github.com/student/greeting'};
   f.dependencies.listRecent = async () => [item];
@@ -130,6 +141,66 @@ test('busy guards serialize actions, recover cancellation and keep useful errors
   await f.message(panel, {type:'retry'});assert.equal(f.commands.length, 2);assert.equal(payload(panel).error, '');
   f.setState({phase:'ready', accountId:'42', busy:true});await page.refresh();
   await f.message(panel, {type:'action', action:'local'});assert.equal(f.commands.length, 2);page.dispose();
+});
+
+test('a verified starter mismatch offers the current channel’s update recovery without repeating Project New', async () => {
+  for (const channel of ['native', 'school', 'manual']) {
+    const f = fake(), check = deferred();
+    f.dependencies.updateRecovery = channel;
+    f.dependencies.executeAction = async command => {
+      f.commands.push(command);
+      if (command === 'zero.newProject') throw Object.assign(Error('source detail'), {code:'ZERO_STARTER_INCOMPATIBLE'});
+      await check.promise;
+    };
+    const {page,panel} = await open(f), browser = domHarness(panel.webview.html);
+    const update = browser.elements.get('check-for-updates');
+    const initial = panel.messages.at(-1).token;
+    await f.message(panel, {type:'action', action:'new'});
+    browser.update(panel.messages.at(-1));
+    assert.match(payload(panel).error, /GitHub starter use different project files/);
+    assert.equal(payload(panel).canRetry, false);
+    assert.equal(update.hidden, channel !== 'native');
+    await panel.receive({type:'checkForUpdates', token:initial});
+    await f.message(panel, {type:'retry'});
+    if (channel === 'native') {
+      update.click();
+      assert.equal(browser.sent.at(-1).type, 'checkForUpdates');
+      const checking = panel.receive({...browser.sent.at(-1), command:'workbench.action.closeWindow'});
+      await f.message(panel, {type:'checkForUpdates'});
+      check.resolve();
+      await checking;
+      assert.deepEqual(f.commands, ['zero.newProject', 'zero.checkForUpdates']);
+      assert.match(payload(panel).error, /then try Project/);
+      assert.match(payload(panel).error, /ask your teacher to check the starter/);
+    } else {
+      await f.message(panel, {type:'checkForUpdates'});
+      assert.deepEqual(f.commands, ['zero.newProject']);
+      assert.match(payload(panel).error, channel === 'school' ? /school IT/ : /Zero installation/);
+    }
+    f.setState({phase:'ready', accountId:'99'});
+    await page.refresh();
+    assert.equal(payload(panel).error, '');
+    page.dispose();
+  }
+});
+
+test('a starter mismatch from outside the Start Page opens the same inline recovery', async () => {
+  const f = fake();
+  const page = createStartPage(f.vscode, {...f.dependencies, updateRecovery:'native'});
+  assert.equal(page.showStarterMismatch(), true);
+  const [panel] = f.panels;
+  await panel.receive({type:'ready'});
+  assert.equal(payload(panel).canCheckForUpdates, true);
+  await f.message(panel, {type:'checkForUpdates'});
+  assert.deepEqual(f.commands, ['zero.checkForUpdates']);
+  f.setState({phase:'signed-out'});
+  await page.refresh();
+  assert.equal(page.showStarterMismatch(), false);
+  assert.equal(payload(panel).error, '');
+  assert.equal(payload(panel).canCheckForUpdates, true);
+  await f.message(panel, {type:'checkForUpdates'});
+  assert.deepEqual(f.commands, ['zero.checkForUpdates', 'zero.checkForUpdates']);
+  page.dispose();
 });
 
 test('recent failure remains visible across refreshes with an explicit retry', async () => {
@@ -204,6 +275,13 @@ test('GitHub account stays compact while signed-out and setup states keep their 
     assert.equal(b.elements.get('github-progress').hidden, phase !== 'checking');
     assert.equal(action('setup').hidden, phase === 'checking');
   }
+  f.setState({phase:'verification-unavailable'});
+  await page.refresh();b.update(panel.messages.at(-1));
+  assert.equal(action('setup').hidden, false);
+  assert.equal(action('setup').textContent, 'Check again');
+  assert.equal(action('signIn').hidden, true);
+  assert.equal(action('connect').hidden, true);
+  assert.match(b.elements.get('guidance').textContent, /GitHub could not be reached/);
   f.setState({phase:'signed-out'});await page.refresh();b.update(panel.messages.at(-1));
   assert.equal(b.elements.get('github-profile').hidden, true);
   assert.equal(b.elements.get('account').textContent, '');

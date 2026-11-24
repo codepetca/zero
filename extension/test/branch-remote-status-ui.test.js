@@ -9,7 +9,8 @@ test('Project checks main on open and focus, distinguishes access and connection
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-branch-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   const git=(...args)=>{assert.ok(!args.some(arg=>arg==='reset'||arg==='--reset'));return execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();};
   git('init','-qb','main');git('config','user.name','Student');git('config','user.email','student@example.invalid');await fs.writeFile(path.join(root,'zero.json'),'{}');git('add','.');git('commit','-qm','base');git('remote','add','origin','https://github.com/student/project.git');
-  let head=git('rev-parse','HEAD'),remote=head,view,focus,metadataChanged,accessError,release,entered,gate,authEvent,configurationChanged,onWarning,compareCommits,mode='live',sessionReads=0,saved=0;
+  let head=git('rev-parse','HEAD'),remote=head,view,focus,metadataChanged,accessError,verificationError,release,entered,gate,authEvent,configurationChanged,onWarning,compareCommits,mode='live',sessionReads=0,saved=0;
+  let onCheckSetup;
   const calls=[],permissions=[],warnings=[],errors=[],commands=new Map(),subscriptions=[];
   const session={id:'session',account:{id:'1',label:'student'},accessToken:'PRIVATE_TEST_TOKEN',scopes:[]};
   const vscode={
@@ -24,7 +25,7 @@ test('Project checks main on open and focus, distinguishes access and connection
   Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./transport')return {createTransport:(_remote,authenticate,{assertCurrentNow})=>async(_root,args)=>{await authenticate();assertCurrentNow();assert.equal(args[0],'ls-remote');assert.ok(['refs/heads/main','refs/heads/feature'].includes(args[3]));calls.push(args);const result=remote;if(gate){entered();await gate;}return `${result}\t${args[3]}`;}};return oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   t.after(()=>{subscriptions.forEach(value=>value.dispose());delete require.cache[require.resolve('../src/extension')];});
-  extension.activate({extensionMode:2,subscriptions,workspaceState:{get:(_,fallback)=>fallback,keys:()=>[],update:async()=>{}}},{env:{},repositoryLedgerFactory,provider:{getSessions:async()=>{sessionReads++;return [session];},onDidChangeSessions:fn=>{authEvent=fn;return disposable();},dispose(){}},repositories:{checkSetup:async()=>({}),access:async(_,{permissions:requested})=>{permissions.push(requested);if(accessError)throw accessError;return {repository:{id:12},installation:{id:99}};},compareCommits:(...args)=>compareCommits?.(...args)}});
+  extension.activate({extensionMode:2,subscriptions,workspaceState:{get:(_,fallback)=>fallback,keys:()=>[],update:async()=>{}}},{env:{},repositoryLedgerFactory,provider:{getSessions:async()=>{sessionReads++;if(verificationError)throw verificationError;return [session];},onDidChangeSessions:fn=>{authEvent=fn;return disposable();},dispose(){}},repositories:{checkSetup:async()=>{onCheckSetup?.();return {};},access:async(_,{permissions:requested})=>{permissions.push(requested);if(accessError)throw accessError;return {repository:{id:12},installation:{id:99}};},compareCommits:(...args)=>compareCommits?.(...args)}});
   const webview={html:'',onDidReceiveMessage:disposable};view.resolveWebviewView({webview,onDidDispose:disposable});
   await waitFor(()=>webview.html.includes('data-branch-state="synced"'));assert.doesNotMatch(webview.html,/Branch matched GitHub at the last check/);assert.ok(calls.length);assert.ok(permissions.every(value=>value.contents==='read'));assert.doesNotMatch(webview.html,/PRIVATE_TEST_TOKEN/);
   assert.match(webview.html,/<button id="branch-sync"[^>]*Outgoing commits: 0\. Incoming commits: 0\./);
@@ -107,6 +108,32 @@ test('Project checks main on open and focus, distinguishes access and connection
   git('config','--unset','remote.origin.promisor');
   git('checkout','-qb','feature');remote='c'.repeat(40);metadataChanged({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes('Current branch: feature')&&webview.html.includes('data-branch-state="remote-changed"'));
   await commands.get('zero.reviewBranchUpdate')();assert.match(warnings.at(-1).options.detail,/Update feature from https:\/\/github.com\/student\/project/);assert.match(warnings.at(-1).options.detail,/automatically syncs the resulting branch commit to GitHub/);
+  verificationError=Object.assign(new Error('temporary verification outage'),{code:'github-unavailable'});
+  authEvent({changed:[session]});
+  await waitFor(()=>webview.html.includes('data-branch-state="offline"'));
+  assert.match(webview.html,/aria-label="Retry GitHub verification"[^>]*>Retry connection<\/button>/);
+  const retryButton=webview.html.match(/<button id="branch-sync"[^>]*>/)[0];
+  assert.doesNotMatch(retryButton,/ disabled/);
+  const expectedScope=retryButton.match(/data-sync-scope="([^"]+)"/)[1];
+  const beforeRetry={warnings:warnings.length,reads:sessionReads};
+  const outage=verificationError;
+  verificationError=undefined;
+  onCheckSetup=()=>{verificationError=outage;};
+  await commands.get('zero.syncBranch')(expectedScope);
+  assert.match(webview.html,/data-branch-state="offline"/);
+  assert.doesNotMatch(webview.html,/GitHub connection verified/);
+  onCheckSetup=undefined;
+  verificationError=undefined;
+  const nextScope=webview.html.match(/<button id="branch-sync"[^>]*data-sync-scope="([^"]+)"/)[1];
+  await commands.get('zero.syncBranch')(nextScope);
+  assert.equal(warnings.length,beforeRetry.warnings,'Connection retry does not resume a previous sync review');
+  assert.ok(sessionReads>beforeRetry.reads);
+  assert.match(webview.html,/GitHub connection verified\. Review the operation again\./);
+  assert.ok(calls.every(args=>args[0]==='ls-remote'),'Verification only performs reads');
+  verificationError=outage;
+  authEvent({changed:[session]});
+  await waitFor(()=>webview.html.includes('data-branch-state="offline"'));
+  assert.doesNotMatch(webview.html,/GitHub connection verified/);
   mode='simulation';configurationChanged({affectsConfiguration:key=>key==='zero.uploadMode'});assert.match(webview.html,/Simulation — nothing will be uploaded/);assert.doesNotMatch(webview.html,/data-command="zero.checkBranchConnection"/);const beforeSimulation=calls.length;await commands.get('zero.checkBranchConnection')();assert.equal(calls.length,beforeSimulation);
 });
 

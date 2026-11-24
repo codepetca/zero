@@ -32,7 +32,7 @@ In Project Explorer, right-click **java** and choose:
 
 **New class…**
 
-Name the class `Coin` and write `java/Coin.java`. Coin owns its position and collection state; Main owns the score.
+Name the class `Coin`. When `Coin.java` opens, select all the text, paste the complete code block below, and save the file.
 
 ```java
 import zero.Color;
@@ -60,6 +60,8 @@ public class Coin {
     }
 }
 ```
+
+Coin owns its position and collection state. Main owns the score.
 
 ## 3. Collect one coin
 
