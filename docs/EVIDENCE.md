@@ -1,3 +1,58 @@
+# Zero 0.5.84 classroom fixes — 2026-11-23
+
+Integrated source `df0812cb4956e2dbbb650962a7eddde47cf56c9b` is based on
+`8255f71c7`. The Windows cache fix was tested on a hosted Windows runner,
+as recorded below. A repair regression used the registered Export command
+with a disposable project. Accepting repair restores matching saved browser
+tools and resumes the export. Declining leaves the project intact. Repair
+requires every remaining tool file to match the installed manifest and keeps
+a backup. A missing runtime lock reproduces the tooling-check category in
+report [#9](https://github.com/codepetca/zero-reports/issues/9). Its payload
+cannot identify the missing or damaged file. All 65 installed builder files
+match the baseline byte for byte.
+
+Disposable Git repositories cover Merge when an ineligible archived tree
+is unreadable, continued refusal when required history is unreadable,
+and ordinary file-to-folder transitions for branches and commits. Staged
+symlinks, nested repositories and gitlinks retain their safety handoffs.
+Two Astra High reviewers independently checked the Git, authentication and
+diagnostic changes. Their findings led to the staged-symlink and archived
+ancestry checks, explicit GitHub connection retry, and unified branch
+failure reporting for the two entry points.
+The integration run at `92fdaeb2e` passed 278 tests with seven existing skips.
+It covered Git workflows, registered editor commands, report classification,
+browser tools and lesson generation.
+
+A temporary GitHub verification failure invalidates the operation under
+review. The sidebar retry verifies the connection without starting a new
+upload. A registered-command test simulated a second outage after initial
+reconnection, verified recovery using the refreshed control, and checked
+that a later outage clears recovery feedback. The security review confirmed
+the ticket check; the compatibility review checked the status transitions.
+The final authentication and editor command run passed 75 tests with one
+existing skip. Repository configuration, syntax, command contracts and
+documentation-link checks passed.
+The full suite on `df0812cb4` passed 2,661 tests with 155 existing skips.
+It ran in DevQ job 647 with inherited Git overrides removed, allowing
+fixtures to use their own temporary global configuration.
+
+The Coin Game instructions clarify how to replace the generated Java class.
+The movement, one-coin, restart and three-coin stages compiled in sequence
+with arm64 JDK 17 and JavaFX 21.0.12 on macOS. The local checkpoint opened, a
+coin was collected, and Restart worked. The original compiler error from the
+reported project is still unknown.
+
+The report service passed 24 tests, including normalized intake through
+temporary PostgreSQL. The added operation, stage and native exit codes
+stay within the structured report contract. Deploy the compatible report
+service before releasing an editor that sends the additional values.
+Reports [#12](https://github.com/codepetca/zero-reports/issues/12),
+[#13](https://github.com/codepetca/zero-reports/issues/13),
+[#14](https://github.com/codepetca/zero-reports/issues/14) and
+[#15](https://github.com/codepetca/zero-reports/issues/15) lack the
+original failure details needed to confirm their causes. The final retail
+Windows Store package and signed-in Pages publish remain unverified.
+
 # Windows Store browser build cache — 2026-11-23
 
 Zero 0.5.84 appended a host cache identity and a second copy of the saved builder
