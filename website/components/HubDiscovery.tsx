@@ -17,7 +17,7 @@ type Release = {playRef?:string;slug:string; kind:'library'|'game'; id:string; v
 type Catalog = {schema:number;revision:string;releases:Release[]};
 type MaintainedProject = {playRef?:string;id:string;title:string;description:string;author:string;repositoryId?:string;ownerId?:string;repositoryUrl:string;sourceCommit:string;image?:string;web?:{provider:'github-pages';url:string;commit:string;runId:number}};
 type Presentation = {id:string;sourceCommit:string;image?:string;description?:string;author?:string};
-type PublishedProject = {playRef?:string;id:string; title:string; author:string; repositoryUrl:string; identity:string; thumbnail?:string; stars?:number|null; issuesEnabled?:boolean|null; gameJamWinner?:boolean};
+type PublishedProject = {playRef?:string;id:string; title:string; author:string; repositoryUrl:string; identity:string; thumbnail?:string; opens?:number; stars?:number|null; issuesEnabled?:boolean|null; gameJamWinner?:boolean};
 type GalleryAllowance = {maintained:string[];releases:string[]};
 type PlayResult = {state:'observed';url?:string;site:ProjectFeedback['site'];thumbnail?:string}|{state:'hidden'|'quarantined'};
 const PROJECT_REFRESH_INTERVAL = 60_000;
@@ -410,8 +410,8 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     document.querySelectorAll('[data-hub-project-id]').forEach(card=>observer.observe(card));
     return()=>{observer.disconnect();controller.abort();};
   },[kind,metricIds,practiceOnly,catalogKey,catalogRefresh]);
-  const projectMetric=(id:string)=>{
-    const metric=metrics[id], label=practiceOnly?null:metricLabel(kind,metric);
+  const projectMetric=(id:string,metric=metrics[id])=>{
+    const label=practiceOnly?null:metricLabel(kind,metric);
     if(!label)return null;
     return <p className={styles.metrics} title={`${label.text}. ${label.hint}`}>
       {kind==='game'?<><Icon name="play" className={styles.playCountIcon} /><span aria-hidden="true">{metric?.opens?.toLocaleString()}</span><span className="sr-only">{label.text}</span></>:label.text}
@@ -478,6 +478,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     author={item.author} repositoryHref={item.repositoryUrl} {...playProps}
     image={thumbnail??(listingThumbnail(item.thumbnail)?item.thumbnail:undefined)}
     siteUnavailable={site?.status==='unreachable'} compact
+    metric={projectMetric(item.id,{id:item.id,kind:'game',opens:item.opens})}
     details={identity=><HubProjectDetails title={item.title} repositoryHref={item.repositoryUrl} playHref={playProps.playHref} description="GitHub Pages app"
       feedback={{id:item.id,kind:'game',repositoryUrl:item.repositoryUrl,stars:null,
         issuesEnabled:item.issuesEnabled??null,site:site??{status:'not-checked'}}}>{identity}</HubProjectDetails>}>

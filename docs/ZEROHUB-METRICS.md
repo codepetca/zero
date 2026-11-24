@@ -8,7 +8,8 @@ Keep GitHub stars as explicit appreciation. Add two small measures:
    already captured by the sharing publisher. Save a bounded observation with
    acceptance and derive **Used by N shared projects** from that ledger.
 2. Record an **open** (Play-link activation) when a ZeroHub image link is activated. Store one atomic
-   integer per known playable project in an optional Redis REST counter.
+   integer per known playable project in an optional Redis REST counter. Published
+   app listings use a separate counter tied to the repository and its verified owner.
 3. Show these counts alongside existing feedback, test publication/recovery and
    browser behavior, then obtain separate authorization for hosted activation.
 
@@ -26,8 +27,8 @@ tooltip and screen-reader text name opens and retain the measurement limits. Pri
 are recorded; opening through the browser's context menu or with JavaScript
 disabled may not be recorded. They do not prove the destination loaded, unique
 visitors, play duration or successful gameplay. Counter errors never delay or
-cancel the ordinary direct link. The client sends only a project ID and omits
-credentials. Counter records contain only project IDs and totals; Zero stores
+cancel the ordinary direct link. The client sends a project ID or an exact published app Play reference and omits
+credentials. Counter records contain only project keys and totals; Zero stores
 no IP addresses, browser identifiers, cookies, accounts or event history for
 this feature. Hosting providers may retain their ordinary request logs.
 
@@ -72,14 +73,19 @@ displayed counts can lag by about two minutes. Failed sources stay unknown.
 The endpoint never returns registry request bodies or dependency lists.
 The browser loads metrics in batches as cards approach the viewport, including
 cards after the first twelve. Browsers without IntersectionObserver load all
-selected cards in bounded batches. Existing site-check limits stay separate.
+selected cards in bounded batches. Existing site-check limits stay separate. Projects discovery reads opens for
+verified published app listings in batches. The final listing and visibility
+checks also cover the counts. Unavailable counts stay hidden.
 
-Play opens use `POST /api/hub/opens` with only `{"id":"drawing-pad"}`.
-Writes require the configured same origin and a known playable game. The
+Play opens use `POST /api/hub/opens` with one project ID, such as
+`{"id":"drawing-pad"}`, or one current published app Play reference. Writes
+require the configured same origin and a verified, currently visible project. The
 handler accepts at most 256 body bytes and never accepts a destination URL.
 Reads use one Redis `MGET` per uncached batch and each open uses one atomic
 `INCR`; uncertain writes are not retried. The key prefix is
-`zero:hub:opens:v1:`. There is no per-event Git commit or Blob write.
+`zero:hub:opens:v1:`. A published app keeps its count across republishes by the same owner. Counting
+starts when the website change is live. The aggregate counter makes no per-event
+Git commit or Blob write.
 
 ## Optional hosted activation
 

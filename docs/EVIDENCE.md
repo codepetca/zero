@@ -14699,3 +14699,21 @@ the initial implementation could bind older listings outside the merged page.
 The fix merges raw candidates before destination checks, with a regression
 covering 25 catalog checks and zero destination checks for older listings.
 The targeted follow-up review passed the corrected merge and continuation, including mixed sources, equal timestamps, rejected destinations and listing-window refill.
+
+### ZeroHub gallery availability and published app Plays (2026-11-24)
+
+The unfiltered production Projects endpoint returned 503 while Drawing Pad
+search worked. Listing repository verification could reject the entire page
+when one installation check failed. The page now preserves verified games,
+omits listings it cannot verify and keeps the 503 when it cannot confirm any
+matches. A verified listing reads and records its Plays under the GitHub owner
+and repository IDs, so republishing preserves its total.
+
+TypeScript passed. The targeted suite passed 113 tests with one optional
+PostgreSQL test skipped. Chrome with controlled responses showed zero for an
+uncounted listing, recorded one Play each through the direct and guarded links
+and displayed the new counts after fetching the gallery again. Two independent
+GPT-6.1 Sol reviews at high reasoning covered recovery and counter authorization.
+The recovery follow-up verified that optional metric reads preserve time for final
+visibility checks and that wholly unverified matches still return 503. The counter
+review found no actionable issue.

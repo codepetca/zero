@@ -1,7 +1,8 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import {recordPlayOpen} from '@/lib/hub-metrics-client.mjs';
+import {recordListingPlayOpen,recordPlayOpen} from '@/lib/hub-metrics-client.mjs';
+import {parseProjectPlayRef} from '@/lib/hub-play-selector.mjs';
 import styles from '@/app/hub/hub.module.css';
 
 export function HubPlayLaunch({reference}:{reference:string|null}) {
@@ -19,7 +20,8 @@ export function HubPlayLaunch({reference}:{reference:string|null}) {
         const result = await response.json();
         if (controller.signal.aborted) return;
         if (typeof result.url !== 'string' || new URL(result.url).protocol !== 'https:') throw new Error('unavailable');
-        if (typeof result.projectId === 'string') recordPlayOpen(result.projectId);
+        if (parseProjectPlayRef(reference)?.lane === 'listing') recordListingPlayOpen(reference);
+        else if (typeof result.projectId === 'string') recordPlayOpen(result.projectId);
         window.location.replace(result.url);
       } catch {
         if (!controller.signal.aborted) setError('This project could not be opened.');

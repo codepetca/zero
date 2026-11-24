@@ -15,6 +15,7 @@ import {configuredListingsStore, listingsEnabled} from './hub-listings-store.mjs
 import {hubConfig, json, seal, unseal} from './hub-github-auth.mjs';
 import {jamsPreviewAvailable} from './jams-visibility.mjs';
 import {createHubRequestDeadline} from './hub-request-deadline.mjs';
+import {createOpensStore,listingOpenId} from './hub-opens.mjs';
 import {projectPlayRef} from './hub-play-reference.mjs';
 
 export const PROJECT_PAGE_SIZE = 24;
@@ -103,11 +104,12 @@ function selectCandidates(projectRecords, catalog, search, dates) {
   return candidates;
 }
 
-function listingDto(entry, visibility, env) {
+function listingDto(entry, visibility, env, opens) {
   const winner = jamsPreviewAvailable(env) && visibility?.isGameJamWinner?.(entry.repositoryId, entry.accountId);
   return {id:entry.repositoryId,title:entry.title,author:entry.author,repositoryUrl:entry.repositoryUrl,
     identity:hash([entry.repositoryId,entry.accountId,entry.repositoryUrl,entry.pagesUrl,entry.commit,entry.runId]),
     playRef:projectPlayRef('listing',entry),
+    ...(Number.isSafeInteger(opens) && opens >= 0 ? {opens} : {}),
     stars:entry.feedback?.stars ?? null, issuesEnabled:entry.feedback?.issuesEnabled ?? null,
     ...(entry.playUrl ? {pagesUrl:entry.playUrl, thumbnail:listingThumbnailPath(entry.repositoryId, entry.commit)} : {}),
     ...(winner ? {gameJamWinner:true} : {})};
@@ -118,7 +120,7 @@ function listingDto(entry, visibility, env) {
 export async function hubProjectPageResponse(request, {env=process.env, catalogReader=readCatalog,
   visibilityReader=readJamHubVisibility, destinationReader, pagesBindingReader, projects:projectRecords=projects,
   previews:previewRecords=previews, authors:authorRecords=authors, releaseDates=sharedGameDates,
-  getStore=configuredListingsStore, listingDestinationReader, playReader,
+  getStore=configuredListingsStore, listingDestinationReader, playReader, opensStore=createOpensStore({env}),
   responseBudgetMs=18_000, decisionNow=Date.now}={}) {
   const params = new URL(request.url).searchParams;
   const search = (params.get('q') ?? '').trim();
@@ -135,6 +137,7 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
   const releaseAdmission = claimPublicHubRequest();
   if (!releaseAdmission) return error();
   const started = performance.now();
+  const optionalBudget = ceiling => Math.min(ceiling,Math.max(0,responseBudgetMs-(performance.now()-started)-3500));
   const deadline = createHubRequestDeadline({budgetMs:responseBudgetMs,signal:request.signal});
   try {
     let initial;
@@ -166,6 +169,7 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
     let catalogIndex = 0;
     let scanned = 0;
     const confirmed = [];
+    const listingFailures = new Map();
 
     // Merge raw candidates first so repository checks are spent on the page
     // and its lookahead. Refill either lane only when the merge needs it.
@@ -210,7 +214,10 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
       const listingWindow = window.flatMap(item=>item.entry?[item.entry]:[]);
       const linkedListings = new Map();
       if (listingWindow.length) {
-        const entries = await deadline.run(signal=>bindProjectListingEntries(listingWindow,{env,signal,visibility:initial,destinationReader:listingDestinationReader}));
+        const entries = await deadline.run(signal=>bindProjectListingEntries(listingWindow,{
+          env,signal,visibility:initial,destinationReader:listingDestinationReader,
+          onUnavailable:reason=>listingFailures.set(reason,(listingFailures.get(reason) ?? 0)+1)
+        }));
         for (const entry of entries) linkedListings.set(entry.order,entry);
       }
       for (const {key,position,entry,target} of window) {
@@ -220,23 +227,39 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
         } else if (bound.has(key)) confirmed.push({key,position,...bound.get(key)});
       }
     }
+    if (listingFailures.size && env.VERCEL_ENV==='production')
+      console.warn('ZeroHub listing bindings unavailable',Object.fromEntries(listingFailures));
     const moreUnscanned = catalogIndex < eligible.length || listingRows.length > 0 || !listingsExhausted;
     if (store && revalidate==='1') {
       const shown = confirmed.slice(0,PROJECT_PAGE_SIZE).filter(item=>item.entry);
       const entries = shown.map(item=>item.entry);
       await deadline.run(signal=>observeProjectListingPlay(entries,{signal,playReader,
-        playBudgetMs:()=>Math.min(4000,Math.max(0,responseBudgetMs-(performance.now()-started)-3500))}));
+        playBudgetMs:()=>optionalBudget(4000)}));
       shown.forEach((item,index)=>{item.entry=entries[index];});
     }
-    // Catalog binding and optional Play checks can take time. Confirm that
-    // listing rows still represent the verified publications before emitting.
     const verifiedListings = confirmed.flatMap(item=>item.entry?[item.entry]:[]);
+    const opens = new Map();
+    const countBudget = optionalBudget(1000);
+    if (opensStore && verifiedListings.length && countBudget>0) {
+      // Counts are optional and cannot delay the whole gallery on a slow store.
+      const counterDeadline = createHubRequestDeadline({budgetMs:countBudget,signal:deadline.signal});
+      try {
+        const ids = [...new Set(verifiedListings.filter(entry=>projectPlayRef('listing',entry)).map(listingOpenId))];
+        const batches = Array.from({length:Math.ceil(ids.length/12)},(_,index)=>ids.slice(index*12,index*12+12));
+        const results = await counterDeadline.run(()=>Promise.allSettled(batches.map(batch=>opensStore.counts(batch))));
+        for (const result of results) if (result.status==='fulfilled') {
+          for (const [id,count] of Object.entries(result.value)) opens.set(id,count);
+        }
+      } catch { deadline.check(); }
+      finally { counterDeadline.dispose(); }
+    }
+    // Confirm the publication is still listed after destination and counter reads.
     const currentOrders = new Set(verifiedListings.length
       ? (await deadline.run(()=>store.stillListed(verifiedListings)))
         .map(entry=>entry.order) : []);
     const final = await deadline.run(signal=>readVisibility({signal}));
     const visible = confirmed.filter(item=>(!item.entry || currentOrders.has(item.entry.order)) && hubTargetVisible(item.target,final));
-    if (visible.length<=PROJECT_PAGE_SIZE && moreUnscanned) return error();
+    if ((visible.length<=PROJECT_PAGE_SIZE && moreUnscanned) || (!visible.length && listingFailures.size)) return error();
     const page = visible.slice(0,PROJECT_PAGE_SIZE);
     const next = visible.length>PROJECT_PAGE_SIZE
       ? writeCursor(search,revision,page.at(-1).position,config) : null;
@@ -245,7 +268,7 @@ export async function hubProjectPageResponse(request, {env=process.env, catalogR
     const result = {schema:1,maintained:page.flatMap(item=>
       item.project?[{...item.project,playRef:projectPlayRef('maintained',item.project)}]:[]),
       catalog:projectedCatalog,presentation:presentationFor(projectedCatalog,previewRecords,authorRecords),
-      listings:page.flatMap(item=>item.entry?[listingDto(item.entry,final,env)]:[]),
+      listings:page.flatMap(item=>item.entry?[listingDto(item.entry,final,env,opens.get(listingOpenId(item.entry)))]:[]),
       order:page.map(item=>item.key),next};
     deadline.check();
     assertJamVisibilityTime(final,decisionNow,env);

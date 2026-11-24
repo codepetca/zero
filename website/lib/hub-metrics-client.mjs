@@ -1,9 +1,17 @@
 /** Navigation always remains a normal direct link, including without JS. */
 export function recordPlayOpen(id, fetchImpl = fetch) {
+  sendPlayOpen({id},fetchImpl,2500);
+}
+
+export function recordListingPlayOpen(ref, fetchImpl = fetch) {
+  sendPlayOpen({ref},fetchImpl,6000);
+}
+
+function sendPlayOpen(selection,fetchImpl,timeoutMs) {
   try {
     void fetchImpl('/api/hub/opens', {method: 'POST', credentials: 'omit', keepalive: true,
-      headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}),
-      signal: AbortSignal.timeout(2500),
+      headers: {'Content-Type': 'application/json'}, body: JSON.stringify(selection),
+      signal: AbortSignal.timeout(timeoutMs),
     }).catch(() => {});
   } catch { /* Metrics never prevent opening the author's project. */ }
 }

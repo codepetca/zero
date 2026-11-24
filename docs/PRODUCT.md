@@ -549,7 +549,8 @@ as **Oct 20 · 12:56 PM** when known. Reporting uses a flag icon inside the deta
 Library stars show a borderless star icon and count, filled when starred. Accessible
 labels describe each control and status; unavailable star counts use an em dash.
 See [ZeroHub feedback](ZEROHUB-FEEDBACK.md) for setup and limits.
-ZeroHub displays aggregate Play-link activations as opens and library adoption
+ZeroHub displays aggregate Play-link activations as opens, including for
+auto-published listings, and library adoption
 from declared dependencies in shared game snapshots. Opens include
 repeat activations; adoption counts repositories, with incomplete older coverage
 explicitly labelled. Neither measures unique people or runtime usefulness.
