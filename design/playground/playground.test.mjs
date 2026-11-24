@@ -89,6 +89,10 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(error,/Main.java, line 8: add a semicolon/);
   assert.match(error,/zero.showProblems/);
   assert.match(error, /data-command="zero.reportProblem"/);
+  const repair = sidebarSource('repair');
+  assert.match(repair,/Some browser tools are missing\./);
+  assert.match(repair,/data-repair-token="fixture-repair">Repair and continue<\/button>/);
+  assert.doesNotMatch(repair,/data-command="zero.reportProblem"|data-command="zero.showProblems"/);
   const practice = sidebarSource('practice');
   assert.match(practice,/zero.browseZeroHub/);
   assert.match(practice,/id="files-menu-button"/);
