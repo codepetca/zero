@@ -31,7 +31,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   let accessFailure,repositoryId=12,installationId=99,gitStatus='',mergeStatusError,warningChoice,pendingRecovery,storedPending,storedLocal,currentHead='f'.repeat(40);const accesses=[];
   let saved=0,authCalls=0,prepared=0,uploadSnapshots=0,transportDispatches=0,synced=0,syncError,syncUpdates=false,startGate,syncGate,afterSyncFetch,afterCheckout,activeUncertain=false,checkoutWarning=false,syncApplied=0,executed=0,deleted=0,input,choice,prepareGate,pickGate,warningGate,finishError,nativeScm=true,finishDrift=false,recoveryPushes=0,switchGuardError,switchPreparations=0,forbidRawSwitchStatus=false,switchFingerprintDrift=false;
   let retainedFinish,localFeatureHead='f'.repeat(40);
-  const transportCalls=[],statusEnvironments=[];
+  const transportCalls=[],statusEnvironments=[],manualReports=[];
   const commands=new Map(),picks=[],reviews=[],warnings=[],warningDetails=[],errors=[],notices=[],dispatch=[],deletions=[],logs=[],metadata={},progressRuns=[];
   core.assertRepositoryRoot=async()=>root;core.repositoryRoot=async()=>root;
   core.git=async(_,args,options)=>{if(args[0]==='-c'&&args[1]==='core.fsmonitor=false')args=args.slice(2);if(args[0]==='ls-files')return '';if(args[0]==='remote'){if(!remote)throw new Error('No origin');return remote;};if(args[0]==='symbolic-ref'){if(args.at(-1)!=='HEAD')throw Object.assign(Error('Direct branch'),{code:1});return `refs/heads/${branch}`;}if(args[0]==='for-each-ref')return branchRows??`refs/heads/feature\t${currentHead}`;if(args[0]==='status'){statusEnvironments.push(options?.env?.GIT_OPTIONAL_LOCKS);if(mergeStatusError){const error=mergeStatusError;mergeStatusError=undefined;throw error;}if(forbidRawSwitchStatus)throw new Error('Unsafe status before guarded switch review');return gitStatus;}if(args[0]==='rev-parse')return args.includes('--show-toplevel')?root:args.includes('--git-common-dir')||args.includes('--absolute-git-dir')?path.join(root,'.git'):currentHead;throw new Error('Unexpected Git mutation');};
@@ -74,6 +74,13 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   };
   const startPanels=require('./fixtures/start-page-panel').startPagePanels(vscode);
   const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){
+    if(id==='./problem-reporting'){
+      const reporting=oldLoad.call(this,id,...args);
+      return {...reporting,createProblemReporter(editor,context,options){
+        const reporter=reporting.createProblemReporter(editor,context,options);
+        return {...reporter,recordManual(...fields){manualReports.push(fields);reporter.recordManual(...fields);}};
+      }};
+    }
     if(id==='./git-tracking')return {updateRemoteTracking:async()=>({updated:true})};
     if(id==='./transport')return {createTransport:(_destination,authenticate,{assertCurrentNow,deleteAuthorization})=>async(_cwd,args,binding)=>{
       assert.equal(deleteAuthorization,undefined);
@@ -225,6 +232,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
     await commands.get(command)();
     assert.match(errors.at(-1), /Git status failed \(exit 128\)\. fatal: index file corrupt/);
     assert.ok(logs.slice(previousLogs).includes('Git status failed (exit 128). fatal: index file corrupt.'));
+    assert.deepEqual(manualReports.at(-1), ['merge','checking',128,root]);
   }
   choice = undefined;
   assert.doesNotMatch([...errors,...logs].join('\n'), /PRIVATE_GIT_OUTPUT/);
@@ -236,6 +244,7 @@ test('local branches, explicit Sync and merges stay serialized and recover confl
   session={...session,id:'changed'};authEvent({provider:{id:'zero-github'}});releasePrepare();await pending;prepareGate=undefined;
   assert.equal(executed,1,'Changed account cannot execute the reviewed finish');assert.equal(deleted,0);assert.match(errors.at(-1),/sign-in changed/);
   finishError=Object.assign(new Error('Merge conflicts need your attention'),{conflict:true});await commands.get('zero.finishChange')();assert.equal(dispatch.at(-1),'workbench.view.scm');assert.equal(deleted,0);assert.match(notices.join('\n'),/Stage the resolved files/);assert.match(webview.html,/add-score<\/span>/);
+  assert.deepEqual(manualReports.at(-1), ['merge','merging',undefined,root]);
   nativeScm=false;await commands.get('zero.finishChange')();assert.match(notices.at(-1),/Open Source Control/);assert.equal(deleted,0);
   finishError=undefined;
   let releaseDirtyMerge;prepareGate=new Promise(resolve=>{releaseDirtyMerge=resolve;});const beforeDirtyMerge={prepared,executed,transportDispatches,saved};

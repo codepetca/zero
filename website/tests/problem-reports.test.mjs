@@ -136,6 +136,32 @@ test('HTTP boundary rejects all manual free text, raw diagnostics and oversized 
   assert.deepEqual(await disabled.json(), {status:'disabled'});
 });
 
+test('merge history reports retain only bounded manual context through intake and issue rendering', async () => {
+  const incoming = {...base(), source:'manual', operation:'merge', stage:'checking',
+    code:'ZERO_MERGE_HISTORY_UNREADABLE',
+    breadcrumbs:[{operation:'merge', stage:'checking', outcome:'failed'}]};
+  const receipt = randomUUID();
+  const accepted = [];
+  const options = {env,
+    storeFactory:() => ({open:async () => ({
+      accept:async report => {
+        accepted.push(report);
+        return {receipt,fingerprint:problemFingerprint(report)};
+      },
+      close() {}
+    })}),
+    githubFactory:() => ({deliver:async () => 'delivered'})
+  };
+  assert.equal((await receiveProblemReport(request({...incoming, source:'automatic'}), options)).status, 400);
+  assert.equal((await receiveProblemReport(request({...incoming, gitOutput:'private local path'}), options)).status, 400);
+  const response = await receiveProblemReport(request(incoming), options);
+  assert.deepEqual(await response.json(), {receipt,status:'delivered'});
+  assert.deepEqual(accepted, [incoming]);
+  const body = problemIssueBody({fingerprint:problemFingerprint(incoming),reports:1,failures:1,recoveries:0,sample:accepted[0]});
+  assert.match(body, /Operation: merge\nStage: checking\nSource: manual/);
+  assert.doesNotMatch(body, /private local path|example\/zero-fixture/);
+});
+
 test('slow bodies, cancelled callers and stalled providers respect response deadlines without provider leakage', async () => {
   const stream = new ReadableStream({start(controller) { controller.enqueue(new Uint8Array([123])); }});
   const slow = new Request('https://zero.example/api/problem-reports', {method:'POST', headers:{'Content-Type':'application/json'}, body:stream, duplex:'half'});

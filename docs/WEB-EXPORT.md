@@ -70,8 +70,11 @@ source and Maven setup. A newer editor reads bounded metadata on open and leaves
 those files unchanged. An explicit browser action in a trusted workspace verifies
 the saved closure, runs a frozen copy with a separate Node/JDK process, withholds
 GitHub credentials, and checks its inputs and output before accepting the build.
-Missing tools or saved files produce a tooling-unavailable result; the editor
-does not silently use its latest compiler. Publish no longer upgrades helpers.
+If inventoried files are missing from otherwise unchanged current browser
+tools, explicit browser actions offer **Repair Browser Tools**. Repair verifies
+the installed inventory, requires confirmation and keeps the incomplete tools
+folder as a local backup. Other incomplete or modified tool sets still stop
+with recovery guidance.
 Current runtime requirements and standalone commands live in that project's
 `.zero-build/README.md`; no central historical-kit database is required.
 

@@ -122,6 +122,12 @@ sign-in actions and expected recovery prompts do not automatically open issues.
 Ambiguous student runtime exceptions and broad browser-compiler failures remain
 available through manual reporting.
 
+Manual merge reports distinguish checking from changes attempted after Merge
+confirmation. The unreadable merge history and unclassified native task exit
+codes are manual only. Branch creation, creating a project and cloning have
+separate operation names. New operation, stage and code values require the
+updated report service before an editor release can send them.
+
 Match automatic reports by their stable technical context. Count submissions and
 recoveries without claiming distinct users. Keep generic manual reports separate
 unless a maintainer determines they describe the same problem. Repeated delivery

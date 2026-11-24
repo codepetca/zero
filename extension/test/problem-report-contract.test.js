@@ -67,6 +67,22 @@ test('student runtime and broad compiler failures require a manual report', () =
   }
 });
 
+test('new classroom operation and reason codes remain structured', () => {
+  for (const [operation, stage, code] of [
+    ['merge', 'checking', 'ZERO_MERGE_HISTORY_UNREADABLE'],
+    ['merge', 'merging', 'ZERO_MERGE_HISTORY_UNREADABLE'],
+    ['run-native', 'unknown', 'ZERO_NATIVE_PROCESS_FAILED'],
+    ['branch-create', 'unknown', 'MANUAL_REPORT'],
+    ['project-clone', 'unknown', 'MANUAL_REPORT']
+  ]) {
+    const value = {...report(), operation, stage, code, breadcrumbs:[{operation, stage, outcome:'failed'}]};
+    assert.equal(validateProblemReport(value), null);
+    const manual = {...value, source:'manual'};
+    assert.deepEqual(validateProblemReport(manual), manual);
+    assert.equal(validateProblemReport({...manual, path:'private project path'}), null);
+  }
+});
+
 test('public reports reject all free text for automatic and manual submissions', () => {
   for (const source of ['automatic', 'manual']) {
     for (const description of ['', 'I clicked Publish and the page never opened.', 'secret token', 'x'.repeat(1001)]) {

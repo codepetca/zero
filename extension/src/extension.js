@@ -716,6 +716,11 @@ function activate(context, services = {}) {
     }
     for(const [file,diagnostics]of grouped)compilerProblems.set(vscode.Uri.file(file),diagnostics);
   }
+  function recordNativeTaskFailure(metadata) {
+    const compileError = Boolean(metadata.compilerItems?.length);
+    problemReporter.recordManual('run-native', compileError ? 'native-compile' : 'unknown',
+      compileError ? 'MANUAL_REPORT' : 'ZERO_NATIVE_PROCESS_FAILED', metadata.root);
+  }
   async function makeTask(root, definition = {type:'zero',task:'run',instanceId:crypto.randomUUID()}, scope = vscode.TaskScope.Workspace) {
     if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     await core.assertTutorialRepository(root);
@@ -776,7 +781,7 @@ function activate(context, services = {}) {
       if (metadata.fatal) {problemReporter.recordManual('run-native',metadata.fatal.stage,metadata.fatal.code,metadata.root);publishRuntimeProblems(metadata,metadata.fatal);}
       const exitCode = metadata.exitCode ?? taskExitCodes.get(active);
       buildFailed = Boolean(metadata.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata.custom || !stoppedTasks.has(active)));
-      if(buildFailed && !metadata.fatal && !stoppedTasks.has(active))problemReporter.recordManual('run-native',metadata.compilerItems?.length?'native-compile':'unknown','MANUAL_REPORT',metadata.root);
+      if(buildFailed && !metadata.fatal && !stoppedTasks.has(active))recordNativeTaskFailure(metadata);
       state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
       refresh();return;
     }
@@ -803,7 +808,7 @@ function activate(context, services = {}) {
       execution = undefined;
       const exitCode = metadata?.exitCode ?? taskExitCodes.get(event.execution);
       buildFailed = Boolean(metadata?.failed || typeof exitCode === 'number' && exitCode !== 0 && (metadata?.custom || !stoppedTasks.has(event.execution)));
-      if(buildFailed && metadata && !metadata.fatal && !stoppedTasks.has(event.execution))problemReporter.recordManual('run-native',metadata.compilerItems?.length?'native-compile':'unknown','MANUAL_REPORT',metadata.root);
+      if(buildFailed && metadata && !metadata.fatal && !stoppedTasks.has(event.execution))recordNativeTaskFailure(metadata);
       state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
       refresh();
     }
@@ -1451,8 +1456,11 @@ function activate(context, services = {}) {
     const missing=kind==='sync'?observedMissing(projectRoot):undefined;
     changing = true; refresh();
     let reviewedAccountId,confirmedBranch;
+    let mergeStage = 'checking', operationRoot;
+    if (kind === 'finish') problemReporter.breadcrumb('merge', mergeStage, 'started');
     try {
       const root = await project();
+      operationRoot = root;
       await lessonProjects.assertShareable(root);
       if (uploadMode(root) !== 'live') {simulation(kind === 'start' ? 'New branch' : kind === 'sync' || kind === 'updateBranch' ? 'Update from GitHub' : 'Merge to main',{quiet:quiet||kind==='start'});return;}
       let name;
@@ -1559,6 +1567,8 @@ function activate(context, services = {}) {
           if (result.needsPush) {
             const choice=await vscode.window.showWarningMessage('Retry the earlier merge?',{modal:true,detail:`Push commit ${result.candidate} to refs/heads/main in ${result.page}. Your newer branch commits stay on this branch. The final GitHub check and non-force push are not atomic: if main is deleted or rewound in between, the push may recreate or fast-forward it.`},'Merge');
             if (choice!=='Merge') return;
+            mergeStage = 'merging';
+            problemReporter.breadcrumb('merge', mergeStage, 'started');
             await beforeNetwork();
             result=await workflowLocalPhase(root,{...options,allowPush:true},phase=>workflow.recoverPendingFinish(recoveryPlan,phase));
           }
@@ -1588,6 +1598,8 @@ function activate(context, services = {}) {
             const detail = `GitHub main in ${plan.page} already includes ${plan.branch}. Update local main to the reviewed commit and switch to it. Your feature branch stays available.`;
             if (await vscode.window.showWarningMessage('Switch to updated main?', {modal:true, detail}, 'Switch to main') !== 'Switch to main') return;
           } else if(await vscode.window.showWarningMessage(`Merge ${plan.branch} into main?`,{modal:true},'Merge')!=='Merge'){state='Merge cancelled';return;}
+          mergeStage = 'merging';
+          problemReporter.breadcrumb('merge', mergeStage, 'started');
         }
         if (updating && plan.cleanMerge) {
           if (quiet) throw Object.assign(new Error('Review the merge from the branch menu.'), {nativeUpdateHandoff:true});
@@ -1638,7 +1650,20 @@ function activate(context, services = {}) {
       const title = kind === 'start' ? `Creating branch ${name}` : kind === 'sync' ? 'Updating from main' : kind==='updateBranch'?'Updating branch from GitHub':'Merging to main';
       if (!quiet&&kind!=='start'&&vscode.window.withProgress) return await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title,cancellable:false},execute);
       return await execute();
-    } catch(error) {if(error.workflowRecovery)await rememberPush(error.workflowRecovery,reviewedAccountId);if (error.conflict&&!quiet) await conflictHelp();else if(error.nativeUpdateHandoff){if(quiet){reportGit('Open Source Control to sync this branch.',error.message);return;}await nativeUpdateHelp(error);return;}throw error;}
+    } catch(error) {
+      if (kind === 'finish') {
+        reportAvailable = true;
+        problemReporter.recordManual('merge', mergeStage, error?.code, operationRoot || projectRoot);
+      }
+      if (error.workflowRecovery) await rememberPush(error.workflowRecovery,reviewedAccountId);
+      if (error.conflict&&!quiet) await conflictHelp();
+      else if (error.nativeUpdateHandoff) {
+        if (quiet) {reportGit('Open Source Control to sync this branch.',error.message);return;}
+        await nativeUpdateHelp(error);
+        return;
+      }
+      throw error;
+    }
     finally {mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;changing=false;await repositoryStatus({confirmedBranch});refresh();void checkForMainUpdates();}
   }
   async function refreshNativeGit(root) {
@@ -2846,16 +2871,20 @@ function activate(context, services = {}) {
     const plan=await upgrade.planUpgrade({projectRoot:root,extensionPath:context.extensionPath||path.resolve(__dirname,'..')});
     await current();
     if(!plan.changed)return false;
-    const updateChoice={title:'Update Browser Tools'};
-    const detail='Replace this project’s .zero-build folder with the browser tools included in your installed Zero. Your Java, assets and framework files stay unchanged. The previous browser tools are kept in a local backup. This may affect browser builds; review and commit the changed files after testing.';
-    const choice=await vscode.window.showWarningMessage(`Update browser tools for ${path.basename(root)}?`,{modal:true,detail},updateChoice,{title:'Cancel',isCloseAffordance:true});
+    const action = plan.repairing ? 'Repair' : 'Update';
+    const updateChoice={title:`${action} Browser Tools`};
+    const detail=plan.repairing
+      ? 'Some saved browser tool files are missing. Zero can restore them from this installation and keep a backup of the current tools folder. Review and commit the restored files after testing.'
+      : 'Replace this project’s .zero-build folder with the browser tools included in your installed Zero. Your Java, assets and framework files stay unchanged. The previous browser tools are kept in a local backup. This may affect browser builds; review and commit the changed files after testing.';
+    const choice=await vscode.window.showWarningMessage(`${action} browser tools for ${path.basename(root)}?`,{modal:true,detail},updateChoice,{title:'Cancel',isCloseAffordance:true});
     await current();
     if(choice!==updateChoice)throw Object.assign(new Error('Browser action cancelled. No browser tools were changed.'),{code:'ZERO_BROWSER_TOOLING_UPDATE_CANCELLED'});
     const result=await withProjectUpdateMutation(root,current,guard=>upgrade.applyUpgrade(plan,{assertCurrent:guard}));
     if(result.backupPath)output.appendLine(`Previous browser tools: ${result.backupPath}`);
     if(result.cleanupWarning)output.appendLine(result.cleanupWarning);
     await current();
-    report('Browser tools updated',`Browser tools updated. ${result.backupPath?`Previous tools saved at ${result.backupPath}. `:''}Test the app and review the changed .zero-build files before committing.`);
+    const completed = plan.repairing ? 'Browser tools repaired' : 'Browser tools updated';
+    report(completed,`${completed}. ${result.backupPath?`Previous tools saved at ${result.backupPath}. `:''}Test the app and review the changed .zero-build files before committing.`);
     return true;
   }
   async function withCurrentBrowserTooling(operation,options) {
@@ -3428,20 +3457,26 @@ function activate(context, services = {}) {
     'zero.publishAndOpenWeb':'publish',
     'zero.syncBranch':'sync',
     'zero.commitChanges':'commit',
+    'zero.startChange':'branch-create',
+    'zero.finishChange':'merge',
     'zero.newProject':'project-create',
-    'zero.cloneRepository':'project-create',
+    'zero.cloneRepository':'project-clone',
     'zero.openLocalProject':'project-open',
     'zero.signInToGitHub':'sign-in'
   })[id];
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async (...args) => {
     const operation=reportOperation(id);
-    if(operation){reportAvailable=false;problemReporter.breadcrumb(operation,'unknown','started');}
+    const stage = operation === 'run-native' ? 'preparing' : 'unknown';
+    if(operation){
+      reportAvailable=false;
+      if(operation!=='merge')problemReporter.breadcrumb(operation,stage,'started');
+    }
     const inline=args[0]===startPageInvocation;
     if(inline)args.shift();
     try {await action(...args);} catch(error) {
       if(error.code==='ZERO_BROWSER_TOOLING_UPDATE_CANCELLED'){report(error.message);return;}
       if(operation){reportAvailable=true;refresh();}
-      if(operation && operation!=='publish')problemReporter.failure(error,operation,'unknown',projectRoot);
+      if(operation && operation!=='publish' && operation!=='merge')problemReporter.failure(error,operation,stage,projectRoot);
       const message = error.zeroRunMessage || error.message;
       const signInUnavailable = /^Zero sign-in was cancelled or unavailable\./.test(message);
       const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
