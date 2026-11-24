@@ -206,6 +206,52 @@ test('captured operation reuses verified identity, rereads locked storage and ke
  await f.provider.getSessions([]);assert.equal(users(),before+2,'Standard provider lookups still verify remotely');
 });
 
+test('a temporary verification outage requires fresh review and keeps the saved connection', async t => {
+  let offline = false;
+  const f = await fixture(t, {overrides:{fetch:async url => {
+    if (offline) return new Response('private provider response', {status:503});
+    return response(url.includes('/apps/') ? metadata : {id:42,login:'learner',type:'User'});
+  }}});
+  const auth = integratedAuthentication(f,t);
+  await auth.refresh();
+  while (auth.busy) await new Promise(resolve => setImmediate(resolve));
+  const ticket = await auth.capture();
+  const stored = f.data.get(SECRET_KEY);
+  f.advance(60001);
+  offline = true;
+  const unavailable = error => error.kind === 'network' && /could not verify/.test(error.message)
+    && !/private|sign-in changed|Sign in to Zero/.test(error.message);
+  await assert.rejects(auth.assertCurrent(ticket), unavailable);
+  await assert.rejects(auth.capture(), unavailable);
+  assert.match(auth.status, /verification unavailable/);
+  assert.doesNotMatch(auth.status, /Sign in to Zero/);
+  assert.throws(() => auth.assertCurrentNow(ticket));
+  assert.ok(f.data.get(SECRET_KEY) === stored);
+  offline = false;
+  const next = await auth.capture();
+  await auth.assertCurrent(next);
+  assert.equal(next.session.accountId, ticket.session.accountId);
+  assert.ok(next.revision > ticket.revision);
+  await assert.rejects(auth.assertCurrent(ticket), /account or sign-in changed/);
+});
+
+test('revalidation of a revoked connection asks for sign-in', async t => {
+  let revoked = false;
+  const f = await fixture(t, {overrides:{fetch:async url => {
+    if (revoked) return new Response('', {status:401});
+    return response(url.includes('/apps/') ? metadata : {id:42,login:'learner',type:'User'});
+  }}});
+  const auth = integratedAuthentication(f,t);
+  await auth.refresh();
+  while (auth.busy) await new Promise(resolve => setImmediate(resolve));
+  const ticket = await auth.capture();
+  f.advance(60001);
+  revoked = true;
+  await assert.rejects(auth.assertCurrent(ticket), error => error.kind === 'auth' && /Sign in to Zero/.test(error.message));
+  assert.equal(f.data.has(SECRET_KEY), false);
+  assert.throws(() => auth.assertCurrentNow(ticket));
+});
+
 test('only the exact session returned by remote verification can use the private operation path',async t=>{
  const f=await fixture(t),[verified]=await f.provider.getSessions([]);
  const users=()=>f.calls.filter(([url])=>url.endsWith('/user')).length;

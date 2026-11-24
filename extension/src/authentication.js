@@ -2,7 +2,22 @@
 
 // Zero’s registered GitHub App provider owns secure storage; this façade holds only a guarded snapshot.
 const scopes = Object.freeze([]);
-const changedMessage = 'Your GitHub account or sign-in changed. Sign in and review the upload again. A local commit may already be saved.';
+const changedMessage = 'Your GitHub account or sign-in changed. Check the account shown in Zero and review this step again. A local commit may already be saved.';
+function reviewLookupError(error, review) {
+  if (error?.code === 'github-unavailable') {
+    return Object.assign(new Error('Zero could not verify your GitHub connection. Check your connection and review this step again. A local commit may already be saved.'), {kind:'network'});
+  }
+  if (error?.code === 'workos-identity-binding') {
+    if (review === 'capture') return error;
+    return Object.assign(new Error('Sign in to Zero with the matching GitHub account and review this step again.'), {kind:'auth'});
+  }
+  if (review === 'capture') return new Error('Sign in to Zero before a live upload. Local running and simulation still work.');
+  if (!error || ['unauthorized', 'invalid-account', 'invalid-credentials', 'reconnect-required', 'workos-grant-missing', 'connection-removing'].includes(error.code)) {
+    return Object.assign(new Error('Sign in to Zero and review this step again. A local commit may already be saved.'), {kind:'auth'});
+  }
+  if (['account-changed', 'connection-changed'].includes(error.code)) return new Error(changedMessage);
+  return new Error('Zero could not verify your GitHub connection. Check the connection in Zero and review this step again. A local commit may already be saved.');
+}
 function snapshot(session) {
   return session && Object.freeze({id: session.id, accountId: session.account.id, label: session.account.label, accessToken: session.accessToken, scopes: Object.freeze([...(session.scopes || [])])});
 }
@@ -23,7 +38,7 @@ function ownedProviderApi(provider, binding) {
       await binding?.assertBinding(expected?.account?.id);
       const sessions = await provider.getSessionsForOperation(expected, requestedScopes, options.account ? {account:options.account} : undefined);
       for (const session of sessions) await binding?.assertBinding(session.account.id);
-      if (sessions.length > 1) throw new Error('Zero requires a single GitHub account');
+      if (sessions.length > 1) throw Object.assign(new Error('Zero requires a single GitHub account'), {code:'connection-changed'});
       return sessions[0];
     },
     async getSession(providerId, requestedScopes, options = {}) {
@@ -38,7 +53,7 @@ function ownedProviderApi(provider, binding) {
         if (error.code !== 'workos-identity-binding' || options.silent || !options.createIfNone) throw error;
         sessions = [];
       }
-      if (sessions.length > 1) throw new Error('Zero requires a single GitHub account');
+      if (sessions.length > 1) throw Object.assign(new Error('Zero requires a single GitHub account'), {code:'connection-changed'});
       if (sessions.length || options.silent || !options.createIfNone) return sessions[0];
       const created = await provider.createSession(requestedScopes);
       await binding?.assertBinding(created.account.id);
@@ -56,7 +71,7 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
   let current, revision = 0, disposed = false, unavailable = false, pendingRequests = 0, lastError;
   const verifiedSessions = new WeakMap();
   let queue = Promise.resolve();
-  function request(options, expected) {
+  function request(options, expected, review) {
     pendingRequests++;
     const next = queue.then(async () => {
       if (disposed) return;
@@ -74,6 +89,8 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
       if (disposed) return;
       if (!same(current, session)) revision++;
       current = session; onChange();
+      // Report this lookup's outcome before a queued provider event can refresh it.
+      if (review && !session) throw reviewLookupError(lastError, review);
       return current;
     }).finally(() => {pendingRequests--;});
     queue = next.catch(() => {});
@@ -99,20 +116,24 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
       if (!session && ['workos-identity-binding', 'workos-grant-missing'].includes(lastError?.code)) throw lastError;
       if (!session) throw new Error(unavailable ? 'Zero sign-in was cancelled or unavailable. Use Sign in to Zero to try again. Local running still works.' : 'Sign in to Zero to upload. Local running still works.');
     },
-    get status() { return current ? `Signed in as ${current.label}` : unavailable ? 'GitHub sign-in unavailable. Try Sign in to Zero; local running still works.' : 'Not signed in'; },
+    get status() {
+      if (current) return `Signed in as ${current.label}`;
+      if (lastError?.code === 'github-unavailable') return 'GitHub verification unavailable. Check your connection and try again.';
+      return unavailable ? 'GitHub sign-in unavailable. Try Sign in to Zero; local running still works.' : 'Not signed in';
+    },
     get signedIn() { return Boolean(current); },
     get sessionId() { return current?.id; },
     get revision() { return revision; },
     get accountId() { return current?.accountId; },
     get accountLabel() { return current?.label; },
     async capture() {
-      await refresh();
-      if (!current) throw (lastError?.code === 'workos-identity-binding' ? lastError : new Error('Sign in to Zero before a live upload. Local running and simulation still work.'));
+      await request({silent:true}, undefined, 'capture');
+      if (!current) throw new Error(changedMessage);
       return Object.freeze({session: current, revision});
     },
     async assertCurrent(ticket) {
       assertCurrentNow(ticket);
-      await request({silent:true}, verifiedSessions.get(ticket.session));
+      await request({silent:true}, verifiedSessions.get(ticket.session), 'revalidate');
       return assertCurrentNow(ticket);
     },
     assertCurrentNow,

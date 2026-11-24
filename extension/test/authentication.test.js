@@ -25,7 +25,7 @@ test('activation/revalidation are silent and only explicit sign-in can create/se
 test('session/account/token drift, removal, and provider changes invalidate a captured upload', async () => {
   for (const next of [undefined, session('other'), session('student','rotated')]) {
     const f=fixture();f.set(session());const auth=createAuthentication(f.api);const ticket=await auth.capture();
-    f.set(next);await assert.rejects(auth.assertCurrent(ticket), /account or sign-in changed/);auth.dispose();
+    f.set(next);await assert.rejects(auth.assertCurrent(ticket), next ? /account or sign-in changed/ : /Sign in to Zero/);auth.dispose();
   }
   const f=fixture();f.set(session());const auth=createAuthentication(f.api);const ticket=await auth.capture();
   f.event('microsoft');await auth.assertCurrent(ticket);
