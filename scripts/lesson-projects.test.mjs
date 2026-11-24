@@ -114,6 +114,16 @@ test('Coin movement and scoring lessons use Zero input, drawing and controls', (
     }
   }
 });
+test('Coin game recovery blocks match the complete finished checkpoint', () => {
+  const lesson = readFileSync(path.join(root, 'student-template/lessons/09-coin-game.md'), 'utf8');
+  const recovery = lesson.split('## Restore the finished game\n')[1];
+  assert.ok(recovery);
+  const files = [...recovery.matchAll(/^### (\w+\.java)\n\n```java\n([\s\S]*?)^```$/gm)];
+  assert.deepEqual(files.map(([, name]) => name), ['Main.java', 'Player.java', 'Coin.java']);
+  for (const [, name, code] of files) {
+    assert.equal(code, readFileSync(path.join(root, 'teaching/checkpoints/9', name), 'utf8'), name);
+  }
+});
 test('shared component teaching path uses Zero views in both consumers', () => {
   for (const id of [10, 11]) {
     const sources = [];

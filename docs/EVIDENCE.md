@@ -1,3 +1,14 @@
+# Coin game recovery code — 2026-11-24
+
+Lesson 5 ends with a collapsed **Restore the finished game** section. Its three
+Copy buttons supply the complete `Main.java`, `Player.java` and `Coin.java`
+from checkpoint 9. The 57 focused tutorial tests passed on the publication base
+`8b23472a0`. The earlier local Chrome check at 320, 390 and 1120 CSS pixels
+verified reflow and keyboard toggling. All three captured clipboard writes
+matched the checkpoint hashes. Independent GPT-6.1 Terra review at medium
+reasoning found no outstanding issues in the tutorial and disclosure deltas.
+The installed editor and distribution are outside this website update.
+
 # Manual preparation starter API fallback — 2026-11-24
 
 The local mitigation retries a denied anonymous starter API read once using

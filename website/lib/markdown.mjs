@@ -82,23 +82,10 @@ export function foldSections({ lesson = false, encouragement = "", platformSetup
       lesson && lastBlock?.tagName === "p" &&
       /^(Next|Previous):\s/.test(nodeText(lastBlock))
     ) content.splice(content.indexOf(lastBlock), 1);
-    // Tutorial actions and their code are the lesson itself, not optional details.
-    // Keep the guide reader's existing folding behavior separate.
-    if (lesson) {
-      tree.children = content.filter((node) => !(node.type === "element" && node.tagName === "h1"));
-      if (encouragement) tree.children.push({
-        type: "element", tagName: "p", properties: { className: ["lesson-encouragement"] },
-        children: [{ type: "text", value: encouragement }],
-      });
-      return;
-    }
-    const sections = [],
-      intro = [];
-    let current;
-    const wrap = (heading, body) => ({
+    const wrap = (heading, body, open = true) => ({
       type: "element",
       tagName: "details",
-      properties: { className: ["reading-section"], open: true },
+      properties: { className: ["reading-section"], open },
       children: [
         {
           type: "element",
@@ -114,6 +101,23 @@ export function foldSections({ lesson = false, encouragement = "", platformSetup
         },
       ],
     });
+    if (lesson) {
+      const blocks = content.filter((node) => node.tagName !== "h1");
+      // Only the optional recovery appendix folds. Keep numbered steps visible.
+      const appendix = blocks.findLastIndex((node) => node.tagName === "h2");
+      const heading = blocks[appendix];
+      tree.children = heading?.properties.id === "restore-the-finished-game"
+        ? [...blocks.slice(0, appendix), wrap(heading, blocks.slice(appendix + 1), false)]
+        : blocks;
+      if (encouragement) tree.children.push({
+        type: "element", tagName: "p", properties: { className: ["lesson-encouragement"] },
+        children: [{ type: "text", value: encouragement }],
+      });
+      return;
+    }
+    const sections = [],
+      intro = [];
+    let current;
     for (const node of content) {
       if (node.type === "element" && node.tagName === "h1") continue;
       if (node.type === "element" && node.tagName === "h2") {
