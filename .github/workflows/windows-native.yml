@@ -121,16 +121,13 @@ jobs:
       - name: Focused source-bound Windows regressions
         shell: pwsh
         working-directory: candidate-source
+        env:
+          SOURCE_REVISION: ${{ inputs.source_revision }}
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
-          node scripts/prepare-starter.mjs
-          node scripts/lesson-projects.mjs
-          node design/prepare.mjs --extension
-          # Keep this diagnostic focused on the changed presentation/runtime paths.
-          # Student Explorer Git fixtures use os.devNull as GIT_CONFIG_GLOBAL;
-          # Git for Windows rejects that device path before their assertions run.
-          node --test extension/test/start-page.test.js extension/test/sidebar-refresh.test.js extension/test/runtime-events.test.js extension/test/web-console-runtime.test.js extension/test/web-run-ui.test.js extension/test/mandatory-browser-update.test.js extension/test/web-publish-ui.test.js extension/test/problem-reporting.test.js extension/test/problem-report-contract.test.js
+          if ((git rev-parse HEAD) -cne $env:SOURCE_REVISION) { throw 'Focused tests must run at the verified release revision.' }
+          node --test extension/test/start-page.test.js extension/test/sidebar-refresh.test.js extension/test/problem-reporting.test.js extension/test/problem-report-contract.test.js
 
       - name: Open the exact test-signed package and verify the visible editor
         shell: powershell
