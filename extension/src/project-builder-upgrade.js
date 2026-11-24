@@ -3,6 +3,7 @@
 // The caller owns workspace trust, user review, editor-buffer and build locks.
 const fs=require('node:fs/promises');
 const path=require('node:path');
+const {constants}=require('node:fs');
 const lessonProjects=require('./lesson-projects');
 const {readSavedBuilder,_test:{digest}}=require('./project-builder');
 const {ordinary}=require('./retained-web-export');
@@ -59,20 +60,94 @@ async function cleanupStage(stage,files) {
   return null;
  } catch(error) {return 'The update succeeded, but its staging folder could not be fully removed: '+stage+' ('+error.message+').';}
 }
+// Only filenames and bytes from the installed, validated bundle may participate
+// in a repair. Include directories in the receipt to detect empty-directory drift.
+async function readPartialBuilder(root,next) {
+ const builder=path.join(root,'.zero-build');
+ const expected=new Map(next.files.map(file=>[file.path,file]));
+ const parents=new Set();
+ for(const name of expected.keys()) {
+  for(let parent=path.posix.dirname(name);parent!=='.';parent=path.posix.dirname(parent))parents.add(parent);
+ }
+ const files=[],directories=[],seen=new Set();
+ const invalid=()=>Error('The partial browser builder differs from the installed browser tools.');
+ async function visit(folder,prefix) {
+  await ordinary(folder,{directory:true});
+  for await(const entry of await fs.opendir(folder)){
+   const name=prefix+entry.name,location=path.join(folder,entry.name);
+   if(seen.has(name)||seen.size>=parents.size+expected.size)throw invalid();
+   seen.add(name);
+   if(entry.isDirectory()&&parents.has(name)){
+    directories.push(name);
+    await visit(location,name+'/');
+    continue;
+   }
+   const reference=expected.get(name);
+   if(!entry.isFile()||!reference)throw invalid();
+   const size=reference.bytes.length;
+   const before=await ordinary(location,{maxBytes:size});
+   if(before.size!==size)throw invalid();
+   const handle=await fs.open(location,constants.O_RDONLY|(constants.O_NOFOLLOW||0)|(constants.O_NONBLOCK||0));
+   try {
+    const opened=await handle.stat();
+    if(!opened.isFile()||opened.nlink!==1||opened.dev!==before.dev||opened.ino!==before.ino||opened.size!==size)throw invalid();
+    const bytes=Buffer.alloc(size+1);let length=0;
+    while(length<bytes.length){
+     const {bytesRead}=await handle.read(bytes,length,bytes.length-length,null);
+     if(!bytesRead)break;
+     length+=bytesRead;
+    }
+    const after=await ordinary(location,{maxBytes:size});
+    if(length!==size||!reference.bytes.equals(bytes.subarray(0,length))||
+       after.dev!==opened.dev||after.ino!==opened.ino||after.mtimeMs!==opened.mtimeMs)throw invalid();
+   } finally {await handle.close();}
+   files.push(reference);
+  }
+ }
+ await visit(builder,'');
+ if(files.length>=expected.size||!files.some(file=>file.path==='builder.json'))throw invalid();
+ const names=files.map(file=>file.path).sort();
+ const profileHash=format.sha256(Buffer.from(JSON.stringify([next.profileHash,names,directories.sort()])));
+ return {files,directories,profileHash,repairing:true};
+}
+async function reviewedBuilder(root,plan,next) {
+ const before=plan.repairing?await readPartialBuilder(root,next):await readSavedBuilder(root);
+ if(before.profileHash!==plan.oldProfileHash)throw Error('The project browser builder changed. Review the upgrade again.');
+ return before;
+}
 async function planUpgrade({projectRoot,extensionPath}) {
  const root=await rootPath(projectRoot),next=await bundled(extensionPath);
  const exists=await fs.lstat(path.join(root,'.zero-build')).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
- const old=exists?await readSavedBuilder(root):null;
- return {projectRoot:root,extensionPath:path.resolve(extensionPath),oldProfileHash:old?.profileHash||null,oldClosureSha256:old?.manifest.closureSha256||null,newProfileHash:next.profileHash,newClosureSha256:next.closureSha256,changed:!old||old.profileHash!==next.profileHash};
+ let old;
+ if(exists){
+  try {old=await readSavedBuilder(root);}
+  catch(error){
+   if(error.code!=='ZERO_BUILDER_UNAVAILABLE')throw error;
+   try {old=await readPartialBuilder(root,next);} catch {throw error;}
+  }
+ }
+ return {
+  projectRoot:root,extensionPath:path.resolve(extensionPath),
+  oldProfileHash:old?.profileHash||null,
+  oldClosureSha256:old?.repairing?next.closureSha256:old?.manifest.closureSha256||null,
+  newProfileHash:next.profileHash,newClosureSha256:next.closureSha256,
+  changed:!old||old.profileHash!==next.profileHash,
+  ...(old?.repairing?{repairing:true}:{})
+ };
 }
 async function applyUpgrade(plan,{assertCurrent=async()=>{}}={}) {
  if(!plan||(plan.oldProfileHash!==null&&typeof plan.oldProfileHash!=='string')||typeof plan.newProfileHash!=='string'||!plan.changed)throw Error('Review a changed browser builder before upgrading.');
  await assertCurrent();
  const fresh=await planUpgrade(plan);
- if(fresh.projectRoot!==plan.projectRoot||fresh.oldProfileHash!==plan.oldProfileHash||fresh.newProfileHash!==plan.newProfileHash||fresh.oldClosureSha256!==plan.oldClosureSha256||fresh.newClosureSha256!==plan.newClosureSha256)throw Error('The project or installed browser builder changed. Review the upgrade again.');
+ if(fresh.repairing!==plan.repairing||fresh.projectRoot!==plan.projectRoot||fresh.oldProfileHash!==plan.oldProfileHash||fresh.newProfileHash!==plan.newProfileHash||fresh.oldClosureSha256!==plan.oldClosureSha256||fresh.newClosureSha256!==plan.newClosureSha256)throw Error('The project or installed browser builder changed. Review the upgrade again.');
  const next=await bundled(plan.extensionPath);
  if(next.profileHash!==plan.newProfileHash)throw Error('The installed browser builder changed. Review the upgrade again.');
- const root=fresh.projectRoot,stage=await fs.mkdtemp(path.join(root,'.zero-build-stage-'));
+ const root=fresh.projectRoot;
+ if(plan.repairing){
+  await assertCurrent();
+  await reviewedBuilder(root,plan,next);
+ }
+ const stage=await fs.mkdtemp(path.join(root,'.zero-build-stage-'));
  let backup,oldMoved=false,newMoved=false;
  try {
   await fs.writeFile(path.join(stage,'.gitignore'),'*\n',{flag:'wx'});
@@ -87,12 +162,14 @@ async function applyUpgrade(plan,{assertCurrent=async()=>{}}={}) {
   await assertCurrent();
   // Reserve a unique recovery container and keep it out of normal Git adds.
   if(plan.oldProfileHash!==null){
+   if(plan.repairing)await reviewedBuilder(root,plan,next);
    backup=await fs.mkdtemp(path.join(root,'.zero-build-backup-'));
    await fs.writeFile(path.join(backup,'.gitignore'),'*\n',{flag:'wx'});
-   const before=await readSavedBuilder(root);
-   if(before.profileHash!==plan.oldProfileHash)throw Error('The project browser builder changed. Review the upgrade again.');
+   if(!plan.repairing)await reviewedBuilder(root,plan,next);
    await assertCurrent();
+   if(plan.repairing)await reviewedBuilder(root,plan,next);
    await fs.rename(path.join(root,'.zero-build'),path.join(backup,'.zero-build'));oldMoved=true;
+   if(plan.repairing)await reviewedBuilder(backup,plan,next);
   }
   // Reserve the destination exclusively; never rename over a newly created folder.
   await assertCurrent();
@@ -112,10 +189,11 @@ async function applyUpgrade(plan,{assertCurrent=async()=>{}}={}) {
   if(oldMoved&&!newMoved){
    try {await fs.lstat(path.join(root,'.zero-build'));}
    catch(missing) {if(missing.code==='ENOENT')try {
+    const saved=await reviewedBuilder(backup,plan,next);
     const target=path.join(root,'.zero-build');await fs.mkdir(target);
-    const saved=await readSavedBuilder(backup);
+    for(const dir of saved.directories||[])await fs.mkdir(path.join(target,...dir.split('/')),{recursive:true});
     for(const file of saved.files){const dest=path.join(target,...file.path.split('/'));await fs.mkdir(path.dirname(dest),{recursive:true});await fs.copyFile(path.join(backup,'.zero-build',...file.path.split('/')),dest,require('node:fs').constants.COPYFILE_EXCL);}
-    if((await readSavedBuilder(root)).profileHash!==plan.oldProfileHash)throw Error('Restored builder differs from the original.');
+    await reviewedBuilder(root,plan,next);
     oldMoved=false;
    }catch(recovery){error.message+=' Automatic recovery failed: '+recovery.message;}}
   }

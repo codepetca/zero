@@ -2,11 +2,12 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path');
 const {loadBundle}=require('../src/lesson-projects'),format=require('../src/project-builder-format'),{readSavedBuilder}=require('../src/project-builder'),upgrade=require('../src/project-builder-upgrade');
 const extensionPath=path.resolve(__dirname,'..');
-async function fixture(t){
+async function fixture(t,{current=false}={}){
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-builder-upgrade-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  const project=path.join(root,'project');await fs.mkdir(project);
  const files=(await loadBundle(extensionPath))[0].files.filter(f=>f.path.startsWith('.zero-build/'));
  for(const file of files){const dest=path.join(project,...file.path.split('/'));await fs.mkdir(path.dirname(dest),{recursive:true});await fs.writeFile(dest,file.content);}
+ if(current)return {project,root};
  const builder=path.join(project,'.zero-build'),readme=path.join(builder,'README.md');await fs.appendFile(readme,'\nOld version fixture.\n');
  const before=JSON.parse(await fs.readFile(path.join(builder,'builder.json'),'utf8'));
  const contents=await Promise.all(before.files.map(async file=>({path:file.path,bytes:await fs.readFile(path.join(builder,...file.path.split('/')))})));
@@ -103,4 +104,81 @@ test('cleanup failure reports success and retains the staging ignore file',async
  const stage=(await fs.readdir(project)).find(name=>name.startsWith('.zero-build-stage-'));
  assert.equal(await fs.readFile(path.join(project,stage,'.gitignore'),'utf8'),'*\n');
  assert.equal((await readSavedBuilder(project)).profileHash,plan.newProfileHash);
+});
+
+async function missingRuntime(t) {
+ const {project}=await fixture(t,{current:true});
+ const builder=path.join(project,'.zero-build');
+ await fs.unlink(path.join(builder,'runtime-lock.json'));
+ return {project,builder};
+}
+
+test('explicit repair restores missing runtime-lock and preserves the reviewed partial backup',async t=>{
+ const {project,builder}=await missingRuntime(t);
+ const manifest=await fs.readFile(path.join(builder,'builder.json'));
+ const plan=await upgrade.planUpgrade({projectRoot:project,extensionPath});
+ assert.equal(plan.repairing,true);
+ assert.deepEqual(await fs.readdir(project),['.zero-build']);
+ const result=await upgrade.applyUpgrade(plan);
+ assert.equal((await readSavedBuilder(project)).profileHash,plan.newProfileHash);
+ assert.deepEqual(await fs.readFile(path.join(result.backupPath,'builder.json')),manifest);
+ await assert.rejects(fs.access(path.join(result.backupPath,'runtime-lock.json')),{code:'ENOENT'});
+});
+
+test('partial tooling with changed, linked, undeclared, or missing manifest entries is ineligible',async t=>{
+ for(const condition of ['changed','symlink','hardlink','undeclared','unknown-directory','manifest','no-manifest']){
+  const {project,builder}=await missingRuntime(t);
+  const name=path.join(builder,'README.md');
+  if(condition==='changed')await fs.appendFile(name,'edited');
+  if(condition==='manifest')await fs.appendFile(path.join(builder,'builder.json'),' ');
+  if(condition==='no-manifest')await fs.unlink(path.join(builder,'builder.json'));
+  if(condition==='undeclared')await fs.writeFile(path.join(builder,'other'),'stay');
+  if(condition==='unknown-directory')await fs.mkdir(path.join(builder,'other'));
+  if(condition==='symlink'||condition==='hardlink'){
+   const external=path.join(project,'original');
+   await fs.rename(name,external);
+   if(condition==='symlink')await fs.symlink(external,name);else await fs.link(external,name);
+  }
+  await assert.rejects(upgrade.planUpgrade({projectRoot:project,extensionPath}),{code:'ZERO_BUILDER_UNAVAILABLE'},condition);
+ }
+});
+
+test('repair rejects an additional missing file after review before creating staging or backup',async t=>{
+ const {project,builder}=await missingRuntime(t);
+ const plan=await upgrade.planUpgrade({projectRoot:project,extensionPath});
+ await fs.unlink(path.join(builder,'README.md'));
+ await assert.rejects(upgrade.applyUpgrade(plan),/changed/);
+ assert.deepEqual(await fs.readdir(project),['.zero-build']);
+ await assert.rejects(fs.access(path.join(builder,'README.md')),{code:'ENOENT'});
+});
+
+test('repair rechecks edited partial contents immediately before moving the original',async t=>{
+ const {project,builder}=await missingRuntime(t);
+ const plan=await upgrade.planUpgrade({projectRoot:project,extensionPath});
+ let edited=false;
+ await assert.rejects(upgrade.applyUpgrade(plan,{assertCurrent:async()=>{
+  if(!edited && (await fs.readdir(project)).some(name=>name.startsWith('.zero-build-backup-'))){
+   edited=true;
+   await fs.appendFile(path.join(builder,'README.md'),'my edit');
+  }
+ }}));
+ assert.equal(edited,true);
+ assert.match(await fs.readFile(path.join(builder,'README.md'),'utf8'),/my edit$/);
+ await assert.rejects(fs.access(path.join(builder,'runtime-lock.json')),{code:'ENOENT'});
+});
+
+test('an interrupted repair restores the original partial inventory including empty known directories',async t=>{
+ const {project,builder}=await missingRuntime(t);
+ const media=path.join(builder,'media');
+ for(const name of await fs.readdir(media))await fs.unlink(path.join(media,name));
+ const plan=await upgrade.planUpgrade({projectRoot:project,extensionPath});
+ assert.equal(plan.repairing,true);
+ await assert.rejects(upgrade.applyUpgrade(plan,{assertCurrent:async()=>{
+  const backup=(await fs.readdir(project)).find(name=>name.startsWith('.zero-build-backup-'));
+  if(backup && (await fs.readdir(path.join(project,backup))).includes('.zero-build'))throw Error('interrupted');
+ }}),/interrupted/);
+ assert.deepEqual(await fs.readdir(media),[]);
+ const restored=await upgrade.planUpgrade({projectRoot:project,extensionPath});
+ assert.equal(restored.oldProfileHash,plan.oldProfileHash);
+ await assert.rejects(fs.access(path.join(builder,'runtime-lock.json')),{code:'ENOENT'});
 });
