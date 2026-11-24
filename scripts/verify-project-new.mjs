@@ -26,6 +26,35 @@ const bundlePath = 'media/lesson-projects.json';
 
 export const expectedStarter = root => buildCourseStarter({root, template});
 
+// Only the known manual preparation workflow supplies this ephemeral read-only
+// token. Remove it before any project, Maven, Java or browser process can inherit
+// it; retain it solely in this fixed-destination API request closure.
+export function preparationStarterRequest({env = process.env, request = fetch} = {}) {
+  const token = env.ZERO_STARTER_API_TOKEN;
+  delete env.ZERO_STARTER_API_TOKEN;
+  if (!token) return request;
+  assert.ok(env.GITHUB_ACTIONS === 'true' && env.GITHUB_EVENT_NAME === 'workflow_dispatch' &&
+    env.GITHUB_REPOSITORY === 'codepetca/zero' &&
+    env.GITHUB_WORKFLOW_REF?.startsWith('codepetca/zero/.github/workflows/release-review.yml@'),
+  'Starter API fallback is restricted to manual Zero release preparation.');
+  return async (url, options = {}) => {
+    assert.ok(url === github || url === github + '/branches/main' ||
+      (typeof url === 'string' && url.startsWith(github + '/git/trees/') &&
+        /^[a-f0-9]{40}\?recursive=1$/.test(url.slice((github + '/git/trees/').length))),
+    'Starter API fallback refuses another destination.');
+    assert.equal(options.method ?? 'GET', 'GET', 'Starter API fallback only reads metadata.');
+    assert.equal(options.body, undefined, 'Starter API fallback does not send a body.');
+    const headers = new Headers(options.headers);
+    assert.equal(headers.has('authorization'), false, 'Starter API lookup must start anonymously.');
+    const safeOptions = {...options, method: 'GET', redirect: 'error', credentials: 'omit'};
+    const response = await request(url, safeOptions);
+    if (response.status !== 403 && response.status !== 429) return response;
+    await response.body?.cancel();
+    headers.set('Authorization', `Bearer ${token}`);
+    return request(url, {...safeOptions, headers});
+  };
+}
+
 async function publicJson(request, suffix) {
   const response = await request(github + suffix, {
     headers: {Accept: 'application/vnd.github+json', 'Cache-Control': 'no-cache'},
@@ -194,5 +223,5 @@ export async function checkProjectNew({root = sourceRoot, vsixPath, receiptPath,
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [vsixPath, receiptPath, ...extra] = process.argv.slice(2);
   assert.ok(vsixPath && extra.length === 0, 'Usage: node scripts/verify-project-new.mjs <candidate.vsix> [receipt.json]');
-  await checkProjectNew({vsixPath, receiptPath});
+  await checkProjectNew({vsixPath, receiptPath, request: preparationStarterRequest()});
 }

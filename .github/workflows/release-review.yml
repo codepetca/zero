@@ -170,13 +170,17 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Provision the Project → New browser
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          node scripts/ci-browser.mjs prepare-jdk
+          node scripts/ci-browser.mjs
       - name: Verify Project → New with the public starter and packaged VSIX
         if: github.event_name == 'workflow_dispatch'
         env:
           ZERO_CANDIDATE_VSIX: ${{ steps.release.outputs.extension }}
+          ZERO_STARTER_API_TOKEN: ${{ github.token }}
         run: |
-          node scripts/ci-browser.mjs prepare-jdk
-          node scripts/ci-browser.mjs
           xvfb-run -a node scripts/verify-project-new.mjs "dist/$ZERO_CANDIDATE_VSIX" dist/PROJECT-NEW.json
       - name: Seal the reviewed artifacts
         if: steps.release.outputs.status == 'local'

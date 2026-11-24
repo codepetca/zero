@@ -1,3 +1,32 @@
+# Manual preparation starter API fallback — 2026-11-24
+
+The local mitigation retries a denied anonymous starter API read once using
+only manual preparation's existing `contents: read` workflow token. It permits
+only the fixed starter repository, `main` branch and SHA-addressed recursive
+tree GETs, refuses redirects, and preserves all public identity, template,
+default-branch, byte/mode/inventory, response-bound and repeated-branch checks.
+Browser provisioning has no token. The CLI consumes/removes its token variable
+before project, Maven, Java or Chrome children; publication remains anonymous.
+No archive inputs, release assets, credentials or workflow permissions change.
+The publisher's existing gate-source boundary remains intact.
+
+GitHub documents the job's ephemeral, repository-scoped
+[installation token](https://docs.github.com/en/actions/concepts/security/github_token),
+[public branch access](https://docs.github.com/en/rest/branches/branches#get-a-branch)
+and [IP-based anonymous limit](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).
+The coordinator's [hosted probe](https://github.com/codepetca/zero/actions/runs/45408044514)
+reported HTTP200 for repository, branch and tree with the unchanged read-only
+token. Local 116 release, publisher, starter and CI contracts pass; actionlint
+and whitespace checks pass. Synthetic cases cover token removal including a
+child process, endpoint/context/method restrictions, bounded retries, private or
+changed identity rejection, size bounds and the second branch read.
+
+This is a local implementation awaiting independent review and exact-head CI.
+Declared workflow environment checks do not authenticate an arbitrary caller,
+and the verifier does not introspect token grants. The reviewed workflow binding
+provides that provenance and read-only scope. Full native/browser replay of this
+mitigation has not run locally; the normal manual release gate remains required.
+
 # Sidebar error actions and installed version — 2026-11-24
 
 The Start Page reads the extension package version and shows it below the tagline.
