@@ -5,6 +5,7 @@ import {createListingRepositoryReader} from '../lib/hub-listings-github-app.mjs'
 import {Pool} from 'pg';
 import {claimPublicHubRequest, hubListingsResponse, hubPublicListingsResponse, readProjectListingPage} from '../lib/hub-listings-http.mjs';
 import {createHubListingsStore} from '../lib/hub-listings-store.mjs';
+import {hubProjectPageResponse} from '../lib/hub-project-page.mjs';
 import {checkListingToken, publicListingPlayUrl, verifyListingPublication} from '../lib/hub-listings-verification.mjs';
 import {hubConfig, newSession} from '../lib/hub-github-auth.mjs';
 import app from '../../extension/src/github-app/config.json' with {type:'json'};
@@ -194,6 +195,60 @@ test('public discovery uses a GitHub App grant for one public repository and met
   privateRepo = true;
   assert.equal(await createListingRepositoryReader(options)(entry,{signal}),false);
   assert.equal(calls.at(-1),'https://api.github.com/app/installations/11/access_tokens');
+});
+
+test('a token 422 with a proven replacement hides only the stale listing', async () => {
+  const {privateKey:key} = generateKeyPairSync('rsa',{modulusLength:2048});
+  const appId = String(app.appId);
+  let now = Date.now();
+  const root = 'https://api.github.com/repos/student/my-game';
+  const replacement = {...receipt, repositoryId:'22'};
+  const entry = {...receipt, accountId:'6', order:'1', title:'My game', author:'student', runCreatedAt:new Date(now)};
+  const scopedToken = 'ghs_metadataOnlyFixture123456789';
+  const calls = [];
+  let publicRepo = {id:21,private:false,html_url:receipt.repositoryUrl};
+  const read = createListingRepositoryReader({appId,key,now:()=>now,fetchImpl:async (url, options)=>{
+    calls.push(url);
+    assert.equal(options.redirect,'manual');
+    if (url === root+'/installation') {
+      assert.match(options.headers.Authorization,/^Bearer /);
+      return Response.json({id:11,app_id:Number(appId),account:{id:6,type:'User'},permissions:{metadata:'read'}});
+    }
+    if (url === 'https://api.github.com/app/installations/11/access_tokens') {
+      const id = JSON.parse(options.body).repository_ids[0];
+      if (id === 21) return new Response(null,{status:422});
+      assert.equal(id,22);
+      return Response.json({token:scopedToken,expires_at:new Date(now+3600_000).toISOString(),
+        repositories:[{id,private:false}],repository_selection:'selected',permissions:{metadata:'read'}},{status:201});
+    }
+    assert.equal(url,root);
+    if (options.headers.Authorization === 'Bearer '+scopedToken)
+      return Response.json({...publicRepo,has_pages:true,owner:{id:6,type:'User'}});
+    assert.equal(options.method,'GET');
+    assert.equal(Object.hasOwn(options.headers,'Authorization'),false);
+    return publicRepo ? Response.json(publicRepo) : new Response(null,{status:404});
+  }});
+  const discover = () => hubProjectPageResponse(new Request(origin+'/api/hub/projects/discover?q=student'), {
+    env:{...env,ZERO_HUB_LISTINGS_ENABLED:'1'}, projects:[], catalogReader:async()=>({schema:1,revision:commit,releases:[]}),
+    visibilityReader:async()=>null, getStore:()=>({discover:async()=>[entry],stillListed:async items=>items}),
+    listingDestinationReader:read
+  });
+  assert.equal((await discover()).status,503,'the same public ID cannot resolve an ambiguous 422');
+  publicRepo = null;
+  await assert.rejects(read(entry,{signal}),{code:'listing-token-http',status:422});
+  publicRepo = {id:22,private:false,html_url:'https://github.com/student/other-game'};
+  await assert.rejects(read(entry,{signal}),{code:'listing-token-http',status:422});
+  publicRepo.html_url = receipt.repositoryUrl;
+  const response = await discover();
+  assert.equal(response.status,200);
+  assert.deepEqual((await response.json()).listings,[]);
+  const before = calls.length;
+  assert.equal(await read(entry,{signal}),false);
+  assert.equal(calls.length,before,'a recent rejection can be reused for the same path and ID');
+  assert.equal(await read({...entry,...replacement},{signal}),true,'a new publication needs its own grant');
+  now += 300_001;
+  publicRepo.id = 21;
+  await assert.rejects(read(entry,{signal}),{code:'listing-token-http',status:422});
 });
 
 test('public Play links require the expected direct Pages marker', async () => {
