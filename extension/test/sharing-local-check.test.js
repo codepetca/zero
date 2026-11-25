@@ -8,8 +8,8 @@ const {previewExtraction,applyPlan,previewMode} = require('../src/sharing/author
 const {prepareLocalCheck,runLocalCheck,processRun} = require('../src/sharing/local-check');
 const repository={id:'12345',ownerId:'123',owner:'student',name:'game',url:'https://github.com/student/game'};
 const descriptor={schema:1,kind:'library',slug:'counter',version:'1.0.0',title:'Counter',description:'Finite trusted arithmetic sample.',license:'MIT',libraryKind:'helper'};
-async function fixture(t,{examples=true,widget=false}={}) {
- const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-local-check-test-'))); t.after(() => fs.rm(root,{recursive:true,force:true}));
+async function fixture(t,{examples=true,widget=false,rootPrefix='zero-local-check-test-'}={}) {
+ const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),rootPrefix))); t.after(() => fs.rm(root,{recursive:true,force:true}));
  await fs.mkdir(path.join(root,'src/main/java'),{recursive:true}); await fs.writeFile(path.join(root,'zero.json'),'{}');
  await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(root,'pom.xml'));
  await fs.copyFile(path.resolve(__dirname,'../../student-template/mvnw'),path.join(root,'mvnw')); await fs.chmod(path.join(root,'mvnw'),0o755);
@@ -87,6 +87,48 @@ const {PassThrough}=require('node:stream');
 function mockedProcess(pid) {
  const child=new EventEmitter();child.pid=pid;child.stdin=new PassThrough();child.stdout=new PassThrough();child.stderr=new PassThrough();child.kills=[];child.kill=signal=>{child.kills.push(signal);return true;};child.unref=()=>{child.unreferenced=true;};return child;
 }
+test('Windows Check sends a prequoted Maven command through cmd unchanged',async t=>{
+ const nativeWindows=process.platform==='win32',root=await fixture(t,{rootPrefix:'Zero Check Project '});
+ const spaced=path.join(root,'Check with spaces (fixture)');
+ await fs.mkdir(spaced);
+ const wrapper=path.join(root,'mvnw.cmd');
+ await fs.writeFile(wrapper,[
+  '@echo off',
+  'if not "%~1"=="-B" exit /b 21',
+  'if not "%~2"=="-ntp" exit /b 22',
+  'if not "%~3"=="-f" exit /b 23',
+  'if not exist "%~4" exit /b 24',
+  'echo Trusted Check wrapper reached',
+  'exit /b 0'
+ ].join('\r\n')+'\r\n');
+ const platform=Object.getOwnPropertyDescriptor(process,'platform');
+ let plan;
+ try {
+  if(!nativeWindows)Object.defineProperty(process,'platform',{...platform,value:'win32'});
+  plan=await prepareLocalCheck(root,'counter',{temporaryRoot:spaced});
+ } finally {
+  if(!nativeWindows)Object.defineProperty(process,'platform',platform);
+ }
+ const child=mockedProcess(123);
+ const spawnProcess=(command,args,options)=>{
+  assert.equal(path.win32.basename(command).toLowerCase(),'cmd.exe');
+  assert.deepEqual(args.slice(0,3),['/d','/s','/c']);
+  const line=args[3];
+  assert.ok(line.startsWith('""'+wrapper+'" "-B" "-ntp" "-f" "'+plan.pom+'" '));
+  assert.equal(options.shell,false);
+  assert.equal(options.cwd,root);
+  if(nativeWindows)return require('node:child_process').spawn(command,args,options);
+  // For this fixture, libuv's default Windows argv encoder wraps the argument
+  // and replaces each embedded quote with a backslash-quote. cmd /s needs the
+  // original outer quote pair to delimit its already quoted command string.
+  const nativeLine=options.windowsVerbatimArguments?line:'"'+line.replaceAll('"','\\"')+'"';
+  assert.equal(nativeLine,line);
+  queueMicrotask(()=>{child.stdout.write('Trusted Check wrapper reached');child.emit('exit',0);child.emit('close',0);});
+  return child;
+ };
+ const result=await processRun(plan.maven,{platform:'win32',spawnProcess});
+ assert.match(result.output,/Trusted Check wrapper reached/);
+});
 test('Windows stop terminates one tracked tree before settling despite retained pipes and repeated causes',async()=>{
  const child=mockedProcess(123),killer=mockedProcess(456),calls=[],controller=new AbortController();
  const spawnProcess=(...args)=>{calls.push(args);return calls.length===1?child:killer;};
