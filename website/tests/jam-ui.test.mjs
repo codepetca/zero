@@ -216,17 +216,17 @@ test('unapproved or unavailable panel grants no creator framing and exposes no w
 
 test('hosted approved panel shows official status and links without an external framing origin',async()=>{
   const id='jam-zero-'+'a'.repeat(32),seen=[];
-  const panel=panelModule({body:{configured:true,event:{revision:'abc',title:'Hosted Game Jam',moderation:{status:'active'},registrationOpen:true,submissionsOpen:false,participantCount:1}}},seen);
+  const panel=panelModule({body:{configured:true,event:{revision:'abc',title:'Hosted Game Jam',type:'game',moderation:{status:'active'},registrationOpen:true,submissionsOpen:false,participantCount:1}}},seen);
   const response=await panel.GET(new Request('https://zero.codepet.ca'),{params:Promise.resolve({id})});
   const html=await response.text();
   assert.equal(response.status,200);assert.equal(seen[0].id,id);
-  assert.match(html,/Hosted Game Jam/);assert.match(html,/Registration open/);
+  assert.match(html,/Hosted Game Jam/);assert.match(html,/Registration open/);assert.match(html,/Project → Join a Game Jam/);
   assert.ok(html.includes(`/hub/jams/${id}/participate`));
   assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'self'$/);
 });
 
-test('showcase Join sends only the owned repository and does not require publication or a commit',async()=>{
-  const detail={configured:true,event:{id:'jam-zero-'+'a'.repeat(32),title:'Hosted jam',revision:'A',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],entries:[]},registration:null,entry:null,canMaintain:false};
+test('App Jam website Join sends only the owned repository and does not require publication or a commit',async()=>{
+  const detail={configured:true,event:{id:'jam-zero-'+'a'.repeat(32),title:'Hosted jam',type:'app',revision:'A',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],entries:[]},registration:null,entry:null,canMaintain:false};
   const calls=[],h=harness({participateData:detail,fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}});
   const render=()=>h.render('JamParticipate',{id:detail.event.id});
   let tree=render();assert.equal(elements(tree).some(node=>node.props?.name==='commit'),false);
@@ -284,7 +284,7 @@ test('maintainer overview errors can be retried and gallery moderation refreshes
 });
 
 test('rejoining allows a renamed repository URL while retaining the recorded URL as an editable initial value',async()=>{
-  const detail={configured:true,event:{id:'jam-zero-'+'b'.repeat(32),title:'Hosted jam',revision:'A',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],entries:[]},registration:{status:'left',revision:'A',repository:{id:'202',ownerId:'12',fullName:'creator/old-name'}},entry:null,canMaintain:false};
+  const detail={configured:true,event:{id:'jam-zero-'+'b'.repeat(32),title:'Hosted jam',type:'app',revision:'A',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],entries:[]},registration:{status:'left',revision:'A',repository:{id:'202',ownerId:'12',fullName:'creator/old-name'}},entry:null,canMaintain:false};
   const calls=[],h=harness({participateData:detail,fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}});
   const render=()=>h.render('JamParticipate',{id:detail.event.id});let tree=render();
   let field=elements(tree).find(node=>node.props?.name==='repositoryUrl');
@@ -377,7 +377,7 @@ test('Jam rules page explains plans, access and timing',async()=>{
     return require(name);
   }});
   const markup=renderToStaticMarkup(React.createElement(module.exports.default));
-  for(const phrase of ['Joining is free','Pro license','100 distinct GitHub accounts','enabled manually','automatically approved','one active jam','gallery opens','no online checkout','Accounts still count after leaving','Older jams may require an exact source commit'])assert.ok(markup.includes(phrase),phrase);
+  for(const phrase of ['Joining is free','Project → Join a Game Jam','Run → Publish to Jam','Pro license','100 distinct GitHub accounts','enabled manually','automatically approved','one active jam','gallery opens','no online checkout','Accounts still count after leaving','Older jams may require an exact source commit'])assert.ok(markup.includes(phrase),phrase);
   assert.match(markup,/href="mailto:info@codepet.ca"/);assert.match(markup,/href="\/hub\/jams"/);
   // Exercise the actual Jam layout with the actual rules component; all Jam
   // pages, including this route, share the same production/preview gate.
@@ -530,12 +530,33 @@ test('JamDetail retains one cancellation receipt across loading, failed refresh 
   parent.setDetail(initial);parent.setActor({id:'99',login:'other',csrfToken:'csrf'});assert.equal(render().some(n=>n.props?.children==='Cancellation confirmed by Zero.'),false);
 });
 
-test('participation shows the current server count and limit beside Join',()=>{
-  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',schedule:{},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:false,participantCount:8,participantLimit:100,participants:[],entries:[]};
-  const h=harness({participateData:{event,registration:null,entry:null,canMaintain:false}}),nodes=elements(h.render('JamParticipate',{id:'jam-42'}));
-  const count=nodes.findIndex(node=>node.type==='p'&&Array.isArray(node.props.children)&&node.props.children[0]==='Participants: ');
-  const join=nodes.findIndex(node=>node.type==='button'&&node.props.children==='Join this jam');
-  assert.ok(count>=0&&count<join);assert.deepEqual(Array.from(nodes[count].props.children),['Participants: ',8,' · Limit: ',100]);
+test('Game Jam website directs unregistered students to Zero and keeps submission available after joining',()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participantCount:8,participantLimit:100,participants:[],entries:[]};
+  const detail={event,registration:null,entry:null,canMaintain:false},h=harness({participateData:detail});
+  const render=()=>elements(h.render('JamParticipate',{id:'jam-42'})),nodes=render();
+  const count=nodes.find(node=>node.type==='p'&&Array.isArray(node.props.children)&&node.props.children[0]==='Participants: ');
+  assert.deepEqual(Array.from(count.props.children),['Participants: ',8,' · Limit: ',100]);
+  const direction=nodes.find(node=>node.type?.name==='JoinGameJamInZero');
+  assert.ok(direction);
+  const directionNodes=elements(direction.type());
+  assert.ok(directionNodes.some(node=>node.type==='strong'&&node.props.children==='Project → Join a Game Jam'));
+  assert.ok(directionNodes.some(node=>node.props?.href==='/downloads'));
+  h.setDetail({...detail,event:{...event,registrationOpen:false}});
+  assert.equal(render().some(node=>node.type?.name==='JoinGameJamInZero'),false);
+  assert.ok(elements(harness({participateData:detail}).render('JamDetail',{id:'jam-42'}))
+    .some(node=>node.type?.name==='JoinGameJamInZero'));
+  assert.equal(nodes.some(node=>node.props?.name==='repositoryUrl'||node.props?.children==='Join this jam'||node.props?.type==='checkbox'),false);
+  h.setDetail({...detail,registration:{status:'joined',revision:'a',repository:{id:'202',ownerId:'12',fullName:'creator/project'}}});
+  const joined=render();
+  assert.ok(joined.some(node=>node.type==='strong'&&node.props.children==='Run → Publish to Jam'));
+  const fallback=joined.find(node=>node.type==='details'&&elements(node).some(item=>item.type==='summary'&&
+    item.props.children==='Submit or replace an entry on this website'));
+  assert.ok(fallback);
+  assert.equal(fallback.props.open,undefined,'the manual form is closed by default');
+  assert.ok(elements(fallback).some(node=>node.props?.children==='Submit my work'));
+  assert.ok(joined.some(node=>node.props?.children==='Submit my work'));
+  assert.ok(joined.some(node=>node.props?.children==='Leave jam and withdraw my entry'));
+  assert.equal(joined.some(node=>node.type?.name==='JoinGameJamInZero'),false);
 });
 
 

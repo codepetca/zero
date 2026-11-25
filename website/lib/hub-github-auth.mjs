@@ -440,6 +440,23 @@ export async function githubUser(token, fetchImpl = fetch) {
 export const githubApiHeaders = token => ({Accept: 'application/vnd.github+json',
   Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': GITHUB_API_VERSION, 'User-Agent': 'ZeroHub'});
 
+export async function checkGitHubAppUserToken(token, config, signal, fetchImpl = fetch) {
+  if (typeof token !== 'string' || !accessTokenPattern.test(token)) return null;
+  const response = await fetchImpl(`https://api.github.com/applications/${config.clientId}/token`, {
+    method:'POST', redirect:'error', cache:'no-store', signal,
+    headers:{...githubApiHeaders(token), 'Content-Type':'application/json',
+      Authorization:'Basic ' + Buffer.from(`${config.clientId}:${config.clientSecret}`).toString('base64')},
+    body:JSON.stringify({access_token:token})
+  });
+  if (response.status !== 200) {
+    await response.body?.cancel();
+    if ([401, 404, 422].includes(response.status)) return null;
+    throw new Error('GitHub connection unavailable');
+  }
+  const {user, app} = await boundedJson(response);
+  return Number.isSafeInteger(user?.id) && user.id > 0 && app?.client_id === config.clientId ? String(user.id) : null;
+}
+
 export async function sessionResponse(request, env = process.env, now = Date.now(), fetchImpl = fetch) {
   const config = hubConfig(env);
   const managed = workosRequested(env);

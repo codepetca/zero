@@ -30,14 +30,14 @@ test('owner hold defaults closed; activation flags cannot reveal production page
 
 test('every jam API/panel route returns 404 before calling services, reading template files or resolving params',async()=>{
   const routes=[['api/jams/route.ts','GET'],['api/jams/[id]/route.ts','GET'],
-    ['api/jams/[id]/actions/route.ts','POST'],['api/jams/proposals/route.ts','POST'],
+    ['api/jams/[id]/actions/route.ts','POST'],['api/desktop/jams/[id]/join/route.ts','GET'],['api/desktop/jams/[id]/join/route.ts','POST'],['api/desktop/jams/project/route.ts','GET'],['api/desktop/jams/[id]/submit/route.ts','POST'],['api/jams/proposals/route.ts','POST'],
     ['api/jams/template/route.ts','GET'],['api/jams/template/route.ts','POST'],['api/jams/template/preview/route.ts','POST'],['api/jams/template/preview/route.ts','GET'],['hub/jams/[id]/panel/route.ts','GET']];
   const blocked=()=>{throw new Error('A production-hidden dependency was invoked');};
   for(const [path,method] of routes) {
     const source=await readFile(new URL(`../app/${path}`,import.meta.url),'utf8');
     const route=load(source,{
       '@/lib/jams-visibility.mjs':{hiddenJamsResponse:()=>hiddenJamsResponse({NODE_ENV:'production'})},
-      '@/lib/jams-http.mjs':{getJamsResponse:blocked,getJamResponse:blocked,postJamActionResponse:blocked,postJamProposalResponse:blocked},
+      '@/lib/jams-http.mjs':{getJamsResponse:blocked,getJamResponse:blocked,postJamActionResponse:blocked,getDesktopJamJoinResponse:blocked,postDesktopJamJoinResponse:blocked,getDesktopJamProjectResponse:blocked,postDesktopJamSubmitResponse:blocked,postJamProposalResponse:blocked},
       '@/lib/jam-template.mjs':{createJamTemplateZip:blocked},
       '@/lib/jam-template-http.mjs':{preparedJamResponse:blocked}
     });

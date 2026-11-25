@@ -137,16 +137,21 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     }
     throw setupFailure('This repository is not available to Zero. Add it to Zero’s selected repositories on GitHub, then try again.', 'repository-not-selected',repo.html_url);
   }
+  async function readOwnedRepository(repositoryUrl,{ticket,signal}) {
+    configured();
+    const parsed=core.parseRepositoryUrl(repositoryUrl);
+    const value=await api(ticket,'GET','/repos/'+parsed.page.slice('https://github.com/'.length),{signal});
+    return repository(value,parsed,ticket.session.accountId);
+  }
   async function access(repositoryUrl,{ticket,permissions={contents:'write'},signal}={}) {
     configured(); cancelled(signal);
     const parsed=core.parseRepositoryUrl(repositoryUrl);
     ticket ||= await authentication.capture();
     await current(ticket);
     const installed=await installation(ticket,permissions,signal);
-    let data;
-    try {data=await api(ticket,'GET','/repos/'+parsed.page.slice('https://github.com/'.length),{signal});}
+    let repo;
+    try {repo=await readOwnedRepository(repositoryUrl,{ticket,signal});}
     catch(error){if(error.status===404)throw setupFailure('GitHub could not find this repository through Zero. Check the URL and Zero’s selected repositories.', 'repository-not-selected',parsed.page);throw error;}
-    const repo=repository(data,parsed,ticket.session.accountId);
     if (permissions.contents==='write' && repo.permissions?.push!==true) throw failure('Your GitHub account needs permission to push to this repository.', 'permission-required');
     await member(ticket,installed,repo,signal);
     await current(ticket);
@@ -168,7 +173,7 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     if(new Set(incomingCommits).size!==incoming||!incomingCommits.every(id=>commitId(id)&&id.length===head.length))return;
     return {outgoing,incoming,incomingCommits};
   }
-  async function listZero({ticket,signal,onRepository=()=>{}}={}) {
+  async function listZero({ticket,signal,onRepository=()=>{},standaloneOnly=false}={}) {
     configured();cancelled(signal);
     ticket ||= await authentication.capture();
     await current(ticket);
@@ -204,7 +209,7 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
           while (index<candidates.length) {
             cancelled(discoverySignal);
             const repo=candidates[index++];
-            if (!await zeroMarker(repo,ticket,discoverySignal)) continue;
+            if (!await zeroMarker(repo,ticket,discoverySignal,standaloneOnly)) continue;
             await current(ticket);cancelled(discoverySignal);
             repositories.push(repo);
             onRepository(repo);
@@ -224,8 +229,9 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
   function newestFirst(a,b) {
     return (Date.parse(b.pushed_at)||0)-(Date.parse(a.pushed_at)||0) || a.full_name.localeCompare(b.full_name);
   }
-  async function zeroMarker(repo,ticket,signal) {
-    for (const markerPath of ['zero.json','student-template/zero.json']) {
+  async function zeroMarker(repo,ticket,signal,standaloneOnly) {
+    const markerPaths=standaloneOnly ? ['zero.json'] : ['zero.json','student-template/zero.json'];
+    for (const markerPath of markerPaths) {
       let result;
       try {result=await api(ticket,'GET',`/repos/${repo.full_name}/contents/${markerPath}`,{signal,allow404:true,maxBytes:128*1024});}
       catch (error) {if(error.code==='invalid-response')continue;throw error;}
@@ -309,6 +315,6 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
       throw error;
     } finally {creating.delete(key);}
   }
-  return {checkSetup,access,compareCommits,create,listZero};
+  return {checkSetup,access,readOwnedRepository,compareCommits,create,listZero};
 }
 module.exports={createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity};

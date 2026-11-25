@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
 import {hubConfig,newSession} from '../lib/hub-github-auth.mjs';
-import {getJamsResponse,getJamResponse,postJamProposalResponse,postJamActionResponse} from '../lib/jams-http.mjs';
+import {getJamsResponse,getJamResponse,postJamProposalResponse,postJamActionResponse,getDesktopJamJoinResponse,postDesktopJamJoinResponse} from '../lib/jams-http.mjs';
 import {fixture,creator,maintainer,participant,submission,hostedManifest,verifiedPages} from '../../jams/test/fixtures.mjs';
 
 for(const type of ['game','app'])test(`HTTP and actual engine complete hosted ${type} proposal, approval and repository-bound participation with ambiguous-write recovery`,async () => {
@@ -21,7 +21,10 @@ for(const type of ['game','app'])test(`HTTP and actual engine complete hosted ${
       ...(body?{body:JSON.stringify(body)}:{})});
   }
   const options = actor => ({env,now,service:f.service,
-    fetchImpl:async () => Response.json({id:Number(actor.id),login:actor.login})});
+    fetchImpl:async url => {
+      const user={id:Number(actor.id),login:actor.login};
+      return Response.json(url.includes('/applications/')?{user,app:{client_id:config.clientId}}:user);
+    }});
   const proposalResponse = await postJamProposalResponse(call(creator,'/api/jams/proposals',{
     operationId:'http-propose-001',manifest:hostedManifest({type})}),options(creator));
   assert.equal(proposalResponse.status,200);
@@ -34,11 +37,28 @@ for(const type of ['game','app'])test(`HTTP and actual engine complete hosted ${
   const forged = await postJamActionResponse(call(creator,`/api/jams/${id}/actions`,{
     operationId:'http-approve-000',action:'approve',revision:proposal.revision}),id,options(creator));
   assert.equal(forged.status,403);
-  const join = {operationId:'http-join-001',action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'};
+  const join = {operationId:'http-join-001',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'};
+  const browserJoin = () => postJamActionResponse(call(participant,`/api/jams/${id}/actions`,{...join,action:'join'}),id,options(participant));
+  const editorJoin = () => postDesktopJamJoinResponse(new Request(`${origin}/api/desktop/jams/${id}/join`,{
+    method:'POST',headers:{'X-Zero-Desktop':'1',Authorization:'Bearer ghu_'+'x'.repeat(24),'Content-Type':'application/json'},body:JSON.stringify(join)
+  }),id,options(participant));
+  if(type==='game') {
+    const denied=await browserJoin();
+    assert.equal(denied.status,403);
+    assert.match((await denied.json()).error,/Join a Game Jam/);
+    assert.equal((await f.service.read(id,participant)).registration,null);
+  } else {
+    assert.equal((await editorJoin()).status,409);
+    const desktopStatus=await getDesktopJamJoinResponse(new Request(`${origin}/api/desktop/jams/${id}/join`,{
+      headers:{'X-Zero-Desktop':'1',Authorization:'Bearer ghu_'+'x'.repeat(24)}
+    }),id,options(participant));
+    assert.equal(desktopStatus.status,409);
+  }
+  const joinRequest=type==='game'?editorJoin:browserJoin;
   f.store.afterCas = async () => {throw new Error('Connection lost after durable write');};
-  assert.equal((await postJamActionResponse(call(participant,`/api/jams/${id}/actions`,join),id,options(participant))).status,503);
+  assert.equal((await joinRequest()).status,503);
   f.store.afterCas = null;
-  assert.equal((await postJamActionResponse(call(participant,`/api/jams/${id}/actions`,join),id,options(participant))).status,200);
+  assert.equal((await joinRequest()).status,200);
   assert.equal((await f.service.read(id,participant)).entry,null);assert.equal(pagesCalls,0);
   const {actor:_actor,id:_id,source:_source,...entry} = submission(proposal.revision,{operationId:'http-submit-001'});
   assert.equal((await postJamActionResponse(call(participant,`/api/jams/${id}/actions`,{...entry,pagesVerification:{status:'verified'}}),id,options(participant))).status,400);

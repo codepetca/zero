@@ -772,6 +772,18 @@ test('fast reuse keeps account, installation, destination, run and public availa
     assert.equal(opened,false);assert.ok(h.calls.every(c=>c.options.method==='GET'));
   });
 });
+test('Jam fast reuse sends a changed valid Pages address to a fresh review without opening the old site',async t=>{
+  const h=await fixture(t),saved=currentReceipt(h);
+  h.pages={...h.pages,html_url:'https://games.example.org/',cname:'games.example.org'};
+  const reviewChangedDestination=true,onCurrent=()=>assert.fail('Do not open an unapproved Pages address');
+  assert.equal((await h.publisher.verifyUnchanged(h.root,saved,{reviewChangedDestination,onCurrent})).status,'stale');
+  const reviewed=await h.publisher.review(h.root);
+  assert.equal(reviewed.publicUrl,'https://games.example.org/');
+  assert.equal(reviewed.repositoryId,12);
+  h.pages={...h.pages,html_url:'http://games.example.org/'};
+  await assert.rejects(h.publisher.verifyUnchanged(h.root,saved,{reviewChangedDestination,onCurrent}),/Pages settings changed/);
+  assert.ok(h.calls.every(call=>call.options.method==='GET'));
+});
 test('fast reuse final guards reject source, origin, mode, account and cancellation drift',async t=>{
   for(const kind of ['source','origin','mode','account','cancel'])await t.test(kind,async t=>{
     const h=await fixture(t),saved=currentReceipt(h),controller=new AbortController();let opened=false;

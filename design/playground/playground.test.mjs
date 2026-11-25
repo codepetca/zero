@@ -137,14 +137,15 @@ test('Start Page fixture renders the production panel and its actual phase snaps
   const {startPageSource, startPageView, componentStates} = await import('./start-page-source.mjs');
   for (const state of componentStates) {
     const {html, snapshot} = await startPageSource(state);
-    assert.match(html, /Learn to Build/);
-    assert.match(html, /Starting from zero/);
-    assert.match(html, /data-action="tutorials" disabled><svg[^>]*class="zero-mark"[^>]*>[\s\S]*?<\/svg><span>Zero Docs<\/span>/);
+    assert.match(html, /<h1 id="start-title"[^>]*><svg[^>]*class="zero-mark"[^>]*aria-hidden="true"[^>]*>[\s\S]*?<\/svg><span>Zero<\/span><\/h1>/);
+    assert.doesNotMatch(html, /Learn to Build|Starting from zero/);
+    assert.match(html, /<\/h1>\s*<button[^>]*data-action="tutorials" aria-label="Zero Web"[^>]*><svg[^>]*lucide-external-link[^>]*>.*<\/svg><\/button>\s*<\/div>\s*<div id="github-profile"/);
     assert.doesNotMatch(html, /aria-controls="tutorial-menu"/);
     assert.match(html, /aria-controls="project-menu"/);
     assert.match(html, /script-src 'nonce-/);
     assert.match(html, /connect-src 'none'/);
-    assert.equal(snapshot.state.phase, state === 'busy' || state.startsWith('publish') ? 'ready' : state);
+    assert.equal(snapshot.state.phase, ['busy','jam-review'].includes(state) || state.startsWith('publish') ? 'ready' : state);
+    assert.equal(snapshot.state.jamReview?.title,state==='jam-review'?'Toast to the Moon':undefined);
     assert.equal(snapshot.state.busy, state === 'busy' || Boolean(snapshot.state.publishProgress)||state==='published-busy');
     const disconnected = ['signed-out','connect'].includes(state);
     assert.equal(snapshot.state.accountId, disconnected ? undefined : '123456');

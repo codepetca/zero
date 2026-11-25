@@ -44,6 +44,20 @@ test('new original project collects name and parent for a public repository befo
 test('all cancelled form inputs stop before repository creation',async t=>{
  for(const stop of ['name','parent']){const f=await fixture(t);f[stop]=undefined;await f.commands.newProject();assert.ok(f.calls.every(call=>call[0]!=='create'&&call[0]!=='clone'),stop);}
 });
+test('Game Jam setup can bind the exact new repository before opening the cloned project',async t=>{
+ const f=await fixture(t),ticket=await f.auth.capture(),projectPath=path.join(f.root,'my-project');
+ const order=[];
+ t.mock.method(f.folders,'clone',async({repositoryUrl,assertCurrent,onCloned,signal})=>{
+  assert.equal(repositoryUrl,remote);await assertCurrent();
+  await onCloned({projectPath,signal});
+  order.push('open');return projectPath;
+ });
+ await f.commands.newProject({preparedTicket:ticket,async onCloned(details){
+  assert.equal(details.repositoryUrl,remote);assert.equal(details.projectPath,projectPath);assert.equal(details.ticket,ticket);
+  order.push('join');
+ }});
+ assert.deepEqual(order,['join','open']);
+});
 test('New Project and Start tutorial check local Git before creating a remote or recording recovery',async t=>{
  const f=await fixture(t);
  const {assertCloneGit}=require('../src/github-app/clone');

@@ -145,7 +145,8 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Use one primary **Run**/**Stop** button. It offers Stop while queued, checking,
   compiling or running; show disabled **Stopping…** until owned work settles.
   A connected, ready project adds an adjacent **Run options** arrow with
-  **Publish & open app**. The main click still runs locally; disable the publishing
+  **Publish & open app** or **Publish to Jam** for a linked Game Jam repository.
+  The main click still runs locally; disable the publishing
   dropdown while running or stopping. Mac 0.5.34 includes this split control.
   Failures and closing the native JavaFX window return to Run. Preserve explicit
   Run App/Stop App palette commands and existing cancellation/generation guards.
@@ -175,24 +176,32 @@ when adding features; a new feature does not reset the agreed interaction style.
   instead of copying its styles. Record repeated patterns in
   [editor components](design/EDITOR-COMPONENTS.md) and compare actual renderer
   states in the local `/components` prototype before introducing a new variant.
-- The **Zero Start Page** owns onboarding. **Zero Docs** opens the latest
+- The **Zero Start Page** owns onboarding. **Zero Web** opens the latest
   lessons after connecting GitHub. **Sign in to Zero** and
   **Project ▾ → New / Clone / Open** support project work. Students use Project
   → New and follow the lesson’s starting code; there is no tutorial scaffold button.
   Show the page automatically in an empty Zero window; preserve existing editors
   and restore its native editor tab. Reopen it through **Zero: Start Page** or the
   sidebar’s **⋯ → Start Page**.
-- Start Page direction, 2026-11-15. The intro shows **Learn to Build** and
-  **Starting from zero**. When signed out, put **Sign in to Zero** above
-  **Zero Docs** and give them the same size. Use the Zero mark inside
-  **Zero Docs** and the profile icon inside **Sign in to Zero** and
-  **Connect to GitHub**. Show **Connect to GitHub** in the top slot when Zero
-  has saved sign-in and GitHub is disconnected. Disable **Zero Docs** and
-  **Project** until GitHub is connected. Then show the profile icon beside
-  the GitHub username without an `@` prefix in the top slot.
+- The Start Page heading shows the Zero mark and **Zero**, with the **Zero Web**
+  open-in-browser icon beside the title. Show the profile icon and GitHub
+  username without an `@` prefix directly below the title when connected.
+  Use the profile icon inside **Sign in to Zero** and **Connect to GitHub**.
+  Show **Connect to GitHub** when Zero has saved sign-in and GitHub is
+  disconnected. Disable **Zero Web** and **Project** until GitHub is connected.
   Keep **Install Zero for GitHub** and permission recovery contextual to
   repository access. Keep checking and errors visible when action is needed.
   Omit the routine Ready to start line.
+- Game Jam joining starts on the Start Page under **Project → Join a Game Jam**. Students
+  choose a jam and review its official page in the same side browser as
+  Zero Web. A shaded panel on the Start Page groups the rules preview, the
+  registration and submission deadlines, and **Continue joining**. The button opens the project picker
+  with **New project** first and **Use an existing repository** second. The website directs
+  students to this action. Zero saves the repository to the jam registration
+  and opens the project. An existing repository opens from a matching local
+  checkout or offers **Clone & open** when no checkout is known.
+  The linked project’s existing Run menu action reads **Publish to Jam**.
+  It publishes to GitHub Pages and submits the verified build to the jam.
 - The sidebar is for project development: Run/Stop, native Explorer, contextual repository
   and branch actions, Commit & push, Merge to main and ZeroHub. Empty controls
   offer Open Start Page alongside the Project header menu. A local project needing cloud setup offers GitHub
@@ -215,6 +224,8 @@ when adding features; a new feature does not reset the agreed interaction style.
   it never clones another copy. Repository discovery loads in the background and
   preserves local choices when offline or cancelled. Remember at most 20 projects
   per numeric GitHub account, excluding the bundled setup project.
+  Show **Game Jam** on recent repositories with a known jam link in the
+  Start Page and GitHub picker. Keep the recent order and open behavior.
   Zero's explicit clone commands use its guarded GitHub App
   transport and a fresh destination. General Source Control and terminal network
   commands do not automatically share Zero's authentication.

@@ -10,16 +10,20 @@ const COMMANDS = Object.freeze({
   tutorials: 'zero.openDocs',
   new: 'zero.newProject',
   clone: 'zero.cloneRepository',
+  joinGameJam: 'zero.joinGameJam',
+  continueGameJam: 'zero.continueGameJamJoin',
   local: 'zero.openLocalProject',
   signIn: 'zero.signInToGitHub',
   connect: 'zero.signInToGitHub',
   setup: 'zero.setupGitHub'
 });
-const CLOUD = new Set(['new', 'clone']);
+const CLOUD = new Set(['new', 'clone', 'joinGameJam']);
 
 // This view owns navigation only. The existing commands retain setup, account,
 // destination and project checks; recent entries come only from the host's list.
-function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], openRecent = async () => {}, executeAction = command => vscode.commands.executeCommand(command), report = () => {}, onDidChangeOpen = () => {}, updateRecovery = nativeUpdateRecovery()} = {}) {
+function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], isGameJamProject = () => false,
+  openRecent = async () => {}, executeAction = command => vscode.commands.executeCommand(command), report = () => {}, onDidChangeOpen = () => {},
+  updateRecovery = nativeUpdateRecovery()} = {}) {
   let panel, disposed = false, ready = false, inFlight = false, revision = 0;
   let token, signature, choiceSignature, recentAccount, recent = [], recentState = 'empty', recentRequest = 0, loading;
   let failure, retry;
@@ -38,11 +42,13 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     const phase = typeof value.phase === 'string' ? value.phase : 'signed-out';
     const disconnected = phase === 'signed-out' || phase === 'connect';
     const accountId = !disconnected && /^[1-9]\d*$/.test(String(value.accountId || '')) ? String(value.accountId) : undefined;
+    const jamReview = accountId && typeof value.jamReview?.title === 'string' ? value.jamReview : null;
     return {
       phase, accountId,
       accountLabel: accountId && typeof value.accountLabel === 'string' ? value.accountLabel : '',
       busy: Boolean(value.busy || inFlight),
       status: typeof value.status === 'string' ? value.status : '',
+      jamReview,
       publishProgress:value.publishProgress
     };
   }
@@ -53,7 +59,10 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     const snapshot = state();
     const items = snapshot.accountId === recentAccount ? recent : [];
     const data = {...snapshot, recentState: snapshot.accountId ? recentState : 'hidden',
-      recent: items.map(item => ({label: item.path.split(/[\\/]/).filter(Boolean).at(-1) || item.path, path: item.path})),
+      recent: items.map(item => ({
+        label: item.path.split(/[\\/]/).filter(Boolean).at(-1) || item.path, path: item.path,
+        ...(item.repositoryUrl && isGameJamProject(snapshot.accountId,item.repositoryUrl) ? {gameJam:true} : {})
+      })),
       error: failure || '', canRetry: Boolean(retry && !retry.checkForUpdates),
       canCheckForUpdates: updateRecovery === 'native'};
     const next = JSON.stringify(data);
@@ -119,6 +128,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
 
   function allowed(action, snapshot) {
     if (snapshot.busy) return false;
+    if (action === 'continueGameJam') return snapshot.phase==='ready' && Boolean(snapshot.jamReview);
     if (CLOUD.has(action)) return snapshot.phase === 'ready' && Boolean(snapshot.accountId);
     if (action === 'local' || action === 'tutorials') return Boolean(snapshot.accountId);
     if (action === 'signIn') return snapshot.phase === 'signed-out';
@@ -152,11 +162,14 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
         ? 'zero.recheckGitHubConnection' : COMMANDS[action]);
     } catch (error) {
       if (!current(target) || state().accountId !== accountId) return;
-      if (action === 'new' && error?.code === 'ZERO_STARTER_INCOMPATIBLE') {
+      if (['new','continueGameJam'].includes(action) && error?.code === 'ZERO_STARTER_INCOMPATIBLE') {
         describeStarterMismatch(accountId);
       } else {
-        failure = `Could not ${choice ? 'open this project' : ({tutorials:'open Zero Docs', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to Zero', connect:'connect to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
-        retry = {action, choice, accountId};
+        const joining=action==='joinGameJam'||action==='continueGameJam';
+        const task = choice ? 'open this project' : ({tutorials:'open Zero Web', new:'create a project', clone:'clone a project',
+          joinGameJam:'join the Game Jam',continueGameJam:'join the Game Jam',local:'open a local project', signIn:'sign in to Zero', connect:'connect to GitHub', setup:'check GitHub access'})[action];
+        failure = joining && error?.message ? error.message : `Could not ${task}. Try again.`;
+        retry = {action:action==='continueGameJam'&&!state().jamReview?'joinGameJam':action, choice, accountId};
       }
       try {report(failure, error?.message || String(error));} catch {}
     } finally {
@@ -256,11 +269,25 @@ function documentHtml() {
 ${controlsStyles()}
 button{width:auto}
 body{margin:0;color:var(--vscode-foreground);background:var(--vscode-editor-background);font-family:var(--vscode-font-family);font-size:var(--vscode-font-size);line-height:1.5}
-main{max-width:760px;margin:0 auto;padding:48px 28px}h1{font-size:2em;font-weight:600;margin:0 0 8px}h2{font-size:1.15em;font-weight:600;margin:0 0 12px}section{margin-top:36px}
+main{max-width:760px;margin:0 auto;padding:48px 28px}h2{font-size:1.15em;font-weight:600;margin:0 0 12px}section{margin-top:36px}
 
 p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#status,#error{overflow-wrap:anywhere}#error{color:var(--vscode-errorForeground)}[hidden]{display:none!important}ul{list-style:none;padding:0;margin:0}li{margin:4px 0}.recent{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-textLink-foreground);padding:8px 4px}.recent:hover{background:var(--vscode-list-hoverBackground)}.name,.path{display:block;overflow-wrap:anywhere}.path{font-size:.9em}.vscode-high-contrast button,.vscode-high-contrast-light button{border-color:var(--vscode-contrastBorder)}
-.start-intro{margin-bottom:24px}.start-actions{display:flex;flex-direction:column;gap:12px;width:180px;max-width:100%}.project-actions{position:relative}.start-actions>button,.project-actions>button{width:100%}h1:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
-.github-profile{display:flex;align-items:center;gap:7px;padding:7px 9px;font-weight:600;line-height:1.4}.github-profile svg{flex:none}
+.start-intro{margin-bottom:24px}.start-title-row{display:flex;align-items:center;gap:8px}
+.start-intro h1{display:flex;align-items:center;gap:8px;font-size:2em;font-weight:600;margin:0}.start-intro .zero-mark{width:1em;height:1em;flex:none}
+button.start-web{width:32px;height:32px;padding:0;background:transparent;color:var(--vscode-textLink-foreground,var(--vscode-foreground))}
+button.start-web svg{width:22px;height:22px}
+button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackground,var(--vscode-list-hoverBackground))}
+.start-actions{display:flex;flex-direction:column;gap:12px;width:180px;max-width:100%}.project-actions{position:relative}.start-actions>button,.project-actions>button{width:100%}h1:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
+.recent-title{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px}
+.recent-jam{color:var(--vscode-badge-foreground);background:var(--vscode-badge-background);outline:1px solid var(--vscode-contrastBorder,transparent);padding:0 5px;border-radius:3px;font-size:.85em;font-weight:600;white-space:nowrap}
+#jam-review{
+  overflow-wrap:anywhere;
+  padding:14px 16px 12px;
+  border:1px solid var(--vscode-contrastBorder,transparent);
+  border-radius:6px;
+  background:var(--vscode-editorWidget-background,color-mix(in srgb,var(--vscode-editor-background) 95%,var(--vscode-foreground)));
+}
+.github-profile{display:flex;align-items:center;gap:7px;margin-top:4px;font-weight:600;line-height:1.4}.github-profile svg{flex:none}
 #github-progress{width:180px;max-width:100%;height:4px;overflow:hidden;background:var(--vscode-editorWidget-background);outline:1px solid var(--vscode-contrastBorder,transparent)}
 #github-progress::before{content:"";display:block;width:35%;height:100%;background:var(--vscode-progressBar-background,var(--vscode-focusBorder));animation:github-check 1.4s ease-in-out infinite alternate}
 @keyframes github-check{from{transform:translateX(0)}to{transform:translateX(185%)}}
@@ -268,21 +295,37 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
 @media(max-width:480px){main{padding:28px 20px}.start-actions{width:100%}}
 </style></head><body><main>
 <header class="start-intro">
-<h1 id="start-title" tabindex="-1">Learn to Build</h1>
-<p>Starting from zero</p>
-<p class="muted">Zero ${version}</p>
+  <div class="start-title-row">
+    <h1 id="start-title" tabindex="-1">${icon('Zero')}<span>Zero</span></h1>
+    <button class="start-web" data-action="tutorials" aria-label="Zero Web" title="Zero Web" disabled>${icon('ExternalLink')}</button>
+  </div>
+  <div id="github-profile" class="github-profile" role="group" aria-label="Signed-in GitHub profile" hidden>${icon('CircleUserRound')}<span id="account"></span></div>
 </header>
 <div class="start-actions">
 <button class="primary" data-action="signIn" hidden>${icon('CircleUserRound')}<span>Sign in to Zero</span></button>
 <button class="primary" data-action="connect" hidden>${icon('CircleUserRound')}<span>Connect to GitHub</span></button>
-<div id="github-profile" class="github-profile" role="group" aria-label="Signed-in GitHub profile" hidden>${icon('CircleUserRound')}<span id="account"></span></div>
-<button class="primary" data-action="tutorials" disabled>${icon('Zero')}<span>Zero Docs</span></button>
-<div class="project-actions" id="project-actions"><button class="secondary zero-menu-trigger" id="project-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu" disabled>Project ${icon('ChevronDown')}</button><div class="zero-menu" id="project-menu" role="menu" aria-labelledby="project-button" hidden><button role="menuitem" tabindex="-1" data-action="new" disabled>New</button><button role="menuitem" tabindex="-1" data-action="clone" disabled>Clone</button><button role="menuitem" tabindex="-1" data-action="local" disabled>Open</button></div></div>
+<div class="project-actions" id="project-actions">
+  <button class="secondary zero-menu-trigger" id="project-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu" disabled>Project ${icon('ChevronDown')}</button>
+  <div class="zero-menu" id="project-menu" role="menu" aria-labelledby="project-button" hidden>
+    <button role="menuitem" tabindex="-1" data-action="new" disabled>New</button>
+    <button role="menuitem" tabindex="-1" data-action="clone" disabled>Clone</button>
+    <button role="menuitem" tabindex="-1" data-action="local" disabled>Open</button>
+    <button role="menuitem" tabindex="-1" data-action="joinGameJam" disabled>Join a Game Jam</button>
+  </div>
 </div>
+</div>
+<section id="jam-review" aria-labelledby="jam-title" hidden>
+  <h2 id="jam-title"></h2>
+  <p id="jam-deadlines" class="muted" hidden></p>
+  <p id="jam-rules" hidden><strong>Rules preview</strong><br><span id="jam-rules-text"></span></p>
+  <p class="muted">Read the full rules in the browser. Your GitHub username and entry links will be public.</p>
+  <button class="primary" data-action="continueGameJam" disabled>Continue joining</button>
+</section>
 <section id="github-section" aria-label="GitHub access" hidden><p id="guidance" role="status" hidden></p><div id="github-progress" aria-hidden="true" hidden></div><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
 <p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
 <button id="check-for-updates" class="secondary" hidden>Check for updates</button>
+<p class="muted">Zero ${version}</p>
 </main><script nonce="${nonce}">
 (() => {
   const publishProgressDetails = ${publishProgressDetails.toString()};
@@ -346,7 +389,8 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
     const signedIn = Boolean(state.accountId), ready = signedIn && state.phase === 'ready';
     for (const button of buttons) {
       const action = button.dataset.action;
-      button.disabled = state.busy || (['new','clone'].includes(action) && !ready) || (['local','tutorials'].includes(action) && !signedIn);
+      button.disabled = state.busy || (['new','clone','joinGameJam'].includes(action) && !ready) || (['local','tutorials'].includes(action) && !signedIn);
+      if (action === 'continueGameJam') button.disabled = state.busy || !ready || !state.jamReview;
       if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
       if (action === 'connect') button.hidden = state.phase !== 'connect';
       if (action === 'setup') {
@@ -362,6 +406,15 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
     byId('guidance').hidden = !guidance;
     if (byId('guidance').textContent !== guidance) byId('guidance').textContent = guidance;
     byId('github-progress').hidden = state.phase !== 'checking';
+    const jam = state.jamReview;
+    const deadlines = [jam?.registrationDeadline && 'Register by ' + jam.registrationDeadline,
+      jam?.submissionDeadline && 'Submit by ' + jam.submissionDeadline].filter(Boolean).join(' · ');
+    byId('jam-title').textContent = jam?.title || '';
+    byId('jam-deadlines').textContent = deadlines;
+    byId('jam-deadlines').hidden = !deadlines;
+    byId('jam-rules-text').textContent = jam?.rules || '';
+    byId('jam-rules').hidden = !jam?.rules;
+    byId('jam-review').hidden = !ready || !jam;
     byId('status').textContent = state.status;
     updatePublishProgress(byId('publishing-progress'),state.publishProgress);
     byId('error-region').hidden = !state.error;
@@ -384,9 +437,14 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
       for (const item of state.recent) {
         const li = document.createElement('li'), button = document.createElement('button');
         button.className = 'recent';button.dataset.recentPath = item.path;button.dataset.recentId = item.id;
-        const name = document.createElement('span'), path = document.createElement('span');
+        const title = document.createElement('span'), name = document.createElement('span'), path = document.createElement('span');
+        title.className = 'recent-title';title.append(name);
         name.className = 'name';name.textContent = item.label;path.className = 'path';path.textContent = item.path;
-        button.append(name,path);button.addEventListener('click', () => send({type:'recent',id:button.dataset.recentId}));li.append(button);list.append(li);
+        if (item.gameJam) {
+          const badge = document.createElement('span');
+          badge.className = 'recent-jam';badge.textContent = 'Game Jam';title.append(badge);
+        }
+        button.append(title,path);button.addEventListener('click', () => send({type:'recent',id:button.dataset.recentId}));li.append(button);list.append(li);
         if (focused === item.path) button.focus();
       }
     }

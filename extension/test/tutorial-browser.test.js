@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {openTutorialDocs,openZeroDocs} = require('../src/tutorial-browser');
+const {openTutorialDocs,openZeroDocs,openGameJamRules} = require('../src/tutorial-browser');
 
 function host({available=true, failure=false, external=true}={}) {
   const calls=[];
@@ -30,4 +30,11 @@ test('Zero Docs uses the resume entry point in the integrated or regular browser
     assert.deepEqual(fallback.calls.at(-1),['external','https://zero.codepet.ca/resume-docs']);
   }
   await assert.rejects(openZeroDocs(host({available:false,external:false}).vscode),/Could not open Zero Docs/);
+});
+test('the selected Jam uses the same beside-editor browser and fallback as Zero Docs',async()=>{
+  const url='https://zero.codepet.ca/hub/jams/jam-42';
+  const h=host();await openGameJamRules(h.vscode,'jam-42');
+  assert.deepEqual(h.calls,[['workbench.action.browser.open',{url,openToSide:true}]]);
+  const fallback=host({available:false});await openGameJamRules(fallback.vscode,'jam-42');
+  assert.deepEqual(fallback.calls,[['external',url]]);
 });

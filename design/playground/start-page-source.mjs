@@ -1,7 +1,7 @@
 import {publishingSnapshots,publishingStates} from './publishing-source.mjs';
 import startPage from '../../extension/src/start-page.js';
 
-export const componentStates = ['ready', 'signed-out', 'connect', 'install', 'checking', 'unavailable', 'busy', ...publishingStates];
+export const componentStates = ['ready', 'signed-out', 'connect', 'install', 'checking', 'unavailable', 'busy', 'jam-review', ...publishingStates];
 export const componentThemes = ['light', 'dark', 'hc'];
 
 // Render the real panel with an in-memory host. No extension activation, command,
@@ -17,15 +17,24 @@ export async function startPageSource(state = 'ready') {
     }
   };
   const publishing=publishingSnapshots[state];
-  const phase = state === 'busy' || publishing ? 'ready' : state;
+  const phase = state === 'busy' || state === 'jam-review' || publishing ? 'ready' : state;
   const accountId = ['signed-out','connect'].includes(phase) ? undefined : '123456';
+  const jamReview = state==='jam-review' ? {
+    title:'Toast to the Moon',rules:'Build your own game in Zero. Use assets you made or have permission to share. Include instructions for other students to play.',
+    registrationDeadline:'Nov 28, 2026, 5:00 PM EST',submissionDeadline:'Dec 2, 2026, 5:00 PM EST'
+  } : undefined;
   const controller = startPage.createStartPage({
     ViewColumn: {Active: 1},
     window: {createWebviewPanel: () => panel},
     commands: {executeCommand() { throw new Error('Commands are unavailable in the design fixture'); }}
   }, {
-    getState: () => ({phase, accountId, accountLabel: 'armorup', busy: state === 'busy' || Boolean(publishing?.publishProgress||publishing?.busy), status: publishing?.status || (state === 'busy' ? 'Fixture: creating a project…' : ''),publishProgress:publishing?.publishProgress}),
-    listRecent: async () => [{path: '/Students/armorup/Greeting App'}, {path: '/Students/armorup/Study Quiz'}]
+    getState: () => ({phase, accountId, accountLabel: 'armorup', busy: state === 'busy' || Boolean(publishing?.publishProgress||publishing?.busy), status: publishing?.status || (state === 'busy' ? 'Fixture: creating a project…' : ''),jamReview,publishProgress:publishing?.publishProgress}),
+    listRecent: async () => [
+      {path:'/Students/armorup/Greeting App'},
+      state==='jam-review' ? {path:'/Students/armorup/Moon Game',repositoryUrl:'https://github.com/armorup/moon-game'} :
+        {path:'/Students/armorup/Study Quiz'}
+    ],
+    isGameJamProject:(account,repository)=>account===accountId&&repository==='https://github.com/armorup/moon-game'
   });
   controller.show();
   await controller.refresh();
@@ -49,7 +58,7 @@ window.acquireVsCodeApi = () => ({postMessage(message) {
     queueMicrotask(() => window.dispatchEvent(new MessageEvent('message', {data:${data}})));
     return;
   }
-  const names = {tutorials:'Zero Docs', new:'New project', clone:'Clone project', local:'Open local project', signIn:'Sign in to Zero', connect:'Connect to GitHub', setup:'GitHub access check'};
+  const names = {tutorials:'Zero Web', new:'New project', clone:'Clone project', local:'Open local project', joinGameJam:'Join a Game Jam',continueGameJam:'Continue joining',signIn:'Sign in to Zero', connect:'Connect to GitHub', setup:'GitHub access check'};
   document.getElementById('fixture-feedback').textContent = 'Fixture only: ' + (message.type === 'recent' ? 'Open recent project' : names[message.action] || 'Try again') + ' selected. Nothing ran, signed in or changed.';
 }});
 </script>`;

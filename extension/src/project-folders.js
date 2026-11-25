@@ -56,7 +56,7 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
     const selection = await vscode.window.showOpenDialog({title, openLabel, canSelectFiles:false, canSelectFolders:true, canSelectMany:false, defaultUri:vscode.Uri.file(initial)});
     return isActive() ? selection?.[0] : undefined;
   }
-  async function clone({repositoryUrl, parent: selectedParent, signal, reservation, assertCurrent=async()=>{}} = {}) {
+  async function clone({repositoryUrl, parent: selectedParent, signal, reservation, assertCurrent=async()=>{}, onCloned} = {}) {
     if (!isActive()) return;
     throwIfCancelled(signal);
     const url = repositoryUrl || await vscode.window.showInputBox({title:'GitHub repository URL', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
@@ -73,6 +73,11 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
       await assertCurrent();
       if (result && isActive()) {
         try {await onOpened({projectPath:result,repositoryUrl:destination.page});}catch(error){report(`Could not remember this project. ${error.message}`);}
+        if(onCloned && isActive()) {
+          throwIfCancelled(operationSignal);
+          await assertCurrent();
+          if(isActive())await onCloned({projectPath:result,signal:operationSignal});
+        }
         if(isActive()) {
           const beforeOpen=async()=>{throwIfCancelled(operationSignal);await assertCurrent();throwIfCancelled(operationSignal);};
           await beforeOpen();await openFolder(result,beforeOpen);

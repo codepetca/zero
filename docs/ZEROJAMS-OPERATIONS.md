@@ -16,6 +16,17 @@ fails Hub visibility closed. Hosted preview visibility-dependent Hub and catalog
 routes fail closed without production credentials; Jam routes remain hidden.
 Unaffected pages need not access the authority. Local tests are not live acceptance.
 
+## Game Jam registration and publishing
+
+Game Jam registration uses **Start Page → Project → Join a Game Jam** in Zero. The
+authenticated desktop route checks the student’s registration and binds their
+public GitHub repository. The website directs students to Zero. **Run →
+Publish to Jam** uses that registration and the verified GitHub Pages build.
+Keep the operation ID on uncertain outcomes. Recovery can confirm an earlier
+accepted submission after the deadline without initiating a new deployment.
+App Jam participation and web entry management remain available. Coordinate
+the website deployment with distribution of the editor that exposes the command.
+
 ## Manual Free and Pro licenses
 
 Free personal use includes joining and submitting to a jam under its ordinary

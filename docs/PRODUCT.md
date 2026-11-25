@@ -220,10 +220,23 @@ historical proposals retain their review records; creators cannot self-cancel hi
 jams. The official Zero page presents the accepted details and
 participation link. The earlier creator-hosted website preparation and submission
 path is retained in source but temporarily unavailable for new proposals; existing
-records remain readable. Participants can join with their own public GitHub
-repository before publishing. They submit a Pages site verified against that
-repository before the deadline; verified custom domains qualify. Coursework
-links still go separately to Pika.
+records remain readable. To join a Game Jam, students choose **Project → Join a
+Game Jam** on the Zero Start Page. Zero shows the registration and submission
+deadlines and a short rules preview. The full rules open beside the editor.
+Students review the rules and choose **Continue joining** on the
+Start Page, then create a new public GitHub project or choose an existing
+standalone public Zero repository. The jam registration saves that repository
+before publishing. Zero opens the new project or a matching local checkout of
+the existing repository. If no local checkout is known, Zero offers
+**Clone & open**. Students can return later using **Open jam project** in the
+jam picker while the jam accepts entries. The website shows the rules and directs
+students to Zero for Game Jam registration. A linked project shows **Publish
+to Jam** in Run options. Zero publishes or finds the current GitHub Pages
+build, verifies it and submits it before the deadline. The editor confirms
+when ZeroJams accepts the entry. A pending submission can be checked again
+from the same action without rebuilding. App Jam registration and
+participation are available on the website. Verified custom domains qualify.
+Coursework links still go separately to Pika.
 
 After submissions close in a Zero-hosted Game Jam, the host can choose one
 eligible submission as the winner and correct their choice later. The winner
@@ -332,7 +345,7 @@ acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
 Current local source opens a native **Zero Start Page** for onboarding and project
-selection. Connect GitHub to enable **Zero Docs** and **Project ▾ → New / Clone /
+selection. Connect GitHub to enable **Zero Web** and **Project ▾ → New / Clone /
 Open**. Students start
 a tutorial project with **Project → New** and follow the lesson’s starting code;
 there is no tutorial scaffold button. Published downloads retain their bundled
@@ -389,13 +402,14 @@ owning unsaved-work handling. Mac0.5.43 includes this window-opening behavior.
 Mac0.5.43 also keeps an open Zero Start Page tab available when switching
 projects, alongside the destination's code and tutorial tabs.
 
-The Start Page provides separate **Sign in to Zero** and **Zero Docs** actions.
+The Start Page provides separate **Sign in to Zero** and **Zero Web** actions.
 GitHub setup may also require **Install Zero for GitHub** before project creation.
 The student uses a GitHub account to sign in to Zero. **Sign in to Zero** opens
 WorkOS in the default browser. The local managed editor uses the GitHub grant
 from that browser trip. If Zero has a saved sign-in without a GitHub session,
 the Start Page shows **Connect to GitHub**. After connecting, it shows a
-profile icon and GitHub handle above **Zero Docs** and **Project**. The public
+profile icon and GitHub handle directly below the title. The **Zero Web** icon
+sits beside the title. The public
 documentation remains available in a browser without signing in.
 GitHub may still require account selection, passkey or two-factor authentication.
 Expiring GitHub credentials are kept in VS Code SecretStorage. Zero has no
@@ -796,7 +810,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   the website in VS Code's integrated browser when available; older hosts or
   failed browser commands fall back to the regular browser. Internet access is
   required for the current lessons. Older-kit Markdown guides remain supported
-  for automatic first-open. Zero Docs is available on the Start Page; Clone from GitHub is in the project menu. Neither lesson navigation nor opening
+  for automatic first-open. **Zero Web** is available on the Start Page and Clone from GitHub is in the project menu. Neither lesson navigation nor opening
   a browser writes student Java, signs in, pushes or publishes anything.
 - A run that exits with an error offers Show Problems for source navigation;
   successful exits and explicit Stop do not show an error. Missing local tools

@@ -59,8 +59,8 @@ test('Start Page docs and project choices require a GitHub connection; cloud cho
   for (const phase of ['signed-out','connect','checking','install','unavailable','ready']) {
     const disconnected = ['signed-out','connect'].includes(phase);
     const f = fake({phase, accountId:disconnected ? undefined : '42'}), {page, panel} = await open(f);
-    for (const action of ['tutorial','tutorials','new','clone','local','signIn','connect','signInCode','setup']) await f.message(panel, {type:'action', action});
-    const expected = phase === 'ready' ? ['zero.openDocs','zero.newProject','zero.cloneRepository','zero.openLocalProject']
+    for (const action of ['tutorial','tutorials','new','clone','joinGameJam','local','signIn','connect','signInCode','setup']) await f.message(panel, {type:'action', action});
+    const expected = phase === 'ready' ? ['zero.openDocs','zero.newProject','zero.cloneRepository','zero.joinGameJam','zero.openLocalProject']
       : disconnected ? ['zero.signInToGitHub'] : ['zero.openDocs','zero.openLocalProject', ...(['install','unavailable'].includes(phase) ? ['zero.setupGitHub'] : [])];
     assert.deepEqual(f.commands, expected, phase);page.dispose();
   }
@@ -88,6 +88,30 @@ test('Start Page retries unavailable verification without opening sign-in or pro
   page.dispose();
 });
 
+
+test('Continue joining is scoped to a ready Start Page with a selected Jam', async () => {
+  const f = fake(), {page,panel}=await open(f), b=domHarness(panel.webview.html);
+  await f.message(panel,{type:'action',action:'continueGameJam'});
+  assert.deepEqual(f.commands,[]);
+  const jamReview={title:'Toast to the Moon',rules:'Build your own game.',registrationDeadline:'Nov 25',submissionDeadline:'Nov 30'};
+  f.setState({phase:'ready',accountId:'42',jamReview});
+  await page.refresh();
+  b.update(panel.messages.at(-1));
+  assert.deepEqual(payload(panel).jamReview,jamReview);
+  assert.equal(b.elements.get('jam-rules-text').textContent,jamReview.rules);
+  assert.equal(b.elements.get('jam-deadlines').textContent,'Register by Nov 25 · Submit by Nov 30');
+  await f.message(panel,{type:'action',action:'continueGameJam'});
+  assert.deepEqual(f.commands,['zero.continueGameJamJoin']);
+  f.setState({phase:'signed-out',jamReview});
+  await page.refresh();
+  b.update(panel.messages.at(-1));
+  assert.equal(payload(panel).jamReview,null);
+  assert.equal(b.elements.get('jam-review').hidden,true);
+  await f.message(panel,{type:'action',action:'continueGameJam'});
+  assert.deepEqual(f.commands,['zero.continueGameJamJoin']);
+  page.dispose();
+});
+
 test('opaque recent IDs capture vetted entries and never accept webview destination fields', async () => {
   const f = fake();const item = {path:'/Projects/Greeting', lastOpened:123, repositoryUrl:'https://github.com/student/greeting'};
   f.dependencies.listRecent = async () => [item];
@@ -97,6 +121,33 @@ test('opaque recent IDs capture vetted entries and never accept webview destinat
   item.path = '/mutated';
   await f.message(panel, {type:'recent', id:entry.id, path:'/private', repositoryUrl:'file:///private'});
   assert.deepEqual(f.opens, [{item:{path:'/Projects/Greeting', lastOpened:123, repositoryUrl:'https://github.com/student/greeting'}, accountId:'42'}]);
+  page.dispose();
+});
+
+test('Recent projects marks a known Game Jam without changing order, selection or focus',async()=>{
+  const f=fake(),repositoryUrl='https://github.com/student/moon-game';
+  let linked=false;
+  f.dependencies.listRecent=async()=>[
+    {path:'/Projects/Other',lastOpened:2},
+    {path:'/Projects/Moon Game',lastOpened:1,repositoryUrl}
+  ];
+  f.dependencies.isGameJamProject=(account,url)=>linked&&account==='42'&&url===repositoryUrl;
+  const {page,panel}=await open(f),browser=domHarness(panel.webview.html),list=browser.elements.get('recent-list');
+  browser.update(panel.messages.at(-1));
+  const originalId=payload(panel).recent[1].id;
+  list.children[1].children[0].focus();
+  linked=true;
+  await page.refresh();
+  browser.update(panel.messages.at(-1));
+  const [other,moon]=list.children.map(item=>item.children[0]);
+  assert.equal(other.children[0].children.length,1);
+  assert.equal(moon.children[0].children[1].textContent,'Game Jam');
+  assert.equal(browser.document.activeElement,moon);
+  assert.equal(payload(panel).recent[1].id,originalId);
+  assert.equal(JSON.stringify(payload(panel)).includes(repositoryUrl),false);
+  f.setState({phase:'ready',accountId:'99'});
+  await page.refresh();
+  assert.equal(payload(panel).recent[1].gameJam,undefined);
   page.dispose();
 });
 
@@ -299,14 +350,14 @@ test('GitHub account stays compact while signed-out and setup states keep their 
   page.dispose();
 });
 
-test('a single account action is shown before GitHub connects, then Zero Docs becomes available', async () => {
+test('a single account action is shown before GitHub connects, then Zero Web becomes available', async () => {
   const f=fake({phase:'signed-out'}), {page,panel}=await open(f), b=domHarness(panel.webview.html);
   b.update(panel.messages.at(-1));
   const tutorials=b.buttons.find(button=>button.dataset.action==='tutorials');
   const signIn=b.buttons.find(button=>button.dataset.action==='signIn');
   const connect=b.buttons.find(button=>button.dataset.action==='connect');
   assert.equal(tutorials.disabled,true);assert.equal(signIn.hidden,false);assert.equal(connect.hidden,true);
-  assert.match(panel.webview.html, /data-action="tutorials" disabled><svg[^>]*class="zero-mark"[^>]*aria-hidden="true"[^>]*>[\s\S]*?<\/svg><span>Zero Docs<\/span><\/button>/);
+  assert.match(panel.webview.html, /data-action="tutorials" aria-label="Zero Web" title="Zero Web" disabled><svg[^>]*lucide-external-link[^>]*aria-hidden="true"[^>]*>.*<\/svg><\/button>/);
   assert.doesNotMatch(panel.webview.html,/Start tutorial|tutorial-menu/);
   signIn.click();await f.message(panel,b.sent.at(-1));
   f.setState({phase:'connect'});await page.refresh();b.update(panel.messages.at(-1));
@@ -328,10 +379,11 @@ test('Project dropdown navigates enabled actions and closes on selection, Escape
   const action=name=>b.buttons.find(button=>button.dataset.action===name);
   assert.equal(menu.hidden,true);trigger.click();assert.equal(menu.hidden,false);assert.equal(trigger.getAttribute('aria-expanded'),'true');
   assert.equal(b.document.activeElement,action('new'));b.key('ArrowDown');assert.equal(b.document.activeElement,action('clone'));
-  b.key('End');assert.equal(b.document.activeElement,action('local'));b.key('ArrowDown');assert.equal(b.document.activeElement,action('new'));
-  b.key('Home');b.key('ArrowUp');assert.equal(b.document.activeElement,action('local'));
-  action('local').click();assert.equal(b.sent.at(-1).action,'local');assert.equal(menu.hidden,true);assert.equal(b.document.activeElement,trigger);
-  b.key('ArrowUp',trigger);assert.equal(b.document.activeElement,action('local'));
+  b.key('End');assert.equal(b.document.activeElement,action('joinGameJam'));b.key('ArrowDown');assert.equal(b.document.activeElement,action('new'));
+  b.key('Home');b.key('ArrowUp');assert.equal(b.document.activeElement,action('joinGameJam'));
+  action('joinGameJam').click();assert.equal(menu.hidden,true);assert.equal(b.document.activeElement,trigger);
+  await f.message(panel,b.sent.at(-1));assert.deepEqual(f.commands,['zero.joinGameJam']);
+  b.key('ArrowUp',trigger);assert.equal(b.document.activeElement,action('joinGameJam'));
   assert.equal(b.key('Escape'),true);assert.equal(menu.hidden,true);assert.equal(b.document.activeElement,trigger);
   trigger.click();assert.equal(b.key('Tab'),false);assert.equal(menu.hidden,true);assert.equal(b.document.activeElement,trigger);
   for(const close of [()=>b.event('click',action('tutorials')),()=>b.event('focusin',action('tutorials')),()=>b.blur()]){
@@ -346,6 +398,7 @@ test('auth drift and busy updates close or constrain the Project menu without st
   trigger.click();assert.equal(menu.hidden,true);
   f.setState({phase:'checking',accountId:'42'});await page.refresh();b.update(panel.messages.at(-1));
   trigger.click();assert.equal(b.document.activeElement,action('local'));b.key('ArrowDown');assert.equal(b.document.activeElement,action('local'));
+  assert.equal(action('joinGameJam').disabled,true);
   f.setState({phase:'ready',accountId:'42'});await page.refresh();b.update(panel.messages.at(-1));b.key('Home');assert.equal(b.document.activeElement,action('new'));
   f.setState({phase:'ready',accountId:'42',status:'Updated'});await page.refresh();b.update(panel.messages.at(-1));assert.equal(b.document.activeElement,action('new'));assert.equal(menu.hidden,false);
   f.setState({phase:'checking',accountId:'42'});await page.refresh();b.update(panel.messages.at(-1));assert.equal(b.document.activeElement,action('local'));
@@ -359,7 +412,9 @@ function domHarness(html) {
   for (const id of html.matchAll(/id="([^"]+)"/g)) elements.set(id[1], element());
   const buttons = [...html.matchAll(/<button\b([^>]*)>/g)].flatMap(match => {const action = match[1].match(/data-action="([^"]+)"/);if (!action) return [];const id = match[1].match(/id="([^"]+)"/);const button = id ? elements.get(id[1]) : element();button.dataset.action = action[1];return [button];});
   elements.get('project-menu').hidden=true;
-  elements.get('project-menu').append(...buttons.filter(button=>['new','clone','local'].includes(button.dataset.action)));
+  const projectMenuHtml = html.match(/<div[^>]*id="project-menu"[^>]*>([\s\S]*?)<\/div>/)[1];
+  const projectActions = new Set(Array.from(projectMenuHtml.matchAll(/data-action="([^"]+)"/g), match=>match[1]));
+  elements.get('project-menu').append(...buttons.filter(button=>projectActions.has(button.dataset.action)));
   elements.get('project-actions').append(elements.get('project-button'),elements.get('project-menu'));
   const listen = (map,name,fn) => map.set(name,[...(map.get(name)||[]),fn]);
   const emit = (map,name,event) => {for(const fn of map.get(name)||[])fn(event);};

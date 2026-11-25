@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
 import {hubConfig,newSession} from '../lib/hub-github-auth.mjs';
-import {getJamsResponse,getJamResponse,postJamProposalResponse,postJamActionResponse} from '../lib/jams-http.mjs';
+import {getJamsResponse,getJamResponse,postJamProposalResponse,postJamActionResponse,getDesktopJamJoinResponse,postDesktopJamJoinResponse} from '../lib/jams-http.mjs';
 import {JamError} from '../../jams/service.mjs';
 import {fixture as registryFixture,hostedManifest} from '../../jams/test/fixtures.mjs';
 
@@ -30,6 +30,75 @@ function fixture() {
   }};
 }
 const join = {operationId:'operation-12345678',action:'join',revision:1};
+
+test('desktop Game Jam join verifies the app and repository, keeps the existing binding after registration closes',async()=>{
+  const participant={id:'123',login:'student'},identity={id:123,login:'student'},token='ghu_'+'a'.repeat(24);
+  const providerCalls=[];
+  const {service,store,setTime}=registryFixture({limits:{participants:1},verifyRepository:async ({actor,repositoryUrl})=>{
+    assert.deepEqual(actor,participant);
+    const name=repositoryUrl.split('/').at(-1);
+    return {repository:{id:name==='project'?'202':'203',ownerId:actor.id,fullName:actor.login+'/'+name}};
+  }});
+  const {eventId,revision}=await service.propose({actor:{id:'11',login:'creator'},operationId:'desktop-fixture-event',manifest:hostedManifest()});
+  const path='/api/desktop/jams/'+eventId+'/join';
+  const joinBody={operationId:'desktop-join-0001',revision,repositoryUrl:'https://github.com/student/project'};
+  let appId=config.clientId;
+  const options={env,now,service,fetchImpl:async (url,init)=>{
+    providerCalls.push(url);
+    if(url==='https://api.github.com/applications/'+config.clientId+'/token') {
+      assert.equal(JSON.parse(init.body).access_token,token);
+      assert.match(init.headers.Authorization,/^Basic /);
+      return Response.json({user:identity,app:{client_id:appId}});
+    }
+    assert.equal(url,'https://api.github.com/user');
+    assert.equal(init.headers.Authorization,'Bearer '+token);
+    return Response.json(identity);
+  }};
+  const desktopJoin=(body=joinBody,headers={})=>postDesktopJamJoinResponse(new Request(config.origin+path,{
+    method:'POST',headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+token,'Content-Type':'application/json',...headers},
+    body:JSON.stringify(body)
+  }),eventId,options);
+  const desktopRead=(headers={})=>getDesktopJamJoinResponse(new Request(config.origin+path,{
+    headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+token,...headers}
+  }),eventId,options);
+  for(const headers of [{Origin:config.origin},{'Sec-Fetch-Site':'same-origin'},{Cookie:cookie.split(';')[0]},{'X-Zero-Desktop':''}])
+    assert.equal((await desktopJoin(joinBody,headers)).status,403);
+  assert.equal((await desktopJoin(joinBody,{Authorization:''})).status,401);
+  assert.equal((await desktopRead({Origin:config.origin})).status,403);
+  assert.equal((await desktopRead({Authorization:''})).status,401);
+  assert.equal((await desktopJoin({...joinBody,actor:participant})).status,400);
+  assert.equal(providerCalls.length,0);
+  appId='wrong-app';
+  assert.equal((await desktopJoin()).status,401);
+  assert.equal(providerCalls.length,1);
+  appId=config.clientId;
+  const first=await desktopJoin();
+  assert.equal(first.status,200);
+  assert.deepEqual(await first.json(),{configured:true,eventId,operationId:joinBody.operationId,status:'joined',revision});
+  assert.equal((await store.read(eventId)).state.registrations[participant.id].repository.id,'202');
+  const rebind=await desktopJoin({...joinBody,operationId:'desktop-join-0003',repositoryUrl:'https://github.com/student/another-project'});
+  assert.equal(rebind.status,409);
+  assert.match((await rebind.json()).error,/different repository/);
+  assert.equal((await store.read(eventId)).state.registrations[participant.id].repository.id,'202');
+  identity.id=124;identity.login='other';
+  const outside=await (await desktopRead()).json();
+  assert.equal(outside.registration,null);
+  assert.equal(outside.hasRegistrationSpace,false);
+  identity.id=123;identity.login='student';
+  setTime('2030-01-03T00:00:00Z');
+  assert.equal((await desktopJoin()).status,200,'the original operation recovers after the deadline');
+  assert.equal((await desktopJoin({...joinBody,operationId:'desktop-join-0002'})).status,409,'a new join operation cannot consume capacity after the deadline');
+  assert.deepEqual((await (await desktopRead()).json()).registration,{status:'joined',repository:{id:'202',ownerId:'123',fullName:'student/project'}});
+  await service.mutate({id:eventId,actor:participant,operationId:'desktop-leave-0001',action:'leave'});
+  const recovered=await desktopRead();
+  assert.equal(recovered.status,200);
+  const status=await recovered.json();
+  assert.deepEqual(Object.keys(status),['configured','event','hasRegistrationSpace','registration']);
+  assert.equal(status.hasRegistrationSpace,true,'a returning participant keeps their registration slot');
+  assert.equal(status.event.registrationOpen,false);
+  assert.equal(status.event.participants,undefined);
+  assert.deepEqual(status.registration,{status:'left',repository:{id:'202',ownerId:'123',fullName:'student/project'}});
+});
 
 test('directory hosting access is private and derived from the signed-in account and service policy',async()=>{
   const {service}=registryFixture({canCreateJam:id=>id==='123'});

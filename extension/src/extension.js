@@ -49,6 +49,9 @@ const {createProjectFolders} = require('./project-folders');
 const {createProjectWindow} = require('./project-window');
 const {createRecentProjects} = require('./recent-projects');
 const {createProjectPicker} = require('./project-picker');
+const {createGameJamJoin} = require('./game-jam-join');
+const {createGameJamProjectOpener} = require('./game-jam-project');
+const {createGameJamPublish} = require('./game-jam-publish');
 const {createGitHubReadiness} = require('./github-app/readiness');
 const {createGitHubSetup} = require('./github-app/setup-ui');
 const {selectUploadAuthentication} = require('./web-publish-upload-auth');
@@ -402,7 +405,29 @@ function activate(context, services = {}) {
     // Preserve text editors and non-text tabs, including other lesson previews.
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
-  let githubReadiness,projectPicker,nativeGitAuthentication;
+  let githubReadiness,projectPicker,nativeGitAuthentication,gameJam;
+  let jamLookupKey,jamLookupController;
+  function refreshJamDestination(force=false) {
+    if (!gameJam) return;
+    const root=projectRoot,remote=repository,account=auth.accountId;
+    const eligible=!disposed && root && account && vscode.workspace.isTrusted===true &&
+      uploadMode(root)==='live' && remote?.startsWith('https://github.com/');
+    const key=eligible ? JSON.stringify([root,remote,account,auth.revision]) : undefined;
+    if (!force && key===jamLookupKey) return;
+    jamLookupController?.abort();jamLookupKey=key;
+    if (!eligible) return;
+    const controller=jamLookupController=new AbortController();
+    const beforeSend=()=>{
+      controller.signal.throwIfAborted();
+      assertGitProjectNow(root);
+      if (auth.accountId!==account || repository!==remote) throw Error('The project connection changed.');
+    };
+    void gameJam.resolve(root,{beforeSend,signal:controller.signal}).catch(()=>{ /* Publish always checks again before sending any project files. */ });
+  }
+  function jamPublishLabel() {
+    return gameJam?.hasKnownLink(auth.accountId,repository) ? 'Publish to Jam' : 'Publish & open app';
+  }
+  context.subscriptions.push({dispose:()=>jamLookupController?.abort()});
   let gitIdentityAccount, gitIdentityGeneration = 0, gitIdentityRequest;
   const appConfiguration = githubAppConfiguration();
   appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({
@@ -415,7 +440,7 @@ function activate(context, services = {}) {
     // Clear only feedback owned by authentication. Native runtime updates may
     // have replaced it while browser sign-in was pending.
     if (state.startsWith('Signed in as ') || (auth.signedIn && state === authFeedback)) {state='';authFeedback=undefined;}
-    githubReadiness?.sync();projectPicker?.sessionChanged();
+    githubReadiness?.sync();projectPicker?.sessionChanged();refreshJamDestination();
     const hint=JSON.stringify([auth.sessionId,auth.accountId,auth.signedIn,auth.revision]);
     if(hint!==branchAuthHint){branchAuthHint=hint;branchAuthEpoch++;branchRemoteStatus=undefined;branchCheckNextAt=0;mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0;void checkCurrentBranch();void checkForMainUpdates();}
     const account = auth.signedIn ? JSON.stringify([auth.accountId, auth.accountLabel]) : undefined;
@@ -516,8 +541,20 @@ function activate(context, services = {}) {
   }
   const projectWindow = createProjectWindow(vscode, {globalState:context.globalState, startPage:()=>startPage, active:()=>!disposed});
   const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text), cloneRepository,onOpened:rememberOpened,openFolder:projectWindow.open});
-  projectPicker=createProjectPicker(vscode,{authentication:auth,repositories,history:recentProjects,active:()=>!disposed,report:text=>output.appendLine(text)});
+  const isGameJamProject=(accountId,repositoryUrl)=>gameJam.hasKnownLink(accountId,repositoryUrl);
+  projectPicker=createProjectPicker(vscode,{authentication:auth,repositories,history:recentProjects,isGameJamProject,active:()=>!disposed,report:text=>output.appendLine(text)});
   const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,prepare:prepareGitHub,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
+  gameJam=createGameJamPublish({authentication:auth,repositories,globalState:context.globalState,onChange:refresh,request:services.gameJamRequest});
+  const {openGameJamProject}=createGameJamProjectOpener({vscode,authentication:auth,project,recentProjects,projectFolders,active:()=>!disposed});
+  const joinGameJam = createGameJamJoin({vscode,authentication:auth,projects:githubProjects,projectPicker,
+    openGameJamProject,globalState:context.globalState,active:()=>!disposed,report,request:services.gameJamRequest,
+    onJoined:async({account,repository:joinedRepository,id})=>{
+      await gameJam.rememberJoined(account,joinedRepository,id);
+      startPage?.refresh({recent:true});
+      if (auth.accountId===account && repository.toLowerCase()===joinedRepository.toLowerCase()) {
+        refreshJamDestination(true);refresh();
+      }
+    }});
   context.subscriptions.push(projectFolders,githubProjects,projectPicker);
   // Only this host-owned object requests inline reporting from registered
   // commands; it is never sent to the webview or accepted as a command name.
@@ -525,8 +562,9 @@ function activate(context, services = {}) {
   startPage=createStartPage(vscode,{
     onDidChangeOpen:refreshSidebarShortcut,
     executeAction:command=>vscode.commands.executeCommand(command,startPageInvocation),
-    getState:()=>({phase:auth.signedIn ? githubReadiness.phase : auth.verificationUnavailable ? 'verification-unavailable' : hasLocalZeroAccount ? 'connect' : 'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
+    getState:()=>({phase:auth.signedIn ? githubReadiness.phase : auth.verificationUnavailable ? 'verification-unavailable' : hasLocalZeroAccount ? 'connect' : 'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,jamReview:joinGameJam.reviewDetails(auth.accountId),publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
     listRecent:accountId=>recentProjects.list(accountId),
+    isGameJamProject,
     openRecent:async(item,accountId)=>{
       const generation=runGeneration;
       if(disposed||isBusy()||auth.accountId!==accountId || !await firstUse.ensure() || generation!==runGeneration)return;
@@ -557,6 +595,15 @@ function activate(context, services = {}) {
     if (!disposed && ready) {await auth.assertCurrent(ticket);githubReadiness.confirm(ticket);}
     if (!disposed && !ready) {report('GitHub setup paused');void githubReadiness.refresh();}
     return !disposed && ready ? ticket : false;
+  }
+  async function runGameJamJoin(action) {
+    if (disposed || isBusy()) return;
+    startingTutorial=true;refresh();
+    try {
+      if (uploadMode()!=='live') return simulation('Join a Game Jam');
+      const ticket=await prepareGitHub();
+      if (ticket) await action(ticket);
+    } finally {startingTutorial=false;if(!disposed)refresh();}
   }
   async function signIn(changeAccount = false) {
     if (disposed || isBusy()) return;
@@ -653,6 +700,7 @@ function activate(context, services = {}) {
     if (disposed || generation !== statusGeneration) return;
     scheduleProjectDirty({reset:nextBranch!==branch||nextHead!==branchHead});
     repository=nextRepository;branch=nextBranch;localBranchMenu=nextBranchMenu;
+    refreshJamDestination();
     branchHead=nextHead;mainLocalHead=nextMainHead;branchDetached=nextDetached;branchError=nextBranchError;
     updateRecovery=nextRecovery;updateRecoveryError=nextRecoveryError;pendingUpload=nextPending;pendingLocalCommit=nextLocal;
     if([mainUpdateStatus,mainUpdateScope].filter(Boolean).some(value=>!currentMainObservation(value))){
@@ -1721,7 +1769,7 @@ function activate(context, services = {}) {
       if(native && await fs.realpath(native.rootUri.fsPath)===root)await native.status();
     } catch(error) {output.appendLine(`Source Control refresh: ${error.message}`);}
   }
-  async function uploadProject(uploadAuth = auth, {forPublish=false,expectedRoot,expectedPlan,expectedAccount,assertPublishCurrent=async()=>{},assertPublishCurrentNow=()=>{}} = {}) {
+  async function uploadProject(uploadAuth = auth, {forPublish=false,expectedRoot,expectedPlan,expectedAccount,expectedJamTarget,assertPublishCurrent=async()=>{},assertPublishCurrentNow=()=>{}} = {}) {
       if (isBusy()) return;
       await settleBranchCheck();if(isBusy())return;
       const missing=observedMissing(projectRoot);
@@ -1741,6 +1789,8 @@ function activate(context, services = {}) {
         const requireSavedUpload=async()=>{if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save or undo your project editor changes before uploading. Your edits are kept.');};
         if(!forPublish)await requireSavedUpload();
         const initialTicket = await uploadAuth.capture();
+        const jamTargetChanged=()=>Error('The GitHub account or repository changed. Choose Publish to Jam again.');
+        if(expectedJamTarget && String(initialTicket.session.accountId)!==expectedJamTarget.account)throw jamTargetChanged();
         if(forPublish && (!expectedPlan || initialTicket.session.accountId!==expectedAccount))throw new Error('The publishing files or GitHub account changed. Choose Publish & open app again to review them.');
         if (forPublish && !(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the upload.');
         const assertCurrentProject=async()=>{
@@ -1751,6 +1801,7 @@ function activate(context, services = {}) {
         };
         await assertCurrentProject();
         const plan = await github.prepareUpload(root);
+        if(expectedJamTarget && plan.page?.toLowerCase()!==expectedJamTarget.repository.toLowerCase())throw jamTargetChanged();
         if(missing){
           assertMissingPlan(missing,plan);
           if(initialTicket.session.accountId!==missing.account||initialTicket.session.id!==missing.session)throw new Error('The GitHub account or session changed. Check branch creation again; your edits are kept.');
@@ -1762,6 +1813,8 @@ function activate(context, services = {}) {
         if(expectedPlan && ['root','remote','branch','head','status','fingerprint','repositoryIdentity'].some(key=>plan[key]!==expectedPlan[key]))throw new Error('The project changed before upload. Review your changes, then choose Publish & open app again.');
         selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,repositories,repositoryUrl:plan.page,assertCurrentProject});
         const ticket=selectedAuth.ticket, activeAuth=selectedAuth.authentication;
+        if(expectedJamTarget && (String(ticket.session.accountId)!==expectedJamTarget.account ||
+           String(selectedAuth.identity.repositoryId)!==expectedJamTarget.repositoryId))throw jamTargetChanged();
         uploadAccount=ticket.session.accountId;
         if(forPublish && uploadAccount!==expectedAccount)throw new Error('The GitHub account changed. Choose Publish & open app again to review it.');
         uploadProgress = ''; refresh();
@@ -2008,7 +2061,7 @@ function activate(context, services = {}) {
       const items = connected ? [
         {label:'Open on GitHub', action:'open'},
         {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'},
-        ...(auth.signedIn ? [{label:'Publish & open app', action:'publish'}] : []),
+        ...(auth.signedIn ? [{label:jamPublishLabel(), action:'publish'}] : []),
         ...(guidedRecovery ? [{label:'Cancel update',action:'cancelUpdate'}] : []),
         ...(!tutorial && auth.signedIn ? [{label:'Connect to GitHub…', action:'connect'}] : [])
       ] : [
@@ -2077,6 +2130,8 @@ function activate(context, services = {}) {
       try {if(uploadMode()!=='live')return simulation('New project');return await githubProjects.newProject();}
       finally {startingTutorial=false;if(!disposed)refresh();}
     },
+    'zero.joinGameJam': () => runGameJamJoin(joinGameJam.chooseJam),
+    'zero.continueGameJamJoin': () => runGameJamJoin(joinGameJam.continueJoining),
     'zero.chooseBranch': async () => {
       if (isBusy()) return;
       await repositoryStatus();
@@ -3101,7 +3156,7 @@ function activate(context, services = {}) {
   };
   context.subscriptions.push(...browserRun.disposables);
   let reportPublishStage='unknown';
-  const webPublish=createWebPublishCommands(vscode,{onToolingDecision:handleBrowserToolingDecision,onReportStage:stage=>{reportPublishStage=stage;problemReporter.breadcrumb('publish',stage,'started');},onReportFailure:(error,root)=>problemReporter.failure(error,'publish',reportPublishStage,root),onReportSuccess:(root,stage)=>{void problemReporter.success('publish',root,stage).catch(()=>{});},project,assertProjectNow:assertGitProjectNow,connectedRepository:()=>repository,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},setProgress:value=>{publishProgress=value;refresh();},output,listPublication:createHubPublishListing(auth),workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true}),validateExport:validateWithSavedProject,beforeBuildReview:(root,{signal,open})=>updateProject(root,{signal,required:true,restart:resumeCommand(open?'zero.publishAndOpenWeb':'zero.publishWeb')}),assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
+  const webPublish=createWebPublishCommands(vscode,{gameJam,onToolingDecision:handleBrowserToolingDecision,onReportStage:stage=>{reportPublishStage=stage;problemReporter.breadcrumb('publish',stage,'started');},onReportFailure:(error,root)=>problemReporter.failure(error,'publish',reportPublishStage,root),onReportSuccess:(root,stage)=>{void problemReporter.success('publish',root,stage).catch(()=>{});},project,assertProjectNow:assertGitProjectNow,connectedRepository:()=>repository,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},setProgress:value=>{publishProgress=value;refresh();},output,listPublication:createHubPublishListing(auth),workspaceState:context.workspaceState,cacheRoot:webCacheRoot,localBuild:options=>savedBuilder.ensureValidatedExport({...options,explicitAction:true}),validateExport:validateWithSavedProject,beforeBuildReview:(root,{signal,open})=>updateProject(root,{signal,required:true,restart:resumeCommand(open?'zero.publishAndOpenWeb':'zero.publishWeb')}),assertBuildInputsAtCommit:savedBuilder.assertBuildInputsAtCommit,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
   const sharingHandoff=async(root,action)=>{
@@ -3595,7 +3650,7 @@ function activate(context, services = {}) {
     if(inline)args.shift();
     try {await action(...args);} catch(error) {
       if(error instanceof BrowserToolingDecision)return handleBrowserToolingDecision(error);
-      const starterMismatch = id==='zero.newProject' && error.code==='ZERO_STARTER_INCOMPATIBLE';
+      const starterMismatch = ['zero.newProject','zero.continueGameJamJoin'].includes(id) && error.code==='ZERO_STARTER_INCOMPATIBLE';
       if(starterMismatch && state==='Checking the GitHub starter…')state='';
       if(operation && !error.zeroRunMessage) errorAction='report';
       if(operation && operation!=='publish')problemReporter.failure(error,operation,stage,projectRoot);
@@ -3715,7 +3770,7 @@ function activate(context, services = {}) {
     const setupCheck = projectRoot && isSetupProject(projectRoot);
     const runLabel = stopPromise ? 'Stopping…' : activeRun ? 'Stop' : setupCheck ? 'Run test' : 'Run';
     const runDisabled = stopPromise ? 'aria-disabled="true"' : !activeRun && (isBusy()||updateRecovery||updateRecoveryError) ? 'disabled' : '';
-    const publishMenu = !setupCheck && ready && auth.signedIn && connected ? `<button id="run-menu-button" class="run-menu-button" aria-label="Run options" title="Run options" aria-haspopup="menu" aria-expanded="false" aria-controls="run-menu" ${isBusy() || activeRun ? 'disabled' : ''}>${icon('ChevronDown')}</button><div id="run-menu" class="files-dropdown run-dropdown" role="menu" aria-labelledby="run-menu-button" hidden><button role="menuitem" tabindex="-1" data-command="zero.publishAndOpenWeb" ${isBusy() || activeRun ? 'disabled' : ''}>Publish &amp; open app</button>${webPublish.hasPublishedApp({root:projectRoot,repository,account:auth.accountId}) ? `<button role="menuitem" tabindex="-1" data-command="zero.viewPublishedWeb" ${isBusy() || activeRun ? 'disabled' : ''}>View published app</button>` : ''}</div>` : '';
+    const publishMenu = !setupCheck && ready && auth.signedIn && connected ? `<button id="run-menu-button" class="run-menu-button" aria-label="Run options" title="Run options" aria-haspopup="menu" aria-expanded="false" aria-controls="run-menu" ${isBusy() || activeRun ? 'disabled' : ''}>${icon('ChevronDown')}</button><div id="run-menu" class="files-dropdown run-dropdown" role="menu" aria-labelledby="run-menu-button" hidden><button role="menuitem" tabindex="-1" data-command="zero.publishAndOpenWeb" ${isBusy() || activeRun ? 'disabled' : ''}>${escape(jamPublishLabel())}</button>${webPublish.hasPublishedApp({root:projectRoot,repository,account:auth.accountId}) ? `<button role="menuitem" tabindex="-1" data-command="zero.viewPublishedWeb" ${isBusy() || activeRun ? 'disabled' : ''}>View published app</button>` : ''}</div>` : '';
     const runControl = `<div class="run-split"><button class="${ready ? 'run' : 'secondary'}" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${publishMenu}</div>`;
     const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}${browserCheckStatus}</div>${showRepository ? `<section class="repository">${githubPanel}</section>` : ''}${studentView ? '' : `<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`}`;
     const publishingProgress=publishProgressHtml(publishProgress?.root===projectRoot?publishProgress:undefined);
@@ -3768,12 +3823,14 @@ function activate(context, services = {}) {
   }, undefined, context.subscriptions);
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {
     if (event.affectsConfiguration('zero.uploadMode')) {
+      refreshJamDestination();
       refresh();
       void configureProjectGitIdentity();
     }
   }));
   if(vscode.workspace.onDidGrantWorkspaceTrust)context.subscriptions.push(vscode.workspace.onDidGrantWorkspaceTrust(()=>{
     scheduleProjectDirty();
+    refreshJamDestination();
     void configureProjectGitIdentity();
   }));
   // Linked worktrees keep HEAD and shared config outside the workspace watcher.

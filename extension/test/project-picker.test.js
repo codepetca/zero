@@ -3,14 +3,14 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const {createProjectPicker}=require('../src/project-picker');
 const turn=()=>new Promise(resolve=>setImmediate(resolve));
-function fixture({recent=[],listZero=async()=>({repositories:[],truncated:false}),timeout=10000}={}) {
+function fixture({recent=[],listZero=async()=>({repositories:[],truncated:false}),isGameJamProject,timeout=10000}={}) {
   const handlers={accept:new Set(),hide:new Set()},reports=[],calls=[];
   const event=name=>fn=>{handlers[name].add(fn);return {dispose:()=>handlers[name].delete(fn)};};
   let account=true,shown=false;
   const picker={items:[],selectedItems:[],activeItems:[],disposed:0,onDidAccept:event('accept'),onDidHide:event('hide'),show(){shown=true;},dispose(){this.disposed++;}};
   const ticket={session:{accountId:'17'},revision:1};
   const authentication={capture:async()=>ticket,assertCurrentNow(value){if(!account||value!==ticket)throw Error('Account changed');}};
-  const ui=createProjectPicker({QuickPickItemKind:{Separator:-1},window:{createQuickPick:()=>picker}},{authentication,repositories:{listZero},history:{list:async accountId=>{calls.push(accountId);return recent;}},discoveryTimeout:timeout,report:text=>reports.push(text)});
+  const ui=createProjectPicker({QuickPickItemKind:{Separator:-1},window:{createQuickPick:()=>picker}},{authentication,repositories:{listZero},history:{list:async accountId=>{calls.push(accountId);return recent;}},isGameJamProject,discoveryTimeout:timeout,report:text=>reports.push(text)});
   return {ui,picker,ticket,reports,calls,get shown(){return shown;},set account(value){account=value;},emit(name){for(const fn of [...handlers[name]])fn();},select(item){picker.selectedItems=[item];for(const fn of [...handlers.accept])fn();}};
 }
 const repo=(name,date='2026-10-20T12:00:00Z')=>({id:name.length,full_name:`student/${name}`,html_url:`https://github.com/student/${name}`,pushed_at:date,private:false});
@@ -37,6 +37,31 @@ test('paste is available during discovery; selection aborts requests and ignores
   const pending=f.ui.choose();await turn();assert.equal(f.picker.busy,true);
   f.select(f.picker.items.at(-1));assert.equal((await pending).action,'paste');assert.equal(options.signal.aborted,true);
   const previous=f.picker.items;options.onRepository(repo('late'));finish({repositories:[repo('late')],truncated:false});await turn();assert.equal(f.picker.items,previous);assert.equal(f.picker.disposed,1);
+});
+test('recent GitHub picker rows mark the signed-in account’s linked Game Jam',async()=>{
+  const repositoryUrl='https://github.com/student/moon-game';
+  const f=fixture({
+    recent:[{path:'/projects/other'},{path:'/projects/moon-game',repositoryUrl}],
+    isGameJamProject:(account,url)=>account==='17'&&url===repositoryUrl
+  });
+  const pending=f.ui.choose();await turn();
+  const rows=f.picker.items.filter(item=>item.action==='recent');
+  assert.deepEqual(rows.map(item=>item.description),['other','student/moon-game · Game Jam']);
+  f.select(rows[1]);
+  assert.equal((await pending).projectPath,'/projects/moon-game');
+});
+test('the Game Jam picker shows eligible public repositories without recent folders or URL entry',async()=>{
+  const publicRepo=repo('moon-game');
+  const f=fixture({recent:[{path:'/projects/local'}],listZero:async({standaloneOnly})=>{
+    assert.equal(standaloneOnly,true);
+    return {repositories:[publicRepo,{...repo('private-game'),private:true}],truncated:false};
+  }});
+  const pending=f.ui.choose({publicRepositoriesOnly:true,standaloneOnly:true});
+  await turn();
+  assert.deepEqual(f.calls,[]);
+  assert.deepEqual(f.picker.items.filter(item=>item.action).map(item=>item.repositoryUrl),[publicRepo.html_url]);
+  f.select(f.picker.items.at(-1));
+  assert.equal((await pending).repositoryUrl,publicRepo.html_url);
 });
 test('account changes dismiss private results and abort discovery without a selection',async()=>{
   let options,finish;

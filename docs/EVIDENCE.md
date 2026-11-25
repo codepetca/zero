@@ -14730,3 +14730,18 @@ TypeScript and 115 focused tests passed with disposable PostgreSQL. Independent
 GPT-6.1 Sol review at medium reasoning found no actionable issue in the reader
 and regression test against `b4f4d297f`. The review also checked failed or
 inconclusive probes, cancellation, the probe timeout and path-scoped cache reuse.
+
+### Editor-first Game Jams (2026-11-24)
+
+The integration ports the Game Jam join and publishing flow from the older
+working checkout onto `3a0e71d2a`. The original working checkout retains its
+unrelated changes. The Start Page presents the approved shaded rules and
+deadlines panel in light and dark themes. The browser preview exercised the
+Project menu and checked the join action, rules, deadline text and recent
+project badge with a sample jam.
+
+The focused editor suite passed 376 tests with one skip. The authority suite
+passed 722 tests with seven optional integration skips.
+The final website copy and submission checks passed 58 tests, and website
+TypeScript passed. These checks used controlled data. A live account, native
+folder handoff, and production Pages submission remain separate acceptance.

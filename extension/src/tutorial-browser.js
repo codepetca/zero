@@ -20,4 +20,5 @@ async function openBrowser(vscode, url, label) {
 }
 const openTutorialDocs = async (vscode, lessonId = '15') => openBrowser(vscode, browserUrl(lessonId), 'Tutorial Docs');
 const openZeroDocs = vscode => openBrowser(vscode, 'https://zero.codepet.ca/resume-docs', 'Zero Docs');
-module.exports = {openTutorialDocs, openZeroDocs};
+const openGameJamRules = (vscode, id) => openBrowser(vscode, `https://zero.codepet.ca/hub/jams/${encodeURIComponent(id)}`, 'the Game Jam');
+module.exports = {openTutorialDocs, openZeroDocs, openGameJamRules};

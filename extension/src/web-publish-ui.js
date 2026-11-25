@@ -39,7 +39,7 @@ function dirtyBuildDocuments(vscode,root) {
   });
 }
 
-function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{},onReportFailure=()=>{},onReportSuccess=()=>{},project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,listPublication,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
+function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{},onReportFailure=()=>{},onReportSuccess=()=>{},project,assertProjectNow=()=>{},connectedRepository=()=>undefined,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setProgress=()=>{},output,listPublication,gameJam,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,validateExport,assertBuildInputsAtCommit,beforeBuildReview=async()=>{},publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,recheckDispatch=false,lastLive;
   let root,stageProgress,openingRequested=false;
   const clearProgress=()=>{stageProgress=undefined;setProgress(undefined);};
@@ -77,7 +77,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     }
     if(dirtyBuildDocuments(vscode,expected).length)throw Error('Save your project before publishing its browser app.');
   }
-  async function uploadForPublish(expected,review,expectedPlan) {
+  async function uploadForPublish(expected,review,expectedPlan,jam) {
     await stillPublishable(expected);
     if(!uploadChanges)throw new Error('Commit and sync the publishing files on main, then choose Publish & open app.');
     startProgress(['preparing','building','uploading','deploying','verifying']);
@@ -85,10 +85,14 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     // The upload command claims its own lock synchronously. Keep our separate
     // publication guard held while handing the coordinator lock to it.
     setBusy(false);
-    try {return await uploadChanges(authentication,{forPublish:true,expectedRoot:expected,expectedPlan,expectedAccount:review.account,assertPublishCurrent:()=>stillPublishable(expected),assertPublishCurrentNow:()=>assertPublishCurrentNow(expected)});}
+    const expectedJamTarget=jam&&{account:jam.account,repository:jam.repository,repositoryId:jam.repositoryId};
+    try {return await uploadChanges(authentication,{forPublish:true,expectedRoot:expected,expectedPlan,expectedAccount:review.account,
+      ...(expectedJamTarget ? {expectedJamTarget} : {}),
+      assertPublishCurrent:()=>stillPublishable(expected),assertPublishCurrentNow:()=>assertPublishCurrentNow(expected)});}
     finally {setBusy(true);}
   }
   const progress=(message,detail=message)=>{setState(message);output?.appendLine(detail);};
+  const publishLabel=jam=>jam ? 'Publish to Jam' : 'Publish & open app';
   async function showAction(result,{allowRecheck=true}={}) {
     clearProgress();
     progress(result.message || result.action?.message || 'Publishing needs one more step.');
@@ -128,9 +132,9 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       return {status:'reset'};
     }
   }
-  function sourceUploadRequired() {
+  function sourceUploadRequired(jam) {
     clearProgress();
-    const message='Commit any changes and choose Sync on main, then choose Publish & open app again.';
+    const message=`Commit any changes and choose Sync on main, then choose ${publishLabel(jam)} again.`;
     progress(message);
     return {status:'upload-required',message};
   }
@@ -166,32 +170,100 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     await workspaceState?.update('zero.webPublish.lastLive', lastLive);
     return lastLive;
   }
-  async function verifyAndOpen(reviewed,saved,expected,{fast=false,retryListing=false}={}) {
+  async function verifyAndOpen(reviewed,saved,expected,{fast=false,retryListing=false,jam,webOnly=false}={}) {
     let opening;
     stage('verifying');progress('Checking live app…');
     const verify=fast?publisher.verifyUnchanged.bind(publisher,expected):publisher.verifyCurrent.bind(publisher,reviewed);
     const current=await verify(saved,{
       signal:controller.signal,
+      ...(fast&&jam ? {reviewChangedDestination:true} : {}),
       beforeFinalCheck:()=>stillPublishable(expected),
       // Called synchronously after the publisher's final source/session proof.
       // Request the browser here: no awaited project lookup may follow the proof.
       onCurrent:verified=>{
-        stage('opening');progress('Opening in browser…');
+        if(openingRequested){stage('opening');progress('Opening in browser…');}
         assertPublishCurrentNow(expected);
-        if(dirtyBuildDocuments(vscode,expected).length)throw Error('Your app changed while publishing. Choose Publish & open app again.');
-        opening=vscode.env.openExternal(vscode.Uri.parse(verified.url));
+        assertJamTarget(jam,{...verified.resume,account:reviewed?.account ?? saved?.account});
+        if(dirtyBuildDocuments(vscode,expected).length)throw Error(`Your app changed while publishing. Choose ${publishLabel(jam)} again.`);
+        if(openingRequested) {
+          if(jam) {
+            // A browser failure must not interrupt submission of a verified build.
+            try {opening=Promise.resolve(vscode.env.openExternal(vscode.Uri.parse(verified.url))).catch(()=>false);}
+            catch {opening=false;}
+          } else opening=vscode.env.openExternal(vscode.Uri.parse(verified.url));
+        }
       }
     });
     if(current.status!=='live')return current;
     const opened=await opening;
-    const listing = retryListing ? (saved?.listingPending ? await updateHubListing(saved, expected) : undefined) : saved;
+    let listing;
+    if(!jam&&!webOnly)listing=retryListing ? (saved?.listingPending ? await updateHubListing(saved, expected) : undefined) : saved;
     await stillCurrent(expected);
     clearProgress();
     if (opened === false) onReportFailure(Object.assign(new Error(),{code:'WEB_PUBLISH_OPEN_FAILED'}),expected);
-    const message = opened === false ? 'App published — the browser could not be opened. See Zero Output for its link.' : 'App opened';
+    const message = opened === false ? 'App published — the browser could not be opened. See Zero Output for its link.' :
+      openingRequested ? 'App opened' : 'App published';
     progress(listing?.listingMessage ? `${message} · ${listing.listingMessage}` : message,`Your playable app is live: ${current.url}`);
-    return {...current,opened:opened!==false};
+    return {...current,opened:openingRequested && opened!==false};
   }
+
+  function jamRequest(expected) {
+    return {signal:controller.signal,beforeSend:()=>assertPublishCurrentNow(expected)};
+  }
+
+  function assertJamTarget(jam,target={}) {
+    if(!jam)return;
+    const {account,repository,repositoryId}=target;
+    if (String(account)!==jam.account || repository?.toLowerCase()!==jam.repository.toLowerCase() ||
+        String(repositoryId)!==jam.repositoryId)
+      throw Object.assign(Error('The GitHub account or repository changed. Choose Publish to Jam again.'),
+        {code:'WEB_PUBLISH_REPOSITORY_CHANGED'});
+  }
+
+  async function approveJam(jam,expected,pagesUrl) {
+    const approval={root:expected,account:jam.account,repositoryId:jam.repositoryId,jamId:jam.id,revision:jam.revision};
+    if(pagesUrl)approval.pagesUrl=pagesUrl;
+    const saved=workspaceState?.get('zero.webPublish.jamApproval');
+    if(saved && Object.keys(approval).every(key=>saved[key]===approval[key]))return true;
+    clearProgress();
+    const detail=[
+      'Your game and assets will be public on GitHub Pages. Zero will submit the verified build to this Game Jam.',
+      pagesUrl || jam.repository,
+      jam.rules && `Current rules\n${jam.rules}`,
+      jam.eligibility && `Who can take part\n${jam.eligibility}`
+    ].filter(Boolean).join('\n\n');
+    const accepted=await vscode.window.showInformationMessage(`Publish to ${jam.title}?`,{modal:true,detail},'Publish to Jam');
+    if(accepted!=='Publish to Jam')return false;
+    await stillPublishable(expected);
+    await workspaceState?.update('zero.webPublish.jamApproval',approval);
+    return true;
+  }
+
+  function reportJamResult(jam,result,{recovered=false,opened,verifiedUrl}={}) {
+    if(result.status==='submitted') {
+      const message=recovered ? `Earlier submission to ${jam.title} confirmed. Choose Publish to Jam again to submit new changes.` :
+        `Submitted to ${jam.title}`;
+      progress(message,verifiedUrl ? `${message}\nGame: ${verifiedUrl}${opened===false&&openingRequested?'\nThe browser could not be opened.':''}` : message);
+    } else if(result.status==='pending') {
+      progress(`Game published · submission to ${jam.title} pending. Choose Publish to Jam to retry.`);
+    } else {
+      progress(`Game published · ${result.message || `ZeroJams could not accept the entry for ${jam.title}.`}`);
+    }
+  }
+
+  async function submitJam(jam,live,expected) {
+    if(!jam)return live;
+    await stillPublishable(expected);
+    assertJamTarget(jam,{...live.resume,account:jam.account});
+    progress(`Submitting to ${jam.title}…`);
+    let result;
+    try {result=await gameJam.submit(jam,live,jamRequest(expected));}
+    catch(error) {result={status:'pending',message:error.message};}
+    await stillPublishable(expected);
+    reportJamResult(jam,result,{opened:live.opened,verifiedUrl:live.url});
+    return {...live,jamSubmission:result};
+  }
+
   async function publish({open=false,recheckRoot,expectedRoot}={}) {
     if(disposed || publishing || isBusy())return;
     publishing=true;setBusy(true);controller=new AbortController();openingRequested=open;
@@ -207,13 +279,45 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       if(recovering)openingRequested=false;
       startProgress(['checking']);
       progress(recovering?'Checking saved publishing attempt…':open?'Checking latest app…':'Preparing publishing…');
-      // A resumed older deployment may finish while a newer local version exists.
-      // Allow one fresh publication, then stop if editing continues; never open stale output.
-      for(let attempt=0;attempt<(open?2:1);attempt++) {
+      let jam,webOnly=false;
+      if(gameJam) {
         await stillPublishable(expected);
-        const result=await publishOnce(expected,{reuse:open,recovering});
-        if(recovering || !open || result?.status!=='live'){if(result?.status==='live')onReportSuccess(expected);return result;}
-        if(result.alreadyCurrent){if(result.opened!==false)onReportSuccess(expected,'opening');return result;}
+        try {jam=await gameJam.resolve(expected,jamRequest(expected));}
+        catch(error) {
+          if(error.code!=='ZERO_JAM_STATUS_UNKNOWN')throw error;
+          await stillPublishable(expected);
+          clearProgress();
+          const choice=await vscode.window.showInformationMessage('ZeroJams is unavailable.',{modal:true,
+            detail:'You can publish to GitHub Pages now. If this is a jam project, use Publish to Jam when ZeroJams is available.'},'Publish to web only');
+          if(choice!=='Publish to web only')return;
+          webOnly=true;
+        }
+        await stillPublishable(expected);
+      }
+      if(jam && !recovering) {
+        const recovered=await gameJam.recover(jam,jamRequest(expected));
+        await stillPublishable(expected);
+        if(recovered) {
+          reportJamResult(jam,recovered,{recovered:true});
+          return {status:recovered.status,jamSubmission:recovered};
+        }
+        if(!jam.submissionsOpen) {
+          const closed=Date.parse(jam.submissionsCloseAt)<=Date.now();
+          const message=closed ? `Submissions closed for ${jam.title}.` : `Submissions are not open for ${jam.title}.`;
+          progress(message);
+          return {status:'action-required',message};
+        }
+      }
+      const reuse=open || Boolean(jam);
+      // A resumed older deployment may finish while a newer local version exists.
+      // Allow one fresh publication, then stop if editing continues.
+      for(let attempt=0;attempt<(reuse?2:1);attempt++) {
+        await stillPublishable(expected);
+        const result=await publishOnce(expected,{reuse,recovering,jam,webOnly});
+        if(recovering || !reuse || result?.status!=='live'){
+          if(result?.status==='live')onReportSuccess(expected);
+          return result;
+        }
         let current=result;
         if(!result.alreadyCurrent) {
           let reviewed;
@@ -221,14 +325,17 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
           catch(error) {if(error.code==='WEB_PUBLISH_UPLOAD_REQUIRED' && attempt===0)continue;throw error;}
           await stillPublishable(expected);
           if(reviewed.status!=='review'){await showAction(reviewed);return reviewed;}
-          current=await verifyAndOpen(reviewed,lastLive,expected);
+          assertJamTarget(jam,reviewed);
+          if(jam&&!await approveJam(jam,expected,reviewed.publicUrl))return;
+          current=await verifyAndOpen(reviewed,lastLive,expected,{jam,webOnly});
+          if(current.status==='stale') {
+            if(attempt===0)continue;
+            throw Error(`Your app changed while publishing. Choose ${publishLabel(jam)} again for the latest version.`);
+          }
+          if(current.status!=='live'){await showAction(current);return current;}
         }
-        if(current.status==='stale') {
-          if(attempt===0)continue;
-          throw Error('Your app changed while publishing. Choose Publish & open app again to open the latest version.');
-        }
-        if(current.status!=='live'){await showAction(current);return current;}
-        if(current.opened!==false)onReportSuccess(expected,'opening');return current;
+        if(!openingRequested || current.opened!==false)onReportSuccess(expected,openingRequested?'opening':undefined);
+        return await submitJam(jam,current,expected);
       }
     } catch(error) {
       if (!(error instanceof BrowserToolingDecision) && !controller?.signal.aborted) onReportFailure(error,root);
@@ -243,7 +350,8 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       });});
     }
   }
-  async function publishOnce(expected,{reuse=false,recovering=false}={}) {
+  async function publishOnce(expected,{reuse=false,recovering=false,jam,webOnly=false}={}) {
+    const listOnHub=listPublication&&!jam&&!webOnly;
     let result,approvedAccount;
     const staged=workspaceState?.get('zero.webPublish.staging');
     resume=resume || workspaceState?.get('zero.webPublish.pending');
@@ -260,7 +368,10 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
         // A crash between storing the run and clearing staging leaves both receipts.
         await workspaceState?.update('zero.webPublish.staging',undefined);
       }
-      try {result=publisher.restore ? await publisher.restore(expected,resume.value,{signal:controller.signal,onStage:stage,onProgress:progress}) : await publisher.check(resume.value,{signal:controller.signal,onProgress:progress,onStage:stage});}
+      try {
+        assertJamTarget(jam,{...resume.value,account:approvedAccount});
+        result=publisher.restore ? await publisher.restore(expected,resume.value,{signal:controller.signal,onStage:stage,onProgress:progress}) : await publisher.check(resume.value,{signal:controller.signal,onProgress:progress,onStage:stage});
+      }
       catch(error) {
         if(error.code!=='WEB_PUBLISH_REPOSITORY_CHANGED')throw error;
         await stillCurrent(expected);
@@ -269,7 +380,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
         await stillCurrent(expected);
         if(chosen==='Forget saved run') {
           resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);
-          progress('Saved run cleared. Choose Publish app to review this repository.');
+          progress(jam ? 'Saved run cleared. Choose Publish to Jam to review this repository.' : 'Saved run cleared. Choose Publish app to review this repository.');
           return {status:'reset'};
         }
         return {status:'action-required',message:'Reconnect the previous repository or forget its saved publishing run.'};
@@ -290,29 +401,34 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       await saveBuildDocuments(expected);
       await stillPublishable(expected);
       const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
-      if(reuse && previous && publisher.verifyUnchanged) {
-        const current=await verifyAndOpen(undefined,previous,expected,{fast:true,retryListing:true});
+      const reusable=previous && (!jam || (previous.root===expected && String(previous.account)===jam.account &&
+        previous.resume?.repository?.toLowerCase()===jam.repository.toLowerCase() && String(previous.resume.repositoryId)===jam.repositoryId));
+      if(reuse && reusable && publisher.verifyUnchanged) {
+        if(jam && !await approveJam(jam,expected,previous.url))return;
+        const current=await verifyAndOpen(undefined,previous,expected,{fast:true,retryListing:true,jam,webOnly});
         if(current.status==='live')return {...current,alreadyCurrent:true};
         if(current.status!=='stale'){await showAction(current);return current;}
       }
-      await beforeBuildReview(expected,{signal:controller.signal,open:reuse});
+      await beforeBuildReview(expected,{signal:controller.signal,open:openingRequested});
       await stillPublishable(expected);
       let review;
       try {review=await publisher.review(expected,{signal:controller.signal});}
       catch(error) {
         if(error.code!=='WEB_PUBLISH_UPLOAD_REQUIRED')throw error;
-        return sourceUploadRequired();
+        return sourceUploadRequired(jam);
       }
       await stillCurrent(expected);
       if(review.status!=='review'){await showAction(review);return review;}
+      assertJamTarget(jam,review);
+      if(jam && !await approveJam(jam,expected,review.publicUrl))return;
       if(reuse) {
         startProgress(['verifying']);
         progress('Checking published app…');
-        result=await verifyAndOpen(review,previous,expected,{retryListing:true});
+        result=await verifyAndOpen(review,reusable ? previous : undefined,expected,{retryListing:true,jam,webOnly});
         if(result.status==='stale')result=undefined;
         else {
           if(result.status==='live')return {...result,alreadyCurrent:true};
-          if(result.status==='pending')progress('The published app could not be verified. Try Publish & open app again.',result.message);
+          if(result.status==='pending')progress(`The published app could not be verified. Try ${publishLabel(jam)} again.`,result.message);
           else await showAction(result);
           return result;
         }
@@ -322,20 +438,21 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
         const sameDestination=(previous?.root===expected && previous.account===review.account && previous.resume?.repository===review.repository && previous.url===review.publicUrl) || (consent?.root===expected && consent.account===review.account && consent.repository===review.repository && consent.url===review.publicUrl);
         const listingNotice = consent?.listingNotice === true && consent.root === expected &&
           consent.account === review.account && consent.repository === review.repository && consent.url === review.publicUrl;
-        if(!sameDestination || listPublication && !listingNotice) {
+        if(!jam && (!sameDestination || listOnHub && !listingNotice)) {
           clearProgress();
-          const notice = listPublication ? ' This may replace your currently published app.' : '';
+          const notice = listOnHub ? ' This may replace your currently published app.' : '';
           const setup=review.setup ? `\nZero will sync its publishing files to ${review.repository}.` : '';
           const chosen=await vscode.window.showInformationMessage('Publish app?',{modal:true,detail:`Your app and its assets will be public.${notice}\n${review.publicUrl || (review.repository + ' → GitHub Pages')}${setup}`},'Publish app');
           if(chosen!=='Publish app')return;
           await stillCurrent(expected);
-          await workspaceState?.update('zero.webPublish.approval',{root:expected,account:review.account,repository:review.repository,url:review.publicUrl,...(listPublication ? {listingNotice:true} : {})});
+          await workspaceState?.update('zero.webPublish.approval',{root:expected,account:review.account,repository:review.repository,url:review.publicUrl,...(listOnHub ? {listingNotice:true} : {})});
         }
         startProgress(['preparing','building','uploading','deploying','verifying']);
         progress('Preparing publishing…');
         const approvedDestination=review;
         const assertDestination=()=>{
-          if(review.repository!==approvedDestination.repository || review.account!==approvedDestination.account || review.publicUrl!==approvedDestination.publicUrl || review.needsPages!==approvedDestination.needsPages)throw new Error('The publishing account or destination changed. Choose Publish & open app again to review it.');
+          if(review.repository!==approvedDestination.repository || review.account!==approvedDestination.account || review.publicUrl!==approvedDestination.publicUrl || review.needsPages!==approvedDestination.needsPages)throw new Error(`The publishing account or destination changed. Choose ${publishLabel(jam)} again to review it.`);
+          assertJamTarget(jam,review);
         };
         await stillCurrent(expected);
         if(review.setup || review.upgrade) {
@@ -363,7 +480,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
           if(result.status!=='upload-required'){await showAction(result);return result;}
           progress(result.message);
           if(!uploadChanges){await showAction({...result,action:{message:'Commit and sync the publishing files on main, then choose Publish & open app again.'}});return result;}
-          const uploaded=await uploadForPublish(expected,review,result.uploadPlan);
+          const uploaded=await uploadForPublish(expected,review,result.uploadPlan,jam);
           if(!uploaded?.uploaded)return;
           await stillCurrent(expected);
           review=await publisher.review(expected,{signal:controller.signal});
@@ -380,9 +497,10 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     result=await waitForDeployment(result,expected,approvedAccount);
     await stillCurrent(expected);
     if(result.status==='live') {
+      assertJamTarget(jam,{...result.resume,account:approvedAccount});
       resume=undefined;
       const consent = workspaceState?.get('zero.webPublish.approval');
-      const listingPending = !!listPublication && consent?.listingNotice === true && consent.root === expected &&
+      const listingPending = !!listOnHub && consent?.listingNotice === true && consent.root === expected &&
         consent.account === approvedAccount && consent.repository === result.resume?.repository && consent.url === result.url;
       lastLive={root:expected,url:result.url,sha:result.sha,resume:result.resume,account:approvedAccount,
         ...(listingPending ? {listingPending:true} : {})};
@@ -394,7 +512,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
         clearProgress();
         progress(lastLive.listingMessage ? `App published · ${lastLive.listingMessage}` : 'App published',`Your playable app is live: ${result.url}`);
       }
-    } else if(result.status==='pending')progress('Publishing is still running. Choose Publish & open app again to recheck this run.');
+    } else if(result.status==='pending')progress(`Publishing is still running. Choose ${publishLabel(jam)} again to recheck this run.`);
     else if(result.status==='dispatch-uncertain')return await showDispatchAction(result,expected) || result;
     else {
       if(result.reportCode==='WEB_PUBLISH_DEPLOYMENT_FAILED') {

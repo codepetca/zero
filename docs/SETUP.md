@@ -30,8 +30,8 @@ The Codepet Zero GitHub App is registered under `codepetca`, with public IDs
 pinned in source. Students approve access on GitHub. See
 [the identity plan](ZERO-IDENTITY-PLAN.md) for account and permission details.
 
-In current local source, connect GitHub to enable the Start Page’s **Zero Docs**
-button and **Project** dropdown. **Zero Docs** opens the latest lessons and
+In current local source, connect GitHub to enable the **Zero Web** icon beside
+the Start Page title and the **Project** dropdown. **Zero Web** opens the latest lessons and
 **Project → New** begins project setup. Published downloads retain their bundled
 controls.
 

@@ -72,6 +72,26 @@ const participantOrder=(a,b)=>a.participantId.length-b.participantId.length||(a.
 function operationId(value) { if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{8,100}$/.test(value)) fail(400,'Use a valid operation ID.'); return value; }
 function currentTime(now) { const value=now();if(!Number.isSafeInteger(value))fail(503,'Jam clock is unavailable.');return value; }
 function inWindow(time,opens,closes) { return time>=Date.parse(opens)&&time<Date.parse(closes); }
+function assertJoinChannel(accepted, channel) {
+  if (channel==='browser' && accepted?.manifest.type==='game')
+    fail(403,'Open the Zero Start Page and choose Join a Game Jam.');
+  if (channel==='editor' && accepted?.manifest.type!=='game') fail(409,'Choose a Game Jam in Zero.');
+}
+function latestEntry(state,actor) {
+  return state?.entries[actor.id]?.at(-1);
+}
+function activePublicationReceipt(state,actor,payload) {
+  const entry=latestEntry(state,actor);
+  if((entry?.revision??'')!==payload.publication.entryRevision)
+    fail(409,'Your Game Jam entry changed. Check it before publishing again.');
+  if(state?.moderation.status!=='active'||state.registrations[actor.id]?.status!=='joined')return;
+  if(entry?.status!=='active'||entry.eventRevision!==state.accepted?.revision)return;
+  // The original write used the revision immediately before the active entry.
+  const payloadDigest=digest({...payload,publication:{...payload.publication,entryRevision:entry.previousRevision??''}});
+  return Object.values(state.operations).find(operation=>operation.actorId===actor.id&&
+    operation.payloadDigest===payloadDigest&&operation.result.status==='submitted'&&
+    operation.result.revision===entry.revision)?.result;
+}
 function initial(id,actor,repositoryId,time) {
   return {schema:1,id,creator:actor,repositoryId,proposals:[],accepted:null,moderation:{status:'active'},registrations:{},entries:{},operations:{},history:[],updatedAt:time};
 }
@@ -226,7 +246,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(existing.creator.id===next.creator.id&&occupiesOrganizerSlot(existing,time))fail(429,'You can have only one active jam at a time.');
     }
   }
-  async function commitOnStore(writeStore,transactional,id,actor,op,payloadDigest,change,{create=false,safetyAction,scope=id,legacyDigest,callScope,recoverOnly=false,enforceOrganizerSlot=false,updateEventTimestamp=true}={}) {
+  async function commitOnStore(writeStore,transactional,id,actor,op,payloadDigest,change,{create=false,safetyAction,scope=id,legacyDigest,callScope,recoverOnly=false,publicationPayload,enforceOrganizerSlot=false,updateEventTimestamp=true}={}) {
     const pool=safetyAction?'safety':'ordinary';
     for(let attempt=0;attempt<(transactional?1:bound.retries);attempt++) {
       callScope?.check();
@@ -236,6 +256,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       const previous=scope==='proposals'?await proposalResult(snapshot,actor,op,payloadDigest):recover(state,actor,op,payloadDigest);
       if(rejected&&previous)fail(503,'Official request history is inconsistent.');
       if(rejected||previous)return rejected||previous;
+      const activeReceipt=publicationPayload&&activePublicationReceipt(state,actor,publicationPayload);
+      if(activeReceipt)return {...activeReceipt,operationId:op,alreadySubmitted:true};
       if(recoverOnly)fail(503,'Earlier request history is unavailable. Retry with the same operation ID.');
       // Recover accepted/fenced requests first, including after a grant is revoked.
       // New proposals alone require a current trusted numeric-ID entitlement.
@@ -287,7 +309,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     }
     fail(409,'This jam changed repeatedly. Retry with the same operation ID.');
   }
-  async function discovery(scope) {
+  async function readRegistry(scope) {
     const snapshot=await safeCall(()=>scope.run(()=>store.snapshot({signal:scope.signal}))), states=new Map();
     validateSettlements(snapshot?.settlements,bound);
     for(const id of await ids(snapshot)) {
@@ -295,6 +317,10 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(!state)fail(503,'Official jam records are unavailable.');
       states.set(id,state);
     }
+    return {snapshot,states};
+  }
+  async function discovery(scope) {
+    const {snapshot,states}=await readRegistry(scope);
     const time=currentTime(now);
     const pinned={revision:snapshot.revision,ids:[...states.keys()],async read(id){return {state:structuredClone(states.get(id)||null)};}};
     const visibility=await scope.run(()=>safeCall(()=>projectVisibility(pinned,time)));
@@ -416,6 +442,31 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     const {signal}=readOptions(options);
     return withDiscoveryDeadline(signal,DISCOVERY_TIMEOUT_MS,scope=>readScoped(id,actor,scope,undefined,{overview:true}));
   }
+  async function projectDestination(repositoryId,actor,options={}) {
+    actor=actorIdentity(actor);
+    if(typeof repositoryId!=='string'||!ACCOUNT.test(repositoryId))fail(400,'Choose a GitHub project in Zero.');
+    const {signal}=readOptions(options);
+    return withDiscoveryDeadline(signal,DISCOVERY_TIMEOUT_MS,async scope=>{
+      const {states}=await readRegistry(scope);
+      const time=currentTime(now),upcoming=[],closed=[];
+      for(const state of states.values()) {
+        const registration=state.registrations[actor.id],accepted=state.accepted;
+        if(registration?.status!=='joined'||registration.repository?.id!==repositoryId||
+            registration.repository.ownerId!==actor.id||accepted?.manifest.type!=='game'||state.moderation.status!=='active')continue;
+        const {title,schedule,rules,eligibility}=accepted.manifest;
+        const destination={id:state.id,title,revision:accepted.revision,
+          entryRevision:latestEntry(state,actor)?.revision??'',
+          submissionsOpen:inWindow(time,schedule.submissionsOpenAt,schedule.submissionsCloseAt),
+          submissionsCloseAt:schedule.submissionsCloseAt,
+          ...(registration.revision!==accepted.revision?{rules,eligibility}:{})};
+        const candidates=time<Date.parse(schedule.submissionsCloseAt)?upcoming:closed;
+        candidates.push(destination);
+      }
+      if(upcoming.length>1)return {destination:null,ambiguous:true};
+      const latestClosed=()=>closed.sort((a,b)=>Date.parse(b.submissionsCloseAt)-Date.parse(a.submissionsCloseAt)||a.id.localeCompare(b.id))[0];
+      return {destination:upcoming[0]??latestClosed()??null};
+    });
+  }
   async function readModeration(id,actor,options={}) {
     // This private lane is separate from public page eligibility. Authorize
     // before any registry read; a held or unverifiable entry still needs review.
@@ -476,7 +527,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     if(page)moderationEntries.sort(participantOrder);
     const canPickWinner=overview&&actor?.id===state.creator.id&&canPickGameJamWinner(state,time);
     const canHostRemove=!overview&&canHostRemoveEntry(state,actor,time);
-    const result=taggedProjection({event,registration:structuredClone(registration),entry:structuredClone(entry),canMaintain,...(canHostRemove?{canHostRemoveEntry:true}:{}),...(canPickWinner?{canPickWinner}:{}),...(canMaintain&&!overview?{moderationEntries}:{}),...(proposal?{proposal:structuredClone(proposal)}:{})},revision);
+    const joinAvailability=overview&&actor?{hasRegistrationSpace:!!registration||Object.keys(state.registrations).length<bound.participants}:{};
+    const result=taggedProjection({event,registration:structuredClone(registration),entry:structuredClone(entry),canMaintain,...joinAvailability,...(canHostRemove?{canHostRemoveEntry:true}:{}),...(canPickWinner?{canPickWinner}:{}),...(canMaintain&&!overview?{moderationEntries}:{}),...(proposal?{proposal:structuredClone(proposal)}:{})},revision);
     return page?Object.defineProperty(result,JAM_PAGE_METADATA,{value:pageMetadata}):result;
   }
   async function propose(input) {
@@ -501,14 +553,29 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     },{create:true,scope:'proposals',legacyDigest:legacyRequestDigest('proposals',{manifest:input.manifest})});
   }
   async function mutate(input,options={}) {
-    const {signal}=readOptions(options);
-    return withDiscoveryDeadline(signal,DISCOVERY_TIMEOUT_MS,scope=>mutateScoped(input,scope));
+    keys(options,['signal','joinChannel','verifyPublication'],[]);
+    const {signal,joinChannel,verifyPublication}=options;
+    readOptions({signal});
+    if(joinChannel!==undefined&&joinChannel!=='browser'&&joinChannel!=='editor')fail(400,'Invalid jam join channel.');
+    return withDiscoveryDeadline(signal,DISCOVERY_TIMEOUT_MS,scope=>mutateScoped(input,scope,{joinChannel,verifyPublication}));
   }
-  async function mutateScoped(input,callScope) {
-    keys(input,['id','actor','operationId','action','revision','reason','participantId','repositoryUrl','source','title','description','demoUrl','instructions'],['id','actor','operationId','action']);
+  function requirePublishedSubmission(state,actor,payload,time) {
+    const accepted=state.accepted,registration=state.registrations[actor.id];
+    if(accepted?.manifest.type!=='game'||state.moderation.status!=='active')
+      fail(409,'Official participation is not active for this Game Jam.');
+    if(registration?.status!=='joined'||registration.repository?.id!==payload.publication.repositoryId||registration.repository.ownerId!==actor.id)
+      fail(409,'Use the public repository linked to your Game Jam registration.');
+    if(payload.revision!==accepted.revision)fail(409,'Review and acknowledge the current event rules.');
+    const {submissionsOpenAt,submissionsCloseAt}=accepted.manifest.schedule;
+    if(!inWindow(time,submissionsOpenAt,submissionsCloseAt))fail(409,'Submissions are closed.');
+    return registration.repository;
+  }
+  async function mutateScoped(input,callScope,{joinChannel,verifyPublication}) {
+    keys(input,['id','actor','operationId','action','revision','reason','participantId','repositoryUrl','source','title','description','demoUrl','instructions','publication'],['id','actor','operationId','action']);
     const actor=actorIdentity(input.actor),op=operationId(input.operationId),{id,action}=input;
     const {id:ignoredId,actor:ignoredActor,operationId:ignoredOperation,...publicInput}=input;
     const payload=requestPayload(id,publicInput),payloadDigest=digest(payload);
+    if(payload.publication&&typeof verifyPublication!=='function')fail(403,'Submit your published game from Zero.');
     const legacyDigest=legacyRequestDigest(id,publicInput);
     // Read before expensive source verification so accepted retries still recover
     // if the source becomes unavailable or the deadline passes.
@@ -524,6 +591,9 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(rejected||previous)return rejected||previous;
     }
     if(!before)fail(404,'Jam not found.');
+    const activeReceipt=payload.publication&&activePublicationReceipt(before,actor,payload);
+    if(activeReceipt)return commitLoop(id,actor,op,payloadDigest,null,{legacyDigest,callScope,recoverOnly:true,publicationPayload:payload});
+    if(action==='join')assertJoinChannel(before.accepted,joinChannel);
     if(action==='pick-winner'&&before.creator.id!==actor.id)fail(403,'Only the host can pick a winner.');
     if((REVIEW.has(action)||MODERATION.has(action))&&!maintainers.has(actor.id)&&!(action==='cancel'&&canCancelOwnJam(before,actor)))fail(403,'A Zero maintainer must perform this action.');
     if(action==='withdraw-entry'&&!maintainers.has(actor.id)&&before.creator.id!==actor.id)fail(403,'Only the host or a Zero maintainer can remove this entry.');
@@ -537,15 +607,24 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     }
     if(action==='submit'&&payload.source)verified=await source({...payload.source,actor,manifest:false},callScope);
     if(action==='submit'&&!payload.source) {
-      const registered=before.registrations[actor.id]?.repository;
-      if(!before.accepted?.manifest.schedule.galleryRevealAt||!registered)fail(409,'Join this showcase with your public project repository first.');
+      const registered=payload.publication?requirePublishedSubmission(before,actor,payload,currentTime(now)):before.registrations[actor.id]?.repository;
+      if(!registered||(!payload.publication&&!before.accepted?.manifest.schedule.galleryRevealAt))
+        fail(409,'Join this showcase with your public project repository first.');
       if(typeof verifyRepository!=='function')fail(503,'The public project repository could not be verified.');
       const current=participantRepositoryData((await safeCall(()=>callScope.run(()=>verifyRepository({repositoryId:registered.id,actor}))))?.repository,actor);
       if(current.id!==registered.id)fail(403,'The linked repository is no longer available under your account.');
-      if(typeof pagesBindingReader!=='function')fail(503,'The project Pages association could not be verified. Retry with the same operation ID.');
-      const receipt=await safeCall(()=>callScope.run(()=>pagesBindingReader({url:`https://github.com/${current.fullName}`,id:current.id,ownerId:current.ownerId},payload.demoUrl,{signal:callScope.signal})));
-      if(receipt?.status!=='verified')fail(503,'The project Pages association could not be verified. Retry with the same operation ID.');
-      pagesVerification=pagesVerificationData({pagesUrl:receipt.pagesUrl,repositoryId:receipt.repositoryId,ownerId:receipt.ownerId,verifiedAt:new Date(currentTime(now)).toISOString()},current,payload.demoUrl);
+      if(payload.publication) {
+        const checked=await safeCall(()=>callScope.run(()=>verifyPublication(payload.publication,current,{signal:callScope.signal})));
+        if(checked?.pagesUrl!==payload.publication.pagesUrl)
+          fail(503,'The live Game Jam build could not be verified. Retry with the same operation ID.');
+        pagesVerification=pagesVerificationData({pagesUrl:checked.pagesUrl,repositoryId:current.id,ownerId:current.ownerId,
+          verifiedAt:new Date(currentTime(now)).toISOString()},current,payload.publication.pagesUrl);
+      } else {
+        if(typeof pagesBindingReader!=='function')fail(503,'The project Pages association could not be verified. Retry with the same operation ID.');
+        const receipt=await safeCall(()=>callScope.run(()=>pagesBindingReader({url:`https://github.com/${current.fullName}`,id:current.id,ownerId:current.ownerId},payload.demoUrl,{signal:callScope.signal})));
+        if(receipt?.status!=='verified')fail(503,'The project Pages association could not be verified. Retry with the same operation ID.');
+        pagesVerification=pagesVerificationData({pagesUrl:receipt.pagesUrl,repositoryId:receipt.repositoryId,ownerId:receipt.ownerId,verifiedAt:new Date(currentTime(now)).toISOString()},current,payload.demoUrl);
+      }
       verified={repository:current};
     }
     return commitLoop(id,actor,op,payloadDigest,(next,time,stamp)=>{
@@ -589,11 +668,12 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       }
       if(!next.accepted||next.moderation.status!=='active')fail(409,'Official participation is not active for this jam.');
       const accepted=next.accepted, schedule=accepted.manifest.schedule;
+      if(action==='join')assertJoinChannel(accepted,joinChannel);
       if((action==='join'||action==='submit')&&payload.revision!==accepted.revision)fail(409,'Review and acknowledge the current event rules.');
       const registration=next.registrations[actor.id];
       if(action==='join') {
         if(!inWindow(time,schedule.registrationOpensAt,schedule.registrationClosesAt))fail(409,'Registration is closed.');
-        if(schedule.galleryRevealAt&&!joinedRepository)fail(400,'Choose your public project repository to join.');
+        if((joinChannel==='editor'||schedule.galleryRevealAt)&&!joinedRepository)fail(400,'Choose your public project repository to join.');
         if(registration?.repository&&joinedRepository&&registration.repository.id!==joinedRepository.id)fail(409,'This registration is already linked to a different repository.');
         if(!registration&&Object.keys(next.registrations).length>=bound.participants)fail(429,`This jam has reached its capacity of ${bound.participants} participants.`);
         next.registrations[actor.id]={id:actor.id,login:actor.login,status:'joined',revision:accepted.revision,joinedAt:registration?.joinedAt||stamp,updatedAt:stamp,...(joinedRepository?{repository:joinedRepository}:registration?.repository?{repository:registration.repository}:{})};
@@ -601,16 +681,23 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       }
       if(!registration||registration.status!=='joined')fail(409,'Join this jam before changing an entry.');
       if(action==='submit') {
+        if(payload.publication)requirePublishedSubmission(next,actor,payload,time);
         if(!inWindow(time,schedule.submissionsOpenAt,schedule.submissionsCloseAt))fail(409,'Submissions are closed.');
         if(schedule.galleryRevealAt&&payload.source)fail(400,'Showcase entries use the live project linked when you joined.');
         if(schedule.galleryRevealAt&&(!pagesVerification||Date.parse(pagesVerification.verifiedAt)>=Date.parse(schedule.submissionsCloseAt)))fail(409,'Verify and submit your GitHub Pages project before submissions close.');
-        if(!schedule.galleryRevealAt&&!payload.source)fail(400,'Choose an exact source commit.');
+        if(!schedule.galleryRevealAt&&!payload.source&&!payload.publication)fail(400,'Choose an exact source commit.');
         if(registration.repository&&verified.repository.id!==registration.repository.id)fail(409,'Use the repository linked when you joined.');
         const history=next.entries[actor.id]||[];
         // Reserve the final bounded history slot for participant withdrawal or
         // maintainer removal, including after the ordinary entry deadline.
         if(history.length>=bound.entryHistory-1)fail(429,'This entry has reached its submission revision capacity.');
-        const entry={participantId:actor.id,login:actor.login,title:payload.title,description:payload.description,demoUrl:payload.demoUrl,instructions:payload.instructions,repository:verified.repository,...(pagesVerification?{pagesVerification}:{}),submittedAt:stamp,status:'active',eventRevision:accepted.revision,revision:digest({actor:actor.id,operationId:op,payload}),previousRevision:history.at(-1)?.revision||null};
+        const authored=payload.publication?history.findLast(item=>typeof item.title==='string'):payload;
+        const project=verified.repository;
+        const repository=payload.publication&&!schedule.galleryRevealAt?{...project,commit:payload.publication.commit}:project;
+        const entry={participantId:actor.id,login:actor.login,title:authored?.title??project.fullName.split('/')[1],
+          description:authored?.description??'',demoUrl:payload.publication?.pagesUrl??payload.demoUrl,
+          instructions:authored?.instructions??'',repository,...(pagesVerification?{pagesVerification}:{}),submittedAt:stamp,status:'active',
+          eventRevision:accepted.revision,revision:digest({actor:actor.id,operationId:op,payload}),previousRevision:history.at(-1)?.revision||null};
         history.push(entry);next.entries[actor.id]=history;registration.revision=accepted.revision;registration.login=actor.login;
         return {status:'submitted',revision:entry.revision};
       }
@@ -622,7 +709,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       }
       if(action==='leave') {registration.status='left';registration.updatedAt=stamp;}
       return {status:action==='leave'?'left':'withdrawn'};
-    },{safetyAction:SAFETY.has(action)?action:undefined,legacyDigest,callScope,enforceOrganizerSlot:action==='approve'||action==='resume',
+    },{safetyAction:SAFETY.has(action)?action:undefined,legacyDigest,callScope,publicationPayload:payload.publication?payload:undefined,
+      enforceOrganizerSlot:action==='approve'||action==='resume',
       updateEventTimestamp:action!=='pick-winner'});
   }
   async function settlement(input) {
@@ -661,5 +749,5 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     }
     fail(409,'Official records changed repeatedly. Keep the earlier request and retry closing it.');
   }
-  return {list,listSummaries,read,readOverview,readModeration,readWinnerSelection,readPage,propose,mutate,settle:settlement};
+  return {list,listSummaries,read,readOverview,projectDestination,readModeration,readWinnerSelection,readPage,propose,mutate,settle:settlement};
 }
