@@ -73,7 +73,7 @@ test('default local authority shares a real PostgreSQL registry across authentic
   response=await postJamActionResponse(post('student',action,approval),id,options);assert.equal(response.status,403);
   assert.equal(proposal.status,'approved');
   const desktop=new Request(config.origin+`/api/desktop/jams/${id}/join`,{method:'POST',headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+studentToken,'Content-Type':'application/json'},
-    body:JSON.stringify({operationId:'pg-http-join-0001',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'})});
+    body:JSON.stringify({operationId:'pg-http-join-0001',repositoryId:'202',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'})});
   response=await postDesktopJamJoinResponse(desktop,id,options);assert.equal(response.status,200,await response.clone().text());
   response=await postJamActionResponse(post('student',action,{operationId:'pg-http-submit-0001',action:'submit',revision:proposal.revision,title:'Project',description:'Synthetic',demoUrl:'https://student.github.io/project/'}),id,options);assert.equal(response.status,200,await response.clone().text());
   const entryRevision=(await response.json()).revision;

@@ -17,10 +17,10 @@ export function requestPayload(scope,input) {
     return {action:'propose',repositoryUrl:url,commit:input.commit};
   }
   if(typeof scope!=='string'||!ID.test(scope))fail(400,'Invalid request scope.');
-  keys(input,['action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl','participationRevision','publication'],['action']);
+  keys(input,['action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl','repositoryId','participationRevision','publication'],['action']);
   const {action}=input;
   if(!ACTIONS.includes(action))fail(400,'Unknown jam action.');
-  const allowed=['action',...(PARTICIPATION.has(action)?['participationRevision']:[]),...(REVIEW.has(action)?['revision','reason']:MODERATION.has(action)?['reason']:action==='withdraw-entry'?['participantId','reason']:action==='pick-winner'?['participantId','revision']:action==='join'?['revision','repositoryUrl','demoUrl']:action==='submit'?['revision',...(Object.hasOwn(input,'publication')?['publication']:['source','title','description','demoUrl','instructions'])]:[])];
+  const allowed=['action',...(PARTICIPATION.has(action)?['participationRevision']:[]),...(REVIEW.has(action)?['revision','reason']:MODERATION.has(action)?['reason']:action==='withdraw-entry'?['participantId','reason']:action==='pick-winner'?['participantId','revision']:action==='join'?['revision','repositoryUrl','repositoryId','demoUrl']:action==='submit'?['revision',...(Object.hasOwn(input,'publication')?['publication']:['source','title','description','demoUrl','instructions'])]:[])];
   keys(input,allowed,['action']);
   const payload={action};
   // Preserve historical participation bindings for recovery and settlement;
@@ -31,6 +31,11 @@ export function requestPayload(scope,input) {
   }
   if(REVIEW.has(action)||action==='join'||action==='submit') {if(!/^[a-f0-9]{64}$/.test(input.revision||''))fail(400,'A reviewed event revision is required.');payload.revision=input.revision;}
   if(action==='join'&&Object.hasOwn(input,'repositoryUrl'))payload.repositoryUrl=repositoryUrl(input.repositoryUrl).url;
+  if(action==='join'&&Object.hasOwn(input,'repositoryId')) {
+    if(!payload.repositoryUrl||typeof input.repositoryId!=='string'||!ACCOUNT.test(input.repositoryId)||input.repositoryId.trim()!==input.repositoryId)
+      fail(400,'Choose a Game Jam and your public GitHub repository in Zero.');
+    payload.repositoryId=input.repositoryId;
+  }
   // Keep old repo+demo Join digests recoverable; new admission creates no entry.
   if(action==='join'&&Object.hasOwn(input,'demoUrl'))payload.demoUrl=httpsUrl(input.demoUrl);
   if(MODERATION.has(action)||['request-changes','reject','withdraw-entry'].includes(action))payload.reason=text(input.reason,SAFETY.has(action)?256:2000);

@@ -12,9 +12,9 @@ const JAM = {
   schedule:{registrationClosesAt:'2026-11-25T12:00:00Z',submissionsCloseAt:'2026-11-30T12:00:00Z'}
 };
 
-function fixture({choose='new',events=[JAM],send,registration=null,hasRegistrationSpace=true,openError}={}) {
+function fixture({choose='new',events=[JAM],send,registration=null,hasRegistrationSpace=true,openError,lookup}={}) {
   const ticket = {session:{accountId:'123',accessToken:'ghu_test'}};
-  const calls = {picks:[],prompts:[],rules:[],writes:[],urls:[],status:[],open:[],newProject:0,existing:0};
+  const calls = {picks:[],prompts:[],rules:[],writes:[],urls:[],status:[],open:[],newProject:0,existing:0,lookups:[]};
   const saved = new Map();
   let chooseJam;
   const authentication = {
@@ -34,17 +34,22 @@ function fixture({choose='new',events=[JAM],send,registration=null,hasRegistrati
     projects:{async newProject({preparedTicket,onCloned}) {
       assert.equal(preparedTicket,ticket);
       calls.newProject++;
-      await onCloned({repositoryUrl:REPO,projectPath:'/projects/moon-game'});
+      await onCloned({repositoryUrl:REPO,repositoryId:'456',projectPath:'/projects/moon-game'});
     }},
     projectPicker:{async choose(options) {
       assert.deepEqual(options,{publicRepositoriesOnly:true,...(registration?.repository?.id ?
         {repositoryId:registration.repository.id} : {standaloneOnly:true})});
       calls.existing++;
-      return {repositoryUrl:REPO};
+      return {repositoryUrl:REPO,repositoryId:'456'};
     }},
-    async openGameJamProject({ticket:provided,repositoryUrl,preferredPath}) {
+    repositories:{async readOwnedRepository(url,options) {
+      calls.lookups.push(url);assert.equal(options.ticket,ticket);
+      if(lookup)return lookup(url);
+      throw Object.assign(Error('Renamed repository'),{code:'repository-not-selected'});
+    }},
+    async openGameJamProject({ticket:provided,repositoryUrl,repositoryId,preferredPath}) {
       assert.equal(provided,ticket);
-      calls.open.push({repositoryUrl,preferredPath});
+      assert.equal(repositoryId,'456');calls.open.push({repositoryUrl,preferredPath});
       if (openError) throw openError;
     },
     globalState:{keys:()=>[...saved.keys()],get:key=>saved.get(key),update:async(key,value)=>saved.set(key,value)},
@@ -91,7 +96,7 @@ test('Join a Game Jam reviews the rules, defaults to New project and registers i
   assert.equal(f.calls.newProject,1);
   assert.equal(f.calls.existing,0);
   assert.deepEqual(f.calls.open,[]);
-  assert.deepEqual(f.calls.writes,[{operationId:f.calls.writes[0].operationId,revision:REVISION,repositoryUrl:REPO}]);
+  assert.deepEqual(f.calls.writes,[{operationId:f.calls.writes[0].operationId,revision:REVISION,repositoryUrl:REPO,repositoryId:'456'}]);
   assert.deepEqual(f.calls.status,['Joined Toast to the Moon']);
 });
 
@@ -187,4 +192,35 @@ test('a pending join remains recoverable while a student joins another Game Jam'
   assert.deepEqual(f.calls.urls.map(url=>new URL(url).pathname),[
     '/api/desktop/jams/jam-42/join','/api/desktop/jams/jam-43/join'
   ]);
+});
+
+test('reopens an unchanged registered repository directly by its authoritative name and ID',async()=>{
+  const f=fixture({registration:{status:'joined',repository:{id:'456',fullName:'student/moon-game'}},
+    lookup:url=>({id:456,html_url:url,private:false})});
+  await f.select();
+  assert.deepEqual(f.calls.lookups,[REPO]);
+  assert.equal(f.calls.existing,0);
+  assert.deepEqual(f.calls.open,[{repositoryUrl:REPO,preferredPath:undefined}]);
+});
+
+test('an older retry without an immutable ID reviews the rules and requires a new project choice',async()=>{
+  const f=fixture({choose:'existing'});
+  const oldOperation='a'.repeat(36);
+  f.saved.set('zero.gameJam.pending:123:'+JAM.id,{id:JAM.id,title:JAM.title,revision:REVISION,operationId:oldOperation,repositoryUrl:REPO});
+  await f.select();
+  assert.equal(f.calls.writes.length,0);
+  assert.equal(f.reviewDetails('123').title,JAM.title);
+  await f.continueJoin();
+  assert.equal(f.calls.existing,1);
+  assert.notEqual(f.calls.writes[0].operationId,oldOperation);
+  assert.equal(f.calls.writes[0].repositoryId,'456');
+});
+
+test('a replaced registered full name falls back to discovery of only the original ID',async()=>{
+  const f=fixture({registration:{status:'joined',repository:{id:'456',fullName:'student/old-moon-game'}},
+    lookup:url=>({id:789,html_url:url,private:false})});
+  await f.select();
+  assert.deepEqual(f.calls.lookups,['https://github.com/student/old-moon-game']);
+  assert.equal(f.calls.existing,1);
+  assert.deepEqual(f.calls.open,[{repositoryUrl:REPO,preferredPath:undefined}]);
 });

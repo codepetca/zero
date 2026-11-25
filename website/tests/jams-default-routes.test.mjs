@@ -123,7 +123,7 @@ for(const mode of ['local','staging'])test(`actual Next entrypoints share ${mode
   let response=await call('api/jams/proposals/route.ts','POST','/api/jams/proposals',{user:'creator',body:{operationId:'route-proposal-001',manifest}});
   assert.equal(response.status,200);const proposal=await response.json(),id=proposal.eventId;
   assert.equal(proposal.status,'approved');
-  const joined=await Promise.all(['student1','student2'].map(user=>call('api/desktop/jams/[id]/join/route.ts','POST',`/api/desktop/jams/${id}/join`,{user,desktop:true,body:{operationId:`route-join-${user}`,revision:proposal.revision,repositoryUrl:`https://github.com/${user}/project`}},{id})));
+  const joined=await Promise.all(['student1','student2'].map(user=>call('api/desktop/jams/[id]/join/route.ts','POST',`/api/desktop/jams/${id}/join`,{user,desktop:true,body:{operationId:`route-join-${user}`,repositoryId:user==='student1'?'1033':'1034',revision:proposal.revision,repositoryUrl:`https://github.com/${user}/project`}},{id})));
   assert.ok(joined.every(value=>value.status===200));assert.deepEqual(tokens.sort(),[['33','ghu_student_token_111'],['34','ghu_student_token_222']]);assert.equal(builds,1);
   const readDesktop=async user=>call('api/desktop/jams/[id]/join/route.ts','GET',`/api/desktop/jams/${id}/join`,{user,desktop:true},{id});
   const studentStatus=await readDesktop('student1');
@@ -150,7 +150,7 @@ for(const mode of ['local','staging'])test(`actual Next entrypoints share ${mode
   outage=true;
   const cases=[
     ['api/jams/route.ts','GET','/api/jams'],['api/jams/[id]/route.ts','GET',`/api/jams/${id}`,{}, {id}],['hub/jams/[id]/panel/route.ts','GET',`/hub/jams/${id}/panel`,{}, {id}],
-    ['api/desktop/jams/[id]/join/route.ts','POST',`/api/desktop/jams/${id}/join`,{desktop:true,body:{operationId:'route-outage-join',revision:proposal.revision,repositoryUrl:'https://github.com/student1/project'}},{id}],
+    ['api/desktop/jams/[id]/join/route.ts','POST',`/api/desktop/jams/${id}/join`,{desktop:true,body:{operationId:'route-outage-join',repositoryId:'1033',revision:proposal.revision,repositoryUrl:'https://github.com/student1/project'}},{id}],
     ['api/jams/proposals/route.ts','POST','/api/jams/proposals',{user:'creator',body:{operationId:'route-outage-propose',manifest:hostedManifest()}}],
     ['api/jams/settlements/route.ts','POST','/api/jams/settlements',{body:{operationId:'route-outage-settle',scope:id,payload:{action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/student1/project'}}}],
     ['api/hub/discovery/route.ts','GET','/api/hub/discovery'],['api/hub/projects/route.ts','GET',`/api/hub/projects?kind=game&ids=${sources.id}`],['api/hub/metrics/route.ts','GET',`/api/hub/metrics?kind=game&ids=${sources.id}`],

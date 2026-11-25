@@ -61,7 +61,9 @@ test('the Game Jam picker shows eligible public repositories without recent fold
   assert.deepEqual(f.calls,[]);
   assert.deepEqual(f.picker.items.filter(item=>item.action).map(item=>item.repositoryUrl),[publicRepo.html_url]);
   f.select(f.picker.items.at(-1));
-  assert.equal((await pending).repositoryUrl,publicRepo.html_url);
+  const selected=await pending;
+  assert.equal(selected.repositoryUrl,publicRepo.html_url);
+  assert.equal(selected.repositoryId,String(publicRepo.id));
 });
 test('account changes dismiss private results and abort discovery without a selection',async()=>{
   let options,finish;

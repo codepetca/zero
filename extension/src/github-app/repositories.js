@@ -140,18 +140,21 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
   async function readOwnedRepository(repositoryUrl,{ticket,signal}) {
     configured();
     const parsed=core.parseRepositoryUrl(repositoryUrl);
-    const value=await api(ticket,'GET','/repos/'+parsed.page.slice('https://github.com/'.length),{signal});
+    let value;
+    try {value=await api(ticket,'GET','/repos/'+parsed.page.slice('https://github.com/'.length),{signal});}
+    catch(error) {
+      if(error.status===404)throw setupFailure('GitHub could not find this repository through Zero. Check the URL and Zero’s selected repositories.', 'repository-not-selected',parsed.page);
+      throw error;
+    }
     return repository(value,parsed,ticket.session.accountId);
   }
   async function access(repositoryUrl,{ticket,permissions={contents:'write'},signal}={}) {
     configured(); cancelled(signal);
-    const parsed=core.parseRepositoryUrl(repositoryUrl);
+    const {page}=core.parseRepositoryUrl(repositoryUrl);
     ticket ||= await authentication.capture();
     await current(ticket);
     const installed=await installation(ticket,permissions,signal);
-    let repo;
-    try {repo=await readOwnedRepository(repositoryUrl,{ticket,signal});}
-    catch(error){if(error.status===404)throw setupFailure('GitHub could not find this repository through Zero. Check the URL and Zero’s selected repositories.', 'repository-not-selected',parsed.page);throw error;}
+    const repo=await readOwnedRepository(page,{ticket,signal});
     if (permissions.contents==='write' && repo.permissions?.push!==true) throw failure('Your GitHub account needs permission to push to this repository.', 'permission-required');
     await member(ticket,installed,repo,signal);
     await current(ticket);

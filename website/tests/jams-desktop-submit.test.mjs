@@ -11,7 +11,7 @@ const repositoryId='202',repositoryUrl='https://github.com/student/project',page
 const commit='b'.repeat(40),runId='30';
 const proofUrl=new URL('zero-source-sha.txt',pagesUrl).href;
 const workflowRun={id:Number(runId),repository:{id:Number(repositoryId)},head_sha:commit,head_branch:'main',
-  path:'.github/workflows/zero-web.yml',event:'workflow_dispatch',status:'completed',conclusion:'success',created_at:'2030-01-02T12:00:00.000Z'};
+  path:'.github/workflows/zero-web.yml@main',event:'workflow_dispatch',status:'completed',conclusion:'success',created_at:'2030-01-02T12:00:00.000Z'};
 
 function desktopRequest(path,{body,headers}={}) {
   return new Request(origin+path,{method:body?'POST':'GET',headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+token,
@@ -20,7 +20,7 @@ function desktopRequest(path,{body,headers}={}) {
 async function register(service,actor,operationId,manifest=hostedManifest()) {
   const event=await service.propose({actor,operationId,manifest});
   await service.mutate({id:event.eventId,actor:participant,operationId:'join-'+operationId,
-    action:'join',revision:event.revision,repositoryUrl},{joinChannel:'editor'});
+    action:'join',revision:event.revision,repositoryUrl,repositoryId},{joinChannel:'editor'});
   return event;
 }
 function transport(account,github) {
@@ -63,7 +63,7 @@ test('destination selects only the account’s linked active Game Jams and never
 test('destination includes approved rules when the registration acknowledged an older revision',async()=>{
   const f=fixture(),{service}=f;
   const revision=await approved(f);
-  await service.mutate({id:'jam-101',actor:participant,operationId:'join-old-event',action:'join',revision,repositoryUrl},{joinChannel:'editor'});
+  await service.mutate({id:'jam-101',actor:participant,operationId:'join-old-event',action:'join',revision,repositoryUrl,repositoryId},{joinChannel:'editor'});
   const next=await legacyProposal(f,{operationId:'revised-event',commit:NEXT_COMMIT,data:manifest({rules:'Revised rules',eligibility:'Revised eligibility'})});
   await service.mutate({id:'jam-101',actor:maintainer,operationId:'approve-revised-event',action:'approve',revision:next.revision});
   const {destination}=await service.projectDestination(repositoryId,participant);
@@ -168,6 +168,54 @@ test('concurrent writes preserve the entry revision precondition and unchanged t
   assert.equal(visits,2);
   assert.equal((await store.snapshot()).revision,before);
   assert.equal((await store.read(event.eventId)).state.entries[participant.id].length,1);
+});
+
+test('an exact newer live run settles an unconfirmed receipt before an in-flight old write can apply',async()=>{
+  const {service,store}=fixture();
+  const event=await register(service,creator,'superseded-event');
+  const operationId='superseded-publication';
+  const body={operationId,revision:event.revision,repositoryId,pagesUrl,commit,runId,entryRevision:''};
+  const newerCommit='c'.repeat(40),newerId='31';
+  const newerRun={...workflowRun,id:Number(newerId),head_sha:newerCommit,created_at:'2030-01-02T12:01:00.000Z'};
+  let marker=commit+'\n'+runId,observedNewer={...newerRun,head_branch:'feature'},calls=0;
+  const options={env,service,fetchImpl:transport(participant,url=>{
+    calls++;
+    if(url.endsWith('/pages'))return Response.json({html_url:pagesUrl,public:true,build_type:'workflow'});
+    if(url.endsWith('/actions/runs/'+runId))return Response.json(workflowRun);
+    assert.ok(url.endsWith('/actions/runs/'+newerId));
+    return Response.json(observedNewer);
+  }),readPublishedMarker:async()=>new Response(marker)};
+  const submit=(payload=body)=>postDesktopJamSubmitResponse(desktopRequest('/api/desktop/jams/'+event.eventId+'/submit',
+    {body:payload}),event.eventId,options);
+  let reachedWrite,releaseWrite;
+  const writing=new Promise(resolve=>{reachedWrite=resolve;});
+  const writeReleased=new Promise(resolve=>{releaseWrite=resolve;});
+  store.beforeCas=async id=>{if(id===event.eventId){reachedWrite();await writeReleased;}};
+  const inFlight=submit();
+  await writing;
+  try {
+    marker=newerCommit+'\n'+newerId;
+    assert.equal((await submit()).status,503,'another branch is insufficient proof of supersession');
+    observedNewer={...newerRun,created_at:workflowRun.created_at};
+    assert.equal((await submit()).status,503,'the newly observed run must be newer');
+    assert.deepEqual((await store.snapshot()).settlements.operations,{});
+    observedNewer=newerRun;
+    const closed=await submit();
+    assert.equal(closed.status,409);
+    assert.match((await closed.json()).error,/A newer build is live/);
+    const settled=(await store.snapshot()).settlements.operations;
+    assert.equal(settled[`${event.eventId}:${participant.id}:${operationId}`].operationId,operationId);
+  } finally {
+    releaseWrite();
+  }
+  assert.equal((await inFlight).status,409);
+  assert.equal((await service.readOverview(event.eventId,participant)).entry,null);
+  const checkedCalls=calls;
+  assert.equal((await submit()).status,409);
+  assert.equal(calls,checkedCalls,'the durable terminal result does not need another Pages probe');
+  const current=await submit({...body,operationId:'publish-current-build',commit:newerCommit,runId:newerId});
+  assert.equal(current.status,200);
+  assert.equal((await current.json()).status,'submitted');
 });
 
 test('retry of an unrecorded no-op cannot reinstate an entry withdrawn in the browser',async()=>{

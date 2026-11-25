@@ -14740,8 +14740,15 @@ deadlines panel in light and dark themes. The browser preview exercised the
 Project menu and checked the join action, rules, deadline text and recent
 project badge with a sample jam.
 
-The focused editor suite passed 376 tests with one skip. The authority suite
-passed 722 tests with seven optional integration skips.
-The final website copy and submission checks passed 58 tests, and website
-TypeScript passed. These checks used controlled data. A live account, native
-folder handoff, and production Pages submission remain separate acceptance.
+Independent GPT-6.2 Astra and GPT-6.2 Sol reviews at high reasoning covered the
+initial `b9c7dd4c8` candidate. The fixes bind the selected repository by ID,
+preserve the reviewed publishing destination, recover the exact approved Jam
+deployment, settle a superseded Pages attempt, and keep browser registration
+available until editor rollout is confirmed.
+
+The editor remediation suite passed 436 tests with one filesystem skip. A
+separate browser-repair and publishing suite passed 142 tests with one skip
+after restoring connected-repository fixtures for three existing CI scenarios.
+The authority suite passed 725 tests with seven optional integration skips.
+Website TypeScript passed. These checks used controlled data. A live account,
+native folder handoff, and production Pages submission remain separate acceptance.

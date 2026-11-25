@@ -545,11 +545,11 @@ function activate(context, services = {}) {
   projectPicker=createProjectPicker(vscode,{authentication:auth,repositories,history:recentProjects,isGameJamProject,active:()=>!disposed,report:text=>output.appendLine(text)});
   const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,prepare:prepareGitHub,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
   gameJam=createGameJamPublish({authentication:auth,repositories,globalState:context.globalState,onChange:refresh,request:services.gameJamRequest});
-  const {openGameJamProject}=createGameJamProjectOpener({vscode,authentication:auth,project,recentProjects,projectFolders,active:()=>!disposed});
-  const joinGameJam = createGameJamJoin({vscode,authentication:auth,projects:githubProjects,projectPicker,
+  const {openGameJamProject}=createGameJamProjectOpener({vscode,authentication:auth,repositories,project,recentProjects,projectFolders,active:()=>!disposed});
+  const joinGameJam = createGameJamJoin({vscode,authentication:auth,projects:githubProjects,projectPicker,repositories,
     openGameJamProject,globalState:context.globalState,active:()=>!disposed,report,request:services.gameJamRequest,
-    onJoined:async({account,repository:joinedRepository,id})=>{
-      await gameJam.rememberJoined(account,joinedRepository,id);
+    onJoined:async({account,repository:joinedRepository,repositoryId,id})=>{
+      await gameJam.rememberJoined(account,joinedRepository,id,repositoryId);
       startPage?.refresh({recent:true});
       if (auth.accountId===account && repository.toLowerCase()===joinedRepository.toLowerCase()) {
         refreshJamDestination(true);refresh();
@@ -1769,7 +1769,7 @@ function activate(context, services = {}) {
       if(native && await fs.realpath(native.rootUri.fsPath)===root)await native.status();
     } catch(error) {output.appendLine(`Source Control refresh: ${error.message}`);}
   }
-  async function uploadProject(uploadAuth = auth, {forPublish=false,expectedRoot,expectedPlan,expectedAccount,expectedJamTarget,assertPublishCurrent=async()=>{},assertPublishCurrentNow=()=>{}} = {}) {
+  async function uploadProject(uploadAuth = auth, {forPublish=false,expectedRoot,expectedPlan,expectedAccount,expectedPublishTarget,assertPublishCurrent=async()=>{},assertPublishCurrentNow=()=>{}} = {}) {
       if (isBusy()) return;
       await settleBranchCheck();if(isBusy())return;
       const missing=observedMissing(projectRoot);
@@ -1789,8 +1789,8 @@ function activate(context, services = {}) {
         const requireSavedUpload=async()=>{if((await dirtyProjectDocuments(vscode,root)).length)throw new Error('Save or undo your project editor changes before uploading. Your edits are kept.');};
         if(!forPublish)await requireSavedUpload();
         const initialTicket = await uploadAuth.capture();
-        const jamTargetChanged=()=>Error('The GitHub account or repository changed. Choose Publish to Jam again.');
-        if(expectedJamTarget && String(initialTicket.session.accountId)!==expectedJamTarget.account)throw jamTargetChanged();
+        const publishTargetChanged=()=>Error(`The GitHub account or repository changed. Choose ${expectedPublishTarget.label} again.`);
+        if(expectedPublishTarget && String(initialTicket.session.accountId)!==expectedPublishTarget.account)throw publishTargetChanged();
         if(forPublish && (!expectedPlan || initialTicket.session.accountId!==expectedAccount))throw new Error('The publishing files or GitHub account changed. Choose Publish & open app again to review them.');
         if (forPublish && !(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the upload.');
         const assertCurrentProject=async()=>{
@@ -1801,7 +1801,7 @@ function activate(context, services = {}) {
         };
         await assertCurrentProject();
         const plan = await github.prepareUpload(root);
-        if(expectedJamTarget && plan.page?.toLowerCase()!==expectedJamTarget.repository.toLowerCase())throw jamTargetChanged();
+        if(expectedPublishTarget && plan.page?.toLowerCase()!==expectedPublishTarget.repository.toLowerCase())throw publishTargetChanged();
         if(missing){
           assertMissingPlan(missing,plan);
           if(initialTicket.session.accountId!==missing.account||initialTicket.session.id!==missing.session)throw new Error('The GitHub account or session changed. Check branch creation again; your edits are kept.');
@@ -1813,8 +1813,8 @@ function activate(context, services = {}) {
         if(expectedPlan && ['root','remote','branch','head','status','fingerprint','repositoryIdentity'].some(key=>plan[key]!==expectedPlan[key]))throw new Error('The project changed before upload. Review your changes, then choose Publish & open app again.');
         selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,repositories,repositoryUrl:plan.page,assertCurrentProject});
         const ticket=selectedAuth.ticket, activeAuth=selectedAuth.authentication;
-        if(expectedJamTarget && (String(ticket.session.accountId)!==expectedJamTarget.account ||
-           String(selectedAuth.identity.repositoryId)!==expectedJamTarget.repositoryId))throw jamTargetChanged();
+        if(expectedPublishTarget && (String(ticket.session.accountId)!==expectedPublishTarget.account ||
+           String(selectedAuth.identity.repositoryId)!==expectedPublishTarget.repositoryId))throw publishTargetChanged();
         uploadAccount=ticket.session.accountId;
         if(forPublish && uploadAccount!==expectedAccount)throw new Error('The GitHub account changed. Choose Publish & open app again to review it.');
         uploadProgress = ''; refresh();

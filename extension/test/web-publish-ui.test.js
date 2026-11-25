@@ -15,7 +15,7 @@ function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/s
   vscode.window.showWarningMessage=vscode.window.showInformationMessage;
   const auth={capture:async()=>({session:{accountId:'1'}}),assertCurrent:async()=>{},assertCurrentNow:()=>({accountId:'1'})};
   const repositories={access:async(url,options)=>{authCalls.push({url,...options});}};
-  const review=()=>({status:'review',setup,upgrade:upgrade?{files:['.zero-web/README.md','.zero-web/owner.json'],previousSha:sha}:undefined,repository:'https://github.com/student/game',repositoryId:24,publicUrl:'https://student.github.io/game/',sha,account:'1'});
+  const review=()=>({status:'review',root:active,setup,upgrade:upgrade?{files:['.zero-web/README.md','.zero-web/owner.json'],previousSha:sha}:undefined,repository:'https://github.com/student/game',repositoryId:24,publicUrl:'https://student.github.io/game/',sha,account:'1'});
   const calls=[];
   const uploadPlan={head:sha,fingerprint:'publishing-files'};
   const publisher={review:async()=>{calls.push('review');reviewed++;return review();},setup:async()=>{calls.push('setup');return {status:'upload-required',message:'Upload setup',uploadPlan};},publish:async()=>{calls.push('publish');published++;return {status:'pending',resume:{runId:42}};},check:async()=>{checks++;return {status:'live',url:'https://student.github.io/game/',sha,resume:{runId:42,sha,repository:'https://github.com/student/game',repositoryId:24}};}};
@@ -31,7 +31,8 @@ function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/s
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {api,auth,progress,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
-const linkedJam={id:'jam-42',title:'Toast to the Moon',revision:'b'.repeat(64),account:'1',
+const ordinaryTarget={root:'/student',account:'1',repository:'https://github.com/student/game',repositoryId:'24'};
+const linkedJam={root:'/student',id:'jam-42',entryRevision:'',title:'Toast to the Moon',revision:'b'.repeat(64),account:'1',
   repository:'https://github.com/student/game',repositoryId:'24',submissionsOpen:true,submissionsCloseAt:'2030-11-30T12:00:00Z'};
 
 test('Publish to Jam submits the verified Pages build and never replaces a ZeroHub listing',async t=>{
@@ -119,7 +120,7 @@ test('a pending deployment for an older repository can be forgotten before Jam p
 
 test('Jam setup upload pins the confirmed account and repository ID',async t=>{
   const h=fixture(t,{gameJam:{resolve:async()=>linkedJam,submit:async()=>assert.fail()},onUpload:options=>{
-    assert.deepEqual(options.expectedJamTarget,{account:'1',repository:'https://github.com/student/game',repositoryId:'24'});
+    assert.deepEqual(options.expectedPublishTarget,{root:'/student',account:'1',repository:'https://github.com/student/game',repositoryId:'24',label:'Publish to Jam'});
     throw Error('Native upload detected a replacement repository');
   }});
   h.setup=true;
@@ -147,7 +148,7 @@ test('an exception after submitting a live build is reported as unconfirmed',asy
 
 test('an uncertain Jam lookup can publish to Pages alone only after explicit consent',async t=>{
   const h=fixture(t,{listPublication:async()=>assert.fail('No automatic listing for a web-only fallback'),gameJam:{
-    resolve:async()=>{throw Object.assign(Error('Unavailable'),{code:'ZERO_JAM_STATUS_UNKNOWN'});}
+    resolve:async()=>{throw Object.assign(Error('Unavailable'),{code:'ZERO_JAM_STATUS_UNKNOWN',publishTarget:ordinaryTarget});}
   }});
   await h.api.publishAndOpen();
   assert.equal(h.published,0);
@@ -156,6 +157,50 @@ test('an uncertain Jam lookup can publish to Pages alone only after explicit con
   assert.equal(h.published,1);
   assert.equal(h.stored.get('zero.webPublish.lastLive').listingPending,undefined);
 });
+test('unlinked lookup aborts if repository identity changes before the publish review',async t=>{
+  const h=fixture(t,{gameJam:{resolve:async()=>ordinaryTarget}});
+  const original=h.publisher.review;
+  h.publisher.review=async()=>({...await original(),repositoryId:25});
+  await assert.rejects(h.api.publishAndOpen(),/account or repository changed/);
+  assert.equal(h.messages.length,0);
+  assert.equal(h.published,0);
+});
+
+test('web-only consent cannot carry over to a different repository after unavailable routing',async t=>{
+  let replaced=false;
+  const h=fixture(t,{gameJam:{
+    resolve:async()=>{throw Object.assign(Error('Unavailable'),{code:'ZERO_JAM_STATUS_UNKNOWN',publishTarget:ordinaryTarget});}
+  }});
+  h.vscode.window.showInformationMessage=async title=>{
+    assert.equal(title,'ZeroJams is unavailable.');
+    replaced=true;
+    return 'Publish to web only';
+  };
+  const original=h.publisher.review;
+  h.publisher.review=async()=>({...await original(),repositoryId:replaced?25:24});
+  await assert.rejects(h.api.publishAndOpen(),/account or repository changed/);
+  assert.equal(h.published,0);
+  assert.deepEqual(h.opened,[]);
+});
+
+test('ordinary consent for a previous same-name repository requires fresh review',async t=>{
+  const h=fixture(t,{gameJam:{resolve:async()=>ordinaryTarget}});
+  h.stored.set('zero.webPublish.approval',{...ordinaryTarget,repositoryId:'25',url:'https://student.github.io/game/'});
+  await h.api.publishAndOpen();
+  assert.equal(h.messages[0][0],'Publish app?');
+  assert.equal(h.published,0);
+});
+
+test('an ordinary lookup binds setup upload and final verification to the same identity',async t=>{
+  const h=fixture(t,{gameJam:{resolve:async()=>ordinaryTarget},onUpload:options=>{
+    assert.deepEqual(options.expectedPublishTarget,{...ordinaryTarget,label:'Publish & open app'});
+  }});
+  h.setup=true;
+  h.choices.push('Publish app');
+  assert.equal((await h.api.publish()).status,'live');
+  assert.equal(h.uploaded,1);
+});
+
 test('simulation publish never saves, authenticates, writes setup or calls publisher',async t=>{
   const h=fixture(t);h.simulation=true;const result=await h.api.publish();assert.equal(result.status,'simulated');assert.deepEqual(h.calls,[]);assert.deepEqual(h.authCalls,[]);assert.equal(h.busy,false);
 });
@@ -388,6 +433,71 @@ test('a reconnected repo does not resume or replace the old attempt',async t=>{
   assert.deepEqual(h.opened,[uncertainAction.action.url]);
   assert.deepEqual(h.calls,[]);
 });
+test('dispatch recovery preserves exact Jam consent and submits the saved Pages run once',async t=>{
+  let submissions=0;
+  const h=fixture(t,{gameJam:{resolve:async()=>linkedJam,submit:async(jam,live)=>{
+    assert.equal(jam,linkedJam);assert.equal(live.sha,uncertainStage.sha);assert.equal(live.resume.runId,41);
+    submissions++;return {status:'submitted'};
+  }}});
+  const stage={...uncertainStage,repositoryId:24};
+  const value={runId:41,repository:stage.repository,repositoryId:24,sha:stage.sha,staging:stage.staging};
+  h.choices.push('Publish to Jam');
+  h.publisher.publish=async(_review,{onStaging})=>{await onStaging(stage);return uncertainAction;};
+  assert.equal((await h.api.publishAndOpen()).status,'dispatch-uncertain');
+  assert.equal(h.stored.get('zero.webPublish.staging').jamConsent.dispatchTag,stage.staging.tag);
+  h.sha='c'.repeat(40);
+  h.publisher.restoreDispatch=async(_root,_stage,{onPending})=>{
+    await onPending(value);
+    assert.equal(h.stored.get('zero.webPublish.pending').jamConsent.sha,stage.sha);
+    return {status:'live',url:'https://student.github.io/game/',sha:stage.sha,resume:value};
+  };
+  assert.equal((await h.api.publishAndOpen()).jamSubmission.status,'submitted');
+  assert.equal(submissions,1);
+  assert.deepEqual(h.opened,[]);
+});
+
+test('a recovered deployment still in progress retains the exact Jam handoff across commands',async t=>{
+  let submissions=0;
+  const h=fixture(t,{gameJam:{resolve:async()=>linkedJam,submit:async(_jam,live)=>{
+    assert.equal(live.resume.runId,41);submissions++;return {status:'submitted'};
+  }}});
+  const stage={...uncertainStage,repositoryId:24};
+  const value={runId:41,repository:stage.repository,repositoryId:24,sha:stage.sha,staging:stage.staging};
+  h.stored.set('zero.webPublish.staging',{root:'/student',value:stage,jamConsent:{
+    ...linkedJam,dispatchTag:stage.staging.tag,pagesUrl:'https://student.github.io/game/',sha:stage.sha
+  }});
+  h.publisher.restoreDispatch=async(_root,_stage,{onPending})=>{
+    await onPending(value);
+    return {status:'pending',resume:value};
+  };
+  h.publisher.check=async()=>({status:'pending',resume:value});
+  assert.equal((await h.api.publishAndOpen()).status,'pending');
+  assert.equal(h.stored.get('zero.webPublish.pending').jamConsent.dispatchTag,stage.staging.tag);
+  h.publisher.restore=async()=>({status:'live',url:'https://student.github.io/game/',sha:stage.sha,resume:value});
+  assert.equal((await h.api.publishAndOpen()).jamSubmission.status,'submitted');
+  assert.equal(h.stored.has('zero.webPublish.pending'),false);
+  assert.equal(submissions,1);
+  assert.deepEqual(h.opened,[]);
+});
+
+test('legacy and revised Jam dispatch consent require a new explicit Publish to Jam',async t=>{
+  for(const legacy of [true,false])await t.test(legacy?'legacy receipt':'entry revision changed',async t=>{
+    const h=fixture(t,{gameJam:{resolve:async()=>linkedJam,submit:async()=>assert.fail('No current consent')}});
+    const stage={...uncertainStage,repositoryId:24};
+    const value={runId:41,repository:stage.repository,repositoryId:24,sha:stage.sha,staging:stage.staging};
+    h.stored.set('zero.webPublish.staging',{root:'/student',value:stage,...(legacy?{}:{jamConsent:{
+      ...linkedJam,entryRevision:'e'.repeat(64),dispatchTag:stage.staging.tag,pagesUrl:'https://student.github.io/game/',sha:stage.sha
+    }})});
+    h.publisher.restoreDispatch=async(_root,_stage,{onPending})=>{
+      await onPending(value);
+      return {status:'live',url:'https://student.github.io/game/',sha:stage.sha,resume:value};
+    };
+    assert.equal((await h.api.publishAndOpen()).jamSubmission.status,'review-required');
+    assert.match(h.states.at(-1),/Choose Publish to Jam to review and submit/);
+    assert.deepEqual(h.opened,[]);
+  });
+});
+
 test('failure to save recovered run keeps the staging receipt for another check',async t=>{
   const h=fixture(t),staged={root:'/student',value:uncertainStage},update=h.workspaceState.update;
   h.stored.set('zero.webPublish.staging',staged);

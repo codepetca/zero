@@ -229,8 +229,9 @@ standalone public Zero repository. The jam registration saves that repository
 before publishing. Zero opens the new project or a matching local checkout of
 the existing repository. If no local checkout is known, Zero offers
 **Clone & open**. Students can return later using **Open jam project** in the
-jam picker while the jam accepts entries. The website shows the rules and directs
-students to Zero for Game Jam registration. A linked project shows **Publish
+jam picker while the jam accepts entries. The website shows the rules and
+directs students to Zero once editor-only Game Jam registration is enabled.
+A linked project shows **Publish
 to Jam** in Run options. Zero publishes or finds the current GitHub Pages
 build, verifies it and submits it before the deadline. The editor confirms
 when ZeroJams accepts the entry. A pending submission can be checked again

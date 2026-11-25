@@ -5,8 +5,8 @@ const core = require('./core');
 
 // Recent-project metadata is only a hint: the repository currently on disk is
 // the authority. Never change or remove a student's local copy.
-function createGameJamProjectOpener({vscode,authentication,project,recentProjects,projectFolders,active=()=>true}) {
-  async function openGameJamProject({repositoryUrl,ticket,preferredPath}) {
+function createGameJamProjectOpener({vscode,authentication,repositories,project,recentProjects,projectFolders,active=()=>true}) {
+  async function openGameJamProject({repositoryUrl,repositoryId,ticket,preferredPath}) {
     const destination = core.parseRepositoryUrl(repositoryUrl).page;
     const checkAccount = async () => {
       if (!active()) throw new Error('Opening the Game Jam project was cancelled.');
@@ -28,12 +28,18 @@ function createGameJamProjectOpener({vscode,authentication,project,recentProject
           core.parseRepositoryUrl(pushUrl).remote === fetched.remote;
       } catch {return false;}
     }
+    const checkRepository = async () => {
+      await checkAccount();
+      const repo=await repositories.readOwnedRepository(destination,{ticket,signal:AbortSignal.timeout(20_000)});
+      if(String(repo.id)!==repositoryId || repo.private!==false)throw Error('The public Game Jam repository changed. Choose the project again.');
+      await checkAccount();
+    };
     await checkAccount();
     let current;
     try {current = await project();} catch { /* No single open Zero project. */ }
     await checkAccount();
     if (current && await matches(current)) {
-      await checkAccount();
+      await checkRepository();
       if (await matches(current)) {await checkAccount();return {status:'current',projectPath:current};}
     }
     const recent = await recentProjects.list(ticket.session.accountId);
@@ -42,7 +48,7 @@ function createGameJamProjectOpener({vscode,authentication,project,recentProject
       if (!await matches(item.path)) continue;
       await checkAccount();
       const assertCurrent = async () => {
-        await checkAccount();
+        await checkRepository();
         if (!await matches(item.path)) throw new Error('The local project’s GitHub repository changed. Try opening it again.');
         await checkAccount();
       };
@@ -57,7 +63,7 @@ function createGameJamProjectOpener({vscode,authentication,project,recentProject
     );
     if (choice !== 'Clone & open' || !active()) return {status:'cancelled'};
     await checkAccount();
-    const result = await projectFolders.clone({repositoryUrl:destination,assertCurrent:checkAccount});
+    const result = await projectFolders.clone({repositoryUrl:destination,expectedRepositoryId:repositoryId,assertCurrent:checkRepository});
     return result ? {status:'clone-requested',projectPath:result} : {status:'cancelled'};
   }
   return {openGameJamProject};

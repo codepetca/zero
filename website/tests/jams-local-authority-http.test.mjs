@@ -97,7 +97,7 @@ test('local authority authenticates HTTP writes and CSRF before shared transacti
       const {action,...desktopBody}=join;
       const token=[...tokens].find(([,actor])=>actor===actors.participant)[0];
       const desktop=new Request(config.origin+`/api/desktop/jams/${id}/join`,{method:'POST',
-        headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(desktopBody)});
+        headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({...desktopBody,repositoryId:"202"})});
       response=await postDesktopJamJoinResponse(desktop,id,options);
     } else {
       response=await postJamActionResponse(post('participant',actionPath,body),id,options);

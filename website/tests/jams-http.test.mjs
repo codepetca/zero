@@ -41,7 +41,7 @@ test('desktop Game Jam join verifies the app and repository, keeps the existing 
   }});
   const {eventId,revision}=await service.propose({actor:{id:'11',login:'creator'},operationId:'desktop-fixture-event',manifest:hostedManifest()});
   const path='/api/desktop/jams/'+eventId+'/join';
-  const joinBody={operationId:'desktop-join-0001',revision,repositoryUrl:'https://github.com/student/project'};
+  const joinBody={operationId:'desktop-join-0001',revision,repositoryId:'202',repositoryUrl:'https://github.com/student/project'};
   let appId=config.clientId;
   const options={env,now,service,fetchImpl:async (url,init)=>{
     providerCalls.push(url);
@@ -67,16 +67,23 @@ test('desktop Game Jam join verifies the app and repository, keeps the existing 
   assert.equal((await desktopRead({Origin:config.origin})).status,403);
   assert.equal((await desktopRead({Authorization:''})).status,401);
   assert.equal((await desktopJoin({...joinBody,actor:participant})).status,400);
+  const {repositoryId,...withoutRepositoryId}=joinBody;
+  assert.equal((await desktopJoin(withoutRepositoryId)).status,400);
+  for(const badId of ['0202','202\n',202,''])assert.equal((await desktopJoin({...joinBody,repositoryId:badId})).status,400);
   assert.equal(providerCalls.length,0);
   appId='wrong-app';
   assert.equal((await desktopJoin()).status,401);
   assert.equal(providerCalls.length,1);
   appId=config.clientId;
+  const replaced=await desktopJoin({...joinBody,repositoryId:'203'});
+  assert.equal(replaced.status,409);
+  assert.match((await replaced.json()).error,/repository at that address changed/);
+  assert.equal((await store.read(eventId)).state.registrations[participant.id],undefined);
   const first=await desktopJoin();
   assert.equal(first.status,200);
   assert.deepEqual(await first.json(),{configured:true,eventId,operationId:joinBody.operationId,status:'joined',revision});
   assert.equal((await store.read(eventId)).state.registrations[participant.id].repository.id,'202');
-  const rebind=await desktopJoin({...joinBody,operationId:'desktop-join-0003',repositoryUrl:'https://github.com/student/another-project'});
+  const rebind=await desktopJoin({...joinBody,operationId:'desktop-join-0003',repositoryId:'203',repositoryUrl:'https://github.com/student/another-project'});
   assert.equal(rebind.status,409);
   assert.match((await rebind.json()).error,/different repository/);
   assert.equal((await store.read(eventId)).state.registrations[participant.id].repository.id,'202');
@@ -87,6 +94,9 @@ test('desktop Game Jam join verifies the app and repository, keeps the existing 
   identity.id=123;identity.login='student';
   setTime('2030-01-03T00:00:00Z');
   assert.equal((await desktopJoin()).status,200,'the original operation recovers after the deadline');
+  const wrongId=await desktopJoin({...joinBody,repositoryId:'203'});
+  assert.equal(wrongId.status,409);
+  assert.match((await wrongId.json()).error,/operation ID was used for different information/);
   assert.equal((await desktopJoin({...joinBody,operationId:'desktop-join-0002'})).status,409,'a new join operation cannot consume capacity after the deadline');
   assert.deepEqual((await (await desktopRead()).json()).registration,{status:'joined',repository:{id:'202',ownerId:'123',fullName:'student/project'}});
   await service.mutate({id:eventId,actor:participant,operationId:'desktop-leave-0001',action:'leave'});

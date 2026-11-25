@@ -74,9 +74,9 @@ test('an uncertain result survives restart and retries the exact operation after
 test('missing or disabled routes preserve ordinary publishing for unknown repos and protect known links',async()=>{
   const f=fixture(),jam=f.make();
   f.state.lookup=()=>new Response('Not found',{status:404});
-  assert.equal(await jam.resolve(root),null);
+  assert.equal((await jam.resolve(root)).id,undefined);
   f.state.lookup=()=>response({configured:false},503);
-  assert.equal(await jam.resolve(root),null);
+  assert.equal((await jam.resolve(root)).id,undefined);
   await jam.rememberJoined('123',repository,event.id);
   await assert.rejects(jam.resolve(root),/could not check/);
   f.state.lookup=()=>response({configured:true,destination:null,ambiguous:true});
@@ -84,7 +84,7 @@ test('missing or disabled routes preserve ordinary publishing for unknown repos 
   f.state.lookup=()=>response({configured:true,destination:null});
   await assert.rejects(jam.resolve(root),/no longer linked/);
   assert.equal(jam.hasKnownLink('123',repository),false);
-  assert.equal(await jam.resolve(root),null);
+  assert.equal((await jam.resolve(root)).id,undefined);
 });
 
 test('account, project and live receipt mismatches do not send submissions',async()=>{
@@ -108,7 +108,7 @@ test('pending receipts are scoped to owning account and immutable repository ID'
   await jam.submit(route,live);
   f.state.account='234';f.state.repoId=322;f.state.repository='https://github.com/school/other';
   f.state.lookup=()=>response({configured:true,destination:null});
-  assert.equal(await f.make().resolve(root),null);
+  assert.equal((await f.make().resolve(root)).id,undefined);
   f.state.account='123';f.state.repoId=321;f.state.repository='https://github.com/student/renamed';
   const renamed=await f.make().resolve(root);
   assert.equal(renamed.pending,true);
@@ -119,7 +119,8 @@ test('pending receipts are scoped to owning account and immutable repository ID'
 
 test('only unconfirmed routing outages on unknown repositories qualify for an explicit ordinary publish fallback',async()=>{
   const f=fixture(),jam=f.make();
-  const unknown=error=>error.code==='ZERO_JAM_STATUS_UNKNOWN';
+  const unknown=error=>error.code==='ZERO_JAM_STATUS_UNKNOWN' && error.publishTarget.root===root &&
+    error.publishTarget.repository===repository && error.publishTarget.repositoryId==='321' && error.publishTarget.account==='123';
   for(const lookup of [()=>{throw Error('offline');},()=>new Response('<html/>',{status:402}),
     ()=>response({configured:true,error:'Unavailable'},503),()=>new Response('invalid',{status:200})]) {
     f.state.lookup=lookup;

@@ -17,11 +17,12 @@ export function listingReceipt(input) {
   return {repositoryId:input.repositoryId, repositoryUrl:input.repositoryUrl, runId:input.runId, commit:input.commit, pagesUrl:input.pagesUrl};
 }
 
-async function hasLiveMarker(pagesUrl, receipt, readPublic, signal) {
+async function liveMarker(pagesUrl, readPublic, signal) {
   const proofUrl = new URL('zero-source-sha.txt', pagesUrl.endsWith('/') ? pagesUrl : pagesUrl + '/');
   const proof = await readPublic(proofUrl.href, {signal});
-  return proof.ok && await boundedText(proof) === receipt.commit + '\n' + receipt.runId;
+  return proof.ok ? boundedText(proof) : null;
 }
+const receiptMarker = ({commit,runId}) => commit + '\n' + runId;
 
 function projectGitHubReader(repositoryUrl,{token,signal,fetchImpl}) {
   const root = apiOrigin + '/repos/' + repositoryUrl.slice('https://github.com/'.length);
@@ -36,20 +37,33 @@ function projectGitHubReader(repositoryUrl,{token,signal,fetchImpl}) {
   };
 }
 
-async function verifyPagesWorkflow(receipt, read, readPublic, signal) {
-  const [pages, run] = await Promise.all([read('/pages'), read('/actions/runs/' + receipt.runId)]);
+function workflowRunDate(run, receipt) {
   if (!run || !safeNumber(run.id) || String(run.id) !== receipt.runId || !safeNumber(run.repository?.id) || String(run.repository.id) !== receipt.repositoryId ||
-      run.head_sha !== receipt.commit || run.head_branch !== 'main' || run.path !== workflow || run.event !== 'workflow_dispatch' ||
+      run.head_sha !== receipt.commit || run.head_branch !== 'main' || ![workflow,workflow+'@main'].includes(run.path) || run.event !== 'workflow_dispatch' ||
       run.status !== 'completed' || run.conclusion !== 'success' ||
       typeof run.created_at !== 'string' || !Number.isFinite(Date.parse(run.created_at))) return null;
+  return new Date(run.created_at);
+}
 
+async function verifyPagesWorkflow(receipt, read, readPublic, signal, {detectSuperseded=false}={}) {
+  const [pages, run] = await Promise.all([read('/pages'), read('/actions/runs/' + receipt.runId)]);
+  const runCreatedAt = workflowRunDate(run,receipt);
   const pagesUrl = safePagesUrl(pages?.html_url, pages?.cname);
-  if (!pagesUrl || pagesUrl !== receipt.pagesUrl || pages.public !== true || pages.build_type !== 'workflow' ||
+  if (!runCreatedAt || !pagesUrl || pagesUrl !== receipt.pagesUrl || pages.public !== true || pages.build_type !== 'workflow' ||
       (!pages.cname && pagesUrl !== canonicalPagesUrl(receipt.repositoryUrl))) return null;
   // No GitHub credentials travel to the Pages host.
-  if (!await hasLiveMarker(pagesUrl, receipt, readPublic, signal)) return null;
+  const marker = await liveMarker(pagesUrl,readPublic,signal);
   signal.throwIfAborted();
-  return {pagesUrl,runCreatedAt:new Date(run.created_at)};
+  if (marker === receiptMarker(receipt)) return {pagesUrl,runCreatedAt};
+  if (!detectSuperseded) return null;
+  const current = /^([a-f0-9]{40})\n([1-9][0-9]{0,19})$/.exec(marker ?? '');
+  if (!current || current[0] !== marker || current[2] === receipt.runId || !safeNumber(Number(current[2]))) return null;
+  const [,commit,runId] = current;
+  const newer = await read('/actions/runs/' + runId);
+  const newerRunDate = workflowRunDate(newer,{...receipt,commit,runId});
+  if (!newerRunDate || newerRunDate <= runCreatedAt || await liveMarker(pagesUrl,readPublic,signal) !== marker) return null;
+  signal.throwIfAborted();
+  return {superseded:true};
 }
 
 export async function verifyListingPublication(receipt, {account, token, signal, fetchImpl = fetch, readPublic = publicReadiness}) {
@@ -70,7 +84,7 @@ export async function verifyListingPublication(receipt, {account, token, signal,
 export async function verifyLinkedProjectPublication(input, repository, {token,signal,fetchImpl=fetch,readPublic=publicReadiness}) {
   const receipt=listingReceipt({...input,repositoryUrl:'https://github.com/'+repository.fullName});
   if(!receipt || repository.id!==receipt.repositoryId)return null;
-  return verifyPagesWorkflow(receipt,projectGitHubReader(receipt.repositoryUrl,{token,signal,fetchImpl}),readPublic,signal);
+  return verifyPagesWorkflow(receipt,projectGitHubReader(receipt.repositoryUrl,{token,signal,fetchImpl}),readPublic,signal,{detectSuperseded:true});
 }
 
 // Keep public Play links on GitHub-controlled addresses. The owner still
@@ -82,6 +96,6 @@ export async function publicListingPlayUrl(entry, {signal, readPublic = publicRe
     // A canonical Pages address can start redirecting after publication.
     // publicReadiness accepts only a direct 200 and never follows redirects.
     const probeSignal = AbortSignal.any([signal, AbortSignal.timeout(2500)]);
-    if (await hasLiveMarker(canonical, entry, readPublic, probeSignal)) return canonical;
+    if (await liveMarker(canonical,readPublic,probeSignal) === receiptMarker(entry)) return canonical;
   } catch { /* Keep the repository card if Play cannot be confirmed. */ }
 }

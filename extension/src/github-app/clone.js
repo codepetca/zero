@@ -110,7 +110,7 @@ function cleanEnvironment(source) {
   return env;
 }
 function createGitHubAppClone({authentication,repositories,spawn=execute,environment=process.env,localRun=core.git}={}) {
-  return async function clone({repositoryUrl,parentPath,signal,reservation}={}) {
+  return async function clone({repositoryUrl,parentPath,signal,reservation,expectedRepositoryId}={}) {
     cancellation(signal);
     const requested=core.parseRepositoryUrl(repositoryUrl);
     const location=await validateCloneParent(parentPath);
@@ -127,6 +127,7 @@ function createGitHubAppClone({authentication,repositories,spawn=execute,environ
     const {ticket,repository}=access;
     const repositoryId=repository.id,installationId=access.installation?.id;
     if(!Number.isSafeInteger(repositoryId)||repositoryId<1||!Number.isSafeInteger(installationId)||installationId<1)throw Error('GitHub did not identify the repository and Zero installation.');
+    if(expectedRepositoryId!==undefined && String(repositoryId)!==expectedRepositoryId)throw Error('The Game Jam repository changed. Choose the project again.');
     const remote=core.parseRepositoryUrl(repository.html_url).remote;
     if(remote.toLowerCase()!==requested.remote.toLowerCase()||repository.clone_url!==remote)throw Error('The GitHub clone destination changed. Choose Clone from GitHub again.');
     const name=repository.name;

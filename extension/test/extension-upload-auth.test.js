@@ -67,7 +67,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
   const publishPublisher={review:async()=>{
     if(plan.branch!=='main')throw Error('Finish your change with Merge to main before publishing the app.');
     if(sourceUnsynced)throw Object.assign(Error('Upload required'),{code:'WEB_PUBLISH_UPLOAD_REQUIRED',plan:{...plan}});
-    return {status:'review',repository:plan.page,repositoryId,publicUrl:'https://student.github.io/app/',sha:plan.head,account:'1',setup:publishSetup&&!setupPrepared};
+    return {status:'review',root,repository:plan.page,repositoryId,publicUrl:'https://student.github.io/app/',sha:plan.head,account:'1',setup:publishSetup&&!setupPrepared};
   },setup:async()=>{
     setupPrepared=true;
     plan.status=' M .github/workflows/zero-web.yml';plan.fingerprint='publishing-files';plan.changes=[{path:'.github/workflows/zero-web.yml',kind:'M'}];
@@ -325,7 +325,7 @@ test('Commit & push clears its indicator on preparation failure and after a conf
 test('Publish syncs reviewed setup files through guarded native upload and retains the verified playable link',async t=>{
   const h=await harness(t,{publishing:true,publishSetup:true});
   // Reuse the existing approval for the public destination and its ZeroHub listing.
-  h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/',listingNotice:true});
+  h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/',repositoryId:'12',listingNotice:true});
   await h.commands.get('zero.publishWeb')();
   assert.deepEqual(h.errors,[]);assert.equal(h.inputs,1);assert.equal(h.pushes,1);assert.equal(h.deploys,1);
   assert.equal(h.stored.get('zero.webPublish.lastLive').url,'https://student.github.io/app/');

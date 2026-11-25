@@ -10,11 +10,12 @@ import {LIMITS} from '../../jams/schema.mjs';
 import {localJamAuthorityRequested} from './jams-default-authority.mjs';
 import {ACTIONS} from '../../jams/requests.mjs';
 import {verifyLinkedProjectPublication} from './hub-listings-verification.mjs';
+import {editorGameJamJoinRequired} from './jams-visibility.mjs';
 
 const actions = new Set(ACTIONS);
 const actionKeys = new Set(['operationId','action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl']);
 const proposalKeys = new Set(['operationId','manifest']);
-const desktopJoinKeys = ['operationId','revision','repositoryUrl'];
+const desktopJoinKeys = ['operationId','revision','repositoryUrl','repositoryId'];
 const desktopSubmitKeys = ['operationId','revision','repositoryId','pagesUrl','commit','runId','entryRevision'];
 const unavailable = () => json({configured:false,error:'ZeroJams participation is not available yet. You can still prepare your proposal.'},503);
 const validId = value => typeof value === 'string' && /^jam-(?:[1-9][0-9]{0,19}|zero-[a-f0-9]{32})$/.test(value);
@@ -222,7 +223,9 @@ export async function getJamResponse(request, id, inputOptions = {}) {
       nextCursor=createJamGalleryCursor({id,offset:metadata.nextOffset,revision:metadata.revision,validUntil:metadata.validUntil,now:checkedAt},config);
       if(!nextCursor)galleryUnavailable();
     }
-    const result = {configured:true,...visible,...(paged?{nextCursor}:{}),checkedAt:new Date(checkedAt).toISOString()};
+    const result = {configured:true,...visible,...(paged?{nextCursor}:{}),
+      ...(visible.event.type==='game'&&editorGameJamJoinRequired(options.env)?{editorGameJamJoinRequired:true}:{}),
+      checkedAt:new Date(checkedAt).toISOString()};
     deadline.check();
     return json(result);
   } catch (error) { return failure(error,deadline.signal); }
@@ -266,7 +269,8 @@ async function postResponse(request, id, proposal, inputOptions,settlement=false
     const service = await deadline.run(()=>serviceFor(options,session.token));
     // Expiry stops waiting, but cannot undo a dispatched registry write. Keep
     // the original operation ID until its durable settlement is confirmed.
-    const result = await deadline.run(signal=>settlement?service.settle({...body,actor}):proposal?service.propose({...body,actor}):service.mutate({...body,id,actor},{signal,joinChannel:'browser'}));
+    const result = await deadline.run(signal=>settlement?service.settle({...body,actor}):proposal?service.propose({...body,actor}):service.mutate({...body,id,actor},
+      {signal,joinChannel:'browser',editorJoinRequired:editorGameJamJoinRequired(options.env)}));
     if(!settlement&&result.settlement==='not-applied')return json({configured:true,...result,error:'This earlier request was closed without being applied. Reload Zero to start a new action.'},409);
     return json({configured:true,...result});
   } catch (error) { return failure(error,deadline?.signal); }
@@ -291,8 +295,11 @@ async function desktopBody(request,keys,error) {
   return body;
 }
 function desktopMutationResult(result) {
-  if (result.settlement==='not-applied')
-    return json({configured:true,...result,error:'This earlier request was closed without being applied. Start again in Zero.'},409);
+  if (result.settlement==='not-applied') {
+    const error=result.publicationSuperseded===true?'A newer build is live on GitHub Pages. Choose Publish to Jam again to submit the current build.':
+      'This earlier request was closed without being applied. Start again in Zero.';
+    return json({configured:true,...result,error},409);
+  }
   return json({configured:true,...result});
 }
 
@@ -340,7 +347,7 @@ export function postDesktopJamJoinResponse(request,id,options={}) {
   return desktopJamResponse(request,options,async()=>{
     desktopEventId(id);
     const body=await desktopBody(request,desktopJoinKeys,message);
-    if (!repositoryParts(body.repositoryUrl)) throw new JamError(400,message);
+    if (!repositoryParts(body.repositoryUrl)||!numericId(body.repositoryId)) throw new JamError(400,message);
     return body;
   },async(body,{service,actor,deadline})=>{
     const result=await deadline.run(signal=>service.mutate({...body,id,actor,action:'join'},{signal,joinChannel:'editor'}));

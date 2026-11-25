@@ -7,6 +7,7 @@ const {openGameJamRules} = require('./tutorial-browser');
 const ORIGIN = 'https://zero.codepet.ca';
 const JAM_ID = /^jam-(?:[1-9][0-9]{0,19}|zero-[a-f0-9]{32})$/;
 const REVISION = /^[a-f0-9]{64}$/;
+const validRepositoryId = id => typeof id==='string' && /^[1-9][0-9]{0,19}$/.test(id);
 
 function describeDeadline(timestamp, timezone) {
   if (!Number.isFinite(Date.parse(timestamp))) return '';
@@ -26,7 +27,7 @@ function rulesPreview(rules) {
   return (lastSpace > 0 ? prefix.slice(0,lastSpace) : prefix) + '…';
 }
 
-function createGameJamJoin({vscode,authentication,projects,projectPicker,openGameJamProject,globalState,active,report,onJoined=async()=>{},openRules=id=>openGameJamRules(vscode,id),request=globalThis.fetch}) {
+function createGameJamJoin({vscode,authentication,projects,projectPicker,repositories,openGameJamProject,globalState,active,report,onJoined=async()=>{},openRules=id=>openGameJamRules(vscode,id),request=globalThis.fetch}) {
   const unavailable = 'ZeroJams is unavailable. Try again later.';
   const unconfirmed = 'Zero could not confirm that you joined. Choose Join a Game Jam to retry with the same repository.';
   let review;
@@ -87,13 +88,13 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,openGam
     if (!active()) return false;
     signal?.throwIfAborted();
     const headers = editorHeaders(ticket);
-    const {id,title,operationId,revision,repositoryUrl} = pending;
+    const {id,title,operationId,revision,repositoryUrl,repositoryId} = pending;
     let response, result;
     try {
       response = await request(editorJoinUrl(id),{
         method:'POST',redirect:'error',
         headers:{...headers,'Content-Type':'application/json'},
-        body:JSON.stringify({operationId,revision,repositoryUrl}),
+        body:JSON.stringify({operationId,revision,repositoryUrl,repositoryId}),
         signal:AbortSignal.any([AbortSignal.timeout(24_000),...(signal ? [signal] : [])])
       });
       result = await response.json();
@@ -112,7 +113,7 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,openGam
     if (result?.configured !== true || result.status !== 'joined' || !REVISION.test(result.revision)) {
       throw Error(unconfirmed);
     }
-    await onJoined({account:ticket.session.accountId,repository:repositoryUrl,id});
+    await onJoined({account:ticket.session.accountId,repository:repositoryUrl,repositoryId,id});
     await clearPending(key,operationId);
     if (!active()) return false;
     authentication.assertCurrentNow(ticket);
@@ -139,7 +140,7 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,openGam
     authentication.assertCurrentNow(ticket);
     const choices = [
       ...Array.from(pending.values(),item=>({
-        label:`Retry joining ${item.title}`,description:item.repositoryUrl,id:item.id
+        label:`${validRepositoryId(item.repositoryId) ? 'Retry joining' : 'Review registration for'} ${item.title}`,description:item.repositoryUrl,id:item.id
       })),
       ...events.filter(event=>!pending.has(event.id)).map(event=>({
         label:event.joined?`Open jam project · ${event.title}`:event.title,
@@ -154,37 +155,62 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,openGam
     review=undefined;
     const key = prefix+choice.id;
     const retry = pending.get(choice.id);
-    if (retry) {
-      if (await register(ticket,key,retry)) {
-        await openJoinedProject(ticket,retry.title,retry.repositoryUrl,retry.projectPath);
-      }
+    if (retry && validRepositoryId(retry.repositoryId)) {
+      if (await register(ticket,key,retry)) await openJoinedProject(ticket,retry.title,retry);
       return;
     }
 
     const details=await readJoinDetails(ticket,choice.id);
     if (!active()) return;
-    if (details.registration?.status==='joined') return reopenRegistration(ticket,details);
-    if (canContinue(details)) await showRules(ticket,details.event);
+    if (details.registration?.status==='joined') {
+      if(retry) await clearPending(key,retry.operationId);
+      return reopenRegistration(ticket,details);
+    }
+    if (canContinue(details)) {
+      await showRules(ticket,details.event);
+      if(retry && active()) report('Choose a repository again to confirm this registration.');
+    }
   }
 
-  async function openJoinedProject(ticket,title,repositoryUrl,preferredPath) {
+  async function openJoinedProject(ticket,title,{repositoryUrl,repositoryId,projectPath}) {
     if(!active())return;
-    try {await openGameJamProject({ticket,repositoryUrl,preferredPath});}
+    try {await openGameJamProject({ticket,repositoryUrl,repositoryId,preferredPath:projectPath});}
     catch(error) {
       if(active()&&error?.code!=='cancelled'&&error?.name!=='Canceled'&&error?.name!=='CancellationError')
         throw Error(`Joined ${title}. ${error?.message||'Could not open the project.'}`);
     }
   }
 
+  async function registeredRepository(ticket,expected) {
+    const {id,fullName}=expected;
+    if(!validRepositoryId(id))throw Error('Zero could not identify the registered Game Jam repository.');
+    if(typeof fullName==='string') {
+      const repositoryUrl=parseRepositoryUrl('https://github.com/'+fullName).page;
+      try {
+        const repo=await repositories.readOwnedRepository(repositoryUrl,{ticket,signal:AbortSignal.timeout(20_000)});
+        if(String(repo.id)===id) {
+          if(repo.private!==false)throw Error('Make the registered Game Jam repository public on GitHub before opening it in Zero.');
+          return {repositoryUrl:repo.html_url,repositoryId:id};
+        }
+      } catch(error) {
+        if(!['network-error','repository-not-selected','repository-mismatch'].includes(error.code))throw error;
+      }
+    }
+    // A rename can make the original full name unavailable or point to a
+    // different project. Discovery only accepts the immutable registered ID.
+    const selected=await projectPicker.choose({publicRepositoriesOnly:true,repositoryId:id});
+    return selected?.repositoryId===id ? selected : undefined;
+  }
+
   async function reopenRegistration(ticket,{event,registration}) {
     review=undefined;
     report(`You’ve already joined ${event.title}.`);
-    if (!registration.repository?.id) return;
-    const existing=await projectPicker.choose({publicRepositoriesOnly:true,repositoryId:registration.repository.id});
+    if (!registration.repository) return;
+    const existing=await registeredRepository(ticket,registration.repository);
     if (!existing||!active())return;
     authentication.assertCurrentNow(ticket);
-    await onJoined({account:ticket.session.accountId,repository:existing.repositoryUrl,id:event.id});
-    await openJoinedProject(ticket,event.title,existing.repositoryUrl);
+    await onJoined({account:ticket.session.accountId,repository:existing.repositoryUrl,repositoryId:existing.repositoryId,id:event.id});
+    await openJoinedProject(ticket,event.title,existing);
   }
 
   function canContinue({event,hasRegistrationSpace}) {
@@ -222,9 +248,10 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,openGam
     }
     const key=pendingPrefix(ticket.session.accountId)+event.id;
     const boundRepository = registration?.repository;
-    const join = async ({repositoryUrl,projectPath,signal}) => {
+    const join = async ({repositoryUrl,repositoryId,projectPath,signal}) => {
+      if(!validRepositoryId(repositoryId))throw Error('Zero could not identify this repository. Choose the project again.');
       const operation = {id:event.id,title:event.title,revision:event.revision,operationId:randomUUID(),
-        repositoryUrl:parseRepositoryUrl(repositoryUrl).page,...(projectPath ? {projectPath} : {})};
+        repositoryUrl:parseRepositoryUrl(repositoryUrl).page,repositoryId,...(projectPath ? {projectPath} : {})};
       review=undefined;
       try {return await register(ticket,key,operation,signal);}
       catch (error) {
@@ -234,12 +261,12 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,openGam
       }
     };
 
-    const joinExisting = async repositoryId => {
-      const existing=await projectPicker.choose(repositoryId ? {publicRepositoriesOnly:true,repositoryId} :
-        {publicRepositoriesOnly:true,standaloneOnly:true});
-      if(existing&&active()&&await join(existing)) await openJoinedProject(ticket,event.title,existing.repositoryUrl);
+    const joinExisting = async expected => {
+      const existing=expected ? await registeredRepository(ticket,expected) :
+        await projectPicker.choose({publicRepositoriesOnly:true,standaloneOnly:true});
+      if(existing&&active()&&await join(existing)) await openJoinedProject(ticket,event.title,existing);
     };
-    if (boundRepository) return joinExisting(boundRepository.id);
+    if (boundRepository) return joinExisting(boundRepository);
     const selected = await vscode.window.showQuickPick([
       {label:'New project',description:'Create a public GitHub repository',action:'new'},
       {label:'Use an existing repository',action:'existing'}

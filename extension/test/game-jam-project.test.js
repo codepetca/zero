@@ -16,15 +16,15 @@ async function fixture(t) {
     const dir=path.join(root,name);await fs.mkdir(dir);await fs.writeFile(path.join(dir,'zero.json'),'{}');
     await exec('git',['init','-q',dir]);await exec('git',['-C',dir,'remote','add','origin',origin]);return dir;
   }
-  let current,items=[],choice,valid=true,lists=0;const opened=[],cloned=[];
+  let current,items=[],choice,valid=true,lists=0,repositoryId=12;const opened=[],cloned=[];
   const ticket={session:{accountId:'17'}};
   const authentication={assertCurrent:async value=>{assert.equal(value,ticket);if(!valid)throw Error('account changed');}};
   const vscode={window:{showInformationMessage:async()=>choice}};
-  const projectFolders={openLocal:async input=>{await input.assertCurrent();opened.push(input.projectPath);},clone:async input=>{await input.assertCurrent();cloned.push(input.repositoryUrl);return '/cloned';}};
-  const opener=createGameJamProjectOpener({vscode,authentication,project:async()=>current,recentProjects:{list:async()=>{lists++;return items;}},projectFolders});
-  return {repo,ticket,opener,opened,cloned,set current(v){current=v;},set items(v){items=v;},set choice(v){choice=v;},set valid(v){valid=v;},get lists(){return lists;},vscode,projectFolders};
+  const projectFolders={openLocal:async input=>{await input.assertCurrent();opened.push(input.projectPath);},clone:async input=>{await input.assertCurrent();assert.equal(input.expectedRepositoryId,'12');cloned.push(input.repositoryUrl);return '/cloned';}};
+  const opener=createGameJamProjectOpener({vscode,authentication,repositories:{readOwnedRepository:async()=>({id:repositoryId,private:false})},project:async()=>current,recentProjects:{list:async()=>{lists++;return items;}},projectFolders});
+  return {repo,ticket,opener,opened,cloned,set current(v){current=v;},set items(v){items=v;},set choice(v){choice=v;},set valid(v){valid=v;},set repositoryId(v){repositoryId=v;},get lists(){return lists;},vscode,projectFolders};
 }
-const open=f=>f.opener.openGameJamProject({repositoryUrl:url,ticket:f.ticket});
+const open=f=>f.opener.openGameJamProject({repositoryUrl:url,repositoryId:'12',ticket:f.ticket});
 test('keeps the matching current project without listing recent projects',async t=>{const f=await fixture(t);f.current=await f.repo('current',url+'.git');assert.equal((await open(f)).status,'current');assert.equal(f.lists,0);});
 test('checks actual origin and opens a verified recent copy',async t=>{const f=await fixture(t);const stale=await f.repo('stale','https://github.com/student/other');const match=await f.repo('match',url);f.items=[{path:stale,repositoryUrl:url},{path:'/missing',repositoryUrl:url},{path:match,repositoryUrl:'https://github.com/student/other'}];assert.equal((await open(f)).status,'open-requested');assert.deepEqual(f.opened,[match]);});
 test('uses a recent copy if the current project pushes to a different repository',async t=>{
@@ -49,4 +49,12 @@ test('account drift after the prompt blocks cloning',async t=>{const f=await fix
 test('rechecks the origin at the open boundary',async t=>{const f=await fixture(t);const dir=await f.repo('recent',url);f.items=[{path:dir}];f.projectFolders.openLocal=async input=>{await exec('git',['-C',dir,'remote','set-url','origin','https://github.com/student/other']);await input.assertCurrent();};await assert.rejects(open(f),/repository changed/);});
 test('rejects non GitHub destinations before any lookup',async t=>{const f=await fixture(t);await assert.rejects(f.opener.openGameJamProject({repositoryUrl:'https://example.com/student/game',ticket:f.ticket}),/github/i);assert.equal(f.lists,0);});
 
-test('recovery checks a preferred local path even when it is not recent',async t=>{const f=await fixture(t);const dir=await f.repo('recovered',url);const result=await f.opener.openGameJamProject({repositoryUrl:url,ticket:f.ticket,preferredPath:dir});assert.equal(result.status,'open-requested');assert.deepEqual(f.opened,[dir]);});
+test('recovery checks a preferred local path even when it is not recent',async t=>{const f=await fixture(t);const dir=await f.repo('recovered',url);const result=await f.opener.openGameJamProject({repositoryUrl:url,repositoryId:'12',ticket:f.ticket,preferredPath:dir});assert.equal(result.status,'open-requested');assert.deepEqual(f.opened,[dir]);});
+
+test('a checkout whose origin now names a different GitHub repository is left closed',async t=>{
+  const f=await fixture(t);
+  f.items=[{path:await f.repo('recent',url)}];
+  f.repositoryId=34;
+  await assert.rejects(open(f),/repository changed/);
+  assert.deepEqual(f.opened,[]);
+});

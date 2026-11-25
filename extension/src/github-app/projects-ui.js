@@ -72,9 +72,11 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
         if(!isActive())throw Error(`Your repository was created at ${result.repository.html_url}. Clone it from Zero when you return.`);
         try{
           throwIfCancelled(signal);notify('Opening your project…');
+          const repositoryId=String(result.repository.id);
+          if(onCloned && !/^[1-9][0-9]{0,19}$/.test(repositoryId))throw Error('GitHub did not identify the new Game Jam repository.');
           const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal,reservation,
-            ...(onCloned ? {assertCurrent:()=>authentication.assertCurrent(input.ticket),
-              onCloned:details=>onCloned({...details,repositoryUrl:result.repository.html_url,ticket:input.ticket})} : {})});
+            ...(onCloned ? {expectedRepositoryId:repositoryId,assertCurrent:()=>authentication.assertCurrent(input.ticket),
+              onCloned:details=>onCloned({...details,repositoryId,repositoryUrl:result.repository.html_url,ticket:input.ticket})} : {})});
           throwIfCancelled(signal);
           if(!cloned||!isActive())throw Error('The project was not opened.');
           // Only the next activation can confirm a same-window switch was accepted.

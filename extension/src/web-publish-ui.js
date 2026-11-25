@@ -4,6 +4,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const {createGitHubPagesPublisher} = require('./web-publish-github');
 const {safePagesUrl}=require('./web-pages-verification');
+const {parseRepositoryUrl}=require('./core');
 
 // Keep the final browser-dispatch guard synchronous. Resolve existing parents
 // too, so a new unsaved file and a workspace alias have the same project scope.
@@ -77,7 +78,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     }
     if(dirtyBuildDocuments(vscode,expected).length)throw Error('Save your project before publishing its browser app.');
   }
-  async function uploadForPublish(expected,review,expectedPlan,jam) {
+  async function uploadForPublish(expected,review,expectedPlan,target,jam) {
     await stillPublishable(expected);
     if(!uploadChanges)throw new Error('Commit and sync the publishing files on main, then choose Publish & open app.');
     startProgress(['preparing','building','uploading','deploying','verifying']);
@@ -85,9 +86,10 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     // The upload command claims its own lock synchronously. Keep our separate
     // publication guard held while handing the coordinator lock to it.
     setBusy(false);
-    const expectedJamTarget=jam&&{account:jam.account,repository:jam.repository,repositoryId:jam.repositoryId};
+    const expectedPublishTarget=target&&{root:target.root,account:target.account,repository:target.repository,
+      repositoryId:target.repositoryId,label:publishLabel(jam)};
     try {return await uploadChanges(authentication,{forPublish:true,expectedRoot:expected,expectedPlan,expectedAccount:review.account,
-      ...(expectedJamTarget ? {expectedJamTarget} : {}),
+      ...(expectedPublishTarget ? {expectedPublishTarget} : {}),
       assertPublishCurrent:()=>stillPublishable(expected),assertPublishCurrentNow:()=>assertPublishCurrentNow(expected)});}
     finally {setBusy(true);}
   }
@@ -102,13 +104,13 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     if(selected==='Open GitHub' && !disposed)await vscode.env.openExternal(vscode.Uri.parse(result.action.url));
     if(selected==='Recheck')recheckRequested=true;
   }
-  async function savePending(expected,value,account) {
-    const next={root:expected,value,account};
+  async function savePending(expected,value,account,routeReceipt) {
+    const next={root:expected,value,account,...routeReceipt};
     await workspaceState?.update('zero.webPublish.pending',next);
     resume=next;
   }
-  async function trackDispatch(expected,value,account) {
-    await savePending(expected,value,account);
+  async function trackDispatch(expected,value,account,routeReceipt) {
+    await savePending(expected,value,account,routeReceipt);
     await workspaceState?.update('zero.webPublish.staging',undefined);
   }
   async function showDispatchAction(result,expected) {
@@ -138,10 +140,10 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     progress(message);
     return {status:'upload-required',message};
   }
-  async function waitForDeployment(result,expected,account) {
+  async function waitForDeployment(result,expected,account,routeReceipt) {
     for(let attempt=0;result.status==='pending' && attempt<maxChecks;attempt++) {
       await stillCurrent(expected);stage('deploying');progress(result.message);
-      await savePending(expected,result.resume,account);
+      await savePending(expected,result.resume,account,routeReceipt);
       await new Promise(resolve=>{const timer=setTimeout(done,pollIntervalMs);function done(){clearTimeout(timer);controller?.signal.removeEventListener('abort',done);resolve();}controller.signal.addEventListener('abort',done,{once:true});});
       await stillCurrent(expected);
       result=await publisher.check(result.resume,{signal:controller.signal,onProgress:progress,onStage:stage});
@@ -170,7 +172,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     await workspaceState?.update('zero.webPublish.lastLive', lastLive);
     return lastLive;
   }
-  async function verifyAndOpen(reviewed,saved,expected,{fast=false,retryListing=false,jam,webOnly=false}={}) {
+  async function verifyAndOpen(reviewed,saved,expected,{fast=false,retryListing=false,target,jam,webOnly=false}={}) {
     let opening;
     stage('verifying');progress('Checking live app…');
     const verify=fast?publisher.verifyUnchanged.bind(publisher,expected):publisher.verifyCurrent.bind(publisher,reviewed);
@@ -183,7 +185,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       onCurrent:verified=>{
         if(openingRequested){stage('opening');progress('Opening in browser…');}
         assertPublishCurrentNow(expected);
-        assertJamTarget(jam,{...verified.resume,account:reviewed?.account ?? saved?.account});
+        assertPublishTarget(target,{...verified.resume,root:expected,account:reviewed?.account ?? saved?.account},jam);
         if(dirtyBuildDocuments(vscode,expected).length)throw Error(`Your app changed while publishing. Choose ${publishLabel(jam)} again.`);
         if(openingRequested) {
           if(jam) {
@@ -195,6 +197,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       }
     });
     if(current.status!=='live')return current;
+    assertPublishTarget(target,{...current.resume,root:expected,account:reviewed?.account ?? saved?.account},jam);
     const opened=await opening;
     let listing;
     if(!jam&&!webOnly)listing=retryListing ? (saved?.listingPending ? await updateHubListing(saved, expected) : undefined) : saved;
@@ -211,17 +214,18 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     return {signal:controller.signal,beforeSend:()=>assertPublishCurrentNow(expected)};
   }
 
-  function assertJamTarget(jam,target={}) {
-    if(!jam)return;
-    const {account,repository,repositoryId}=target;
-    if (String(account)!==jam.account || repository?.toLowerCase()!==jam.repository.toLowerCase() ||
-        String(repositoryId)!==jam.repositoryId)
-      throw Object.assign(Error('The GitHub account or repository changed. Choose Publish to Jam again.'),
+  function isPublishTarget(target,{account,repository,repositoryId,root}) {
+    return root===target.root && String(account)===target.account &&
+      typeof repository==='string' && repository.toLowerCase()===target.repository.toLowerCase() && String(repositoryId)===target.repositoryId;
+  }
+  function assertPublishTarget(target,evidence,jam) {
+    if(target && !isPublishTarget(target,evidence))
+      throw Object.assign(Error(`The GitHub account or repository changed. Choose ${publishLabel(jam)} again.`),
         {code:'WEB_PUBLISH_REPOSITORY_CHANGED'});
   }
 
   async function approveJam(jam,expected,pagesUrl) {
-    const approval={root:expected,account:jam.account,repositoryId:jam.repositoryId,jamId:jam.id,revision:jam.revision};
+    const approval={root:expected,account:jam.account,repository:jam.repository,repositoryId:jam.repositoryId,jamId:jam.id,revision:jam.revision,entryRevision:jam.entryRevision};
     if(pagesUrl)approval.pagesUrl=pagesUrl;
     const saved=workspaceState?.get('zero.webPublish.jamApproval');
     if(saved && Object.keys(approval).every(key=>saved[key]===approval[key]))return true;
@@ -254,7 +258,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
   async function submitJam(jam,live,expected) {
     if(!jam)return live;
     await stillPublishable(expected);
-    assertJamTarget(jam,{...live.resume,account:jam.account});
+    assertPublishTarget(jam,{...live.resume,root:expected,account:jam.account},jam);
     progress(`Submitting to ${jam.title}…`);
     let result;
     try {result=await gameJam.submit(jam,live,jamRequest(expected));}
@@ -275,16 +279,22 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before publishing its browser game.');
       const expected=root;
       const staged=workspaceState?.get('zero.webPublish.staging');
-      const recovering=Boolean(recheckRoot || (staged?.root===expected && staged.value?.phase!=='staging'));
+      const pending=resume || workspaceState?.get('zero.webPublish.pending');
+      const recovering=Boolean(recheckRoot || (staged?.root===expected && staged.value?.phase!=='staging') ||
+        (pending?.root===expected && pending.jamConsent));
       if(recovering)openingRequested=false;
       startProgress(['checking']);
       progress(recovering?'Checking saved publishing attempt…':open?'Checking latest app…':'Preparing publishing…');
-      let jam,webOnly=false;
+      let target,jam,webOnly=false;
       if(gameJam) {
         await stillPublishable(expected);
-        try {jam=await gameJam.resolve(expected,jamRequest(expected));}
+        try {
+          target=await gameJam.resolve(expected,jamRequest(expected));
+          if(target.id)jam=target;
+        }
         catch(error) {
-          if(error.code!=='ZERO_JAM_STATUS_UNKNOWN')throw error;
+          if(error.code!=='ZERO_JAM_STATUS_UNKNOWN' || !error.publishTarget)throw error;
+          target=error.publishTarget;
           await stillPublishable(expected);
           clearProgress();
           const choice=await vscode.window.showInformationMessage('ZeroJams is unavailable.',{modal:true,
@@ -313,9 +323,23 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       // Allow one fresh publication, then stop if editing continues.
       for(let attempt=0;attempt<(reuse?2:1);attempt++) {
         await stillPublishable(expected);
-        const result=await publishOnce(expected,{reuse,recovering,jam,webOnly});
+        const result=await publishOnce(expected,{reuse,recovering,target,jam,webOnly});
         if(recovering || !reuse || result?.status!=='live'){
           if(result?.status==='live')onReportSuccess(expected);
+          if(recovering && result?.status==='live') {
+            let outcome=result;
+            if(jam) {
+              if(canSubmitRecovered(jam,result,expected))outcome=await submitJam(jam,result,expected);
+              else {
+                progress('Your Pages site is live. Choose Publish to Jam to review and submit the build.');
+                outcome={...result,jamSubmission:{status:'review-required'}};
+              }
+            }
+            // Keep a recoverable run until its Jam handoff has been attempted.
+            // The submission service persists its own receipt before sending.
+            if(result.jamConsent)await workspaceState?.update('zero.webPublish.pending',undefined);
+            return outcome;
+          }
           return result;
         }
         let current=result;
@@ -325,9 +349,9 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
           catch(error) {if(error.code==='WEB_PUBLISH_UPLOAD_REQUIRED' && attempt===0)continue;throw error;}
           await stillPublishable(expected);
           if(reviewed.status!=='review'){await showAction(reviewed);return reviewed;}
-          assertJamTarget(jam,reviewed);
+          assertPublishTarget(target,reviewed,jam);
           if(jam&&!await approveJam(jam,expected,reviewed.publicUrl))return;
-          current=await verifyAndOpen(reviewed,lastLive,expected,{jam,webOnly});
+          current=await verifyAndOpen(reviewed,lastLive,expected,{target,jam,webOnly});
           if(current.status==='stale') {
             if(attempt===0)continue;
             throw Error(`Your app changed while publishing. Choose ${publishLabel(jam)} again for the latest version.`);
@@ -350,9 +374,21 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       });});
     }
   }
-  async function publishOnce(expected,{reuse=false,recovering=false,jam,webOnly=false}={}) {
+  function routeReceipt(saved) {
+    const {jamConsent,webOnly}=saved;
+    return {...(jamConsent ? {jamConsent} : {}),...(webOnly ? {webOnly:true} : {})};
+  }
+  function canSubmitRecovered(jam,live,expected) {
+    const consent=live.jamConsent;
+    return jam.submissionsOpen && !jam.pending && consent &&
+      consent.id===jam.id && consent.revision===jam.revision && consent.entryRevision===jam.entryRevision &&
+      isPublishTarget(jam,consent) && consent.root===expected &&
+      consent.pagesUrl===live.url && consent.sha===live.sha &&
+      typeof consent.dispatchTag==='string' && consent.dispatchTag===live.resume?.staging?.tag;
+  }
+  async function publishOnce(expected,{reuse=false,recovering=false,target,jam,webOnly=false}={}) {
     const listOnHub=listPublication&&!jam&&!webOnly;
-    let result,approvedAccount;
+    let result,approvedAccount,savedRoute={};
     const staged=workspaceState?.get('zero.webPublish.staging');
     resume=resume || workspaceState?.get('zero.webPublish.pending');
     if((staged && staged.root!==expected)||(resume && resume.root!==expected)) {
@@ -364,12 +400,16 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     if(resume?.root===expected) {
       startProgress(['deploying','verifying']);progress('Checking saved publishing run…');
       approvedAccount=resume.account;
+      savedRoute=routeReceipt(resume);
       if(staged?.value?.staging?.tag && staged.value.staging.tag===resume.value?.staging?.tag) {
         // A crash between storing the run and clearing staging leaves both receipts.
         await workspaceState?.update('zero.webPublish.staging',undefined);
       }
       try {
-        assertJamTarget(jam,{...resume.value,account:approvedAccount});
+        // Legacy Pages receipts lack a repository ID. The publisher can
+        // inspect one during recovery, while reuse still requires exact identity.
+        if(resume.value?.repositoryId!==undefined || !recovering)
+          assertPublishTarget(target,{...resume.value,root:expected,account:approvedAccount},jam);
         result=publisher.restore ? await publisher.restore(expected,resume.value,{signal:controller.signal,onStage:stage,onProgress:progress}) : await publisher.check(resume.value,{signal:controller.signal,onProgress:progress,onStage:stage});
       }
       catch(error) {
@@ -389,7 +429,16 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     else if(staged?.root===expected) {
       startProgress(['deploying','verifying']);progress('Checking saved publishing attempt…');
       approvedAccount=staged.value?.account;
-      result=await publisher.restoreDispatch(expected,staged.value,{signal:controller.signal,onStage:stage,onProgress:progress,onPending:value=>trackDispatch(expected,value,approvedAccount)});
+      savedRoute=routeReceipt(staged);
+      if(target && staged.value?.repositoryId!==undefined &&
+         !isPublishTarget(target,{...staged.value,root:expected})) {
+        const message='The saved publishing attempt belongs to a different repository.';
+        const {page}=parseRepositoryUrl(staged.value.repository);
+        result={status:'dispatch-uncertain',message,action:{message,url:page+'/actions'}};
+      } else {
+        result=await publisher.restoreDispatch(expected,staged.value,{signal:controller.signal,onStage:stage,onProgress:progress,
+          onPending:value=>trackDispatch(expected,value,approvedAccount,savedRoute)});
+      }
       await stillPublishable(expected);
       if(result.status==='staging-cleared') {
         await workspaceState?.update('zero.webPublish.staging',undefined);
@@ -401,11 +450,10 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       await saveBuildDocuments(expected);
       await stillPublishable(expected);
       const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
-      const reusable=previous && (!jam || (previous.root===expected && String(previous.account)===jam.account &&
-        previous.resume?.repository?.toLowerCase()===jam.repository.toLowerCase() && String(previous.resume.repositoryId)===jam.repositoryId));
+      const reusable=previous && (!target || isPublishTarget(target,{...previous.resume,root:previous.root,account:previous.account}));
       if(reuse && reusable && publisher.verifyUnchanged) {
         if(jam && !await approveJam(jam,expected,previous.url))return;
-        const current=await verifyAndOpen(undefined,previous,expected,{fast:true,retryListing:true,jam,webOnly});
+        const current=await verifyAndOpen(undefined,previous,expected,{fast:true,retryListing:true,target,jam,webOnly});
         if(current.status==='live')return {...current,alreadyCurrent:true};
         if(current.status!=='stale'){await showAction(current);return current;}
       }
@@ -419,12 +467,12 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       }
       await stillCurrent(expected);
       if(review.status!=='review'){await showAction(review);return review;}
-      assertJamTarget(jam,review);
+      assertPublishTarget(target,review,jam);
       if(jam && !await approveJam(jam,expected,review.publicUrl))return;
       if(reuse) {
         startProgress(['verifying']);
         progress('Checking published app…');
-        result=await verifyAndOpen(review,reusable ? previous : undefined,expected,{retryListing:true,jam,webOnly});
+        result=await verifyAndOpen(review,reusable ? previous : undefined,expected,{retryListing:true,target,jam,webOnly});
         if(result.status==='stale')result=undefined;
         else {
           if(result.status==='live')return {...result,alreadyCurrent:true};
@@ -435,9 +483,12 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       }
       if(!result) {
         const consent=workspaceState?.get('zero.webPublish.approval');
-        const sameDestination=(previous?.root===expected && previous.account===review.account && previous.resume?.repository===review.repository && previous.url===review.publicUrl) || (consent?.root===expected && consent.account===review.account && consent.repository===review.repository && consent.url===review.publicUrl);
-        const listingNotice = consent?.listingNotice === true && consent.root === expected &&
-          consent.account === review.account && consent.repository === review.repository && consent.url === review.publicUrl;
+        const consentMatches=consent?.root===expected && consent.account===review.account &&
+          consent.repository===review.repository && consent.url===review.publicUrl &&
+          (!target || consent.repositoryId===target.repositoryId);
+        const sameDestination=consentMatches || (reusable && previous.root===expected && previous.account===review.account &&
+          previous.resume?.repository===review.repository && previous.url===review.publicUrl);
+        const listingNotice=consentMatches && consent.listingNotice===true;
         if(!jam && (!sameDestination || listOnHub && !listingNotice)) {
           clearProgress();
           const notice = listOnHub ? ' This may replace your currently published app.' : '';
@@ -445,14 +496,15 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
           const chosen=await vscode.window.showInformationMessage('Publish app?',{modal:true,detail:`Your app and its assets will be public.${notice}\n${review.publicUrl || (review.repository + ' → GitHub Pages')}${setup}`},'Publish app');
           if(chosen!=='Publish app')return;
           await stillCurrent(expected);
-          await workspaceState?.update('zero.webPublish.approval',{root:expected,account:review.account,repository:review.repository,url:review.publicUrl,...(listOnHub ? {listingNotice:true} : {})});
+          await workspaceState?.update('zero.webPublish.approval',{root:expected,account:review.account,repository:review.repository,
+            url:review.publicUrl,...(target ? {repositoryId:target.repositoryId} : {}),...(listOnHub ? {listingNotice:true} : {})});
         }
         startProgress(['preparing','building','uploading','deploying','verifying']);
         progress('Preparing publishing…');
         const approvedDestination=review;
         const assertDestination=()=>{
           if(review.repository!==approvedDestination.repository || review.account!==approvedDestination.account || review.publicUrl!==approvedDestination.publicUrl || review.needsPages!==approvedDestination.needsPages)throw new Error(`The publishing account or destination changed. Choose ${publishLabel(jam)} again to review it.`);
-          assertJamTarget(jam,review);
+          assertPublishTarget(target,review,jam);
         };
         await stillCurrent(expected);
         if(review.setup || review.upgrade) {
@@ -480,7 +532,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
           if(result.status!=='upload-required'){await showAction(result);return result;}
           progress(result.message);
           if(!uploadChanges){await showAction({...result,action:{message:'Commit and sync the publishing files on main, then choose Publish & open app again.'}});return result;}
-          const uploaded=await uploadForPublish(expected,review,result.uploadPlan,jam);
+          const uploaded=await uploadForPublish(expected,review,result.uploadPlan,target,jam);
           if(!uploaded?.uploaded)return;
           await stillCurrent(expected);
           review=await publisher.review(expected,{signal:controller.signal});
@@ -491,21 +543,34 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
         }
         await stillCurrent(expected);
         approvedAccount=review.account;
-        result=await publisher.publish(review,{signal:controller.signal,onProgress:progress,onStage:stage,onStaging:async value=>{await workspaceState?.update('zero.webPublish.staging',value?{root:expected,value}:undefined);},onPending:value=>trackDispatch(expected,value,approvedAccount)});
+        savedRoute=webOnly ? {webOnly:true} : {};
+        const bindDispatch=value=>{
+          const dispatchTag=value?.staging?.tag;
+          if(jam && dispatchTag) savedRoute={jamConsent:{
+            root:expected,account:jam.account,repository:jam.repository,repositoryId:jam.repositoryId,
+            id:jam.id,revision:jam.revision,entryRevision:jam.entryRevision,pagesUrl:review.publicUrl,sha:review.sha,dispatchTag
+          }};
+          return savedRoute;
+        };
+        result=await publisher.publish(review,{signal:controller.signal,onProgress:progress,onStage:stage,
+          onStaging:value=>workspaceState?.update('zero.webPublish.staging',value?{root:expected,value,...bindDispatch(value)}:undefined),
+          onPending:value=>trackDispatch(expected,value,approvedAccount,bindDispatch(value))});
       }
     }
-    result=await waitForDeployment(result,expected,approvedAccount);
+    result=await waitForDeployment(result,expected,approvedAccount,savedRoute);
     await stillCurrent(expected);
     if(result.status==='live') {
-      assertJamTarget(jam,{...result.resume,account:approvedAccount});
+      assertPublishTarget(target,{...result.resume,root:expected,account:approvedAccount},jam);
+      if(savedRoute.jamConsent)result={...result,jamConsent:savedRoute.jamConsent};
       resume=undefined;
       const consent = workspaceState?.get('zero.webPublish.approval');
-      const listingPending = !!listOnHub && consent?.listingNotice === true && consent.root === expected &&
-        consent.account === approvedAccount && consent.repository === result.resume?.repository && consent.url === result.url;
+      const listingPending = !!listOnHub && !savedRoute.webOnly && !savedRoute.jamConsent && consent?.listingNotice === true && consent.root === expected &&
+        consent.account === approvedAccount && consent.repository === result.resume?.repository && consent.url === result.url &&
+        (!target || consent.repositoryId===target.repositoryId);
       lastLive={root:expected,url:result.url,sha:result.sha,resume:result.resume,account:approvedAccount,
         ...(listingPending ? {listingPending:true} : {})};
       await workspaceState?.update('zero.webPublish.lastLive',lastLive);
-      await workspaceState?.update('zero.webPublish.pending',undefined);
+      if(!recovering || !savedRoute.jamConsent)await workspaceState?.update('zero.webPublish.pending',undefined);
       if (listingPending) await updateHubListing(lastLive, expected);
       if(openingRequested){stage('verifying');progress('Checking live app…');}
       else {

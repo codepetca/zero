@@ -72,8 +72,8 @@ const participantOrder=(a,b)=>a.participantId.length-b.participantId.length||(a.
 function operationId(value) { if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{8,100}$/.test(value)) fail(400,'Use a valid operation ID.'); return value; }
 function currentTime(now) { const value=now();if(!Number.isSafeInteger(value))fail(503,'Jam clock is unavailable.');return value; }
 function inWindow(time,opens,closes) { return time>=Date.parse(opens)&&time<Date.parse(closes); }
-function assertJoinChannel(accepted, channel) {
-  if (channel==='browser' && accepted?.manifest.type==='game')
+function assertJoinChannel(accepted, channel, editorJoinRequired) {
+  if (editorJoinRequired && channel==='browser' && accepted?.manifest.type==='game')
     fail(403,'Open the Zero Start Page and choose Join a Game Jam.');
   if (channel==='editor' && accepted?.manifest.type!=='game') fail(409,'Choose a Game Jam in Zero.');
 }
@@ -553,11 +553,12 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     },{create:true,scope:'proposals',legacyDigest:legacyRequestDigest('proposals',{manifest:input.manifest})});
   }
   async function mutate(input,options={}) {
-    keys(options,['signal','joinChannel','verifyPublication'],[]);
-    const {signal,joinChannel,verifyPublication}=options;
+    keys(options,['signal','joinChannel','editorJoinRequired','verifyPublication'],[]);
+    const {signal,joinChannel,editorJoinRequired,verifyPublication}=options;
     readOptions({signal});
     if(joinChannel!==undefined&&joinChannel!=='browser'&&joinChannel!=='editor')fail(400,'Invalid jam join channel.');
-    return withDiscoveryDeadline(signal,DISCOVERY_TIMEOUT_MS,scope=>mutateScoped(input,scope,{joinChannel,verifyPublication}));
+    if(editorJoinRequired!==undefined&&typeof editorJoinRequired!=='boolean')fail(400,'Invalid jam join policy.');
+    return withDiscoveryDeadline(signal,DISCOVERY_TIMEOUT_MS,scope=>mutateScoped(input,scope,{joinChannel,editorJoinRequired,verifyPublication}));
   }
   function requirePublishedSubmission(state,actor,payload,time) {
     const accepted=state.accepted,registration=state.registrations[actor.id];
@@ -570,8 +571,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     if(!inWindow(time,submissionsOpenAt,submissionsCloseAt))fail(409,'Submissions are closed.');
     return registration.repository;
   }
-  async function mutateScoped(input,callScope,{joinChannel,verifyPublication}) {
-    keys(input,['id','actor','operationId','action','revision','reason','participantId','repositoryUrl','source','title','description','demoUrl','instructions','publication'],['id','actor','operationId','action']);
+  async function mutateScoped(input,callScope,{joinChannel,editorJoinRequired,verifyPublication}) {
+    keys(input,['id','actor','operationId','action','revision','reason','participantId','repositoryUrl','repositoryId','source','title','description','demoUrl','instructions','publication'],['id','actor','operationId','action']);
     const actor=actorIdentity(input.actor),op=operationId(input.operationId),{id,action}=input;
     const {id:ignoredId,actor:ignoredActor,operationId:ignoredOperation,...publicInput}=input;
     const payload=requestPayload(id,publicInput),payloadDigest=digest(payload);
@@ -593,7 +594,10 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     if(!before)fail(404,'Jam not found.');
     const activeReceipt=payload.publication&&activePublicationReceipt(before,actor,payload);
     if(activeReceipt)return commitLoop(id,actor,op,payloadDigest,null,{legacyDigest,callScope,recoverOnly:true,publicationPayload:payload});
-    if(action==='join')assertJoinChannel(before.accepted,joinChannel);
+    if(action==='join') {
+      assertJoinChannel(before.accepted,joinChannel,editorJoinRequired);
+      if(joinChannel==='editor'&&!payload.repositoryId)fail(400,'Choose your public project repository to join.');
+    }
     if(action==='pick-winner'&&before.creator.id!==actor.id)fail(403,'Only the host can pick a winner.');
     if((REVIEW.has(action)||MODERATION.has(action))&&!maintainers.has(actor.id)&&!(action==='cancel'&&canCancelOwnJam(before,actor)))fail(403,'A Zero maintainer must perform this action.');
     if(action==='withdraw-entry'&&!maintainers.has(actor.id)&&before.creator.id!==actor.id)fail(403,'Only the host or a Zero maintainer can remove this entry.');
@@ -604,6 +608,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       joinedRepository=participantRepositoryData((await safeCall(()=>callScope.run(()=>verifyRepository({repositoryUrl:payload.repositoryUrl,actor}))))?.repository,actor);
       const expected=repositoryUrl(payload.repositoryUrl);
       if(joinedRepository.fullName.toLowerCase()!==`${expected.owner}/${expected.repo}`.toLowerCase())fail(403,'The verified repository does not match the chosen repository.');
+      if(payload.repositoryId&&joinedRepository.id!==payload.repositoryId)
+        fail(409,'The GitHub repository at that address changed. Choose your project again in Zero.');
     }
     if(action==='submit'&&payload.source)verified=await source({...payload.source,actor,manifest:false},callScope);
     if(action==='submit'&&!payload.source) {
@@ -615,6 +621,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(current.id!==registered.id)fail(403,'The linked repository is no longer available under your account.');
       if(payload.publication) {
         const checked=await safeCall(()=>callScope.run(()=>verifyPublication(payload.publication,current,{signal:callScope.signal})));
+        if(checked?.superseded===true)
+          return settleSupersededPublication(id,actor,op,payloadDigest,callScope);
         if(checked?.pagesUrl!==payload.publication.pagesUrl)
           fail(503,'The live Game Jam build could not be verified. Retry with the same operation ID.');
         pagesVerification=pagesVerificationData({pagesUrl:checked.pagesUrl,repositoryId:current.id,ownerId:current.ownerId,
@@ -668,7 +676,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       }
       if(!next.accepted||next.moderation.status!=='active')fail(409,'Official participation is not active for this jam.');
       const accepted=next.accepted, schedule=accepted.manifest.schedule;
-      if(action==='join')assertJoinChannel(accepted,joinChannel);
+      if(action==='join')assertJoinChannel(accepted,joinChannel,editorJoinRequired);
       if((action==='join'||action==='submit')&&payload.revision!==accepted.revision)fail(409,'Review and acknowledge the current event rules.');
       const registration=next.registrations[actor.id];
       if(action==='join') {
@@ -713,6 +721,17 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       enforceOrganizerSlot:action==='approve'||action==='resume',
       updateEventTimestamp:action!=='pick-winner'});
   }
+  async function settleSupersededPublication(id,actor,op,payloadDigest,callScope) {
+    // A concurrent retry might have verified the former live build before it
+    // changed. Use the registry's settlement fence before reporting rejection.
+    try {
+      const result=await withWriteStore((writeStore,transactional)=>
+        settleOnStore(writeStore,transactional,id,actor,op,payloadDigest,undefined,callScope),callScope);
+      return result.settlement==='not-applied'?{...result,publicationSuperseded:true}:result;
+    } catch {
+      fail(503,'Zero could not confirm this submission. Retry with the same operation ID.');
+    }
+  }
   async function settlement(input) {
     keys(input,['actor','scope','operationId','payload']);
     const actor=actorIdentity(input.actor),op=operationId(input.operationId),{scope}=input;
@@ -722,12 +741,14 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     const legacyDigest=legacyRequestDigest(scope,input.payload);
     return withWriteStore((writeStore,transactional)=>settleOnStore(writeStore,transactional,scope,actor,op,payloadDigest,legacyDigest));
   }
-  async function settleOnStore(writeStore,transactional,scope,actor,op,payloadDigest,legacyDigest) {
+  async function settleOnStore(writeStore,transactional,scope,actor,op,payloadDigest,legacyDigest,callScope) {
+    const signal=callScope?.signal;
+    const run=work=>safeCall(()=>callScope?callScope.run(work):work());
     for(let attempt=0;attempt<(transactional?1:bound.retries);attempt++) {
-      const snapshot=await safeCall(()=>writeStore.snapshot());
+      const snapshot=await run(()=>writeStore.snapshot({signal}));
       const ledger=validateSettlements(snapshot.settlements,bound);
       const rejected=fenced(snapshot,scope,actor,op,payloadDigest,legacyDigest);
-      const state=scope==='proposals'?null:(await safeCall(()=>snapshot.read(scope))).state;
+      const state=scope==='proposals'?null:(await run(()=>snapshot.read(scope,{signal}))).state;
       if(state)validateState(state,scope,bound);
       const accepted=scope==='proposals'?await proposalResult(snapshot,actor,op,payloadDigest):recover(state,actor,op,payloadDigest);
       if(rejected&&accepted)fail(503,'Official request history is inconsistent.');
@@ -742,7 +763,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       ledger.operations[settlementKey(scope,actor,op)]={scope,actorId:actor.id,operationId:op,payloadDigest,settledAt:time};
       if(Buffer.byteLength(JSON.stringify(ledger))>bound.settlementBytes)fail(413,'Request settlement storage is full. Keep the earlier request and contact the maintainer.');
       validateSettlements(ledger,bound);
-      const applied=await safeCall(()=>writeStore.compareAndSwap(null,snapshot.revision,null,{settlements:ledger}));
+      const applied=await run(()=>writeStore.compareAndSwap(null,snapshot.revision,null,{settlements:ledger,signal}));
       if(applied===true)return closedResult(scope,op);
       if(applied!==false)fail(503,'Official jam records are unavailable. Retry with the same operation ID.');
       if(transactional)fail(503,'The transactional jam registry changed unexpectedly. Retry with the same operation ID.');

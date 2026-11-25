@@ -70,13 +70,15 @@ function createProjectPicker(vscode,{authentication,repositories,history,isGameJ
           const add=repo=>{
             if(!valid()||controller.signal.aborted||publicRepositoriesOnly&&repo.private!==false||
                 repositoryId&&String(repo.id)!==repositoryId)return;
+            const id=String(repo.id);
+            if(publicRepositoriesOnly && !/^[1-9][0-9]{0,19}$/.test(id))return;
             const url=repo.html_url;
             if(typeof url!=='string')return;
             const key=url.toLowerCase();
             // Final results repeat progressive callbacks. Keep the same native
             // item object so replacing items never changes the focused choice.
             if(remote.has(key))return;
-            remote.set(key,{label:'$(repo)',description:repo.full_name,detail:repo.private?'GitHub · Private':'GitHub',action:'repository',repositoryUrl:url,pushedAt:typeof repo.pushed_at==='string'?repo.pushed_at:''});render();
+            remote.set(key,{label:'$(repo)',description:repo.full_name,detail:repo.private?'GitHub · Private':'GitHub',action:'repository',repositoryUrl:url,...(publicRepositoriesOnly ? {repositoryId:id} : {}),pushedAt:typeof repo.pushed_at==='string'?repo.pushed_at:''});render();
           };
           const result=await repositories.listZero({ticket,signal:controller.signal,onRepository:add,standaloneOnly});
           if(!valid()||controller.signal.aborted)return;

@@ -67,7 +67,7 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
         repo.html_url?.toLowerCase()!==repository.toLowerCase()) throw Error(changed);
     authentication.assertCurrentNow(ticket);
     signal?.throwIfAborted();beforeSend();
-    const context={account,repositoryId,repository,root};
+    const context=Object.freeze({account,repositoryId,repository,root});
     const pending=pendingFor(account,repositoryId);
     if (pending) {
       const {id,title,body}=pending.item;
@@ -78,7 +78,10 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
     const routingFailure=()=>{
       signal?.throwIfAborted();authentication.assertCurrentNow(ticket);beforeSend();
       const error=Error(unavailable);
-      if (!known() && !pendingFor(account,repositoryId)) error.code='ZERO_JAM_STATUS_UNKNOWN';
+      if (!known() && !pendingFor(account,repositoryId)) {
+        error.code='ZERO_JAM_STATUS_UNKNOWN';
+        error.publishTarget=context;
+      }
       return error;
     };
     let response;
@@ -97,7 +100,7 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
       throw Error('This repository is linked to more than one Game Jam. Check your registrations before publishing.');
     }
     const wasKnown=known();
-    if (!wasKnown && (response.status===404 && data?.configured!==true || data?.configured===false)) return null;
+    if (!wasKnown && (response.status===404 && data?.configured!==true || data?.configured===false)) return context;
     if (response.status===402 || response.status>=500 || response.ok && !data) throw routingFailure();
     if (!response.ok || data?.configured!==true) throw Error(unavailable);
     const result=data.destination;
@@ -107,7 +110,7 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
     await remember(account,repositoryId,result?.id);
     signal?.throwIfAborted();authentication.assertCurrentNow(ticket);beforeSend();
     if (wasKnown && !result) throw Error('This repository is no longer linked to a Game Jam. Review the publishing destination and choose Publish again.');
-    return result ? {...result,...context} : null;
+    return result ? {...result,...context} : context;
   }
   async function send(destination,key,record,{signal,beforeSend=()=>{}},persist=false) {
     const {account,root,repository}=destination;
@@ -171,7 +174,11 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
       return await send(destination,key,record,options,true);
     } finally {writing.delete(prefix);}
   }
-  return {resolve,submit,recover,hasKnownLink,rememberJoined:(account,repository,id)=>remember(account,repository,id)};
+  async function rememberJoined(account,repository,id,repositoryId) {
+    await remember(account,repository,id);
+    if(POSITIVE.test(repositoryId))await remember(account,repositoryId,id);
+  }
+  return {resolve,submit,recover,hasKnownLink,rememberJoined};
 }
 
 module.exports={createGameJamPublish};

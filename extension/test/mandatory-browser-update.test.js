@@ -3,31 +3,51 @@ const {repositoryLedgerFactory}=require('./fixtures/repository-ledger');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),Module=require('node:module');
 const {appSessions}=require('./fixtures/app-sessions');
 const {loadBundle}=require('../src/lesson-projects');
+const {git}=require('../src/core');
 const format=require('../src/project-builder-format');
 const {readSavedBuilder}=require('../src/project-builder');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
 const disposable=()=>({dispose(){}}),extensionPath=path.resolve(__dirname,'..');
 
-async function fixture(t,{current=false,onPrompt=async()=>undefined}={}) {
+async function fixture(t,{current=false,connected=false,onPrompt=async()=>undefined}={}) {
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-required-update-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  for(const file of (await loadBundle(extensionPath))[0].files){const dest=path.join(root,...file.path.split('/'));await fs.mkdir(path.dirname(dest),{recursive:true});await fs.writeFile(dest,file.content);}
  await fs.writeFile(path.join(root,'zero.json'),'{}');
+ const repository='https://github.com/student/game',repositoryId=12;
+ const session=connected ? {id:'browser-repair-session',account:{id:'1',label:'student'},accessToken:'TEST_BROWSER_REPAIR',scopes:[]} : null;
+ if(connected) {
+  await git(root,['init','-b','main']);
+  await git(root,['remote','add','origin',repository+'.git']);
+ }
  const builder=path.join(root,'.zero-build');
  if(!current){await fs.appendFile(path.join(builder,'README.md'),'\nOlder fixture.\n');const manifest=JSON.parse(await fs.readFile(path.join(builder,'builder.json')));const files=await Promise.all(manifest.files.map(async f=>({path:f.path,bytes:await fs.readFile(path.join(builder,...f.path.split('/')))})));await fs.writeFile(path.join(builder,'builder.json'),JSON.stringify(format.createBuilderManifest(files),null,2)+'\n');}
  const old=await readSavedBuilder(root),commands=new Map(),errors=[],prompts=[],logs=[],executed=[],updates=[],publicationPrompts=[],folderListeners=[];
  let attempts=0,completed=0,publicationReviews=0,controlsProvider,receive,repairClick;
- const vscode={authentication:{getSession:async()=>null,onDidChangeSessions:disposable,registerAuthenticationProvider:disposable},workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],isTrusted:true,textDocuments:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:listener=>{folderListeners.push(listener);return disposable();},onDidChangeConfiguration:disposable},window:{createOutputChannel:()=>({appendLine:v=>logs.push(v),show(){},dispose(){}}),registerWebviewViewProvider:(_id,value)=>{controlsProvider=value;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async(...args)=>{publicationPrompts.push(args);},showErrorMessage:async v=>errors.push(v),showWarningMessage:async(...args)=>{prompts.push(args);return onPrompt(vscode,args);}},tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(id,...args)=>{executed.push([id,...args]);if(id==='zero.repairBrowserTools')return repairClick=commands.get(id)(...args);if(args.length && commands.has(id))return commands.get(id)(...args);}},Uri:{file:fsPath=>({fsPath})}};
+ const vscode={authentication:{getSession:async()=>session,onDidChangeSessions:disposable,registerAuthenticationProvider:disposable},workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],isTrusted:true,textDocuments:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:listener=>{folderListeners.push(listener);return disposable();},onDidChangeConfiguration:disposable},window:{createOutputChannel:()=>({appendLine:v=>logs.push(v),show(){},dispose(){}}),registerWebviewViewProvider:(_id,value)=>{controlsProvider=value;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async(...args)=>{publicationPrompts.push(args);},showErrorMessage:async v=>errors.push(v),showWarningMessage:async(...args)=>{prompts.push(args);return onPrompt(vscode,args);}},tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(id,...args)=>{executed.push([id,...args]);if(id==='zero.repairBrowserTools')return repairClick=commands.get(id)(...args);if(args.length && commands.has(id))return commands.get(id)(...args);}},Uri:{file:fsPath=>({fsPath})}};
  const originalLoad=Module._load,filename=require.resolve('../src/extension'),oldCache=require.cache[filename];delete require.cache[filename];
  Module._load=function(id,...args){if(id==='vscode')return vscode;
  if(id==='./web-publish-ui')return {createWebPublishCommands:(editor,deps)=>createWebPublishCommands(editor,{...deps,publisherFactory:()=>({
-  review:async()=>{publicationReviews++;return {status:'review',account:'1',repository:'https://github.com/student/game',publicUrl:'https://student.github.io/game/',sha:'a'.repeat(40)};},
-  verifyCurrent:async()=>({status:'stale'})
+  review:async()=>{publicationReviews++;return {status:'review',root,account:'1',repository,repositoryId,publicUrl:'https://student.github.io/game/',sha:'a'.repeat(40)};},
+  verifyCurrent:async()=>({status:'stale'}),
+  publish:async()=>assert.fail('Browser repair cannot authorize deployment')
  })})};
  const value=originalLoad.call(this,id,...args);if(id==='./project-builder')return {...value,createProjectBuilder:()=>({ensureValidatedExport:async()=>{attempts++;if(!current&&(await readSavedBuilder(root)).profileHash===old.profileHash)throw Object.assign(Error('Update required'),{code:'ZERO_BUILDER_UPDATE_REQUIRED'});completed++;return {sitePath:path.join(root,'site'),buildId:'test'};},validateExport:async()=>{},validateRetainedExport:async()=>{},assertBuildInputsAtCommit:async()=>{}})};return value;};
  let extension;try{extension=require(filename);}finally{Module._load=originalLoad;}
  const subscriptions=[];t.after(()=>{for(const item of subscriptions)item.dispose();delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
  const provider=appSessions(vscode,{dispose(){},async removeSession(){}});
- extension.activate({extensionMode:2,subscriptions,extensionPath,workspaceState:{get:key=>key.startsWith('zero.webPublish.')?undefined:true,update:async()=>{}}},{env:{},repositoryLedgerFactory,provider});
+ const publishIdentity=connected ? {
+  repositories:{checkSetup:async()=>({}),async readOwnedRepository(url,{ticket}) {
+   assert.equal(url,repository);assert.equal(ticket.session.accountId,'1');
+   return {id:repositoryId,html_url:repository,owner:{id:1}};
+  }},
+  async gameJamRequest(url,options) {
+   assert.equal(url,'https://zero.codepet.ca/api/desktop/jams/project?repositoryId='+repositoryId);
+   assert.equal(options.headers.Authorization,'Bearer '+session.accessToken);
+   return Response.json({configured:true,destination:null});
+  }
+ } : {};
+ extension.activate({extensionMode:2,subscriptions,extensionPath,globalState:{get:()=>undefined,keys:()=>[],update:async()=>{}},
+  workspaceState:{get:key=>key.startsWith('zero.webPublish.')?undefined:true,update:async()=>{}}},{env:{},repositoryLedgerFactory,provider,...publishIdentity});
  return {root,old,vscode,commands,errors,prompts,logs,executed,updates,publicationPrompts,folderListeners,get publicationReviews(){return publicationReviews;},
  click:token=>{receive({command:'zero.repairBrowserTools',repairToken:token});return repairClick;},get attempts(){return attempts;},get completed(){return completed;},async openSidebar(visible=true){
   const {promise,resolve}=Promise.withResolvers();
@@ -72,7 +92,7 @@ test('core-only browser action blocks dirty editor buffers before planning',asyn
  assert.equal(h.attempts,0);assert.equal(h.completed,0);assert.equal(h.prompts.length,0);assert.ok(h.errors.some(message=>/save your project files/i.test(message)));
 });
 test('declining the browser tools update leaves the project intact and never builds',async t=>{
- const h=await fixture(t),upgrade=require('../src/project-update'),originalPlan=upgrade.planUpdate,originalApply=upgrade.applyUpdate;let plans=0,applies=0;
+ const h=await fixture(t,{connected:true}),upgrade=require('../src/project-update'),originalPlan=upgrade.planUpdate,originalApply=upgrade.applyUpdate;let plans=0,applies=0;
  t.after(()=>{upgrade.planUpdate=originalPlan;upgrade.applyUpdate=originalApply;});
  upgrade.planUpdate=async options=>{plans++;return originalPlan(options);};
  upgrade.applyUpdate=async()=>{applies++;throw Error('must not apply');};
@@ -182,7 +202,7 @@ test('hidden controls reveal inline repair and one click retries just the reques
 });
 
 test('a repair click resumes the selected publish mode and still requires public destination consent',async t=>{
- const h=await fixture(t,{current:true});await h.openSidebar();
+ const h=await fixture(t,{current:true,connected:true});await h.openSidebar();
  for(const id of ['zero.publishWeb','zero.publishAndOpenWeb']) {
   await fs.unlink(path.join(h.root,'.zero-build','README.md'));
   const before=h.publicationReviews;
@@ -196,7 +216,7 @@ test('a repair click resumes the selected publish mode and still requires public
 });
 
 test('a superseded repair click cannot consent to another browser action or changed files',async t=>{
- const h=await fixture(t,{current:true});await h.openSidebar();
+ const h=await fixture(t,{current:true,connected:true});await h.openSidebar();
  const missing=path.join(h.root,'.zero-build','README.md');await fs.unlink(missing);
  const first=await requestRepair(h),second=await requestRepair(h,'zero.publishWeb');assert.notEqual(first,second);
  await h.commands.get('zero.repairBrowserTools')(first);

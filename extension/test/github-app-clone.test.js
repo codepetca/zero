@@ -65,6 +65,12 @@ test('unselected repository and old Git stop before reserving destination or dis
  const f=await fixture(t);f.accessHook=()=>{throw Error('Select repository');};await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/Select repository/);assert.equal(f.calls.length,0);assert.deepEqual(await fs.readdir(f.parent),[]);
  f.accessHook=undefined;f.localHook=(_,args)=>args[0]==='--version'?'git version 2.30.9':undefined;await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,parentPath:f.parent}),/2.31/);assert.equal(f.accessCalls,1);assert.deepEqual(await fs.readdir(f.parent),[]);
 });
+test('a same-name replacement cannot receive the Game Jam clone operation',async t=>{
+ const f=await fixture(t);
+ await assert.rejects(f.clone({repositoryUrl:f.repository.html_url,expectedRepositoryId:'31',parentPath:f.parent}),/Game Jam repository changed/);
+ assert.equal(f.calls.length,0);
+ assert.deepEqual(await fs.readdir(f.parent),[]);
+});
 test('spawn ENOENT distinguishes missing Git from a disappeared clone parent',async t=>{
  const f=await fixture(t);
  const missing=Object.assign(Error('spawn git ENOENT'),{code:'ENOENT'});

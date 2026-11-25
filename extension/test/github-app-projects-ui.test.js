@@ -24,7 +24,7 @@ async function fixture(t){
  const auth=createAuthentication({getSession:async()=>session,onDidChangeSessions:()=>({dispose(){}})});t.after(()=>auth.dispose());
  const vscode={window:{showInputBox:async options=>{inputs.push(options);afterName();return name;},showQuickPick:async(items,options)=>{picks.push({items,options});afterPick(options);return options.title==='Start tutorial'?(typeof tutorialChoice==='string'?items.find(item=>item.project.id===tutorialChoice):tutorialChoice?items[0]:undefined):undefined;}}};
  const folders={chooseCloneParent:async()=>{calls.push(['parent']);return parent;},clone:async({signal,reservation,...input})=>{assert.ok(signal instanceof AbortSignal);if(reservation)assert.ok((await fs.lstat(reservation.destination)).isDirectory());calls.push(['clone',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}};
- const repositories={access:async(url,options)=>{calls.push(['access',url,options]);return {};},create:async(input,options)=>{calls.push(['create',input,options]);await afterCreate(options);return {repository:{html_url:remote}};}};
+ const repositories={access:async(url,options)=>{calls.push(['access',url,options]);return {};},create:async(input,options)=>{calls.push(['create',input,options]);await afterCreate(options);return {repository:{html_url:remote,id:456}};}};
  let checkGit=async()=>{};
  const commands=createGitHubProjectCommands({vscode,authentication:auth,repositories,folders,extensionPath:root,project:async()=>current,active:()=>enabled,onProgress:value=>progress.push(value),onRecovery:value=>recovery.push(value),checkCloneGit:folder=>checkGit(folder)});
  return {root,commands,calls,progress,recovery,inputs,picks,auth,vscode,repositories,folders,set name(v){name=v;},set tutorialChoice(v){tutorialChoice=v;},set parent(v){parent=v;},set current(v){current=v;},set active(v){enabled=v;},set afterName(v){afterName=v;},set afterPick(v){afterPick=v;},set afterCreate(v){afterCreate=v;},set checkGit(v){checkGit=v;},set cloneFailure(v){cloneFailure=v;},set cloneResult(v){cloneResult=v;},drift(){session={...session,account:{id:'2',label:'other'}};}};
@@ -47,13 +47,13 @@ test('all cancelled form inputs stop before repository creation',async t=>{
 test('Game Jam setup can bind the exact new repository before opening the cloned project',async t=>{
  const f=await fixture(t),ticket=await f.auth.capture(),projectPath=path.join(f.root,'my-project');
  const order=[];
- t.mock.method(f.folders,'clone',async({repositoryUrl,assertCurrent,onCloned,signal})=>{
-  assert.equal(repositoryUrl,remote);await assertCurrent();
+ t.mock.method(f.folders,'clone',async({repositoryUrl,expectedRepositoryId,assertCurrent,onCloned,signal})=>{
+  assert.equal(repositoryUrl,remote);assert.equal(expectedRepositoryId,'456');await assertCurrent();
   await onCloned({projectPath,signal});
   order.push('open');return projectPath;
  });
  await f.commands.newProject({preparedTicket:ticket,async onCloned(details){
-  assert.equal(details.repositoryUrl,remote);assert.equal(details.projectPath,projectPath);assert.equal(details.ticket,ticket);
+  assert.equal(details.repositoryUrl,remote);assert.equal(details.repositoryId,'456');assert.equal(details.projectPath,projectPath);assert.equal(details.ticket,ticket);
   order.push('join');
  }});
  assert.deepEqual(order,['join','open']);
