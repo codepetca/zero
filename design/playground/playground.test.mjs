@@ -139,7 +139,7 @@ test('Start Page fixture renders the production panel and its actual phase snaps
     const {html, snapshot} = await startPageSource(state);
     assert.match(html, /<h1 id="start-title"[^>]*><svg[^>]*class="zero-mark"[^>]*aria-hidden="true"[^>]*>[\s\S]*?<\/svg><span>Zero<\/span><\/h1>/);
     assert.doesNotMatch(html, /Learn to Build|Starting from zero/);
-    assert.match(html, /<\/h1>\s*<button[^>]*data-action="tutorials" aria-label="Zero Web"[^>]*><svg[^>]*lucide-external-link[^>]*>.*<\/svg><\/button>\s*<\/div>\s*<div id="github-profile"/);
+    assert.match(html, /<\/h1>\s*<button[^>]*data-action="tutorials" aria-label="Zero Web"[^>]*><svg[^>]*lucide-external-link[^>]*>.*<\/svg><\/button>\s*<\/div>\s*<p class="muted start-version">[\d.]+<\/p>\s*<div id="github-profile"/);
     assert.doesNotMatch(html, /aria-controls="tutorial-menu"/);
     assert.match(html, /aria-controls="project-menu"/);
     assert.match(html, /script-src 'nonce-/);

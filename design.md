@@ -184,8 +184,9 @@ when adding features; a new feature does not reset the agreed interaction style.
   and restore its native editor tab. Reopen it through **Zero: Start Page** or the
   sidebar’s **⋯ → Start Page**.
 - The Start Page heading shows the Zero mark and **Zero**, with the **Zero Web**
-  open-in-browser icon beside the title. Show the profile icon and GitHub
-  username without an `@` prefix directly below the title when connected.
+  open-in-browser icon beside the title. Show the installed Zero version below
+  the title, followed by the profile icon and GitHub username without an `@`
+  prefix when connected. Include the version in the native Zero sidebar title.
   Use the profile icon inside **Sign in to Zero** and **Connect to GitHub**.
   Show **Connect to GitHub** when Zero has saved sign-in and GitHub is
   disconnected. Disable **Zero Web** and **Project** until GitHub is connected.
