@@ -5,25 +5,44 @@ const extensionPath=path.resolve(__dirname,'..');
 async function fixture(t,{current=false}={}){
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-builder-upgrade-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  const project=path.join(root,'project');await fs.mkdir(project);
- const files=(await loadBundle(extensionPath))[0].files.filter(f=>f.path.startsWith('.zero-build/'));
+ const files=current?(await upgrade.loadBundledBuilder(extensionPath)).files.map(file=>({path:'.zero-build/'+file.path,content:file.bytes})):
+  (await loadBundle(extensionPath))[0].files.filter(file=>file.path.startsWith('.zero-build/'));
  for(const file of files){const dest=path.join(project,...file.path.split('/'));await fs.mkdir(path.dirname(dest),{recursive:true});await fs.writeFile(dest,file.content);}
- if(current)return {project,root};
- const builder=path.join(project,'.zero-build'),readme=path.join(builder,'README.md');await fs.appendFile(readme,'\nOld version fixture.\n');
- const before=JSON.parse(await fs.readFile(path.join(builder,'builder.json'),'utf8'));
- const contents=await Promise.all(before.files.map(async file=>({path:file.path,bytes:await fs.readFile(path.join(builder,...file.path.split('/')))})));
- await fs.writeFile(path.join(builder,'builder.json'),JSON.stringify(format.createBuilderManifest(contents),null,2)+'\n');
  return {project,root};
 }
 test('explicit upgrade preserves exact old closure in a unique recoverable backup',async t=>{
  const {project}=await fixture(t),before=await readSavedBuilder(project),plan=await upgrade.planUpgrade({projectRoot:project,extensionPath});
  assert.equal(plan.changed,true);assert.equal(plan.oldProfileHash,before.profileHash);
  const result=await upgrade.applyUpgrade(plan),after=await readSavedBuilder(project);
+ assert.equal(after.profileHash,(await upgrade.loadBundledBuilder(extensionPath)).profileHash);
+ assert.notEqual(after.profileHash,before.profileHash);
  assert.equal(after.profileHash,plan.newProfileHash);assert.equal((await readSavedBuilder(path.dirname(result.backupPath))).profileHash,before.profileHash);
  assert.equal(await fs.readFile(path.join(path.dirname(result.backupPath),'.gitignore'),'utf8'),'*\n');
  assert.equal((await upgrade.planUpgrade({projectRoot:project,extensionPath})).changed,false);
  assert.equal((await fs.readdir(project)).some(name=>name.startsWith('.zero-build-stage-')),false);
  assert.equal(result.cleanupWarning,undefined);
  await assert.rejects(upgrade.applyUpgrade({...plan,changed:false}),/Review/);
+});
+test('a fresh standalone builder matches the extension without an upgrade to published tutorial bytes',async t=>{
+ const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-builder-current-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ const {prepareProjectBuilder}=await import('../../scripts/prepare-project-builder.mjs');
+ await prepareProjectBuilder({destination:path.join(root,'.zero-build')});
+ const plan=await upgrade.planUpgrade({projectRoot:root,extensionPath});
+ assert.equal(plan.changed,false);
+ assert.equal(plan.oldProfileHash,plan.newProfileHash);
+ const {project}=await fixture(t);
+ assert.notEqual((await readSavedBuilder(project)).profileHash,plan.newProfileHash);
+});
+test('missing or changed installed browser bytes never fall back to the published tutorial builder',async t=>{
+ const {project,root}=await fixture(t),candidate=path.join(root,'extension');
+ await fs.mkdir(path.join(candidate,'media'),{recursive:true});
+ await fs.copyFile(path.join(extensionPath,'media/lesson-projects.json'),path.join(candidate,'media/lesson-projects.json'));
+ const args={projectRoot:project,extensionPath:candidate};
+ await assert.rejects(upgrade.planUpgrade(args),/installed Zero browser tools are missing or damaged/);
+ const asset=JSON.parse(await fs.readFile(path.join(extensionPath,upgrade.BUNDLED_BUILDER_PATH)));
+ asset.find(file=>file.path==='README.md').content=Buffer.from('different bytes').toString('base64');
+ await fs.writeFile(path.join(candidate,upgrade.BUNDLED_BUILDER_PATH),JSON.stringify(asset));
+ await assert.rejects(upgrade.planUpgrade(args),/installed Zero browser tools are missing or damaged/);
 });
 test('rejects project changes after review and keeps modified source',async t=>{
  const {project}=await fixture(t),plan=await upgrade.planUpgrade({projectRoot:project,extensionPath}),file=path.join(project,'.zero-build/README.md');await fs.appendFile(file,'student change');

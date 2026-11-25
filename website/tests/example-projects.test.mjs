@@ -1,10 +1,11 @@
 import test from "node:test";
 import {copyProjectBuilderFixture} from "../../scripts/project-builder-fixture.mjs";
-import {projectBuilderFilesSync} from "../../scripts/prepare-project-builder.mjs";
+import {projectBuilderFilesSync,readBuilderTreeSync} from "../../scripts/prepare-project-builder.mjs";
 import {prepareStarter} from "../../scripts/prepare-starter.mjs";
 import {lessonProjects} from "../../scripts/lesson-projects.mjs";
 import {prepareUiPrototypes} from "../../scripts/prepare-ui-prototypes.mjs";
 import core from "../../extension/src/core-contract.js";
+import builderFormat from "../../extension/src/project-builder-format.js";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { chmod, lstat, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises";
@@ -235,13 +236,15 @@ test("course starter contains canonical Main, shared scaffold and framework only
   assert.equal(project.sha256, createHash("sha256").update(project.bytes).digest("hex"));
 });
 
-test("all four assemblers retain every canonical saved-builder byte without fixture fallback", async t => {
+test("new projects get the current builder and published lessons retain their verified builder", async t => {
   const directory=await fixture(t);
+  const archived=new Map(readBuilderTreeSync(path.join(root,'teaching/published-builder')).map(file=>[file.path,file.bytes]));
   const extra=['scripts/tutorial-license-MIT.txt','student-template/zero.json','student-template/.vscode/settings.json',
     ...['app','game'].map(id=>`teaching/starters/${id}/Main.java`),
-    ...['Main.java','CounterActor.java','zero/contrib/r12345/actor_containers/ActorCollection.java',
-      'zero/contrib/r12345/actor_containers/OrderedActors.java','zero/contrib/r12345/actor_containers/SnapshotActors.java']
-      .map(name=>'framework/prototypes/actor-containers/'+name)];
+    ...['Main.java','CounterActor.java','zero/lib/r12345/actor_containers/ActorCollection.java',
+      'zero/lib/r12345/actor_containers/OrderedActors.java','zero/lib/r12345/actor_containers/SnapshotActors.java']
+      .map(name=>'framework/prototypes/actor-containers/'+name),
+    ...[...archived.keys()].map(name=>'teaching/published-builder/'+name)];
   for(const name of extra){await mkdir(path.dirname(path.join(directory,name)),{recursive:true});await writeFile(path.join(directory,name),await readFile(path.join(root,name)));}
   prepareStarter(directory);
   const lessons=lessonProjects(directory),[prototype]=prepareUiPrototypes(directory,{only:['actor-containers']});
@@ -253,7 +256,14 @@ test("all four assemblers retain every canonical saved-builder byte without fixt
     assert.deepEqual(await readFile(path.join(directory,'student-template',name)),file.bytes);
     assert.deepEqual(await readFile(path.join(prototype.directory,name)),file.bytes);
     assert.deepEqual(webFiles.get(name),file.bytes);
-    for(const lesson of lessons.projects)assert.deepEqual(Buffer.from(lesson.files.find(item=>item.path===name).content,'base64'),file.bytes);
+    if(file.path!=='builder.json')for(const lesson of lessons.projects)
+      assert.deepEqual(Buffer.from(lesson.files.find(item=>item.path===name).content,'base64'),archived.get(file.path)||file.bytes);
+  }
+  for(const lesson of lessons.projects){
+    const builder=lesson.files.filter(file=>file.path.startsWith('.zero-build/')).map(file=>({path:file.path.slice('.zero-build/'.length),bytes:Buffer.from(file.content,'base64')}));
+    const manifest=builder.find(file=>file.path==='builder.json').bytes;
+    assert.notDeepEqual(manifest,canonical.find(file=>file.path==='builder.json').bytes);
+    builderFormat.validateBuilderFiles(JSON.parse(manifest),builder.filter(file=>file.path!=='builder.json'));
   }
   await rm(path.join(directory,'framework/project-builder/run.cjs'));
   assert.throws(()=>prepareStarter(directory),/required saved file is absent/);

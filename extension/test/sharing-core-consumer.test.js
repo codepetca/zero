@@ -11,7 +11,7 @@ const {zipFiles}=require('../src/web-export/zip');
 const repository={id:'12345',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'};
 const identity=contracts.identity('library',repository.id,'score-views');
 const requirement={minVersion:'0.3.0',maxExclusive:'0.4.0'};
-const version='1.0.0',prefix=identity.namespace.replaceAll('.','/')+'/';
+const version='1.0.0';
 const entry=(path,text)=>({path,bytes:Buffer.from(text)});
 function pom(release) {
  const properties={
@@ -21,7 +21,9 @@ function pom(release) {
  };
  return `<project><modelVersion>4.0.0</modelVersion><groupId>${identity.coordinate.groupId}</groupId><artifactId>${identity.slug}</artifactId><version>${version}</version><properties>${Object.entries(properties).map(([name,value])=>`<${name}>${value}</${name}>`).join('')}</properties><dependencies><dependency><groupId>school.zero</groupId><artifactId>zero-core</artifactId><version>${release.coreBuild.version}</version><scope>provided</scope></dependency></dependencies></project>`;
 }
-async function fixture(t,{withCore=true,requirementOverride,artifactChanges}={}) {
+async function fixture(t,{withCore=true,requirementOverride,artifactChanges,namespaceFormat}={}) {
+ const releaseIdentity=contracts.identity('library',repository.id,identity.slug,namespaceFormat);
+ const releasePrefix=releaseIdentity.namespace.replaceAll('.','/')+'/';
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-core-consumer-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});
  await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(root,'pom.xml'));
@@ -37,9 +39,10 @@ async function fixture(t,{withCore=true,requirementOverride,artifactChanges}={})
   }
   await fs.writeFile(path.join(root,'zero-core.json'),JSON.stringify(core.makeCoreRecord(sources)));
  }
- const release={schema:2,kind:'library',id:identity.id,slug:identity.slug,version,title:'Score views',description:'Structural unit fixture, not compiled acceptance.',license:'MIT',libraryKind:'widget',repository,contributor:{githubId:'7',login:'student'},source:{commit:'a'.repeat(40),folder:'libraries/score-views',sha256:'c'.repeat(64)},policyRevision:'b'.repeat(40),status:'available',namespace:identity.namespace,coordinate:{...identity.coordinate,version},coreRequirement:requirementOverride||requirement,
+ const release={schema:2,kind:'library',id:identity.id,slug:identity.slug,version,title:'Score views',description:'Structural unit fixture, not compiled acceptance.',license:'MIT',libraryKind:'widget',repository,contributor:{githubId:'7',login:'student'},source:{commit:'a'.repeat(40),folder:'libraries/score-views',sha256:'c'.repeat(64)},policyRevision:'b'.repeat(40),status:'available',namespace:releaseIdentity.namespace,coordinate:{...identity.coordinate,version},coreRequirement:requirementOverride||requirement,
   coreBuild:{version:requirementOverride?.minVersion||'0.3.0',sourceSha256:'f'.repeat(64),jarSha256:'e'.repeat(64),buildRecipeSha256:'d'.repeat(64),javaRelease:'17',javafxVersion:'21.0.12'},artifacts:{}};
- const binary=[entry(prefix+'ScoreView.class','structural-class-fixture')],sources=[entry(prefix+'ScoreView.java',`package ${identity.namespace}; public interface ScoreView { zero.ui.Element view(); void setScore(int points); }`)];
+ const license=entry('META-INF/LICENSE','MIT fixture');
+ const binary=[license,entry(releasePrefix+'ScoreView.class','structural-class-fixture')],sources=[license,entry(releasePrefix+'ScoreView.java',`package ${releaseIdentity.namespace}; public interface ScoreView { zero.ui.Element view(); void setScore(int points); }`)];
  const bytes=new Map();
  for(const [kind,initial]of [['jar',zipFiles(binary)],['sources',zipFiles(sources)],['pom',Buffer.from(pom(release))]]) {
   const data=artifactChanges?.[kind]?artifactChanges[kind](initial,{release,binary,sources}):initial;
@@ -97,13 +100,15 @@ test('core-dependent artifacts refuse bundled core, processors and class-path ma
   await assert.rejects(consumer.verifyLibrary(f.context,f.release),/outside|manifest/);
  }
 });
-test('published browser resolution binds core metadata and only uses captured project core',async t=>{
- const f=await fixture(t),plan=await consumer.planChange(f.root,f.context,f.release);
+test('published browser resolution binds the release package, metadata and captured project core',async t=>{
+ const f=await fixture(t,{namespaceFormat:'lib'}),plan=await consumer.planChange(f.root,f.context,f.release);
  await fs.writeFile(path.join(f.root,'pom.xml'),plan.afterText);
  const captured=await captureBuildInputs(f.root);
  assert.ok(captured.files.some(file=>file.path==='zero-core.json'));
  const options={sharingSettings:f.settings,fetcher:f.fetcher};
  const resolved=await resolveLibrarySources(f.root,captured,options);
+ assert.equal(resolved.publishedLibraries[0].namespace,'zero.lib.r12345.score_views');
+ assert.equal(resolved.sources[0].path,'zero/lib/r12345/score_views/ScoreView.java');
  assert.deepEqual(resolved.publishedLibraries[0].coreRequirement,requirement);
  assert.deepEqual(resolved.publishedLibraries[0].coreBuild,f.release.coreBuild);
  assert.notEqual(boundSourceHash(captured.sourceHash,resolved.publishedLibraries),captured.sourceHash);
@@ -118,13 +123,24 @@ test('published browser resolution binds core metadata and only uses captured pr
  await assert.rejects(resolveLibrarySources(f.root,tampered,options),/reviewed current core/);
  await fs.writeFile(record,original);
 });
+test('owned browser resolution uses the verified new package without a catalog lookup',async t=>{
+ const f=await fixture(t,{namespaceFormat:'lib'});
+ const plan=await consumer.planChange(f.root,f.context,f.release,{owned:true});
+ await require('../src/sharing/owned-library').installOwned(f.root,f.context,f.release,plan.verifiedArtifacts);
+ await fs.writeFile(path.join(f.root,'pom.xml'),plan.afterText);
+ const captured=await captureBuildInputs(f.root);
+ const resolved=await resolveLibrarySources(f.root,captured,{fetcher:()=>assert.fail('Owned library resolution must stay offline')});
+ assert.equal(resolved.publishedLibraries[0].storage,'owned');
+ assert.equal(resolved.publishedLibraries[0].namespace,'zero.lib.r12345.score_views');
+ assert.deepEqual(resolved.sources.map(source=>source.path),['zero/lib/r12345/score_views/ScoreView.java']);
+});
 test('local browser components require their exact author core input',async t=>{
  const f=await fixture(t),record=await core.readProjectCore(f.root,{required:true});
- const descriptor={schema:2,kind:'library',slug:identity.slug,version,title:'Score views',description:'Local widget unit fixture',license:'MIT',libraryKind:'widget',coreRequirement:requirement,coreInput:{version:record.coordinate.version,sourceSha256:record.sourceSha256}};
+ const descriptor={schema:2,kind:'library',slug:identity.slug,version,title:'Score views',description:'Local widget unit fixture',license:'MIT',libraryKind:'widget',namespaceFormat:'lib',coreRequirement:requirement,coreInput:{version:record.coordinate.version,sourceSha256:record.sourceSha256}};
  await fs.writeFile(path.join(f.root,'src/main/java/Reusable.java'),'public class Reusable { public zero.ui.Element view() { return new zero.ui.Label("Score"); } }');
  await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository,descriptor,sources:['src/main/java/Reusable.java']}));
  const captured=await captureBuildInputs(f.root);
- assert.equal((await resolveLibrarySources(f.root,captured)).sources.length,1);
+ assert.deepEqual((await resolveLibrarySources(f.root,captured)).sources.map(source=>source.path),['zero/lib/r12345/score_views/Reusable.java']);
  const wrong={...captured,libraries:captured.libraries.map(library=>({...library,descriptor:{...library.descriptor,coreInput:{...library.descriptor.coreInput,sourceSha256:'f'.repeat(64)}}}))};
  await assert.rejects(resolveLibrarySources(f.root,wrong),/coreInput differs/);
 });

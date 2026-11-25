@@ -76,11 +76,14 @@ function validateRepository(value) {
   if(value.url!==`https://github.com/${value.owner}/${value.name}`)fail('Use the exact GitHub repository page URL.');
   return {...value};
 }
-function identity(type,repositoryId,slug) {
+function identity(type,repositoryId,slug,namespaceFormat='contrib') {
   kind(type);numericId(repositoryId,'repository ID');validateSlug(slug);
   const result={kind:type,id:`${type==='library'?'lib':'game'}-r${repositoryId}-${slug}`,slug,repositoryId};
-  if(type==='library')Object.assign(result,{namespace:`zero.contrib.r${repositoryId}.${slug.replaceAll('-','_')}`,
-    coordinate:{groupId:`ca.codepet.zero.contrib.r${repositoryId}`,artifactId:slug}});
+  if(type==='library'){
+    if(!['contrib','lib'].includes(namespaceFormat))fail('Unsupported library namespace format.');
+    Object.assign(result,{namespace:`zero.${namespaceFormat}.r${repositoryId}.${slug.replaceAll('-','_')}`,
+      coordinate:{groupId:`ca.codepet.zero.contrib.r${repositoryId}`,artifactId:slug}});
+  }
   return result;
 }
 // Hosted pages are external mutable destinations, never registry artifacts.
@@ -104,11 +107,12 @@ function validateWebPublication(value,{commit}={}) {
 function validateDescriptor(value) {
   const common=['schema','kind','slug','version','title','description','license','preview'];
   const core=value?.schema===2?['coreRequirement','coreInput']:[];
-  keys(value,[...common,'libraryKind','controls',...core],[...common.filter(key=>key!=='preview'),...core],'sharing descriptor');
+  keys(value,[...common,'libraryKind','controls',...core,...(core.length?['namespaceFormat']:[])],[...common.filter(key=>key!=='preview'),...core],'sharing descriptor');
   if(value.schema!==SCHEMA&&!(value.schema===2&&value.kind==='library'))fail('Unsupported sharing descriptor schema.');
   kind(value.kind);validateSlug(value.slug);validateVersion(value.version);
   text(value.title,'title',120);text(value.description,'description',4000);text(value.license,'license',100);
   const result={...value};
+  if(Object.hasOwn(value,'namespaceFormat')&&value.namespaceFormat!=='lib')fail('Unsupported library namespace format.');
   if(value.schema===2){result.coreRequirement=validateCoreRequirement(value.coreRequirement);result.coreInput=validateCoreInput(value.coreInput,result.coreRequirement);}
   if(Object.hasOwn(value,'preview')){validateFolder(value.preview);if(!value.preview.endsWith('.png'))fail('Use a PNG preview.');}
   if(value.kind==='library'){
@@ -156,7 +160,8 @@ function validateRelease(value,{artifactOrigin}={}) {
   if(value.schema!==SCHEMA&&!(value.schema===2&&value.kind==='library'))fail('Unsupported release schema.');
   if(value.schema===2){validateCoreRequirement(value.coreRequirement);validateCoreBuild(value.coreBuild,value.coreRequirement);}
   const repository=validateRepository(value.repository),contributor=person(value.contributor,'contributor');
-  const item=identity(value.kind,repository.id,value.slug);validateVersion(value.version);
+  const namespaceFormat=value.schema===2&&typeof value.namespace==='string'&&value.namespace.startsWith('zero.lib.')?'lib':undefined;
+  const item=identity(value.kind,repository.id,value.slug,namespaceFormat);validateVersion(value.version);
   if(value.id!==item.id||contributor.githubId!==repository.ownerId)fail('Release ownership/identity mismatch.');
   text(value.title,'title',120);text(value.description,'description',4000);text(value.license,'license',100);
   keys(value.source,['commit','folder','sha256'],['commit','folder','sha256'],'release source');

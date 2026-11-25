@@ -4,6 +4,7 @@ const fs=require('node:fs/promises');
 const {discoverLibraries,declaration,applicationDeclaration}=require('../sharing/authoring');
 const {loadCatalog,verifyLibrary,inspectManagedLibraryPins}=require('../sharing/consumer');
 const {readKitConfiguration}=require('../sharing/configuration');
+const {identity}=require('../sharing/contracts');
 const core=require('../core-contract');
 const {isTutorialPractice,practiceCatalogUrl}=require('../sharing/tutorial-practice');
 
@@ -30,9 +31,13 @@ async function discoverBrowserLibraries(projectRoot,pomText,{discovery,hasState}
 // Share the same original-application namespace rule in full and saved checks.
 function assertApplicationNamespaces(files,libraries) {
  if(!libraries.length)return;
+ const reserved=new Set(libraries.flatMap(library=>{
+  const {kind,repositoryId,slug}=library.identity;
+  return ['contrib','lib'].map(format=>identity(kind,repositoryId,slug,format).namespace);
+ }));
  for(const file of files) {
   const pkg=applicationDeclaration(file.bytes.toString('utf8'),file.originalPath).packageName;
-  for(const library of libraries)if(pkg===library.identity.namespace||pkg.startsWith(library.identity.namespace+'.'))
+  for(const namespace of reserved)if(pkg===namespace||pkg.startsWith(namespace+'.'))
    fail('Application source shadows library namespace: '+file.originalPath);
  }
 }
@@ -54,14 +59,16 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
  const libraries=captured.libraries||await discoverBrowserLibraries(projectRoot,pom),sources=[],resources=[],publishedLibraries=[];
  const published=libraries.filter(library=>library.mode==='published'&&library.storage!=='owned');
  const settings=options.sharingSettings||readKitConfiguration(path.resolve(__dirname,'../..'));
+ if(!options.sharingSettings&&['https://zero.codepet.ca/api/sharing/catalog/web','https://zero.codepet.ca/api/sharing/catalog/v2'].includes(settings.catalogUrl))
+  settings.catalogUrl='https://zero.codepet.ca/api/sharing/catalog/v3';
  const contexts=new Map();
  for(const library of published) {
   const practice=isTutorialPractice(library.identity);
   if(!contexts.has(practice))contexts.set(practice,await loadCatalog(practice?{...settings,catalogUrl:practiceCatalogUrl(settings.catalogUrl)}:settings,{fetcher:options.fetcher,signal:options.signal}));
  }
  for(const library of libraries) {
-  const namespace=library.identity.namespace,prefix=namespace.replaceAll('.','/')+'/';
   if(library.mode==='local') {
+   const namespace=library.identity.namespace,prefix=namespace.replaceAll('.','/')+'/';
    if(library.descriptor.schema===2)capturedCore(captured,library.descriptor.coreRequirement,library.descriptor.coreInput);
    const sourcePrefix=`${library.folder}/src/main/java/`,resourcePrefix=`${library.folder}/src/main/resources/`;
    const own=captured.files.filter(file=>file.path.startsWith(sourcePrefix));
@@ -85,7 +92,6 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
    const ownedPrefix=`zero-dependencies/${library.identity.id}/${library.version}/`;
    verified=await validateOwnedFiles(library.identity.id,library.version,captured.files.filter(file=>file.path.startsWith(ownedPrefix)));
    release=verified.release;
-   if(release.namespace!==namespace)fail(`owned library namespace differs: ${library.slug}`);
   } else {
    const practice=isTutorialPractice(library.identity);context=contexts.get(practice);
    if(library.source==='consumer'&&library.repositoryOrigin!==context.artifactOrigin)fail(`managed repository origin changed for ${library.slug}`);
@@ -93,6 +99,8 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
    if(!release)fail(`published ${library.slug} ${library.version} is not an available accepted release`);
    verified=await verifyLibrary(context,release,{signal:options.signal});
   }
+  const namespace=release.namespace,prefix=namespace.replaceAll('.','/')+'/';
+  if(library.source!=='consumer'&&namespace!==library.identity.namespace)fail(`published library namespace differs from the authored source: ${library.slug}`);
   if(release.schema===2)capturedCore(captured,release.coreRequirement);
   const sourceEntries=inspectJar(verified.sources),binaryEntries=inspectJar(verified.jar);
   let count=0;

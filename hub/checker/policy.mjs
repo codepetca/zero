@@ -128,7 +128,7 @@ export function expectedPom(bundle) {
 `);
 }
 
-const namespacePattern = /^zero\.contrib\.r[1-9][0-9]*\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
+const namespacePattern = /^zero\.(?:contrib|lib)\.r[1-9][0-9]*\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
 const classPath = /^src\/main\/java\/([A-Za-z_$][\w$]*\/)*[A-Za-z_$][A-Za-z0-9_$]*\.java$/;
 const checkPath = /^(src\/test\/java|examples\/(first|second))\/([A-Za-z_$][\w$]*\/)*[A-Za-z_$][A-Za-z0-9_$]*\.java$/;
 const resourcePath = /^src\/main\/resources\/([A-Za-z_$][\w$]*\/)+[A-Za-z0-9][A-Za-z0-9_.-]*$/;

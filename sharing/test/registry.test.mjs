@@ -7,6 +7,7 @@ import { FileRegistry, digest, initialState, revisionOf } from '../registry.mjs'
 import { ingestRequest, cancelRequest, reportAttempt, reconcileInbox, retryRequest } from '../requests.mjs';
 import { FileStorage, byteHash } from '../file-storage.mjs';
 import { PublicationService, generateCatalog } from '../publication.mjs';
+import sourceDiagnostics from '../../extension/src/sharing/source-diagnostics.js';
 
 function fixtureRequest(index=1, options={}) {
   const repository = {id:String(index),ownerId:String(index),owner:'student'+index,name:'game',url:'https://github.com/student'+index+'/game'};
@@ -83,6 +84,28 @@ test('accepted-version conflicts are source failures with a new-version correcti
   await f.service.reconcile({prepare:async record=>({evidence:evidence(record),artifacts})});
   const state=(await f.registry.read()).state;
   assert.equal(state.requests[other.id].status,'failed');assert.equal(Object.keys(state.releases).length,1);
+});
+
+test('a Java package change requires a new version line even after withdrawal', async t => {
+  const f = await fixture(t);
+  const original = await f.ingest();
+  const {release} = await f.service.publish({requestId:original.id,evidence:evidence(original),artifacts});
+  await f.service.setAvailability(`library/${release.id}/${release.version}`, 'withdrawn');
+  const coreInput = {version:'0.3.0',sourceSha256:'d'.repeat(64)};
+  const coreRequirement = {minVersion:'0.3.0',maxExclusive:'0.4.0'};
+  const coreBuild = {...coreInput,jarSha256:'e'.repeat(64),buildRecipeSha256:'f'.repeat(64),javaRelease:'17',javafxVersion:'21.0.12'};
+  const publishWithLibPackage = async version => {
+    const request = fixtureRequest(1,{version});
+    request.descriptor = {...request.descriptor,schema:2,namespaceFormat:'lib',coreInput,coreRequirement};
+    const record = await f.ingest(request);
+    return f.service.publish({requestId:record.id,evidence:{...evidence(record),coreBuild},artifacts});
+  };
+  await assert.rejects(publishWithLibPackage('0.1.1'), error =>
+    error.kind==='source-failure' && sourceDiagnostics.diagnosticFromError(error).code==='library-package-version');
+  const migrated = await publishWithLibPackage('0.2.0');
+  assert.equal(migrated.release.namespace,'zero.lib.r1.health_bar');
+  assert.equal(migrated.release.coordinate.groupId,release.coordinate.groupId);
+  assert.deepEqual((await f.registry.read()).state.releases[`library/${release.id}/0.1.0`].release,release);
 });
 
 test('forged receipts/hashes never stage or reserve a version',async t=>{

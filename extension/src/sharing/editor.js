@@ -7,16 +7,9 @@ const {SLUG: PRACTICE_SLUG,isTutorialPractice,practiceCatalogUrl}=require('./tut
 const core=require('../core');const {assertShareable,assertOriginalProject,assertContributionProject,tutorialMarker}=require('../lesson-projects');const c=require('./contracts');const authoring=require('./authoring');const checks=require('./local-check');const consumer=require('./consumer');const ownedLibrary=require('./owned-library');const {createGitHubReader}=require('./github');const {parseXml,single,value}=require('../project-pom');
 const fail=message=>{throw new Error(message);};
 const LEGACY_CATALOG = 'https://zero.codepet.ca/api/sharing/catalog/web';
-const CURRENT_CATALOG = 'https://zero.codepet.ca/api/sharing/catalog/v2';
+const PREVIOUS_CATALOG = 'https://zero.codepet.ca/api/sharing/catalog/v2';
+const CURRENT_CATALOG = 'https://zero.codepet.ca/api/sharing/catalog/v3';
 
-function editorPracticeCatalogUrl(catalogUrl) {
- const url = new URL(catalogUrl);
- if(!/^\/api\/sharing\/catalog\/v2(?:\/practice)?$/.test(url.pathname))return practiceCatalogUrl(catalogUrl);
- if(url.username||url.password||url.search||url.hash)
-  fail('This catalog does not offer tutorial practice. Use the configured ZeroHub catalog.');
- url.pathname='/api/sharing/catalog/v2/practice';
- return url.href;
-}
 const escape=text=>text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function assertSaved(vscode,root) {if((vscode.workspace.textDocuments||[]).some(d=>d.isDirty&&d.uri?.fsPath&&(d.uri.fsPath===root||d.uri.fsPath.startsWith(root+path.sep))))fail('Save your project files before reviewing this action.');}
 function trusted(vscode){if(vscode.workspace.isTrusted===false)fail('Trust your own project before editing or running its Java code.');}
@@ -76,9 +69,9 @@ function createSharingEditor(vscode,host,options={}) {
   // activation instead of silently falling back to an accepted bundled origin.
   return configuration.get(key,undefined)??bundledValue??fallback;
  }
- const bundledCatalog = bundled.catalogUrl === LEGACY_CATALOG ? CURRENT_CATALOG : bundled.catalogUrl;
+ const bundledCatalog = [LEGACY_CATALOG, PREVIOUS_CATALOG].includes(bundled.catalogUrl) ? CURRENT_CATALOG : bundled.catalogUrl;
  const settings=()=>({catalogUrl:operatorSetting('sharingCatalogUrl',bundledCatalog,CURRENT_CATALOG),artifactOrigin:operatorSetting('sharingArtifactOrigin',bundled.artifactOrigin,'')});
- const catalogSettings=practice=>{const configured=settings();return practice?{...configured,catalogUrl:editorPracticeCatalogUrl(configured.catalogUrl)}:configured;};
+ const catalogSettings=practice=>{const configured=settings();return practice?{...configured,catalogUrl:practiceCatalogUrl(configured.catalogUrl)}:configured;};
  const practiceDetail=descriptor=>isTutorialPractice(descriptor)?'Tutorial practice · copied CreditsBadge exercise. Listed separately from original contributions.\n':'';
  async function current(root){if(await host.project()!==root)fail('The project changed during review. Prepare this action again.');assertSaved(vscode,root);}
  let running=false;
@@ -107,7 +100,8 @@ function createSharingEditor(vscode,host,options={}) {
   else {
    let contextCatalog,catalogError;try{contextCatalog=await api.consumer.loadCatalog(catalogSettings(lib.slug===PRACTICE_SLUG),{fetcher:options.fetcher});}catch(error){catalogError=error;}
    const release=contextCatalog?.catalog.releases.find(item=>item.kind==='library'&&item.id===lib.id&&item.version===lib.version);
-   const lines=[lib.title,'Active mode: Published dependency',`Active version: ${lib.version}`,'',`Namespace: ${lib.namespace}`,''];
+   const lines=[lib.title,'Active mode: Published dependency',`Active version: ${lib.version}`,''];
+   if(release?.namespace)lines.push(`Namespace: ${release.namespace}`,'');
    if(release?.status==='withdrawn')lines.push('Release status: Withdrawn from new installs. This project retains the exact version.','');
    if(catalogError)lines.push('The published catalog is unavailable. No import or API example is shown.',`Reason: ${catalogError.message}`);
    else if(!release)lines.push('Exact active release metadata is unavailable in the current catalog. No import or API example is shown.');
@@ -165,9 +159,10 @@ function createSharingEditor(vscode,host,options={}) {
   const version=await input('Library version','0.1.0',c.validateVersion);if(!version)return;
   const license=await input('Library license','MIT');if(!license)return;
   const core=require('../core-contract'),record=await core.readProjectCore(root);
-  const coreFields=record?{coreRequirement:{minVersion:record.coordinate.version,maxExclusive:`0.${Number(record.coordinate.version.split('.')[1])+1}.0`},coreInput:{version:record.coordinate.version,sourceSha256:record.sourceSha256}}:{};
+  // The published tutorial still owns the original saved browser builder.
+  const coreFields=record?{...(slug===PRACTICE_SLUG?{}:{namespaceFormat:'lib'}),coreRequirement:{minVersion:record.coordinate.version,maxExclusive:`0.${Number(record.coordinate.version.split('.')[1])+1}.0`},coreInput:{version:record.coordinate.version,sourceSha256:record.sourceSha256}}:{};
   const descriptor=c.validateDescriptor({schema:record?2:1,kind:'library',slug,version,title,description,license,libraryKind:kind.kind,...coreFields});
-  const sources=picked.map(p=>p.path),edits=await importEdits(root,sources,c.identity('library',resolved.repository.id,slug).namespace);
+  const sources=picked.map(p=>p.path),edits=await importEdits(root,sources,c.identity('library',resolved.repository.id,slug,descriptor.namespaceFormat).namespace);
   const plan=await api.authoring.previewExtraction(root,{repository:resolved.repository,descriptor,sources,edits});
   const ignored=await authoring.read(root,'.gitignore',true),line='.zero-sharing-recovery/';
   if(!ignored?.split(/\r?\n/).includes(line))plan.changes.push({path:'.gitignore',before:ignored,after:(ignored||'')+((ignored&&!ignored.endsWith('\n'))?'\n':'')+line+'\n'});

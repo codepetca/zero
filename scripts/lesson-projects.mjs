@@ -1,12 +1,22 @@
 import {coreSources} from './prepare-starter.mjs';
 import core from '../extension/src/core-contract.js';
 import {projectBuilderFilesSync} from './prepare-project-builder.mjs';
+import builderFormat from '../extension/src/project-builder-format.js';
 import {readFileSync, writeFileSync, mkdirSync, readdirSync, lstatSync, existsSync, unlinkSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {deflateRawSync} from 'node:zlib';
 
 const repository = fileURLToPath(new URL('../', import.meta.url));
+// Published tutorial repositories own these exact builder inputs. The standalone
+// starter can advance independently. These copies come from Zero 3ad16270e.
+const publishedBuilderFiles = new Set([
+  'src/sharing/authoring.js',
+  'src/sharing/contracts.js',
+  'src/sharing/jar.js',
+  'src/sharing/tutorial-practice.js',
+  'src/web-export/libraries.js'
+]);
 import {practiceProjects, sampleGameAssets, petAssets, publishedTutorialTemplate} from '../teaching/projects.mjs';
 function read(root, relative) {
   const parts = relative.split('/');
@@ -21,7 +31,7 @@ function read(root, relative) {
 }
 // One minimal scaffold per continuing project. Finished programs and lesson
 // references are never copied into the learner's project.
-export function lessonProjects(root = repository) {
+export function lessonProjects(root = repository, {usePublishedBuilderOverlay = true} = {}) {
   const common = new Map();
   const add = (files, filename, bytes, mode = 0o644) => files.set(filename, {path:filename, content:Buffer.from(bytes).toString('base64'), mode});
   for (const name of ['pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/tasks.json']) add(common, name, read(root, `student-template/${name}`), name === 'mvnw' ? 0o755 : 0o644);
@@ -32,7 +42,14 @@ export function lessonProjects(root = repository) {
   // New tutorial scaffolds carry the current Zero license; prior grants remain intact.
   add(common, 'LICENSE', read(root, 'LICENSE'));
   for (const name of coreSources) add(common, `src/main/java/zero/${name}`, read(root, `framework/src/main/java/zero/${name}`));
-  for (const file of projectBuilderFilesSync({sourceRoot:root})) add(common,'.zero-build/' + file.path,file.bytes);
+  let builder = projectBuilderFilesSync({sourceRoot:root});
+  if (usePublishedBuilderOverlay) {
+    builder = builder.filter(file => file.path !== 'builder.json').map(file => publishedBuilderFiles.has(file.path)
+      ? {...file,bytes:read(root,'teaching/published-builder/'+file.path)} : file);
+    const manifest = builderFormat.createBuilderManifest(builder);
+    builder.push({path:'builder.json',bytes:Buffer.from(JSON.stringify(manifest,null,2)+'\n')});
+  }
+  for (const file of builder) add(common,'.zero-build/' + file.path,file.bytes);
   add(common, 'zero-core.json', JSON.stringify(core.makeCoreRecord(Object.fromEntries(core.coreSourcePaths.map(name =>
     [name, Buffer.from(common.get(name).content,'base64')]))),null,2) + '\n');
   const projects = practiceProjects.map(project => {

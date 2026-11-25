@@ -168,9 +168,10 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     receipts.add(evidence);
     await assertOpen(record,{signal:AbortSignal.timeout(sourceTimeoutMs)});
     observedRepositories.set(record.frozen.repository.id,`${record.frozen.repository.owner}/${record.frozen.repository.name}`);
-    return service.publish({requestId:record.id,evidence,artifacts:verified.artifacts,components:verified.components});
+    return await service.publish({requestId:record.id,evidence,artifacts:verified.artifacts,components:verified.components});
     } catch(error) {
-      await reportAttempt(registry,record.id,{kind:error.kind==='source-failure'?'source-failure':'infrastructure-failure',message:'Managed publication or official evidence unavailable',maxInfrastructureRetries:3});
+      const sourceFailure = error.kind === 'source-failure';
+      await reportAttempt(registry,record.id,{kind:sourceFailure?'source-failure':'infrastructure-failure',message:sourceFailure?'Managed source checks failed':'Managed publication or official evidence unavailable',maxInfrastructureRetries:3,...(sourceFailure?{sourceDiagnostic:sourceDiagnostics.diagnosticFromError(error)}:{})});
       throw error;
     }
   }

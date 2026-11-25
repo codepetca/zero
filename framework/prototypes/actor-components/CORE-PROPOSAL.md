@@ -7,7 +7,7 @@ not a claim about an actual student contributor.
 ## Problem and current component
 
 `Actor.face(x, y)` turns immediately. A homing enemy may need to turn gradually.
-The existing [TurnTowards source](zero/contrib/r12345/actor_tools/TurnTowards.java)
+The existing [TurnTowards source](zero/lib/r12345/actor_tools/TurnTowards.java)
 provides that behavior as ordinary Java without changing Zero:
 
 ```java

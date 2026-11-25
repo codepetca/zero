@@ -13,8 +13,14 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify(practice?{localOnly:true}:{}));
   if(publishing || practice) {
     const {loadBundle}=require('../src/lesson-projects');
+    const {loadBundledBuilder}=require('../src/project-builder-upgrade');
+    const extensionPath=path.resolve(__dirname,'..');
+    const [tutorial]=await loadBundle(extensionPath);
+    const {files:builder}=await loadBundledBuilder(extensionPath);
     // Exercise the real pre-publication builder review with an already-current project.
-    for(const file of (await loadBundle(path.resolve(__dirname,'..')))[0].files.filter(file=>file.path.startsWith('.zero-build/')||file.path==='zero-core.json'||file.path.startsWith('src/main/java/zero/'))) {
+    const coreFiles=tutorial.files.filter(file=>file.path==='zero-core.json'||file.path.startsWith('src/main/java/zero/'));
+    const builderFiles=builder.map(file=>({path:`.zero-build/${file.path}`,content:file.bytes}));
+    for(const file of [...coreFiles,...builderFiles]) {
       const destination=path.join(root,...file.path.split('/'));
       await fs.mkdir(path.dirname(destination),{recursive:true});await fs.writeFile(destination,file.content);
     }

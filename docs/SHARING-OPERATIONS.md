@@ -107,6 +107,25 @@ registry and objects before dispatch, then verify the exact run, catalog statuse
 and unchanged accepted identities/artifact hashes. The `restore` CLI remains an
 explicit operator recovery operation; it is not exposed by this workflow.
 
+## Manual library withdrawal
+
+For an authorized withdrawal, set `ZERO_SHARING_LIBRARY_WITHDRAW_RELEASE` to
+the exact ordinary library release key, such as
+`library/lib-r12345-score-helper/0.1.0`. Run **Sharing managed library publication
+→ Run workflow** on `main` with that key in `withdraw_release`. Clear the
+repository variable after verifying the withdrawal. Leave the input empty to
+process the library queue. Withdrawal uses the existing enabled library publication
+configuration, reviewed source pin and serialized publisher job. The standalone
+`library-withdraw --config reviewed-config.json --release <exact-release-key>`
+command defaults to a dry run. Execution requires `--execute --role publisher`
+and the publisher credentials.
+
+Verify the exact run and the withdrawn status in the public catalog. If delivery
+of the updated catalog fails, retry the same exact release key. Withdrawal keeps
+the accepted version reserved and preserves its source, artifacts and history.
+To contribute changed source, commit and share a new version. Reserved tutorial
+practice releases use the separate cleanup flow below.
+
 ## Catalog visibility
 
 ZeroHub browsing shows the highest available semantic version per project ID.
@@ -245,6 +264,13 @@ rows so older editors can still decode the response. Capable editors use
 use a dedicated test profile with its regular catalog URL pointed at v2.
 Older project-owned browser tools need their own deliberate update to the
 current browser tools before resolving current-format releases remotely.
+
+The v3 catalog and its practice route include the `zero.lib` package format.
+The v2 routes retain the `zero.contrib` view for compatible released editors.
+Deploy the website and verify both catalog versions before accepting a
+`namespaceFormat: 'lib'` request. Reuse the pause, drain and repin procedure
+below for this migration. An accepted old release can be withdrawn by exact
+version, and a library with renamed Java imports uses a new breaking version.
 
 Before accepting any schema 2 request, pause both production sharing
 workflows and drain active jobs. Take a read-only snapshot of the current

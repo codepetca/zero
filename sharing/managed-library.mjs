@@ -104,7 +104,7 @@ export function verifyOfficialLibraryEvidence({record,official,runId,attempt,art
   const coreDependent=record.frozen.descriptor?.schema===2;
   if (receipt.status==='passed' && coreDependent) {
     validateTrustedCoreBuild(receipt.coreBuild, record.frozen.descriptor, expectedPolicyDigest);
-    const ident=contracts.identity('library',record.frozen.repository.id,record.frozen.slug);
+    const ident=contracts.identity('library',record.frozen.repository.id,record.frozen.slug,record.frozen.descriptor.namespaceFormat);
     const coordinate={...ident.coordinate,version:record.frozen.version};
     if (!artifacts.pom.equals(coreLibraryPom(record.frozen.descriptor,coordinate,receipt.coreBuild))) throw new Error('Managed checker POM differs from fixed core policy');
     for (const [artifact,kind] of [['jar','binary'],['sources','sources']]) jars.inspectLibraryJar(artifacts[artifact],{namespace:ident.namespace,coordinate,kind});

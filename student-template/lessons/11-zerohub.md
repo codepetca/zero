@@ -284,8 +284,9 @@ with the small practice sources below, retaining each filename:
   **Libraries → Tutorial practice: CreditsBadge → Examples → second**.
 
 **Replace the import in all three files with the exact CreditsBadge import that
-extraction added to your Main.** The reference uses a made-up repository ID;
-your own package will differ. Do not copy Zero framework source into the library.
+extraction added to your Main.** The practice library uses `zero.contrib` to
+match the tutorial's saved browser builder. The reference uses a made-up
+repository ID. Keep Zero framework source in the project.
 
 In the project tree, open:
 

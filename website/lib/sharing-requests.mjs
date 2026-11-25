@@ -76,12 +76,12 @@ function summary(record, state, artifactOrigin) {
   if (record.releaseKey) {
     const origin = new URL(artifactOrigin);
     if (origin.protocol !== 'https:' || origin.origin !== artifactOrigin || origin.username || origin.password) throw new Error('Invalid artifact origin.');
-    const identity = contracts.identity(frozen.kind, frozen.repository.id, frozen.slug);
+    const identity = contracts.identity(frozen.kind, frozen.repository.id, frozen.slug, frozen.descriptor.namespaceFormat);
     const key = `${frozen.kind}/${identity.id}/${frozen.version}`;
     const accepted = state.releases[key];
     if (record.releaseKey !== key || !accepted || accepted.requestId !== record.id || !['pending','ready'].includes(accepted.delivery)) throw new Error('Invalid acceptance binding.');
     const release = contracts.validateRelease(accepted.release, {artifactOrigin});
-    if (release.kind !== frozen.kind || release.id !== identity.id || release.version !== frozen.version ||
+    if (release.kind !== frozen.kind || release.id !== identity.id || release.version !== frozen.version || release.namespace !== identity.namespace ||
         release.source.commit !== frozen.commit || release.source.folder !== frozen.folder || release.source.sha256 !== sourceDigest ||
         release.repository.id !== frozen.repository.id || release.contributor.githubId !== frozen.requester.githubId ||
         release.policyRevision !== frozen.policyRevision || canonical(release.web??null) !== canonical(frozen.web??null)) throw new Error('Invalid accepted source.');

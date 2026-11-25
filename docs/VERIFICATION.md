@@ -1,3 +1,19 @@
+# ZeroHub Java library packages — 2026-11-25
+
+New original current-core extractions use `zero.lib`. The contract tests verify
+that old `zero.contrib` releases keep their IDs, Maven coordinates and artifact
+paths. A managed publication test rejects a package change on the same minor
+line and records the correction. The v2 catalog passed a mixed-release fixture
+with the exact Zero 0.5.87 decoder. The v3 catalog includes both packages.
+
+The four published tutorial scaffold inventories still match their verified
+hashes. Lesson 11 keeps its practice package for the existing saved builder.
+The disposable pilot author project re-extracted Collision Helper 0.2.0 with
+`zero.lib.r1471779330.collision_helper`, passed all three checks and compiled
+under JDK 17. The local withdrawal tests verify exact-key authorization and
+preserve accepted artifact bytes. Production acceptance requires the deployed
+catalog, reviewed publisher and a second project.
+
 # ZeroHub library request status — 2026-11-25
 
 The regression reproduced the `library-closed` result for a queued library on

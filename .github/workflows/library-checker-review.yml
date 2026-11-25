@@ -25,7 +25,8 @@ permissions:
 jobs:
   isolated-linux:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    # A cold runner can spend over 25 minutes fetching the pinned Ubuntu snapshot.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:

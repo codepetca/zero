@@ -18,6 +18,7 @@ const MESSAGES=Object.freeze({
   'library-api':'Fix the library API check so its expected public calls compile and run, then commit and share a new version.',
   'library-behavior':'Fix the library behavior check or implementation so the check passes, then commit and share a new version.',
   'library-example':'Fix both runnable library examples and their expected behavior, then commit and share a new version.',
+  'library-package-version':'Choose a new major or minor version when you change the Java package. Upload the new version and prepare another Share request.',
   'version-conflict':'This version already contains different accepted source. Choose a new version, upload its metadata and prepare another Share request.',
   'source-check':'Check the supported sharing structure, run your project locally, upload corrections and prepare a fresh Share request.'
 });
@@ -30,6 +31,7 @@ function diagnosticFromError(error) {
   const message=typeof error?.message==='string'?error.message:'';
   let code='source-check';
   if(/^Immutable version conflict; use a new version$/.test(message))code='version-conflict';
+  else if(message==='Java package changes require a new major or minor version')code='library-package-version';
   else if(/^Committed sharing descriptor missing:/.test(message))code='descriptor-missing';
   else if(/^Committed sharing descriptor is invalid/.test(message))code='descriptor-invalid';
   else if(/^Committed descriptor differs/.test(message))code='descriptor-drift';

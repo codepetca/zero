@@ -15,8 +15,8 @@ function game(repositoryId='123', version='0.1.0', sourceCommit=commit) {
     policyRevision:'d'.repeat(40),status:'available',artifacts:{zip:{path,url:`${origin}/${path}`,size:10,sha256:'e'.repeat(64)}},
     controls:'Arrows',web:{provider:'github-pages',url:`https://student.github.io/game-${repositoryId}/`,commit:sourceCommit,runId:42}};
 }
-function library(slug='normal', repositoryId='456') {
-  const {web,controls,...base}=game(repositoryId), identity=contracts.identity('library',repositoryId,slug);
+function library(slug='normal', repositoryId='456', version='0.1.0', namespaceFormat) {
+  const {web,controls,...base}=game(repositoryId,version), identity=contracts.identity('library',repositoryId,slug,namespaceFormat);
   return {...base,kind:'library',id:identity.id,slug,source:{...base.source,folder:`libraries/${slug}`},namespace:identity.namespace,
     coordinate:{...identity.coordinate,version:base.version},libraryKind:'helper',artifacts:Object.fromEntries(['jar','sources','pom'].map(kind=>{
       const path=contracts.artifactPath(identity,base.version,kind);return [kind,{path,url:`${origin}/${path}`,size:1,sha256:'e'.repeat(64)}];
@@ -48,13 +48,17 @@ test('active mixed projection hides held metadata while retaining submitted Page
   assert.deepEqual(contracts.validateCatalog(body.catalog),body.catalog);
 });
 
-test('discovery exposes schema-2 libraries while enforcing Jam holds',async()=>{
- const modern={...library(),schema:2,coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},
-   coreBuild:{version:'0.3.0',sourceSha256:'1'.repeat(64),jarSha256:'2'.repeat(64),buildRecipeSha256:'3'.repeat(64),javaRelease:'17',javafxVersion:'21.0.12'}};
- const visible=await invoke({catalogReader:async()=>snapshot([modern])});
- assert.deepEqual(visible.body.catalog.releases,[modern]);
- const held=await invoke({catalogReader:async()=>snapshot([modern]),visibilityReader:async()=>decision(['456'])});
- assert.deepEqual(held.body.catalog.releases,[]);
+test('discovery exposes both Java namespaces and preserves exact library versions under Jam holds',async()=>{
+  const core={schema:2,coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},
+    coreBuild:{version:'0.3.0',sourceSha256:'1'.repeat(64),jarSha256:'2'.repeat(64),buildRecipeSha256:'3'.repeat(64),javaRelease:'17',javafxVersion:'21.0.12'}};
+  const oldLibrary={...library(),...core}, newLibrary={...library('normal','456','0.2.0','lib'),...core};
+  const catalogReader=async()=>snapshot([oldLibrary,newLibrary]);
+  const visible=await invoke({catalogReader});
+  assert.deepEqual(visible.body.catalog.releases,[oldLibrary,newLibrary]);
+  assert.deepEqual(selectReleases(visible.body.catalog,{kind:'library'}),[newLibrary]);
+  assert.deepEqual(selectReleases(visible.body.catalog,{kind:'library',id:oldLibrary.id,version:oldLibrary.version}),[oldLibrary]);
+  const held=await invoke({catalogReader,visibilityReader:async()=>decision(['456'])});
+  assert.deepEqual(held.body.catalog.releases,[]);
 });
 
 test('maintained custom-domain links survive source binding, but held cards remain hidden',async()=>{

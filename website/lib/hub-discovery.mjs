@@ -108,7 +108,7 @@ export async function hubDiscoveryResponse(request, {catalogReader=readCatalog,
     // Keep maintained independent of a failed shared source. Cap this lane so
     // a stalled catalog normally leaves time for the final authority read.
     const response = await deadline.run(signal => catalogResponse(new Request(request, {signal}), {
-      includeWeb:true, includeV2:true, practiceOnly, reader:catalogReader, visibilityReader:readVisibility,
+      includeWeb:true, protocolVersion:3, practiceOnly, reader:catalogReader, visibilityReader:readVisibility,
       destinationReader, pagesBindingReader, env, decisionNow, responseBudgetMs:Math.min(8000, responseBudgetMs)}));
     let catalog = response.ok ? await deadline.run(() => response.json()) : null;
     let finalVisibility;

@@ -125,7 +125,7 @@ async function coreState(root, descriptor, {exact=true}={}) {
   const core = require('../core-contract'), record = await core.readProjectCore(root,{required:true});
   if (!core.versionSatisfies(record.coordinate.version,descriptor.coreRequirement)) fail('Project core version is outside this library requirement.');
   if (exact && (record.coordinate.version !== descriptor.coreInput.version || record.sourceSha256 !== descriptor.coreInput.sourceSha256)) fail('Project core does not match the library coreInput. Restore the authored core before local development or Check.');
-  const names = ['zero-core.json',...(await javaFiles(root,'src/main/java/zero')).filter(name=>!name.startsWith('src/main/java/zero/contrib/'))].sort();
+  const names = ['zero-core.json',...(await javaFiles(root,'src/main/java/zero')).filter(name=>!/^src\/main\/java\/zero\/(?:contrib|lib)\//.test(name))].sort();
   const snapshot = [];
   for (const filename of names) snapshot.push({path:filename,hash:hash(await fs.readFile(await safePath(root,filename)))});
   // Bind the snapshot to the validated bytes as well as the declared record.
@@ -200,14 +200,17 @@ async function checkShadows(root, state, changes, options) {
   const files = new Map((await snapshot(root,options)).map(x => [x.path, null]));
   for (const change of changes) if (change.path.endsWith('.java')) { if (change.after === null) files.delete(change.path); else files.set(change.path, change.after); }
   const classes = new Map();
+  const namespaces = state.libraries.flatMap(lib => ['contrib','lib'].map(format => ({
+    namespace: contracts().identity('library',lib.repositoryId,lib.slug,format).namespace,
+    sourceRoot: `libraries/${lib.slug}/src/main/java/`
+  })));
   for (const [filename, updated] of files) {
     const contents = updated === null ? await read(root,filename,false,options) : updated;
     const decl = applicationDeclaration(contents,filename,options);
     if (classes.has(decl.className)) fail(`Duplicate class ${decl.className}: ${classes.get(decl.className)} and ${filename}`);
     classes.set(decl.className,filename);
-    for (const lib of state.libraries) {
-      const ns = contracts().identity('library',lib.repositoryId,lib.slug).namespace;
-      if ((decl.packageName === ns || decl.packageName.startsWith(ns+'.')) && !filename.startsWith(`libraries/${lib.slug}/src/main/java/`)) fail(`Source shadows library namespace ${ns}: ${filename}`);
+    for (const {namespace,sourceRoot} of namespaces) {
+      if ((decl.packageName === namespace || decl.packageName.startsWith(namespace+'.')) && !filename.startsWith(sourceRoot)) fail(`Source shadows library namespace ${namespace}: ${filename}`);
     }
   }
 }
@@ -215,7 +218,7 @@ async function change(root, filename, after) { const before = await read(root, f
 async function previewExtraction(root, options) {
   const c = contracts(), repository = c.validateRepository(options.repository), descriptor = c.validateDescriptor(options.descriptor);
   if (descriptor.kind !== 'library') fail('Select a library descriptor.');
-  const project = await base(root), id = c.identity('library',repository.id,descriptor.slug), folder = `libraries/${descriptor.slug}`;
+  const project = await base(root), id = c.identity('library',repository.id,descriptor.slug,descriptor.namespaceFormat), folder = `libraries/${descriptor.slug}`;
   const core = await coreState(project.root,descriptor);
   if (project.state.libraries.some(l => l.slug === descriptor.slug) || await fs.lstat(path.join(project.root,folder)).catch(e => { if (e.code === 'ENOENT') return null; throw e; })) fail('This library folder already exists. Keep its files and choose another name.');
   if (!Array.isArray(options.sources) || !options.sources.length || options.sources.length > c.LIMITS.libraryFiles || new Set(options.sources).size !== options.sources.length) fail('Select unique source classes and their required helpers.');
@@ -236,7 +239,7 @@ async function previewExtraction(root, options) {
     const original = await read(project.root,filename); bytes += Buffer.byteLength(original);
     if (bytes > c.LIMITS.librarySourceBytes) fail('Selected library sources exceed the supported source size.');
     const source = explicitEdits.get(filename)?.after ?? original, decl = declaration(source,filename);
-    if (descriptor.schema === 2 && (require('../core-contract').coreSourcePaths.includes(filename) || decl.packageName === 'zero' || (decl.packageName.startsWith('zero.') && !decl.packageName.startsWith('zero.contrib.')))) fail('Keep reviewed Zero core source in the project; extract student-owned classes.');
+    if (descriptor.schema === 2 && (require('../core-contract').coreSourcePaths.includes(filename) || decl.packageName === 'zero' || (decl.packageName.startsWith('zero.') && !/^zero\.(?:contrib|lib)\./.test(decl.packageName)))) fail('Keep reviewed Zero core source in the project; extract student-owned classes.');
     if (mainClass && decl.className === mainClass) fail('Keep the root game entry point in the game. Select reusable classes and helpers instead.');
     const target = `${folder}/src/main/java/${id.namespace.replaceAll('.','/')}/${decl.simple}.java`;
     if (changes.some(x => x.path === target)) fail('Selected classes must have different names in the library namespace.');
@@ -265,8 +268,9 @@ async function previewMode(root, {slug,mode,version,publishedRelease}) {
   const selectedVersion = mode === 'published' ? contracts().validateVersion(version) : descriptor.version;
   let coreDescriptor=descriptor;
   if (mode === 'published' && publishedRelease) {
-    const release=contracts().validateRelease(publishedRelease), identity=contracts().identity('library',library.repositoryId,slug);
+    const release=contracts().validateRelease(publishedRelease), identity=contracts().identity('library',library.repositoryId,slug,descriptor.namespaceFormat);
     if (release.kind!=='library' || release.id!==identity.id || release.version!==selectedVersion || release.status!=='available') fail('Choose the verified published release for this library and exact version.');
+    if (release.namespace!==identity.namespace) fail('Choose a published version that uses the same Java package as your local library.');
     coreDescriptor=release.schema===2?{schema:2,coreRequirement:release.coreRequirement}:{schema:1};
   } else if (mode === 'published' && descriptor.schema===2) fail('Choose a verified published release before switching a core-dependent library.');
   const core = await coreState(project.root,coreDescriptor,{exact:mode==='local'});
@@ -280,7 +284,7 @@ async function discoverLibraries(root, options={}) {
   for (const lib of project.state.libraries) {
     const folder = `libraries/${lib.slug}`, descriptor = contracts().validateDescriptor(JSON.parse(await read(project.root,`${folder}/zero-library.json`,false,options)));
     if (descriptor.kind !== 'library' || descriptor.slug !== lib.slug) fail('Library metadata does not match its folder.');
-    results.push({...lib,folder,descriptor,identity:contracts().identity('library',lib.repositoryId,lib.slug),sources:await javaFiles(project.root,`${folder}/src/main/java`,options)});
+    results.push({...lib,folder,descriptor,identity:contracts().identity('library',lib.repositoryId,lib.slug,descriptor.namespaceFormat),sources:await javaFiles(project.root,`${folder}/src/main/java`,options)});
   }
   await checkShadows(project.root,project.state,[],options);
   return results;

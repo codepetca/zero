@@ -43,7 +43,7 @@ rename rewriting, editable forks, automatic dependency updates or new publicatio
 
 | Phase | Deliverable | Acceptance |
 | --- | --- | --- |
-| 1 | Native java/resources tree, conditional Libraries, other authored files and full Explorer | Source roots are simple; exact core files hidden without hiding student zero.contrib; project switches/external edits refresh; no file access lost |
+| 1 | Native java/resources tree, conditional Libraries, other authored files and full Explorer | Source roots are simple; only exact core files are hidden, and library packages remain visible; project switches and external edits refresh |
 | 2 | New package and selected-package New class/file/folder | Matching Java declarations/directories; default Main-adjacent creation preserved; source boundaries, symlinks, collisions and stale roots refused |
 | 3 | Selected app/component asset destinations | Correct classpath-relative strings, namespaced library resources, cancellation/keep-both/skip and no-overwrite guards retained |
 | 4 | Contextual library details/imports/examples and existing actions | Exact active version/mode is visible; source inspection cannot silently modify installed dependency; no network merely expanding tree; same checker/publication gates |

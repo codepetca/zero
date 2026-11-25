@@ -1,7 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import github from '../extension/src/sharing/github.js';
-import { FileRegistry } from './registry.mjs';
+import contracts from '../extension/src/sharing/contracts.js';
+import practice from '../extension/src/sharing/tutorial-practice.js';
+import { FileRegistry, releaseKey } from './registry.mjs';
 import { createGitHubRegistryAdapter, REGISTRY_REPOSITORY, REGISTRY_BRANCH } from './github-registry.mjs';
 import { BlobStorage } from './blob-storage.mjs';
 import { createSharingPlatform, platformSetupDocument, publicError } from './platform.mjs';
@@ -19,8 +21,15 @@ export function validateLibraryPlatformConfig(config) {
   const {libraryPublicationEnabled,...shared}=config;
   return {...validatePlatformConfig(shared),libraryPublicationEnabled};
 }
+export function validateOrdinaryLibraryReleaseKey(value) {
+  const match = typeof value === 'string' && /^library\/lib-r([1-9][0-9]{0,19})-([a-z][a-z0-9]*(?:-[a-z0-9]+)*)\/([0-9.]+)$/.exec(value);
+  if (!match || match[0] !== value || match[2] === practice.SLUG)
+    throw new Error('Choose one exact ordinary library release key');
+  const [, repositoryId, slug, version] = match;
+  return releaseKey(contracts.identity('library', repositoryId, slug), contracts.validateVersion(version));
+}
 export function parseArguments(argv) {
-  const commands=['setup','status','prepare','publish','reconcile','deliver','retry','withdraw','restore','library-intake','library-check','library-publish','library-practice-cleanup'];
+  const commands=['setup','status','prepare','publish','reconcile','deliver','retry','withdraw','restore','library-intake','library-check','library-publish','library-practice-cleanup','library-withdraw'];
   const options={command:argv[0]||'setup',execute:false};
   if(!commands.includes(options.command))throw new Error('Unknown sharing command');
   for(let index=1;index<argv.length;index++) {
@@ -38,6 +47,7 @@ export function parseArguments(argv) {
     if(options.releases.length>150||new Set(options.releases).size!==options.releases.length||options.releases.some(key=>!/^library\/lib-r[1-9][0-9]*-tutorial-credits-badge\/(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/.test(key)))throw new Error('Choose 1–150 distinct exact practice release keys');
   } else if(options.releases!==undefined)throw new Error('Unsupported sharing argument');
   if(options.execute && options.role!==(options.command==='library-intake'?'intake':options.command==='library-check'?'worker':'publisher'))throw new Error('Execution requires the explicit publisher role');
+  if(options.command==='library-withdraw')options.release=validateOrdinaryLibraryReleaseKey(options.release);
   if(['prepare','publish'].includes(options.command)&&!options.issue)throw new Error('An exact issue number is required');
   if(['deliver','withdraw','restore'].includes(options.command)&&!/^(game|library)\/(game|lib)-r[1-9][0-9]*-[a-z][a-z0-9]*(?:-[a-z0-9]+)*\/[0-9]+\.[0-9]+\.[0-9]+$/.test(options.release||''))throw new Error('An exact accepted release key is required');
   if(options.command==='retry'&&!/^[a-f0-9]{64}$/.test(options.request||''))throw new Error('An exact frozen request fingerprint is required');
@@ -73,6 +83,11 @@ export async function runCli(argv,{loadConfig=async filename=>JSON.parse(await r
   const platform=await createPlatform(config,options.execute,environment,options.role);
   if(libraryCommand) {
     if(options.command==='library-practice-cleanup')return platform.cleanupPracticeListings(options.releases,{execute:options.execute});
+    if(options.command==='library-withdraw') {
+      if(!options.execute)return {mode:'dry-run',action:options.command,releaseKey:options.release,libraryPublicationEnabled:config.libraryPublicationEnabled};
+      await platform.setAvailability(options.release,'withdrawn');
+      return {releaseKey:options.release,status:'withdrawn'};
+    }
     if(!options.execute)return {mode:'dry-run',action:options.command,libraryPublicationEnabled:config.libraryPublicationEnabled};
     if(options.command==='library-intake')return {selected:await platform.selectLibraryForCheck()};
     if(options.command==='library-check'){

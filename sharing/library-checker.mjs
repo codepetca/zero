@@ -20,7 +20,7 @@ const mainPattern=/\bpublic\s+static\s+void\s+main\s*\(\s*String\s*(?:\[\s*\]\s*
 export function prepareLibraryBundle({request,files,sourceDigest}){
   const checked=contracts.validateRequest(request);
   if(checked.kind!=='library'||typeof sourceDigest!=='string'||!HEX64.test(sourceDigest)||!Array.isArray(files))throw sourceError('Expected a frozen library request and exact source digest');
-  const identity=contracts.identity('library',checked.repository.id,checked.slug);
+  const identity=contracts.identity('library',checked.repository.id,checked.slug,checked.descriptor.namespaceFormat);
   const byPath=new Map(),selected={};let total=0;
   for(const file of files){
     if(!file||typeof file.path!=='string'||!Buffer.isBuffer(file.bytes)||byPath.has(file.path)||

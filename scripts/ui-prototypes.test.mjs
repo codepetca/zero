@@ -29,9 +29,9 @@ function fixture(t) {
   return root;
 }
 const containerSources = ['Main.java','CounterActor.java',
-  'zero/contrib/r12345/actor_containers/ActorCollection.java',
-  'zero/contrib/r12345/actor_containers/OrderedActors.java',
-  'zero/contrib/r12345/actor_containers/SnapshotActors.java'];
+  'zero/lib/r12345/actor_containers/ActorCollection.java',
+  'zero/lib/r12345/actor_containers/OrderedActors.java',
+  'zero/lib/r12345/actor_containers/SnapshotActors.java'];
 function containerFixture(t) {
   const root = fixture(t);
   for (const name of containerSources) put(root,'framework/prototypes/actor-containers/' + name,
@@ -135,7 +135,7 @@ test('counter and game receive identical student-owned score contracts without t
 
 test('actor-components selection copies its nested helper and PNG without reading stress or score components', t => {
   const root = fixture(t);
-  const files = ['Main.java','DemoActor.java','OnceAnimation.java','zero/contrib/r12345/actor_tools/TurnTowards.java','actor-frames.png'];
+  const files = ['Main.java','DemoActor.java','OnceAnimation.java','zero/lib/r12345/actor_tools/TurnTowards.java','actor-frames.png'];
   for (const name of files) put(root, 'framework/prototypes/actor-components/' + name,
     readFileSync(path.join(repository, 'framework/prototypes/actor-components', name)));
   put(root, 'framework/prototypes/checks/actor-components/PrototypeCheck.java', '// selected harness');

@@ -52,9 +52,10 @@ from the public immutable artifact store.
 
 Identity comes from the verified numeric GitHub repository ID and chosen slug.
 Repository `12345` and slug `health-bar` produce library ID
-`lib-r12345-health-bar`, namespace `zero.contrib.r12345.health_bar` and coordinate
+`lib-r12345-health-bar`, namespace `zero.lib.r12345.health_bar` and coordinate
 `ca.codepet.zero.contrib.r12345:health-bar:0.1.0`. Imports could include
-`zero.contrib.r12345.health_bar.HealthBar`; use the actual API on the card.
+`zero.lib.r12345.health_bar.HealthBar`. Use the exact imports on the card,
+including `zero.contrib` for releases published with that package.
 Account/repository renames do not rename Java packages or Maven coordinates.
 GitHub contributor names provide credit, while numeric identities bind ownership.
 There is no server-assigned short-ID reservation.

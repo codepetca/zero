@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { zipSync } from 'fflate';
 import { FileRegistry, initialState, digest } from '../registry.mjs';
 import { FileStorage } from '../file-storage.mjs';
+import { PublicationService } from '../publication.mjs';
 import { validateRegistryState } from '../github-registry.mjs';
 import { createSharingPlatform } from '../platform.mjs';
 import { libraryArtifactName, writeLibraryCheck, reviewedWorkflowBytes } from '../managed-library.mjs';
@@ -81,19 +82,22 @@ test('verified failed checker stage produces a fixed public correction without s
 });
 
 const compatibleSharedPolicy='11c54518320b52a659104eaf01d685fe2dd93917';
-for(const [requestPolicy,schema] of [[policyRevision,1],[compatibleSharedPolicy,1],[policyRevision,2]])test(`verified schema ${schema} ${requestPolicy===policyRevision?'current':'current-kit compatible'} policy check reaches immutable publication and catalog through the trusted service`,async t=>{
+for(const [requestPolicy,schema,namespaceConflict] of [[policyRevision,1],[compatibleSharedPolicy,1],[policyRevision,2],[policyRevision,2,true]])test(namespaceConflict?'a managed package change in the same version line records a source correction':`verified schema ${schema} ${requestPolicy===policyRevision?'current':'current-kit compatible'} policy check reaches immutable publication and catalog through the trusted service`,async t=>{
   const dir=await mkdtemp(join(tmpdir(),'zero-managed-publish-'));
   t.after(()=>rm(dir,{recursive:true,force:true}));
   const core=trustedCoreSources().record;
-  const descriptor={schema,kind:'library',slug:'flap-motion',version:'0.1.0',title:'Flap Motion',description:'Simple gravity and flap movement.',license:'MIT',libraryKind:'helper',...(schema===2?{coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},coreInput:{version:core.coordinate.version,sourceSha256:core.sourceSha256}}:{})};
-  const frozen={schema:1,kind:'library',slug:'flap-motion',version:'0.1.0',repository:{id:'1417021749',ownerId:'7',owner:'student',name:'sky-hop',url:'https://github.com/student/sky-hop'},requester:{githubId:'7',login:'student'},commit,folder:'libraries/flap-motion',descriptor,policyRevision:requestPolicy,sourceDigest};
+  const version = namespaceConflict ? '0.1.1' : '0.1.0';
+  const format = namespaceConflict ? 'lib' : 'contrib';
+  const descriptor={schema,kind:'library',slug:'flap-motion',version,title:'Flap Motion',description:'Simple gravity and flap movement.',license:'MIT',libraryKind:'helper',...(schema===2?{coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},coreInput:{version:core.coordinate.version,sourceSha256:core.sourceSha256}}:{}),...(namespaceConflict?{namespaceFormat:'lib'}:{})};
+  const frozen={schema:1,kind:'library',slug:'flap-motion',version,repository:{id:'1417021749',ownerId:'7',owner:'student',name:'sky-hop',url:'https://github.com/student/sky-hop'},requester:{githubId:'7',login:'student'},commit,folder:'libraries/flap-motion',descriptor,policyRevision:requestPolicy,sourceDigest};
   const live={id:digest(frozen),frozen,issueIds:['1'],status:'queued',attempts:[],attemptCount:0,releaseKey:null};
   const registry=new FileRegistry({file:join(dir,'registry.json')});
   await registry.update(state=>{state.requests[live.id]=structuredClone(live);});
-  const output=join(dir,'output'),components=[{className:'zero.contrib.r1417021749.flap_motion.FlapMotion',description:'Movement',usage:'new FlapMotion()',api:['public void flap()']}];
+  const output=join(dir,'output'),components=[{className:`zero.${format}.r1417021749.flap_motion.FlapMotion`,description:'Movement',usage:'new FlapMotion()',api:['public void flap()']}];
   const coreBuild=schema===2?trustedCoreBuild(descriptor,expectedPolicyDigest(),'f'.repeat(64)):undefined;
-  const coordinate={groupId:'ca.codepet.zero.contrib.r1417021749',artifactId:'flap-motion',version:'0.1.0'};
-  const artifacts=schema===2?{jar:Buffer.from(zipSync({'zero/contrib/r1417021749/flap_motion/FlapMotion.class':new Uint8Array([1])})),sources:Buffer.from(zipSync({'zero/contrib/r1417021749/flap_motion/FlapMotion.java':new Uint8Array([1])})),pom:coreLibraryPom(descriptor,coordinate,coreBuild)}:{jar:Buffer.from('jar'),sources:Buffer.from('sources'),pom:Buffer.from('pom')};
+  const coordinate={groupId:'ca.codepet.zero.contrib.r1417021749',artifactId:'flap-motion',version};
+  const classPath = `zero/${format}/r1417021749/flap_motion/FlapMotion`;
+  const artifacts=schema===2?{jar:Buffer.from(zipSync({[classPath+'.class']:new Uint8Array([1])})),sources:Buffer.from(zipSync({[classPath+'.java']:new Uint8Array([1])})),pom:coreLibraryPom(descriptor,coordinate,coreBuild)}:{jar:Buffer.from('jar'),sources:Buffer.from('sources'),pom:Buffer.from('pom')};
   await writeLibraryCheck(output,{record:live,runId,attempt,result:{passed:true,policy:'zero-libraries-v1',policyDigest:expectedPolicyDigest(),sourceDigest,
     image:{id:'sha256:'+'f'.repeat(64),platform:'linux-amd64'},platforms:['linux-amd64'],checks:['bundle','fixed-build','api','behavior','first','second'].map(id=>({id,passed:true})),components,
     artifacts,...(coreBuild?{coreBuild}:{})}});
@@ -103,11 +107,26 @@ for(const [requestPolicy,schema] of [[policyRevision,1],[compatibleSharedPolicy,
     jobs:[{name:'check',status:'completed',conclusion:'success',run_id:runId,head_sha:'e'.repeat(40)}],workflow:{encoding:'base64',content:workflow.toString('base64'),sha:'f'.repeat(40)},
     artifact:{id:artifactId,name:libraryArtifactName(runId,attempt,live.id),expired:false,workflow_run:{id:runId,repository_id:100,head_repository_id:100,head_sha:'e'.repeat(40)},size_in_bytes:archive.length,digest:'sha256:'+hash(archive)},archive};
   const storage=new FileStorage({root:join(dir,'objects')});
-  const originalPut=storage.putImmutable.bind(storage);let interruptDelivery=true;
+  const originalPut=storage.putImmutable.bind(storage);let interruptDelivery=!namespaceConflict;
   storage.putImmutable=async(key,bytes)=>{if(interruptDelivery&&key.startsWith('maven/')){interruptDelivery=false;throw new Error('Transient object delivery outage');}return originalPut(key,bytes);};
   const reader={publicationIssue:async()=>{},publicationIssueState:async()=>({issueState:'open',authenticatedActor:{githubId:frozen.requester.githubId}}),source:async()=>({files:[],sourceDigest}),repository:async()=>({
     ...frozen.repository,visibility:'public',ownerType:'User'})};
   const platform=createSharingPlatform({reader,registry,storage,artifactOrigin:'https://fixture.public.blob.vercel-storage.com',policyRevision,libraryPublicationEnabled:true,officialLibraryEvidence:async()=>official,checkLibrarySource:async({request,sourceDigest:checkedDigest})=>{assert.equal(request.policyRevision,requestPolicy);assert.equal(checkedDigest,sourceDigest);return {sourceDigest};}});
+  if (namespaceConflict) {
+    const priorDescriptor = {schema:1, kind:descriptor.kind, slug:descriptor.slug, version:'0.1.0',
+      title:descriptor.title, description:descriptor.description, license:descriptor.license, libraryKind:descriptor.libraryKind};
+    const priorFrozen = {...frozen,version:priorDescriptor.version,descriptor:priorDescriptor};
+    const prior = {...live,id:digest(priorFrozen),frozen:priorFrozen,issueIds:['2']};
+    await registry.update(state=>{state.requests[prior.id]=prior;});
+    const service = new PublicationService({registry,storage,artifactOrigin:'https://fixture.public.blob.vercel-storage.com',resolveRepositoryMetadata:reader.repository,verifyEvidence:async()=>true});
+    await service.publish({requestId:prior.id,artifacts,evidence:{status:'passed',requestFingerprint:prior.id,sourceDigest,commit,policyRevision:requestPolicy,
+      artifacts:Object.fromEntries(Object.entries(artifacts).map(([kind,bytes])=>[kind,{size:bytes.length,sha256:hash(bytes)}]))}});
+    await assert.rejects(platform.publishManagedLibrary({requestId:live.id,runId,attempt,artifactId,token:'read-token'}),/new major or minor version/);
+    const failure = (await registry.read()).state.requests[live.id];
+    assert.equal(failure.status,'failed');
+    assert.equal(failure.attempts.at(-1).sourceDiagnostic.code,'library-package-version');
+    return;
+  }
   assert.deepEqual(await platform.selectLibraryForCheck(),{requestId:live.id,commit});
   assert.equal((await platform.checkLibraryRequest(live.id)).result.sourceDigest,sourceDigest);
   await assert.rejects(platform.publishManagedLibrary({requestId:live.id,runId,attempt,artifactId,token:'read-token'}),/Transient object delivery outage/);

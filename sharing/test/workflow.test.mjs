@@ -221,3 +221,61 @@ test('validated actions invoke the existing CLI with literal arguments and propa
   const failed=run(executeScript,files,{cwd:files.temporary,extraEnvironment:{ZERO_OPERATOR_ACTION:'withdraw',ZERO_OPERATOR_RELEASE:releaseKey,TEST_EXIT:'7'}});
   assert.equal(failed.status,7);
 });
+
+const libraryWorkflow = readFileSync(join(root, '.github/workflows/sharing-libraries.yml'), 'utf8');
+const libraryOperatorStep = libraryWorkflow.split(/^      - /m)
+  .find(step => step.startsWith('name: Validate exact operator withdrawal\n'));
+const libraryOperatorScript = runBody(libraryOperatorStep);
+const libraryKey = 'library/lib-r1471779330-collision-helper/0.1.0';
+
+test('library withdrawal validates before reaching the privileged job and leaves intake exclusive', () => {
+  assert.match(libraryWorkflow, /group: zero-sharing-libraries/);
+  assert.match(libraryWorkflow, /withdraw_release: \$\{\{ steps\.operation\.outputs\.withdraw_release \}\}/);
+  assert.match(libraryWorkflow, /id: select\n        if: steps\.operation\.outputs\.withdraw_release == ''/);
+  const [,withdraw] = libraryWorkflow.match(/^  withdraw:\n([\s\S]*?)^  check:/m);
+  assert.match(withdraw, /needs: intake\n    if: github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main' && needs\.intake\.outputs\.withdraw_release != ''/);
+  assert.match(withdraw, /environment: zero-sharing-publisher/);
+  assert.match(withdraw, /ref: \$\{\{ needs\.intake\.outputs\.source_sha \}\}\n          persist-credentials: false/);
+  assert.ok(withdraw.indexOf('Validate reviewed withdrawal policy') < withdraw.indexOf('ZERO_BLOB_TOKEN:'));
+  assert.match(withdraw, /ZERO_OPERATOR_RELEASE: \$\{\{ needs\.intake\.outputs\.withdraw_release \}\}/);
+  assert.match(withdraw, /--execute --role publisher --release "\$ZERO_OPERATOR_RELEASE"/);
+  assert.doesNotMatch(libraryWorkflow.split(/^  withdraw:/m)[0], /secrets\.ZERO_BLOB_TOKEN/);
+});
+
+test('only a manual main-branch dispatch can select an exact ordinary library release', t => {
+  const execute = (event, ref, release, approved=libraryKey) => {
+    const files = fixture(t);
+    const result = run(libraryOperatorScript, files, {cwd:root, extraEnvironment:{
+      GITHUB_EVENT_NAME:event, GITHUB_REF:ref, ZERO_REQUESTED_WITHDRAWAL:release, ZERO_APPROVED_WITHDRAWAL:approved
+    }});
+    return {result, output:readFileSync(files.output, 'utf8')};
+  };
+  const main = 'refs/heads/main';
+  const valid = execute('workflow_dispatch', main, libraryKey);
+  assert.equal(valid.result.status, 0, valid.result.stderr);
+  assert.equal(valid.output, `withdraw_release=${libraryKey}\n`);
+  for (const approved of ['', 'library/lib-r1-other/0.1.0']) {
+    const unapproved = execute('workflow_dispatch', main, libraryKey, approved);
+    assert.notEqual(unapproved.result.status, 0);
+    assert.equal(unapproved.output, '');
+  }
+  for (const event of ['schedule', 'issues', 'workflow_dispatch']) {
+    const empty = execute(event, main, '');
+    assert.equal(empty.result.status, 0, empty.result.stderr);
+    assert.equal(empty.output, '');
+  }
+  for (const [event, ref, release] of [
+    ['schedule', main, libraryKey],
+    ['issues', main, libraryKey],
+    ['workflow_dispatch', 'refs/heads/student', libraryKey],
+    ['workflow_dispatch', main, releaseKey],
+    ['workflow_dispatch', main, `${libraryKey}\n`],
+    ['workflow_dispatch', main, `${libraryKey},${libraryKey}`],
+    ['workflow_dispatch', main, 'library/lib-r1-tutorial-credits-badge/0.1.0'],
+    ['workflow_dispatch', main, 'library/lib-r1-collision-helper/00.1.0']
+  ]) {
+    const invalid = execute(event, ref, release);
+    assert.notEqual(invalid.result.status, 0, JSON.stringify({event,ref,release}));
+    assert.equal(invalid.output, '');
+  }
+});

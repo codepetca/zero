@@ -168,7 +168,7 @@ student-game/
   libraries/health-bar/
     zero-library.json
     pom.xml
-    src/main/java/zero/contrib/r12345/health_bar/...
+    src/main/java/zero/lib/r12345/health_bar/...
     src/test/java/...
     examples/first/...
     examples/second/...
@@ -270,16 +270,16 @@ these records rather than independently editing two catalogs.
 
 Derive identities without allocation: a library ID is lib-r<repositoryId>-<slug>,
 Maven group is ca.codepet.zero.contrib.r<repositoryId>, artifact is <slug>, and
-Java namespace is zero.contrib.r<repositoryId>.<packageSlug>. A game uses
+new Java namespace is zero.lib.r<repositoryId>.<packageSlug>. A game uses
 game-r<repositoryId>-<slug>. Require lowercase ASCII kebab-case slugs; replace
 hyphens with underscores for packageSlug, so distinct accepted slugs do not
 collapse into the same Java package. Zero generates these values.
 
 For example repository 12345 and health-bar produce lib-r12345-health-bar,
 ca.codepet.zero.contrib.r12345:health-bar:0.1.0 and
-zero.contrib.r12345.health_bar. Java packages and artifact IDs remain stable when
-the GitHub user or repository is renamed. Published slugs become permanent IDs;
-changing a display title does not change the slug.
+zero.lib.r12345.health_bar. Existing release manifests retain their original
+zero.contrib packages. Java packages and artifact IDs remain stable when the
+GitHub user or repository is renamed. Published slugs become permanent IDs.
 
 The first accepted publication establishes kind, numeric GitHub contributor ID,
 numeric repository ID, slug and normalized source folder. The publisher recomputes

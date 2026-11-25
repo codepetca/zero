@@ -130,7 +130,7 @@ async function inputs(root, library) {
     const groupMains = [];
     for (const filename of group) {
       const source = await read(root,filename), decl = declaration(source,filename);
-      if (library.descriptor.schema === 2 && (decl.packageName === 'zero' || (decl.packageName.startsWith('zero.') && !decl.packageName.startsWith('zero.contrib.')))) fail(`A check/example shadows the Zero core namespace: ${filename}`);
+      if (library.descriptor.schema === 2 && (decl.packageName === 'zero' || (decl.packageName.startsWith('zero.') && !/^zero\.(?:contrib|lib)\./.test(decl.packageName)))) fail(`A check/example shadows the Zero core namespace: ${filename}`);
       if (decl.packageName === namespace || decl.packageName.startsWith(namespace+'.') || classes.includes(decl.className)) fail(`A check/example shadows the library namespace: ${filename}`);
       if (/\bpublic\s+static\s+void\s+main\s*\(\s*String\s*(?:\[\s*\]\s*[A-Za-z_$][\w$]*|[A-Za-z_$][\w$]*\s*\[\s*\])\s*\)/.test(decl.masked)) groupMains.push(decl.className);
     }

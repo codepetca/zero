@@ -51,7 +51,7 @@ function inspectJar(input) {
 // Core-dependent libraries have no runtime class discovery, processors or extra
 // core copy. Metadata is inert and limited to the ordinary fixed Maven archive.
 function inspectLibraryJar(input,{namespace,coordinate,kind}={}) {
- if(!['binary','sources'].includes(kind)||typeof namespace!=='string'||!/^zero\.contrib\.r[1-9][0-9]*\.[a-z][a-z0-9_]*$/.test(namespace))fail('invalid library JAR identity');
+ if(!['binary','sources'].includes(kind)||typeof namespace!=='string'||!/^zero\.(?:contrib|lib)\.r[1-9][0-9]*\.[a-z][a-z0-9_]*$/.test(namespace))fail('invalid library JAR identity');
  const prefix=namespace.replaceAll('.','/')+'/',entries=inspectJar(input);
  const metadata=new Set(['META-INF/LICENSE','META-INF/LICENSE.txt','META-INF/NOTICE','META-INF/NOTICE.txt']);
  if(coordinate) {

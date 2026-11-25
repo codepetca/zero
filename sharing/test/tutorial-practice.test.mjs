@@ -122,3 +122,33 @@ test('exact cleanup retry repairs a catalogue-write failure after withdrawal wit
   assert.equal(JSON.parse((await f.storage.get(repaired.catalog.path)).toString()).releases[0].status,'withdrawn');
   for(const [kind,artifact]of Object.entries(accepted.release.artifacts))assert.deepEqual(await f.storage.get(artifact.path),bytes[kind]);
 });
+
+test('ordinary library withdrawal keeps other releases, reservations and accepted artifacts intact', async t=>{
+  const f=await fixture(t);
+  const candidate=request('9','0.1.0','collision-helper');
+  const accepted=await f.publish(candidate);
+  await f.publish();
+  const target='library/lib-r9-collision-helper/0.1.0';
+  const args=['library-withdraw','--config','fixture.json','--release',target];
+  const execute=[...args,'--execute','--role','publisher'];
+  const config={schema:1,repository:'codepetca/zero',registryBranch:'zero-sharing-registry',artifactOrigin:origin,policyRevision,gamePublicationEnabled:false,libraryPublicationEnabled:false};
+  const dependencies={loadConfig:async()=>config,createPlatform:async configuration=>f.platform(configuration.libraryPublicationEnabled)};
+  const before=(await f.registry.read()).state;
+  assert.equal((await runCli(args,dependencies)).releaseKey,target);
+  assert.deepEqual((await f.registry.read()).state,before);
+  await assert.rejects(runCli(execute,dependencies),/Publication remains disabled/);
+  config.libraryPublicationEnabled=true;
+  await assert.rejects(runCli([...args,'--execute'],dependencies),/publisher role/);
+  assert.deepEqual(await runCli(execute,dependencies),{releaseKey:target,status:'withdrawn'});
+  await runCli(execute,dependencies);
+  const after=(await f.registry.read()).state;
+  assert.equal(after.availability.filter(event=>event.key===target&&event.status==='withdrawn').length,1);
+  assert.deepEqual(after.releases,before.releases);
+  assert.deepEqual(after.requests,before.requests);
+  const catalog=JSON.parse((await f.storage.get(after.catalog.path)).toString());
+  assert.equal(catalog.releases.find(release=>release.id==='lib-r9-collision-helper').status,'withdrawn');
+  assert.equal(catalog.releases.find(release=>release.slug===practice.SLUG).status,'available');
+  for(const [kind,artifact] of Object.entries(accepted.release.artifacts))assert.deepEqual(await f.storage.get(artifact.path),bytes[kind]);
+  const conflicting={...candidate,descriptor:{...candidate.descriptor,description:'Different bytes at the same version'}};
+  await assert.rejects(f.publish(conflicting),/Immutable version conflict/);
+});

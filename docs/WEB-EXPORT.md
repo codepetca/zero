@@ -298,7 +298,8 @@ not another compiled game. Existing versioned source-project ZIPs still use
 ZeroHub artifact storage and include the project assets. Withdrawn games have no
 Play action.
 
-Capable new kits use `/api/sharing/catalog/v2` for current-format libraries.
+New builders use `/api/sharing/catalog/v3` for both Java package formats.
+The v2 catalog continues to serve the releases understood by existing v2 tools.
 Released older kits can still use `/api/sharing/catalog/web` for schema 1
 releases and approved Play links. The original catalog endpoint validates
 the same data and projects out optional web receipts for older strict clients.

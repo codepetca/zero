@@ -2,11 +2,14 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path');
 const update=require('../src/project-update'),core=require('../src/core-contract'),format=require('../src/project-builder-format');
 const {loadBundle}=require('../src/lesson-projects'),{readSavedBuilder}=require('../src/project-builder');
+const {loadBundledBuilder}=require('../src/project-builder-upgrade');
 const extensionPath=path.resolve(__dirname,'..');
 async function fixture(t,{older=false,builderOlder=false}={}){
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero unified update ')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
  const project=path.join(root,'project');await fs.mkdir(project);
- for(const file of (await loadBundle(extensionPath))[0].files){const dest=path.join(project,...file.path.split('/'));await fs.mkdir(path.dirname(dest),{recursive:true});await fs.writeFile(dest,file.content);}
+ const projectFiles=(await loadBundle(extensionPath))[0].files.filter(file=>!file.path.startsWith('.zero-build/'));
+ const currentFiles=(await loadBundledBuilder(extensionPath)).files.map(file=>({path:'.zero-build/'+file.path,content:file.bytes}));
+ for(const file of [...projectFiles,...currentFiles]){const dest=path.join(project,...file.path.split('/'));await fs.mkdir(path.dirname(dest),{recursive:true});await fs.writeFile(dest,file.content);}
  if(older){
   const filename=path.join(project,'zero-core.json'),record=JSON.parse(await fs.readFile(filename));
   record.coordinate.version='0.2.9';const first=record.sources[0];await fs.appendFile(path.join(project,first.path),'\n// Earlier recorded framework.\n');

@@ -38,6 +38,21 @@ test('playable URL validation rejects executable, credentialed, local, ambiguous
 const coreRequirement={minVersion:'0.3.0',maxExclusive:'0.4.0'};
 const coreInput={version:'0.3.0',sourceSha256:'1'.repeat(64)};
 const coreBuild={...coreInput,jarSha256:'2'.repeat(64),buildRecipeSha256:'3'.repeat(64),javaRelease:'17',javafxVersion:'21.0.12'};
+test('zero.lib keeps repository identity and Maven paths while both published namespace formats validate',()=>{
+ const authored={...descriptor,schema:2,coreRequirement,coreInput,namespaceFormat:'lib'};
+ assert.deepEqual(c.validateRequest({...request(),descriptor:authored}).descriptor,authored);
+ const legacy=c.identity('library',repository.id,descriptor.slug);
+ const modern=c.identity('library',repository.id,descriptor.slug,authored.namespaceFormat);
+ assert.equal(modern.namespace,'zero.lib.r12345.health_bar');
+ assert.deepEqual({...modern,namespace:legacy.namespace},legacy);
+ assert.equal(c.artifactPath(modern,descriptor.version,'jar'),c.artifactPath(legacy,descriptor.version,'jar'));
+ const current={...release(),schema:2,coreRequirement,coreBuild,namespace:modern.namespace};
+ assert.equal(c.validateRelease(current).namespace,modern.namespace);
+ assert.throws(()=>c.validateRelease({...release(),namespace:modern.namespace}),/namespace/);
+ assert.throws(()=>c.validateRelease({...current,namespace:'zero.lib.r54321.health_bar'}),/namespace/);
+ assert.throws(()=>c.validateDescriptor({...authored,namespaceFormat:'ui'}),/namespace format/);
+ assert.throws(()=>c.validateDescriptor({...descriptor,namespaceFormat:'lib'}),/fields/);
+});
 test('schema2 libraries bind authored input and generated core build while envelopes stay schema1',()=>{
  const authored={...descriptor,schema:2,coreRequirement,coreInput};
  assert.deepEqual(c.validateDescriptor(authored),authored);
