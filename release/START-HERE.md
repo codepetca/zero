@@ -162,11 +162,10 @@ the previously published version. If publishing is pending or fails, follow the
 stated next action; Zero keeps the previous live page and does not open stale output.
 This game link is separate from **Copy repository link** for Pika.
 
-**Share project** prepares a separate ZeroHub source submission. This candidate
-can attach a verified playable link for that exact uploaded commit; ZeroHub’s
-**Play latest** opens the student-hosted app, while its source download stays an
-exact version. Checker acceptance and public activation are still pending;
-public ZeroHub uploads are not open yet.
+**Share project** prepares a separate ZeroHub source submission. It can attach a
+verified playable link for that exact uploaded commit. ZeroHub’s **Play latest**
+opens the student-hosted app, and the source download identifies the exact
+version. Follow the submitted issue in **Requests and results** on ZeroHub.
 
 ## Use a ZeroHub component
 

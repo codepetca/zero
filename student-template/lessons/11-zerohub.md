@@ -265,7 +265,8 @@ Review the preview: CreditsBadge moves to **Libraries → Tutorial practice: Cre
 Keep Main, PlayerInput, Player, Coin and ScoreDisplay in the game. Accept the
 reviewed extraction, Run again, and check the badge and game still work.
 
-Replace the contents of `libraries/tutorial-credits-badge/LICENSE` with the full
+In **Files**, choose **… → Show All Project Files**. Open
+`libraries/tutorial-credits-badge/LICENSE` and replace its contents with the full
 [MIT licence originally published with CreditsBadge](https://github.com/codepetca/zero/blob/82cb6ff7f2f94a9f900e95cddb64c4cde3bf57b3/LICENSE).
 Keep its Codepet copyright line, credit Zero's tutorial in the library README
 and keep the Coin project's own `LICENSE` file.
