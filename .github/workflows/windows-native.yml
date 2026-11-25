@@ -9,8 +9,17 @@ on:
         options:
           - 0.5.87
           - 0.5.88
+      mode:
+        description: Acquire from the public Store or rehearse the exact hosted candidate
+        required: true
+        type: choice
+        default: public
+        options:
+          - public
+          - candidate
 permissions:
   contents: read
+  actions: read
 jobs:
   store:
     runs-on: windows-2025
@@ -20,6 +29,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Install the public Store package on a clean runner
+        if: inputs.mode == 'public'
         shell: pwsh
         env:
           ZERO_PROOF_VERSION: ${{ inputs.version }}
@@ -47,9 +57,29 @@ jobs:
         if: inputs.version == '0.5.88'
         run: npm ci
       - name: Run the exact production Lesson 11 in the installed Store editor
-        if: inputs.version == '0.5.88'
+        if: inputs.version == '0.5.88' && inputs.mode == 'public'
         shell: pwsh
         run: .\scripts\test-public-store-collision.ps1 -OutputDirectory "${env:RUNNER_TEMP}/zero-collision-exercise"
+      - name: Download the verified hosted MSIX
+        if: inputs.version == '0.5.88' && inputs.mode == 'candidate'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP 'zero-msix-original'
+          gh run download 45675175020 --repo codepetca/zero --name zero-windows-msix-45675175020-1 --dir $target
+          if ($LASTEXITCODE -ne 0) { throw 'Could not get the reviewed hosted artifact.' }
+          $package = Join-Path $target 'Zero-0.5.88-msix-store-x64.msix'
+          if ((Get-FileHash -LiteralPath $package -Algorithm SHA256).Hash.ToLowerInvariant() -ne '1b08b1669a894666a1ec3d920706247d9af8d0eda6cc882eefedf8722c74a1b7') {
+              throw 'The original MSIX bytes differ from the verified hosted candidate.'
+          }
+      - name: Rehearse Lesson 11 from the exact hosted candidate installed with test signing
+        if: inputs.version == '0.5.88' && inputs.mode == 'candidate'
+        shell: pwsh
+        run: |
+          $package = Join-Path $env:RUNNER_TEMP 'zero-msix-original/Zero-0.5.88-msix-store-x64.msix'
+          & .\scripts\test-windows-msix.ps1 -Package $package -PackageVersion 1.5.88.0 -RunFirstRun -RequireGit `
+              -Receipt "${env:RUNNER_TEMP}/candidate-install-proof.json" -CollisionRehearsalOutput "${env:RUNNER_TEMP}/zero-collision-exercise"
       - name: Retain the public installer receipt
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -57,6 +87,7 @@ jobs:
           name: public-store-install-${{ github.run_id }}
           path: |
             ${{ runner.temp }}/public-store-proof.json
+            ${{ runner.temp }}/candidate-install-proof.json
             ${{ runner.temp }}/zero-collision-exercise/collision-result.json
             ${{ runner.temp }}/zero-collision-exercise/public-editor-add.png
             ${{ runner.temp }}/zero-collision-exercise/public-browser-preview.png

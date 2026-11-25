@@ -9,7 +9,8 @@ param(
     [switch] $RunFirstRun,
     [switch] $RequireGit,
     [switch] $Windows11ArmDiagnostic,
-    [switch] $Windows2025Diagnostic
+    [switch] $Windows2025Diagnostic,
+    [string] $CollisionRehearsalOutput
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -200,6 +201,11 @@ public static class ZeroWts {
         $receiptData.activation = 'first-run passed'
         $receiptData.activationReason = 'Consent, private Java, VS Code and Java extension verified on the hosted runner.'
         if ($RequireGit) { $receiptData.activationReason += ' The configured Git executable was also verified.' }
+    }
+    if ($CollisionRehearsalOutput) {
+        $stage = 'collision-lesson-candidate'
+        if (-not $RunFirstRun) { throw 'The exercise requires packaged first-run setup.' }
+        & (Join-Path $PSScriptRoot 'test-public-store-collision.ps1') -OutputDirectory $CollisionRehearsalOutput -RehearseExactCandidate
     }
     if ($RunWack) {
         $stage = 'wack'

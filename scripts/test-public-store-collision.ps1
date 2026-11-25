@@ -1,17 +1,26 @@
 [CmdletBinding()]
-param([Parameter(Mandatory)][string]$OutputDirectory)
+param([Parameter(Mandatory)][string]$OutputDirectory, [switch]$RehearseExactCandidate)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:RUNNER_OS -ne 'Windows') {
     throw 'Use a disposable GitHub-hosted Windows runner.'
 }
 $package = Get-AppxPackage -Name Codepet.zerostudio
-if ($package.PackageFullName -ne 'Codepet.zerostudio_1.5.88.0_x64__g62pw1js6rhjp' -or $package.SignatureKind -ne 'Store') {
-    throw 'The exact Microsoft Store-signed 0.5.88 installation is required.'
+if ($package.PackageFullName -ne 'Codepet.zerostudio_1.5.88.0_x64__g62pw1js6rhjp') {
+    throw 'The exact 0.5.88 package identity is required.'
+}
+if ($RehearseExactCandidate) {
+    $exeHash = (Get-FileHash -LiteralPath (Join-Path $package.InstallLocation 'Zero.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($package.SignatureKind -eq 'Store' -or $exeHash -ne 'd720649ef5060aeb89aa221398c2d97c21fd48cbff8e51d77db75102f8efe18a') {
+        throw 'Expected the exact hosted candidate, signed with the disposable test certificate.'
+    }
+} elseif ($package.SignatureKind -ne 'Store') {
+    throw 'The public proof requires the Microsoft Store signature.'
 }
 $null = New-Item -ItemType Directory -Path $OutputDirectory
 $project = Join-Path $OutputDirectory 'zero-collision-check'
-git clone --branch main --single-branch https://github.com/codepetca/zero-starter.git $project
+$starterBranch = if ($RehearseExactCandidate) { 'codex/zero-088-builder' } else { 'main' }
+git clone --branch $starterBranch --single-branch https://github.com/codepetca/zero-starter.git $project
 if ($LASTEXITCODE -ne 0) { throw 'Could not clone the public starter.' }
 $tree = (git -C $project rev-parse 'HEAD^{tree}').Trim()
 if ($tree -ne 'fdeedabd7c72e8beda2aa81693362cd80264d497') { throw 'The public starter does not match the reviewed refresh.' }
@@ -123,6 +132,7 @@ try {
     [pscustomobject]@{
         packageFullName = $package.PackageFullName
         signature = $package.SignatureKind.ToString()
+        acquisition = if ($RehearseExactCandidate) { 'test-signed hosted candidate' } else { 'public Microsoft Store' }
         starterTree = $tree
         library = 'Collision Helper Pilot 0.2.0'
         native = 'Collision Helper Pilot works'
