@@ -4,10 +4,11 @@
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const {constants}=require('node:fs');
-const lessonProjects=require('./lesson-projects');
 const {readSavedBuilder,_test:{digest}}=require('./project-builder');
 const {ordinary}=require('./retained-web-export');
 const format=require('./project-builder-format');
+const BUNDLED_BUILDER_PATH='media/project-builder.json';
+const MAX_BUNDLE_BYTES=Math.ceil(format.LIMITS.totalBytes*4/3)+(format.LIMITS.files+1)*1024;
 
 async function rootPath(root) {
  if(typeof root!=='string'||!path.isAbsolute(root))throw Error('Choose an absolute project folder.');
@@ -16,14 +17,29 @@ async function rootPath(root) {
  if(actual!==path.resolve(root))throw Error('Choose an ordinary project folder without symbolic links.');
  return actual;
 }
-async function bundled(extensionPath) {
- const projects=await lessonProjects.loadBundle(extensionPath);
- const groups=projects.map(project=>project.files.filter(file=>file.path.startsWith('.zero-build/')).map(file=>({path:file.path.slice('.zero-build/'.length),bytes:Buffer.from(file.content)})));
- if(!groups.length||groups.some(files=>!files.length))throw Error('The installed extension has no complete browser builder.');
- const identity=digest(groups[0]);
- if(groups.some(files=>digest(files)!==identity))throw Error('Installed browser builders disagree. Reinstall Zero.');
- // loadBundle validates the complete manifest and runtime in each group.
- return {files:groups[0],profileHash:identity,closureSha256:JSON.parse(groups[0].find(file=>file.path==='builder.json').bytes).closureSha256};
+async function loadBundledBuilder(extensionPath) {
+ try {
+  const filename=path.join(await fs.realpath(extensionPath),BUNDLED_BUILDER_PATH);
+  await ordinary(filename,{maxBytes:MAX_BUNDLE_BYTES});
+  const raw=await fs.readFile(filename);
+  if(raw.length>MAX_BUNDLE_BYTES)throw Error('The bundle exceeds its size limit.');
+  const entries=JSON.parse(raw);
+  if(!Array.isArray(entries)||entries.length>format.LIMITS.files+1)throw Error('The bundle has an invalid file inventory.');
+  const names=new Set();let size=0;
+  const files=entries.map(entry=>{
+   if(!entry||Object.keys(entry).length!==2||!format.relativePath(entry.path)||typeof entry.content!=='string'||names.has(entry.path.toLowerCase()))throw Error('The bundle has an invalid file entry.');
+   const bytes=Buffer.from(entry.content,'base64'),maximum=entry.path==='builder.json'?format.LIMITS.manifestBytes:format.LIMITS.fileBytes;
+   size+=bytes.length;
+   if(bytes.toString('base64')!==entry.content||bytes.length>maximum||size>format.LIMITS.totalBytes)throw Error('The bundle contains invalid or oversized file data.');
+   names.add(entry.path.toLowerCase());
+   return {path:entry.path,bytes};
+  });
+  const metadata=files.find(file=>file.path==='builder.json');
+  if(!metadata)throw Error('The bundle has no builder manifest.');
+  const manifest=format.validateBuilderFiles(JSON.parse(metadata.bytes),files.filter(file=>file!==metadata));
+  format.validateRuntimeLock(JSON.parse(files.find(file=>file.path==='runtime-lock.json').bytes));
+  return {files,profileHash:digest(files),closureSha256:manifest.closureSha256};
+ } catch(error){throw Error('The installed Zero browser tools are missing or damaged. Reinstall Zero. '+error.message);}
 }
 // Remove only our unchanged staging files, and never recursively delete a tree.
 // Unknown entries or cleanup errors leave the remainder for manual inspection.
@@ -116,7 +132,7 @@ async function reviewedBuilder(root,plan,next) {
  return before;
 }
 async function planUpgrade({projectRoot,extensionPath}) {
- const root=await rootPath(projectRoot),next=await bundled(extensionPath);
+ const root=await rootPath(projectRoot),next=await loadBundledBuilder(extensionPath);
  const exists=await fs.lstat(path.join(root,'.zero-build')).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
  let old;
  if(exists){
@@ -140,7 +156,7 @@ async function applyUpgrade(plan,{assertCurrent=async()=>{}}={}) {
  await assertCurrent();
  const fresh=await planUpgrade(plan);
  if(fresh.repairing!==plan.repairing||fresh.projectRoot!==plan.projectRoot||fresh.oldProfileHash!==plan.oldProfileHash||fresh.newProfileHash!==plan.newProfileHash||fresh.oldClosureSha256!==plan.oldClosureSha256||fresh.newClosureSha256!==plan.newClosureSha256)throw Error('The project or installed browser builder changed. Review the upgrade again.');
- const next=await bundled(plan.extensionPath);
+ const next=await loadBundledBuilder(plan.extensionPath);
  if(next.profileHash!==plan.newProfileHash)throw Error('The installed browser builder changed. Review the upgrade again.');
  const root=fresh.projectRoot;
  if(plan.repairing){
@@ -202,4 +218,4 @@ async function applyUpgrade(plan,{assertCurrent=async()=>{}}={}) {
   throw error;
  }
 }
-module.exports={planUpgrade,applyUpgrade};
+module.exports={BUNDLED_BUILDER_PATH,loadBundledBuilder,planUpgrade,applyUpgrade};

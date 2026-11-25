@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
-import {readFile} from 'node:fs/promises';
+import {mkdir, mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {assertStarterTree, preparationStarterRequest, replayGreeting, verifyPublicStarter} from './verify-project-new.mjs';
+import {lessonProjects} from './lesson-projects.mjs';
+import {projectBuilderAssetBytes} from './prepare-extension-assets.mjs';
+import upgrade from '../extension/src/project-builder-upgrade.js';
+import starterTemplate from '../extension/src/github-app/starter-template.js';
 
 const tree = 'a'.repeat(40);
 const commit = 'b'.repeat(40);
@@ -20,6 +26,22 @@ const preparationEnv = () => ({ZERO_STARTER_API_TOKEN:'synthetic-read-only-token
   GITHUB_WORKFLOW_REF:'codepetca/zero/.github/workflows/release-review.yml@refs/heads/main'});
 const repo = {id:1418150992, full_name:'codepetca/zero-starter', private:false, is_template:true, default_branch:'main'};
 const branch = {name:'main', commit:{sha:commit, commit:{tree:{sha:tree}}}};
+
+test('Project New verifies either whole installed starter inventory and rejects a mixed builder', async t => {
+  const extension = await mkdtemp(path.join(tmpdir(), 'zero-starter-inventory-'));
+  t.after(() => rm(extension, {recursive:true,force:true}));
+  await mkdir(path.join(extension, 'media'));
+  await writeFile(path.join(extension, 'media/lesson-projects.json'), JSON.stringify(lessonProjects(root)));
+  await writeFile(path.join(extension, upgrade.BUNDLED_BUILDER_PATH), projectBuilderAssetBytes(root));
+  const inventories = await starterTemplate.installedStarterInventories(extension);
+  const entries = inventory => [...inventory].map(([path, {sha,mode}]) => ({path,sha,mode,type:'blob'}));
+  const [publishedFiles, currentFiles] = inventories.map(entries);
+  assert.notDeepEqual(publishedFiles, currentFiles);
+  for (const files of [publishedFiles, currentFiles]) assert.doesNotThrow(() => starterTemplate.assertCompatibleStarter(payload(files),tree,inventories));
+  const currentManifest = currentFiles.find(file => file.path === '.zero-build/builder.json');
+  const mixed = publishedFiles.map(file => file.path === currentManifest.path ? currentManifest : file);
+  assert.throws(() => starterTemplate.assertCompatibleStarter(payload(mixed),tree,inventories), {code:'ZERO_STARTER_INCOMPATIBLE'});
+});
 
 test('manual preparation consumes its token before child processes and rejects other execution contexts', () => {
   const env = preparationEnv();

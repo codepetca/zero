@@ -1,6 +1,6 @@
 'use strict';
 const core = require('../core');
-const {ORIGINAL_TEMPLATE,installedStarterInventory,assertStarterIdentity,starterTreeId,assertCompatibleStarter,starterUnavailable,starterInstallInvalid}=require('./starter-template');
+const {ORIGINAL_TEMPLATE,installedStarterInventories,assertStarterIdentity,starterTreeId,assertCompatibleStarter,starterUnavailable,starterInstallInvalid}=require('./starter-template');
 
 const API = 'https://api.github.com';
 const API_VERSION = '2026-03-10';
@@ -28,7 +28,7 @@ function assertRepositoryIdentity(expected,access) {
   const current=repositoryIdentity(access);
   if(current.repositoryId!==expected.repositoryId||current.installationId!==expected.installationId)throw failure('The GitHub repository or Zero installation changed. Review the operation again.', 'repository-access-changed');
 }
-function createGitHubAppRepositories({authentication,configuration,fetchImpl=globalThis.fetch,now=Date.now,loadStarterInventory=installedStarterInventory}={}) {
+function createGitHubAppRepositories({authentication,configuration,fetchImpl=globalThis.fetch,now=Date.now,loadStarterInventory=installedStarterInventories}={}) {
   // An uncertain POST is never repeated by this instance. Recovery is read-only
   // access(repositoryUrl); the caller must retain/display that URL across restarts.
   const uncertain = new Set(), creating = new Set();

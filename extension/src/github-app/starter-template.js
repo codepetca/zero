@@ -3,6 +3,7 @@ const {createHash}=require('node:crypto');
 const path=require('node:path');
 const {coreSourcePaths}=require('../core-contract');
 const {loadBundle}=require('../lesson-projects');
+const {loadBundledBuilder}=require('../project-builder-upgrade');
 
 const ORIGINAL_TEMPLATE=Object.freeze({owner:'codepetca',repo:'zero-starter'});
 const originalRepositoryId=1418150992;
@@ -22,15 +23,20 @@ function starterUnavailable() {
 function starterInstallInvalid() {
   return starterError('Zero’s starter compatibility files are missing or damaged. Reinstall Zero, then try Project → New again. No repository was created.','ZERO_STARTER_INSTALL_INVALID');
 }
-async function installedStarterInventory(extensionPath=path.resolve(__dirname,'../..')) {
-  const projects=await loadBundle(extensionPath);
-  const files=projects.find(project=>project.id==='greeting')?.files;
-  const inventory=new Map(files?.filter(file=>compatibilityPath(file.path)).map(file=>[file.path,{
+function starterInventory(files) {
+  const inventory=new Map(files.filter(file=>compatibilityPath(file.path)).map(file=>[file.path,{
     sha:createHash('sha1').update(`blob ${file.content.length}\0`).update(file.content).digest('hex'),
     mode:file.mode&0o111?'100755':'100644'
   }]));
   if(!inventory.has('.zero-build/builder.json')||[...starterPaths].some(name=>!inventory.has(name)))throw starterInstallInvalid();
   return inventory;
+}
+async function installedStarterInventories(extensionPath=path.resolve(__dirname,'../..')) {
+  const projects=await loadBundle(extensionPath),published=projects.find(project=>project.id==='greeting')?.files;
+  if(!published)throw starterInstallInvalid();
+  const current=await loadBundledBuilder(extensionPath);
+  const currentFiles=[...published.filter(file=>!builderPath(file.path)),...current.files.map(file=>({path:'.zero-build/'+file.path,content:file.bytes,mode:0o644}))];
+  return [starterInventory(published),starterInventory(currentFiles)];
 }
 function assertStarterIdentity(source) {
   if(source?.id!==originalRepositoryId||source.full_name!==`${ORIGINAL_TEMPLATE.owner}/${ORIGINAL_TEMPLATE.repo}`||
@@ -43,6 +49,11 @@ function starterTreeId(branch) {
 }
 function assertCompatibleStarter(tree,sha,inventory) {
   if(tree?.sha!==sha||tree.truncated!==false||!Array.isArray(tree.tree)||tree.tree.length>512)throw starterUnavailable();
+  if(tree.tree.some(entry=>typeof entry?.path!=='string'))throw starterUnavailable();
+  const inventories=Array.isArray(inventory)?inventory:[inventory];
+  if(!inventories.some(inventory=>matchesStarterTree(tree,inventory)))throw starterMismatch();
+}
+function matchesStarterTree(tree,inventory) {
   const remaining=new Map(inventory), directories=new Set();
   for(const filename of inventory.keys()) {
     const parts=filename.split('/');
@@ -51,16 +62,15 @@ function assertCompatibleStarter(tree,sha,inventory) {
   const seen=new Set();
   for(const entry of tree.tree) {
     const name=entry?.path;
-    if(typeof name!=='string')throw starterUnavailable();
     const lower=name.toLowerCase();
     if(!compatibilityPath(lower))continue;
-    if(seen.has(lower))throw starterMismatch();
+    if(seen.has(lower))return false;
     seen.add(lower);
     if(entry.type==='tree'&&entry.mode==='040000'&&directories.has(name))continue;
     const file=remaining.get(name);
-    if(!file||entry.type!=='blob'||entry.mode!==file.mode||entry.sha!==file.sha)throw starterMismatch();
+    if(!file||entry.type!=='blob'||entry.mode!==file.mode||entry.sha!==file.sha)return false;
     remaining.delete(name);
   }
-  if(remaining.size)throw starterMismatch();
+  return remaining.size===0;
 }
-module.exports={ORIGINAL_TEMPLATE,installedStarterInventory,assertStarterIdentity,starterTreeId,assertCompatibleStarter,starterUnavailable,starterInstallInvalid};
+module.exports={ORIGINAL_TEMPLATE,installedStarterInventories,assertStarterIdentity,starterTreeId,assertCompatibleStarter,starterUnavailable,starterInstallInvalid};

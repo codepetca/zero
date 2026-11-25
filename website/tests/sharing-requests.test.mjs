@@ -145,18 +145,45 @@ test('public request status binds accepted web provenance and keeps receipts out
 });
 
 
-test('an accepted practice request links to its exact version in the separate practice catalog',async()=>{
-  const f=fixture('library'),frozen=f.record.frozen;frozen.slug='tutorial-credits-badge';frozen.folder=`libraries/${frozen.slug}`;frozen.descriptor.slug=frozen.slug;
+function acceptLibrary(f,{namespaceFormat,core}={}) {
+  const frozen=f.record.frozen;
   f.record.id=digest(frozen);f.state.requests={[f.record.id]:f.record};
-  const identity=contracts.identity('library',frozen.repository.id,frozen.slug),version=frozen.version;
-  const release=contracts.validateRelease({schema:1,kind:'library',id:identity.id,slug:identity.slug,version,title:'CreditsBadge',description:'Copied tutorial practice.',license:'MIT',
+  const identity=contracts.identity('library',frozen.repository.id,frozen.slug,namespaceFormat),version=frozen.version;
+  const release=contracts.validateRelease({schema:1,...core,kind:'library',id:identity.id,slug:identity.slug,version,title:frozen.descriptor.title,description:frozen.descriptor.description,license:'MIT',
     repository:frozen.repository,contributor:frozen.requester,source:{commit:frozen.commit,folder:frozen.folder,sha256:frozen.sourceDigest},policyRevision:frozen.policyRevision,status:'available',
     namespace:identity.namespace,coordinate:{...identity.coordinate,version},libraryKind:'helper',artifacts:Object.fromEntries(['jar','sources','pom'].map(kind=>{
       const path=contracts.artifactPath(identity,version,kind);return [kind,{path,url:`${env.ZERO_SHARING_ARTIFACT_ORIGIN}/${path}`,size:1,sha256:'d'.repeat(64)}];
     }))},{artifactOrigin:env.ZERO_SHARING_ARTIFACT_ORIGIN});
   f.record.releaseKey=`library/${identity.id}/${version}`;f.record.status='available';f.state.releases[f.record.releaseKey]={requestId:f.record.id,release,delivery:'ready'};
+  return release;
+}
+
+test('an accepted practice request links to its exact version in the separate practice catalog',async()=>{
+  const f=fixture('library'),frozen=f.record.frozen;frozen.slug='tutorial-credits-badge';frozen.folder=`libraries/${frozen.slug}`;frozen.descriptor.slug=frozen.slug;
+  const release=acceptLibrary(f);
   const snapshot=catalog(f.state,[release]);const results=await readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot)});
-  assert.equal(results.results[0].releaseLink,`/hub?kind=practice&id=${identity.id}&version=${version}`);
+  assert.equal(results.results[0].releaseLink,`/hub?kind=practice&id=${release.id}&version=${release.version}`);
+});
+
+test('request status binds accepted schema-2 releases to their frozen Java namespace',async()=>{
+  const coreRequirement={minVersion:'0.3.0',maxExclusive:'0.4.0'};
+  const coreInput={version:'0.3.0',sourceSha256:'1'.repeat(64)};
+  const coreBuild={...coreInput,jarSha256:'2'.repeat(64),buildRecipeSha256:'3'.repeat(64),javaRelease:'17',javafxVersion:'21.0.12'};
+  for(const requestFormat of [undefined,'lib']) for(const releaseFormat of [undefined,'lib']) {
+    const f=fixture('library'), descriptor=f.record.frozen.descriptor;
+    Object.assign(descriptor,{schema:2,coreRequirement,coreInput});
+    if(requestFormat) descriptor.namespaceFormat=requestFormat;
+    const release=acceptLibrary(f,{namespaceFormat:releaseFormat,core:{schema:2,coreRequirement,coreBuild}});
+    const snapshot=catalog(f.state,[release]);
+    const result=readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot)});
+    if(requestFormat!==releaseFormat) {
+      await assert.rejects(result,/Invalid accepted source/);
+    } else {
+      const {results:[entry]}=await result;
+      assert.equal(entry.status,'available');
+      assert.equal(entry.releaseLink,`/hub?kind=library&id=${release.id}&version=${release.version}`);
+    }
+  }
 });
 
 

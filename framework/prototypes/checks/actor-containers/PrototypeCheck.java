@@ -9,9 +9,9 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import zero.Actor;
 import zero.GameApp;
-import zero.contrib.r12345.actor_containers.ActorCollection;
-import zero.contrib.r12345.actor_containers.OrderedActors;
-import zero.contrib.r12345.actor_containers.SnapshotActors;
+import zero.lib.r12345.actor_containers.ActorCollection;
+import zero.lib.r12345.actor_containers.OrderedActors;
+import zero.lib.r12345.actor_containers.SnapshotActors;
 
 /** Finite maintainer checks; this JavaFX driver is not part of student sources. */
 public final class PrototypeCheck extends Application {

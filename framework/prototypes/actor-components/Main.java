@@ -4,7 +4,7 @@ import zero.Color;
 import zero.GameApp;
 import zero.ImageRegion;
 import zero.SpriteAnimation;
-import zero.contrib.r12345.actor_tools.TurnTowards;
+import zero.lib.r12345.actor_tools.TurnTowards;
 import zero.ui.Button;
 import zero.ui.Column;
 import zero.ui.Label;

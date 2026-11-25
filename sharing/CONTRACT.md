@@ -27,10 +27,11 @@ Exports:
 - validateRepository: {id,ownerId,owner,name,url}; IDs positive decimal strings;
   URL exactly https://github.com/<owner>/<name>, safe ASCII names, no .git/query/
   fragment/credentials. Returns clone.
-- identity(kind,repositoryId,slug): library returns {kind,id:'lib-r<ID>-<slug>',
-  slug,repositoryId,namespace:'zero.contrib.r<ID>.<slug hyphens to underscores>',
+- identity(kind,repositoryId,slug,namespaceFormat): library returns {kind,id:'lib-r<ID>-<slug>',
+  slug,repositoryId,namespace:'zero.<namespaceFormat>.r<ID>.<slug hyphens to underscores>',
   coordinate:{groupId:'ca.codepet.zero.contrib.r<ID>',artifactId:slug}};
-  game returns {kind,id:'game-r<ID>-<slug>',slug,repositoryId}.
+  `namespaceFormat` is `lib` for new current-core authoring and `contrib`
+  when omitted for legacy descriptors. Games return {kind,id:'game-r<ID>-<slug>',slug,repositoryId}.
 - validateDescriptor(value): validates/clones authored shape below.
 - validateRequest(value): validates/clones request, requester equals ownerId;
   ingestion must independently resolve GitHub metadata.
@@ -49,6 +50,9 @@ Descriptor:
 Library adds libraryKind:'widget'|'helper'; game adds controls:string.
 Preview safe relative path, default preview.png. Reject unknown fields. No generated
 API/owner/namespace/coordinates/commands/URLs. Packaging checks media/license separately.
+Schema 2 permits `namespaceFormat:'lib'`. Both package formats are derived from
+the verified repository ID and slug. Release manifests carry their exact Java
+namespace, and both formats use the same Maven coordinate and artifact paths.
 
 Frozen request:
 {schema:1,kind,slug,version,repository:{id,ownerId,owner,name,url},

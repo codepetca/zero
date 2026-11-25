@@ -13,6 +13,8 @@ import {extractProject, maven} from './verification-project.mjs';
 import {sharingConfigurationBytes} from './release-review.mjs';
 import {checkPackagedTutorialTemplates} from './check-tutorial-templates.mjs';
 import {lessonProjects} from './lesson-projects.mjs';
+import {projectBuilderAssetBytes} from './prepare-extension-assets.mjs';
+import upgrade from '../extension/src/project-builder-upgrade.js';
 import workosConfiguration from '../extension/src/workos-configuration.js';
 
 export function verifyKit({sourceRoot = root, artifactRoot = path.join(root, 'dist'), release = releaseDefinition(), compile = true} = {}) {
@@ -42,6 +44,7 @@ export function verifyKit({sourceRoot = root, artifactRoot = path.join(root, 'di
   assert.ok(!Object.keys(kit).some(name => name.startsWith('zero-kit/starter/lessons/')), 'Kit must not contain bundled tutorial lessons');
   // Check the actual installed payload, not just the source used by unit fixtures.
   checkPackagedTutorialTemplates(JSON.parse(new TextDecoder().decode(vsix['extension/media/lesson-projects.json'])), lessonProjects(sourceRoot));
+  assert.deepEqual(vsix['extension/'+upgrade.BUNDLED_BUILDER_PATH],new Uint8Array(projectBuilderAssetBytes(sourceRoot)), 'VSIX current browser tools drift.');
   function verifyExtensionSource(directory, relative='') {
     for(const entry of readdirSync(directory,{withFileTypes:true})) {
       assert.ok(!entry.isSymbolicLink(),'Extension source must not contain symlinks');

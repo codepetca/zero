@@ -16,7 +16,7 @@ to a local gold circle and heading mark in `DemoActor.draw()`. These choices ret
 position, display size, rotation and pause. Restart creates fresh actors, restores
 the original geometry and staggered Loop mode, and resumes the game.
 
-`zero.contrib.r12345.actor_tools.TurnTowards` is an ordinary student-owned helper,
+`zero.lib.r12345.actor_tools.TurnTowards` is an ordinary student-owned helper,
 not part of Zero core. Main calls it at 45 degrees per second. Positive angles go
 clockwise on the canvas; exact 180-degree ties go counterclockwise. It validates
 all inputs before mutation, bounds the turn to avoid overshoot and scales before

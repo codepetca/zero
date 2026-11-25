@@ -1,8 +1,8 @@
 import zero.Color;
 import zero.GameApp;
-import zero.contrib.r12345.actor_containers.ActorCollection;
-import zero.contrib.r12345.actor_containers.OrderedActors;
-import zero.contrib.r12345.actor_containers.SnapshotActors;
+import zero.lib.r12345.actor_containers.ActorCollection;
+import zero.lib.r12345.actor_containers.OrderedActors;
+import zero.lib.r12345.actor_containers.SnapshotActors;
 import zero.ui.Button;
 import zero.ui.Column;
 import zero.ui.Label;

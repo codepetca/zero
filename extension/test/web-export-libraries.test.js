@@ -132,7 +132,7 @@ test('application namespace checks recognize exact core bodies without relaxing 
  assert.throws(()=>assertApplicationNamespaces(changed,[library]),/helper differs/);
  const student=source=>[{path:'Student.java',originalPath:'src/main/java/Student.java',bytes:Buffer.from(source)}];
  const namespace=library.identity.namespace;
- for(const pkg of [namespace,namespace+'.nested'])assert.throws(()=>assertApplicationNamespaces(student('package '+pkg+'; class Student {}'),[library]),/shadows library namespace/);
+ for(const base of [namespace,'zero.lib.r12345.health_bar'])for(const pkg of [base,base+'.nested'])assert.throws(()=>assertApplicationNamespaces(student('package '+pkg+'; class Student {}'),[library]),/shadows library namespace/);
  assert.doesNotThrow(()=>assertApplicationNamespaces(student('package student; class Student {}'),[library]));
  assert.throws(()=>assertApplicationNamespaces(student('package '+namespace.replace('zero','z'+'\\u0065'+'ro')+'; class Student {}'),[library]),/Unicode-escaped Java/);
  assert.throws(()=>assertApplicationNamespaces(student('package '+namespace.replace('zero','ze\u200bro')+'; class Student {}'),[library]),/Hidden Java/);

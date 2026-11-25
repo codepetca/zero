@@ -79,7 +79,7 @@ async function entriesAt(root, relative, budget) {
 }
 
 // hideCorePaths/excludePaths are exact project-relative paths. No namespace or
-// broad zero/ folder rule can hide a student's zero.contrib or custom source.
+// broad zero/ folder rule can hide a student's library or custom source.
 async function ordinaryEntries(root, relative='', {hideCorePaths=[],excludePaths=[]}={}) {
   root=path.resolve(root); relativePath(relative,{empty:true});
   const hidden=new Set([...hideCorePaths,...excludePaths].map(name=>relativePath(name)));
@@ -140,7 +140,7 @@ async function corePaths(root) {
   for (const entry of record.sources) {
     if (!entry || typeof entry.path !== 'string' || !/^[a-f0-9]{64}$/.test(entry.sha256 || '') || Object.keys(entry).sort().join(',') !== 'path,sha256' || names.has(entry.path)) fail('Invalid zero-core.json source inventory.');
     relativePath(entry.path); names.add(entry.path);
-    if (!entry.path.startsWith('src/main/java/zero/') || entry.path.startsWith('src/main/java/zero/contrib/') || !entry.path.endsWith('.java')) fail('Invalid zero-core.json source path.');
+    if (!entry.path.startsWith('src/main/java/zero/') || /^src\/main\/java\/zero\/(?:contrib|lib)\//.test(entry.path) || !entry.path.endsWith('.java')) fail('Invalid zero-core.json source path.');
     const source=await readText(root,entry.path,{maximum:LIMITS.sourceBytes});
     if (hash(source.replace(/\r\n/g,'\n')) !== entry.sha256) fail(`Core source differs from zero-core.json: ${entry.path}.`);
     // Unknown files remain accessible even if a record claims they are core.
@@ -210,7 +210,7 @@ async function readProjectModel(projectRoot) {
   }
   for (const pin of pom.includes('zero-sharing') ? inspectManagedLibraryPins(pom) : []) {
     if (libraries.some(lib=>lib.id===pin.identity.id)) fail(`Authored and installed library modes overlap: ${pin.identity.id}.`);
-    libraries.push({id:pin.identity.id,title:pin.slug,slug:pin.slug,mode:'published',version:pin.version,namespace:pin.identity.namespace,imports:[],localSourceActive:false});
+    libraries.push({id:pin.identity.id,title:pin.slug,slug:pin.slug,mode:'published',version:pin.version,imports:[],localSourceActive:false});
   }
   libraries.sort((a,b)=>a.title.localeCompare(b.title,'en') || a.id.localeCompare(b.id));
   const codeRoot='src/main/java',assetsRoot='src/main/resources';
@@ -220,7 +220,8 @@ async function readProjectModel(projectRoot) {
 }
 
 function libraryDetails(library) {
-  const lines=[library.title,`Version: ${library.version}`,`Mode: ${library.mode === 'local' ? 'Local source (used by this project)' : 'Published dependency (used by this project)'}`,`Namespace: ${library.namespace}`];
+  const lines=[library.title,`Version: ${library.version}`,`Mode: ${library.mode === 'local' ? 'Local source (used by this project)' : 'Published dependency (used by this project)'}`];
+  if (library.namespace) lines.push(`Namespace: ${library.namespace}`);
   if (library.description) lines.push('',library.description);
   if (library.sourceIssues?.length) lines.push('','Local source needs repair:',...library.sourceIssues);
   if (library.folder && library.mode === 'published') lines.push('',`Retained local source: ${library.folder} (${library.localVersion}); not compiled in published mode.`);

@@ -16,6 +16,16 @@ function currentOwner(request, metadata) {
   if (!metadata || metadata.id !== request.repository.id || metadata.ownerId !== request.requester.githubId || metadata.visibility !== 'public' || metadata.ownerType !== 'User') throw new Error('Repository ownership/visibility changed; deliberate migration required');
 }
 
+function requireCompatibleLibraryNamespace(state, identity, version) {
+  if (identity.kind !== 'library') return;
+  const versionLine = candidate => candidate.split('.').slice(0, 2).join('.');
+  const line = versionLine(version);
+  if (Object.values(state.releases).some(({release}) => release.id === identity.id &&
+      versionLine(release.version) === line && release.namespace !== identity.namespace)) {
+    throw Object.assign(new Error('Java package changes require a new major or minor version'), {kind:'source-failure'});
+  }
+}
+
 function changeAvailability(state, key, status) {
   if (state.releases[key]?.delivery !== 'ready') throw new Error('Only delivery-ready releases have public availability');
   const previous = state.availability.filter(event => event.key === key).at(-1);
@@ -31,7 +41,8 @@ export class PublicationService {
     this.beforeAccept=beforeAccept;
   }
   async publish({requestId, evidence, artifacts, components, adoption}) {
-    const record = (await this.registry.read()).state.requests[requestId];
+    const {state} = await this.registry.read();
+    const record = state.requests[requestId];
     if (!record) throw new Error('Unknown request');
     if (record.status === 'cancelled') throw new Error('Request cancelled');
     if (record.releaseKey) return this.deliver(record.releaseKey);
@@ -46,7 +57,8 @@ export class PublicationService {
     if ((adoption===undefined?undefined:digest(adoption)) !== evidence.adoptionDigest) throw new Error('Adoption observation is not bound to trusted evidence');
     if (components && evidence.componentsDigest !== digest(components)) throw new Error('Generated component metadata is not bound to trusted evidence');
     if (!artifacts || typeof artifacts !== 'object' || Array.isArray(artifacts)) throw new Error('Trusted artifacts required');
-    const ident = contracts.identity(request.kind, request.repository.id, request.slug);
+    const ident = contracts.identity(request.kind, request.repository.id, request.slug, request.descriptor.namespaceFormat);
+    requireCompatibleLibraryNamespace(state, ident, request.version);
     const required = request.kind === 'library' ? ['jar', 'sources', 'pom'] : ['zip'];
     if (required.some(kind => !artifacts[kind])) throw new Error('Required artifact missing');
     const manifest = {}, staged = {};
@@ -89,6 +101,7 @@ export class PublicationService {
       const existing = state.releases[key];
       if (existing && (existing.requestId !== requestId || canonical(stableRelease(existing.release)) !== canonical(stableRelease(release)) || canonical(existing.adoption??null)!==canonical(adoption??null))) throw Object.assign(new Error('Immutable version conflict; use a new version'),{kind:'source-failure'});
       if (!existing) {
+        requireCompatibleLibraryNamespace(state, ident, request.version);
         state.items[ident.id] = {kind: ident.kind, slug: ident.slug, repositoryId: request.repository.id, contributorId: request.requester.githubId, folder: request.folder};
         state.releases[key] = {requestId, release, staged, delivery: 'pending', evidenceDigest: digest(evidence), ...(adoption?{adoption}:{})};
         // Reserve generated-catalog capacity for pending deliveries too. A

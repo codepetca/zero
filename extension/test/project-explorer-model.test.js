@@ -107,9 +107,9 @@ test('canonical extraction exposes source, resources, checks, examples and local
 test('managed consumer POM pins reveal exact identity/version without invented source/API',async t=>{
   const root=await fixture(t);await put(root,'pom.xml',pin(await fs.readFile(path.join(root,'pom.xml'),'utf8')));
   const [library]=(await readProjectModel(root)).libraries;
-  assert.equal(library.id,'lib-r88-score-display');assert.equal(library.namespace,'zero.contrib.r88.score_display');
+  assert.equal(library.id,'lib-r88-score-display');assert.equal(library.namespace,undefined);
   assert.equal(library.version,'1.2.3');assert.equal(library.mode,'published');assert.equal(library.folder,undefined);assert.equal(library.example,undefined);assert.deepEqual(library.imports,[]);
-  assert.match(libraryDetails(library),/Open ZeroHub/);assert.doesNotMatch(libraryDetails(library),/import .*Score/);
+  assert.match(libraryDetails(library),/Open ZeroHub/);assert.doesNotMatch(libraryDetails(library),/Namespace:|import .*Score/);
   await put(root,'pom.xml',(await fs.readFile(path.join(root,'pom.xml'),'utf8')).replace('<version>1.2.3</version>','<version>latest</version>'));
   await assert.rejects(readProjectModel(root),/exact version/);
 });

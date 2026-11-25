@@ -45,6 +45,7 @@ hub/checker/image-lock.json
 extension/media/sharing-harness/
 extension/media/sharing-config.json
 extension/media/lesson-projects.json
+extension/media/project-builder.json
 extension/media/tutorial-content.json
 extension/media/tutorial-assets/
 **/.zero-sharing-recovery/

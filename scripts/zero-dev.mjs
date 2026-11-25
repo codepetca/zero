@@ -245,7 +245,7 @@ export function inputFingerprint(root = repository) {
       for (const name of readdirSync(filename).sort()) walk(`${relative}/${name}`);
     } else if (stat.isFile()) files.push([relative, stat.mtimeMs, stat.size]);
   }
-  for (const relative of ['framework/src', 'extension/src', 'design/tokens.json', 'design/adapters.mjs', 'design/brand', 'design/playground',
+  for (const relative of ['framework/src', 'framework/project-builder', 'extension/src', 'design/tokens.json', 'design/adapters.mjs', 'design/brand', 'design/playground',
     'extension/media/controls.css', 'extension/media/sidebar.css', 'student-template/lessons', 'teaching/checkpoints', 'teaching/starters',
     'student-template/pom.xml', 'student-template/.vscode', 'profile/Zero.code-profile', 'release/sharing.json',
     'sharing/harness/ZeroLibraryHarness.java']) walk(relative);

@@ -15,8 +15,8 @@ const sourceRoot = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);
 const {validateBundle} = require('../extension/src/lesson-projects.js');
 const {createProjectBuilder, readSavedBuilder} = require('../extension/src/project-builder.js');
-const {planUpgrade} = require('../extension/src/project-builder-upgrade.js');
-const {ORIGINAL_TEMPLATE, assertStarterIdentity, assertCompatibleStarter, installedStarterInventory} = require('../extension/src/github-app/starter-template.js');
+const {BUNDLED_BUILDER_PATH, planUpgrade} = require('../extension/src/project-builder-upgrade.js');
+const {ORIGINAL_TEMPLATE, assertStarterIdentity, assertCompatibleStarter, installedStarterInventories} = require('../extension/src/github-app/starter-template.js');
 const template = templateDefinition('zero-starter');
 const targetRepository = `${ORIGINAL_TEMPLATE.owner}/${ORIGINAL_TEMPLATE.repo}`;
 assert.equal(template.repository, targetRepository, 'Review the release check when Project → New changes templates.');
@@ -179,13 +179,14 @@ export async function checkProjectNew({root = sourceRoot, vsixPath, receiptPath,
   try {
     const vsixBytes = await readFile(vsixPath);
     const vsix = unzipSync(vsixBytes, {filter: ({name}) =>
-      name === 'extension/' + bundlePath || name === 'extension/package.json'});
+      name === 'extension/' + bundlePath || name === 'extension/' + BUNDLED_BUILDER_PATH || name === 'extension/package.json'});
     const editor = JSON.parse(Buffer.from(vsix['extension/package.json']).toString('utf8')).version;
     const bundle = vsix['extension/' + bundlePath];
     validateBundle(JSON.parse(Buffer.from(bundle).toString('utf8')));
     await mkdir(path.join(extensionPath, 'media'), {recursive: true});
     await writeFile(path.join(extensionPath, bundlePath), bundle);
-    const inventory = await installedStarterInventory(extensionPath);
+    await writeFile(path.join(extensionPath, BUNDLED_BUILDER_PATH), vsix['extension/' + BUNDLED_BUILDER_PATH]);
+    const [,inventory] = await installedStarterInventories(extensionPath);
     for (const file of files) {
       const destination = path.join(project, file.path);
       await mkdir(path.dirname(destination), {recursive: true});

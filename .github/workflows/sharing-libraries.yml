@@ -6,6 +6,11 @@ on:
   schedule:
     - cron: '23,53 * * * *'
   workflow_dispatch:
+    inputs:
+      withdraw_release:
+        description: Exact ordinary library release key to withdraw. Leave empty to process the queue.
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -27,6 +32,7 @@ jobs:
       request_id: ${{ steps.select.outputs.request_id }}
       recovery: ${{ steps.select.outputs.recovery }}
       source_sha: ${{ steps.policy.outputs.source_sha }}
+      withdraw_release: ${{ steps.operation.outputs.withdraw_release }}
     steps:
       - name: Select reviewed library policy before checkout
         id: policy
@@ -65,8 +71,27 @@ jobs:
           if(observed.encoding!=='base64'||Buffer.compare(Buffer.from(observed.content.replace(/\s/g,''),'base64'),readFileSync('.github/workflows/sharing-libraries.yml'))!==0)throw Error('Workflow bytes differ from reviewed policy');
           writeFileSync(process.env.RUNNER_TEMP+'/zero-library-config.json',JSON.stringify(config),{mode:0o600});
           NODE
+      - name: Validate exact operator withdrawal
+        id: operation
+        env:
+          ZERO_REQUESTED_WITHDRAWAL: ${{ inputs.withdraw_release }}
+          ZERO_APPROVED_WITHDRAWAL: ${{ vars.ZERO_SHARING_LIBRARY_WITHDRAW_RELEASE }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {appendFileSync} from 'node:fs';
+          import {validateOrdinaryLibraryReleaseKey} from './sharing/cli.mjs';
+          const requested = process.env.ZERO_REQUESTED_WITHDRAWAL || '';
+          if (!requested) process.exit(0);
+          if (process.env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || process.env.GITHUB_REF !== 'refs/heads/main') {
+            throw new Error('Library withdrawal requires a manual main-branch dispatch');
+          }
+          const release = validateOrdinaryLibraryReleaseKey(requested);
+          if (release !== process.env.ZERO_APPROVED_WITHDRAWAL) throw new Error('This exact library withdrawal has not been enabled');
+          appendFileSync(process.env.GITHUB_OUTPUT, `withdraw_release=${release}\n`);
+          NODE
       - name: Select one durable queued library
         id: select
+        if: steps.operation.outputs.withdraw_release == ''
         env:
           ZERO_REGISTRY_TOKEN: ${{ github.token }}
           ZERO_SOURCE_READ_TOKEN: ${{ github.token }}
@@ -77,6 +102,50 @@ jobs:
           const selected=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/library-intake.json','utf8')).selected;
           if(selected){appendFileSync(process.env.GITHUB_OUTPUT,`request_id=${selected.requestId}\n`);if(selected.recovery)appendFileSync(process.env.GITHUB_OUTPUT,'recovery=true\n');}
           NODE
+
+  withdraw:
+    needs: intake
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && needs.intake.outputs.withdraw_release != ''
+    environment: zero-sharing-publisher
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.intake.outputs.source_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - name: Validate reviewed withdrawal policy
+        env:
+          ZERO_SHARING_LIBRARY_CONFIG: ${{ vars.ZERO_SHARING_LIBRARY_CONFIG }}
+          ZERO_TRUSTED_SOURCE_SHA: ${{ needs.intake.outputs.source_sha }}
+          ZERO_APPROVED_WITHDRAWAL: ${{ vars.ZERO_SHARING_LIBRARY_WITHDRAW_RELEASE }}
+          ZERO_OPERATOR_RELEASE: ${{ needs.intake.outputs.withdraw_release }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {validateLibraryPlatformConfig,validateOrdinaryLibraryReleaseKey} from './sharing/cli.mjs';
+          const config = validateLibraryPlatformConfig(JSON.parse(process.env.ZERO_SHARING_LIBRARY_CONFIG || '{}'));
+          if (validateOrdinaryLibraryReleaseKey(process.env.ZERO_OPERATOR_RELEASE) !== process.env.ZERO_APPROVED_WITHDRAWAL) throw new Error('This exact library withdrawal has not been enabled');
+          if (!config.libraryPublicationEnabled || config.policyRevision !== process.env.ZERO_TRUSTED_SOURCE_SHA || execFileSync('git', ['rev-parse', 'HEAD'], {encoding:'utf8'}).trim() !== config.policyRevision) {
+            throw new Error('Reviewed library withdrawal source mismatch');
+          }
+          writeFileSync(process.env.RUNNER_TEMP + '/zero-library-config.json', JSON.stringify(config), {mode:0o600});
+          NODE
+      - name: Withdraw the validated exact library release
+        env:
+          ZERO_OPERATOR_RELEASE: ${{ needs.intake.outputs.withdraw_release }}
+          ZERO_REGISTRY_TOKEN: ${{ github.token }}
+          ZERO_SOURCE_READ_TOKEN: ${{ github.token }}
+          ZERO_BLOB_TOKEN: ${{ secrets.ZERO_BLOB_TOKEN }}
+        run: |
+          node sharing/cli.mjs library-withdraw --config "$RUNNER_TEMP/zero-library-config.json" --execute --role publisher --release "$ZERO_OPERATOR_RELEASE"
 
   check:
     needs: intake

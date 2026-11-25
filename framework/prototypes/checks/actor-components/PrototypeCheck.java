@@ -12,7 +12,7 @@ import zero.AnimationPlayback;
 import zero.AnimationSource;
 import zero.ImageRegion;
 import zero.SpriteAnimation;
-import zero.contrib.r12345.actor_tools.TurnTowards;
+import zero.lib.r12345.actor_tools.TurnTowards;
 
 /** Maintainer-only finite interaction and pixel checks; never part of student sources. */
 public final class PrototypeCheck extends Application {

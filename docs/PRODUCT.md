@@ -1119,10 +1119,11 @@ Multiple component libraries can coexist. Related classes share a library and
 exact version; individual classes remain discoverable. Verified numeric GitHub
 repository IDs and permanent slugs determine stable identities: repository 12345
 and `health-bar` yield `lib-r12345-health-bar`, imports such as
-`zero.contrib.r12345.health_bar.HealthBar` and Maven coordinate
+`zero.lib.r12345.health_bar.HealthBar` for a new library and Maven coordinate
 `ca.codepet.zero.contrib.r12345:health-bar:0.1.0`. Account/repository renames do not
 change packages or coordinates. Contributor credit follows verified GitHub identity.
-No automatic updates, package renames or merging of alternatives.
+Previously published `zero.contrib` imports remain valid for their exact releases.
+Libraries update only when the user chooses a version.
 
 Preferred choices and promotion into core remain deliberate future decisions
 based on usefulness, API stability and maintenance. They do not change installed

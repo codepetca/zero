@@ -1,11 +1,10 @@
-import {prepareDesign} from '../design/prepare.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import {prepareStarter} from './prepare-starter.mjs';
-import {prepareLessonProjects} from './lesson-projects.mjs';
+import {prepareExtensionAssets} from './prepare-extension-assets.mjs';
 import {releaseDefinition} from './release.mjs';
 import {readMacUpdaterConfig} from './mac-updater.mjs';
 import {verifyUpdateBuildOrder} from './mac-update-feed.mjs';
@@ -15,8 +14,7 @@ import workosConfiguration from '../extension/src/workos-configuration.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
 workosConfiguration.validateWorkOSDistribution(workosConfiguration.readWorkOSDistribution());
 prepareStarter();
-prepareLessonProjects();
-prepareDesign();
+prepareExtensionAssets(root);
 verifyWebProfiles();
 const checkedRelease=releaseDefinition();
 for (const match of readFileSync(path.join(root,'release/START-HERE.md'),'utf8').matchAll(/zero-\d+\.\d+\.\d+\.vsix/g)) {

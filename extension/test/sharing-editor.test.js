@@ -34,7 +34,7 @@ test('extraction cancellation, unsaved changes and source drift preserve files; 
  }
  const applied=await fixture(t,{approval:'Apply'});await applied.editor.commands['zero.extractLibrary']();assert.match(await fs.readFile(path.join(applied.root,'src/main/java/Main.java'),'utf8'),/import zero.contrib.r12345.health_bar.Health;/);assert.match(await fs.readFile(path.join(applied.root,'.gitignore'),'utf8'),/\.zero-sharing-recovery\//);assert.ok(applied.stats().stagedPlan.changes.some(c=>c.path==='.gitignore'));assert.equal(applied.stats().busy,false);assert.match(applied.states.at(-1),/Library extracted/);assert.ok(!applied.messages.some(text=>text.startsWith('Library extracted')));
 });
-test('ordinary extraction records current project core support without manual metadata editing',async t=>{
+test('ordinary extraction uses the current library package and records the project core automatically',async t=>{
  const f=await fixture(t,{approval:'Apply'}),core=require('../src/core-contract'),sources={};
  for(const name of core.coreSourcePaths) {
   sources[name]=await fs.readFile(path.resolve(__dirname,'../../framework',name));
@@ -44,7 +44,10 @@ test('ordinary extraction records current project core support without manual me
  await f.editor.commands['zero.extractLibrary']();
  const descriptor=JSON.parse(await fs.readFile(path.join(f.root,'libraries/health-bar/zero-library.json')));
  assert.equal(descriptor.schema,2);assert.deepEqual(descriptor.coreRequirement,{minVersion:'0.3.0',maxExclusive:'0.4.0'});
+ assert.equal(descriptor.namespaceFormat,'lib');
  assert.deepEqual(descriptor.coreInput,{version:'0.3.0',sourceSha256:record.sourceSha256});
+ assert.match(await fs.readFile(path.join(f.root,'src/main/java/Main.java'),'utf8'),/import zero\.lib\.r12345\.health_bar\.Health;/);
+ assert.match(await fs.readFile(path.join(f.root,'libraries/health-bar/src/main/java/zero/lib/r12345/health_bar/Health.java'),'utf8'),/^package zero\.lib\.r12345\.health_bar;/);
  assert.equal(f.stats().stagedPlan.coreSnapshot.length,require('../src/core-contract').coreSourcePaths.length+1);
  const before=await fs.readFile(path.join(f.root,'src/main/java/zero/App.java'),'utf8');assert.match(before,/\\u001e/);
  assert.ok(!f.stats().stagedPlan.changes.some(change=>change.path.startsWith('src/main/java/zero/')));
@@ -121,23 +124,22 @@ test('explicit scoped settings precede bundled operator configuration and real m
  const f=await fixture(t);let observed;f.vscode.workspace.getConfiguration=()=>({get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,globalValue:key==='sharingCatalogUrl'?'https://global.example/catalog.json':key==='sharingArtifactOrigin'?'https://global-files.example':undefined,workspaceValue:key==='sharingCatalogUrl'?'https://workspace.example/catalog.json':undefined,workspaceFolderValue:key==='sharingCatalogUrl'?'https://folder.example/catalog.json':undefined})});
  const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[]}};}}});await editor.commands['zero.browseHub']();assert.equal(observed.catalogUrl,'https://folder.example/catalog.json');assert.equal(observed.artifactOrigin,'https://global-files.example');
 });
-test('current editor upgrades the bundled public catalog while honoring an explicit legacy URL',async t=>{
- const bundle=require('../../release/sharing.json'),legacy=bundle.catalogUrl;
- assert.equal(new URL(legacy).pathname,'/api/sharing/catalog/web');
- for(const override of [undefined,legacy]) {
+test('current editor upgrades older bundled catalogs and keeps explicitly selected catalogs',async t=>{
+ const bundle=require('../../release/sharing.json'),legacy='/api/sharing/catalog/web',previous='/api/sharing/catalog/v2',current='/api/sharing/catalog/v3';
+ assert.equal(new URL(bundle.catalogUrl).pathname,legacy);
+ for(const [bundledPath,override,expected] of [[legacy,undefined,current],[previous,undefined,current],[legacy,legacy,legacy],[legacy,previous,previous]]) {
   const f=await fixture(t),observed=[];
   f.vscode.workspace.getConfiguration=()=>({
    get:()=>undefined,
-   inspect:key=>key==='sharingCatalogUrl'?{globalValue:override}:undefined
+   inspect:key=>key==='sharingCatalogUrl'?{globalValue:override&&new URL(override,bundle.catalogUrl).href}:undefined
   });
-  const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,consumer:{loadCatalog:async settings=>{
+  const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:{...bundle,catalogUrl:new URL(bundledPath,bundle.catalogUrl).href},consumer:{loadCatalog:async settings=>{
    observed.push(new URL(settings.catalogUrl).pathname);
    return {catalog:{releases:[]}};
   }}});
   await editor.commands['zero.browseHub']();
   await editor.commands['zero.browseTutorialPractice']();
-  assert.deepEqual(observed,override?['/api/sharing/catalog/web','/api/sharing/catalog/practice']:
-   ['/api/sharing/catalog/v2','/api/sharing/catalog/v2/practice']);
+  assert.deepEqual(observed,[expected,expected===legacy?'/api/sharing/catalog/practice':`${expected}/practice`]);
  }
 });
 test('explicit empty operator settings disable bundled activation; policy uses same precedence',async t=>{
@@ -315,7 +317,8 @@ test('tutorial practice extraction defaults the reserved identity, keeps core/im
  f.vscode.window.showInputBox=async options=>{if(options.title==='Library name'){defaultSlug=options.value;return options.value;}return input(options);};
  await f.editor.commands['zero.extractLibrary']();
  assert.equal(defaultSlug,practiceSlug);assert.equal(f.stats().stagedPlan.descriptor.schema,2);assert.equal(f.stats().stagedPlan.descriptor.libraryKind,'widget');
- assert.match(await fs.readFile(path.join(f.root,'src/main/java/Main.java'),'utf8'),/import zero.contrib.r12345.tutorial_credits_badge.CreditsBadge;/);
+ assert.equal(f.stats().stagedPlan.descriptor.namespaceFormat,undefined);
+ assert.match(await fs.readFile(path.join(f.root,'src/main/java/Main.java'),'utf8'),/import zero\.contrib\.r12345\.tutorial_credits_badge\.CreditsBadge;/);
  assert.match(f.messages.at(-1),/Extract practice library/);
  // A repeated exercise keeps its identity and versions; it cannot create a second folder.
  await fs.writeFile(path.join(f.root,'src/main/java/CreditsBadge.java'),'public class CreditsBadge {}');
@@ -387,11 +390,11 @@ test('normal browse excludes raw practice fixtures, while explicit practice brow
   f.vscode.window.showQuickPick=async(entries,options)=>{if(options.title.includes('libraries'))assert.equal(entries.length,1);return entries[0];};
   const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[practice,ordinary]},catalogUrl:settings.catalogUrl};},planChange:async(_root,context,release)=>{selected=release;return {beforeText:before,afterText:before+'<!-- exact pin -->'};},validatePlan:async(_plan,context)=>{assert.equal(context.catalogUrl,observed.catalogUrl);validated++;}}});
   await editor.commands[command]();assert.equal(selected,command==='zero.browseHub'?ordinary:practice);assert.equal(validated,1);
-  assert.equal(new URL(observed.catalogUrl).pathname,command==='zero.browseHub'?'/api/sharing/catalog/v2':'/api/sharing/catalog/v2/practice');
+  assert.equal(new URL(observed.catalogUrl).pathname,command==='zero.browseHub'?'/api/sharing/catalog/v3':'/api/sharing/catalog/v3/practice');
  }
  const f=await fixture(t);let loaded=false;
  f.vscode.window.showQuickPick=async entries=>entries.find(entry=>entry.command==='zero.browseTutorialPractice');
- const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async settings=>{loaded=true;assert.match(settings.catalogUrl,/\/catalog\/v2\/practice$/);return {catalog:{releases:[]}};}}});
+ const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async settings=>{loaded=true;assert.match(settings.catalogUrl,/\/catalog\/v3\/practice$/);return {catalog:{releases:[]}};}}});
  await editor.commands['zero.sharingActions']();assert.equal(loaded,true);assert.equal(f.opened.length,0);
 });
 test('published practice mode uses its catalog for exact-version selection and review revalidation',async t=>{
@@ -401,7 +404,7 @@ test('published practice mode uses its catalog for exact-version selection and r
   const api={...authoring,discoverLibraries:async()=>[f.library],previewMode:async(_root,options)=>{assert.equal(options.publishedRelease,release);return {changes:[{path:'pom.xml',before:'original',after:'published'}]};},applyPlan:async()=>{applied++;}};
   const editor=f.makeEditor({authoring:api,consumer:{loadCatalog:async settings=>{urls.push(settings.catalogUrl);return {artifactOrigin:'https://files.example',fingerprint:drift&&urls.length>1?'changed':'stable',catalog:{releases:[release]}};},verifyLibrary:async()=>{verified++;},addArtifactRepository:text=>text}});
   if(drift)await assert.rejects(editor.commands['zero.switchLibraryMode'](),/catalog changed during mode review/);else await editor.commands['zero.switchLibraryMode']();
-  assert.equal(urls.length,2);assert.ok(urls.every(url=>url.endsWith('/catalog/v2/practice')));assert.equal(verified,drift?1:2);assert.equal(applied,drift?0:1);
+  assert.equal(urls.length,2);assert.ok(urls.every(url=>url.endsWith('/catalog/v3/practice')));assert.equal(verified,drift?1:2);assert.equal(applied,drift?0:1);
  }
 });
 test('practice discovery groups repository identities before deliberate exact-version and revert selection',async t=>{

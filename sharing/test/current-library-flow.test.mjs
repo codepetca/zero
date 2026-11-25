@@ -38,7 +38,7 @@ async function project(root) {
   await fs.writeFile(path.join(root,'src/main/java/Main.java'),'public class Main {}\n');return record;
 }
 
-test('authored current-core helper flows through real checker, managed publication and owned Add',{skip:process.env.ZERO_DOCKER_TEST!=='1',timeout:900000},async t=>{
+test('zero.lib helper flows through the real checker, managed publication and owned Add',{skip:process.env.ZERO_DOCKER_TEST!=='1',timeout:900000},async t=>{
   const output=process.env.ZERO_LIBRARY_FLOW_OUTPUT;
   if(output && !path.isAbsolute(output))throw new Error('ZERO_LIBRARY_FLOW_OUTPUT must be a fresh absolute directory');
   if(output)await fs.mkdir(output);
@@ -47,13 +47,13 @@ test('authored current-core helper flows through real checker, managed publicati
   const author=path.join(root,'author'),target=path.join(root,'consumer');
   const coreRecord=await project(author);await project(target);
   await fs.writeFile(path.join(author,'src/main/java/HitTest.java'),'import zero.Collisions; public final class HitTest { public boolean hits() { return Collisions.rectHitsRect(0,0,2,2,1,1,2,2); } }\n');
-  const descriptor={schema:2,kind:'library',slug:'hit-test',version:'0.1.0',title:'Hit Test',description:'A small collision helper.',license:'MIT',libraryKind:'helper',coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},coreInput:{version:coreRecord.coordinate.version,sourceSha256:coreRecord.sourceSha256}};
+  const descriptor={schema:2,kind:'library',slug:'hit-test',version:'0.1.0',title:'Hit Test',description:'A small collision helper.',license:'MIT',libraryKind:'helper',namespaceFormat:'lib',coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},coreInput:{version:coreRecord.coordinate.version,sourceSha256:coreRecord.sourceSha256}};
   await authoring.applyPlan(await authoring.previewExtraction(author,{repository,descriptor,sources:['src/main/java/HitTest.java']}));
   const folder='libraries/hit-test',library=path.join(author,folder);
   assert.deepEqual(await fs.readFile(path.join(author,'LICENSE')),await fs.readFile(path.join(repoRoot,'LICENSE')));
   await fs.writeFile(path.join(library,'LICENSE'),'MIT License\n\nCopyright (c) 2026 Student\n\n'+MIT_BODY);
   for(const [dir,name] of [['src/test/java','LibraryCheck'],['examples/first','FirstExample'],['examples/second','SecondExample']])
-    await fs.writeFile(path.join(library,dir,name+'.java'),`import zero.contrib.r12345.hit_test.HitTest; public class ${name} { public static void main(String[] args) { if(!new HitTest().hits()) throw new AssertionError("collision"); } }\n`);
+    await fs.writeFile(path.join(library,dir,name+'.java'),`import zero.lib.r12345.hit_test.HitTest; public class ${name} { public static void main(String[] args) { if(!new HitTest().hits()) throw new AssertionError("collision"); } }\n`);
   git(author,'init','-q');git(author,'remote','add','origin',repository.url+'.git');git(author,'config','user.name','Fixture');git(author,'config','user.email','fixture@example.invalid');git(author,'add','.');git(author,'-c','commit.gpgsign=false','-c','core.hooksPath=/dev/null','commit','-qm','Extract library');
   const commit=git(author,'rev-parse','HEAD');
   const paths=git(author,'ls-tree','-r','--name-only',commit,'--',folder).split('\n').filter(Boolean);
@@ -91,6 +91,8 @@ test('authored current-core helper flows through real checker, managed publicati
   official={run:{id:runId,run_attempt:attempt,repository:{id:100,full_name:'codepetca/zero'},head_repository:{id:100,full_name:'codepetca/zero'},head_branch:'main',head_sha:head,event:'schedule',path:'.github/workflows/sharing-libraries.yml'},jobs:[{name:'check',status:'completed',conclusion:'success',run_id:runId,head_sha:head}],workflow:{encoding:'base64',content:workflow.toString('base64'),sha:'f'.repeat(40)},artifact:{id:artifactId,name:libraryArtifactName(runId,attempt,record.id),expired:false,workflow_run:{id:runId,repository_id:100,head_repository_id:100,head_sha:head},size_in_bytes:archive.length,digest:'sha256:'+sha(archive)},archive};
   const published=await platform.publishManagedLibrary({requestId:record.id,runId,attempt,artifactId,token:'fixture'});
   assert.equal(published.delivery,'ready');assert.deepEqual(published.release.coreBuild,result.coreBuild);
+  assert.equal(published.release.namespace,'zero.lib.r12345.hit_test');
+  assert.equal(published.release.coordinate.groupId,'ca.codepet.zero.contrib.r12345');
   const state=(await registry.read()).state,catalogBytes=await storage.get(state.catalog.path);
   const settings={catalogUrl:origin+'/catalog.json',artifactOrigin:origin};
   const fetcher=async url=>new Response(url===settings.catalogUrl?catalogBytes:await storage.get(new URL(url).pathname.slice(1)));

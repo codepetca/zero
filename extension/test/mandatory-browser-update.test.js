@@ -6,12 +6,15 @@ const {loadBundle}=require('../src/lesson-projects');
 const {git}=require('../src/core');
 const format=require('../src/project-builder-format');
 const {readSavedBuilder}=require('../src/project-builder');
+const {loadBundledBuilder}=require('../src/project-builder-upgrade');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
 const disposable=()=>({dispose(){}}),extensionPath=path.resolve(__dirname,'..');
 
 async function fixture(t,{current=false,connected=false,onPrompt=async()=>undefined}={}) {
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-required-update-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
- for(const file of (await loadBundle(extensionPath))[0].files){const dest=path.join(root,...file.path.split('/'));await fs.mkdir(path.dirname(dest),{recursive:true});await fs.writeFile(dest,file.content);}
+ const published=(await loadBundle(extensionPath))[0].files;
+ const files=current?[...published.filter(file=>!file.path.startsWith('.zero-build/')),...(await loadBundledBuilder(extensionPath)).files.map(file=>({path:'.zero-build/'+file.path,content:file.bytes}))]:published;
+ for(const file of files){const dest=path.join(root,...file.path.split('/'));await fs.mkdir(path.dirname(dest),{recursive:true});await fs.writeFile(dest,file.content);}
  await fs.writeFile(path.join(root,'zero.json'),'{}');
  const repository='https://github.com/student/game',repositoryId=12;
  const session=connected ? {id:'browser-repair-session',account:{id:'1',label:'student'},accessToken:'TEST_BROWSER_REPAIR',scopes:[]} : null;

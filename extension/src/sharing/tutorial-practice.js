@@ -8,10 +8,11 @@ function isTutorialPractice(item) {
 }
 function practiceCatalogUrl(catalogUrl) {
   const url = new URL(catalogUrl);
+  const route = /^\/api\/sharing\/catalog(?:\/(v[23])(?:\/practice)?|\/web|\/practice)?$/.exec(url.pathname);
   if (url.username || url.password || url.search || url.hash ||
-      !/^\/api\/sharing\/catalog(?:\/web|\/practice)?$/.test(url.pathname))
+      !route)
     throw new Error('This catalog does not offer tutorial practice. Use the configured ZeroHub catalog.');
-  url.pathname = '/api/sharing/catalog/practice';
+  url.pathname = route[1] ? `/api/sharing/catalog/${route[1]}/practice` : '/api/sharing/catalog/practice';
   return url.href;
 }
 module.exports = {SLUG, isTutorialPractice, practiceCatalogUrl};

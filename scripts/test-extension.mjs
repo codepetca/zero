@@ -1,15 +1,13 @@
-import {prepareDesign} from '../design/prepare.mjs';
 import { readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import {prepareStarter} from './prepare-starter.mjs';
-import {prepareLessonProjects} from './lesson-projects.mjs';
+import {prepareExtensionAssets} from './prepare-extension-assets.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 prepareStarter();
-prepareLessonProjects();
-prepareDesign();
+prepareExtensionAssets(root);
 const directory = path.join(root, 'extension/test');
 const files = readdirSync(directory).filter(name => name.endsWith('.test.js'))
   .sort().map(name => path.join(directory, name));
