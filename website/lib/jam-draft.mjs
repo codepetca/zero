@@ -8,7 +8,7 @@ export function defaultJamDraft(type='game',timezone='America/Toronto') {
     registrationOpensAt:'',startsAt:'',submissionsCloseAt:'',registrationClosesAt:'',submissionsOpenAt:''};
 }
 export function defaultHostedJamDraft(type='game',timezone='UTC') {
-  return {...defaultJamDraft(type,timezone),rules:'Make your own work during the jam. Credit collaborators, libraries and assets. Keep entries appropriate for a classroom. Link your public GitHub repository when you join, then submit its published GitHub Pages URL before submissions close.',galleryRevealAt:'',styleTheme:'violet',styleBackdrop:'stars'};
+  return {...defaultJamDraft(type,timezone),rules:'Make your own work during the jam. Credit collaborators, libraries and assets. Keep entries appropriate for a classroom. Use your own public GitHub repository. Submit your project before submissions close.',galleryRevealAt:'',styleTheme:'violet',styleBackdrop:'stars'};
 }
 // Only call browser detection after hydration. Fresh drafts use UTC for the
 // deterministic server/initial client render and when browser detection fails.

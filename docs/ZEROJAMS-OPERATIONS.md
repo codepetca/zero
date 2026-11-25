@@ -16,6 +16,21 @@ fails Hub visibility closed. Hosted preview visibility-dependent Hub and catalog
 routes fail closed without production credentials; Jam routes remain hidden.
 Unaffected pages need not access the authority. Local tests are not live acceptance.
 
+## Game Jam registration and publishing
+
+Game Jam registration uses **Start Page → Project → Join a Game Jam** in Zero. The
+authenticated desktop route checks the student's registration and binds the
+verified GitHub repository ID. **Run → Publish to Jam** uses that registration
+and the verified GitHub Pages build.
+Keep the operation ID on uncertain outcomes. Recovery can confirm an earlier
+accepted submission after the deadline without initiating a new deployment.
+Keep browser registration available while students use earlier editors. After
+the editor with **Join a Game Jam** is available to students, verify desktop
+registration and a live Pages submission before enabling
+`ZERO_JAMS_EDITOR_JOIN_REQUIRED=1` on the website. The flag makes Zero the
+required entry point for new Game Jam joins. App Jam participation and web
+entry management remain available.
+
 ## Manual Free and Pro licenses
 
 Free personal use includes joining and submitting to a jam under its ordinary
@@ -295,6 +310,7 @@ place credential values in this document, source control or logs:
 | `ZERO_JAMS_PILOT_ENABLED=1` | Exposes direct production pilot Jam routes; does not disable production Hub hold enforcement when removed. |
 | `ZERO_JAMS_ENABLED=1` | Enables new Jam writes; disabling it does not fence dispatched commits or disable Hub holds. |
 | `ZERO_JAMS_DISCOVERY_ENABLED=1` | Shows **Jams** in ZeroHub when both of the preceding settings are enabled. Keep it production-only. |
+| `ZERO_JAMS_EDITOR_JOIN_REQUIRED=1` | Requires editor registration for new Game Jam joins after the compatible editor rollout. App Jam joins and retries of existing receipts remain available. |
 | `ZERO_JAMS_PRODUCTION_AUTHORITY` | Must be `neon-postgres`; production has no Git fallback. |
 | `ZERO_JAMS_PRODUCTION_PROJECT_REF`, `ZERO_JAMS_PRODUCTION_PG_HOST`, `ZERO_JAMS_PRODUCTION_PG_PORT`, `ZERO_JAMS_PRODUCTION_PG_DATABASE`, `ZERO_JAMS_PRODUCTION_PG_ROLE` | Independently verified fixed Neon project, host, port, database and restricted role. |
 | `ZERO_JAMS_PRODUCTION_PG_EPOCH`, `ZERO_JAMS_PRODUCTION_CREATOR_OID`, `ZERO_JAMS_PRODUCTION_ADMIN_OID` | Reviewed database epoch and pinned provider role identities. |

@@ -66,6 +66,10 @@ for(const mode of ['local','staging'])test(`actual Next entrypoints share ${mode
   globalThis.fetch=async(input,options={})=>{
     const url=String(input);fetches.push(url);
     assert.ok(!url.includes('/git/ref/')&&!url.includes('/app/installations/123/'),'selected authority cannot fetch the Git registry or writer token');
+    if(url===`https://api.github.com/applications/${zeroApp.clientId}/token`){
+      const user=users[JSON.parse(options.body).access_token];assert.ok(user);
+      return Response.json({user,app:{client_id:zeroApp.clientId}});
+    }
     if(url==='https://api.github.com/user'){const token=options.headers.Authorization.slice(7);authenticated.add(token);return Response.json(users[token]);}
     const repo={id:1033,name:'project',full_name:'student1/project',html_url:'https://github.com/student1/project',private:false,visibility:'public',owner:{id:33,login:'student1',type:'User'}};
     if(url==='https://api.github.com/repos/student1/project/installation')return Response.json({id:606,app_id:5367740,suspended_at:null,account:{id:33,login:'student1',type:'User'},target_id:33,target_type:'User',permissions:{metadata:'read',pages:'read'}});
@@ -110,14 +114,26 @@ for(const mode of ['local','staging'])test(`actual Next entrypoints share ${mode
     routeCache.set(file,module.exports);return module.exports;
   }
   const sessions=Object.fromEntries(Object.entries(users).map(([token,user])=>[user.login,auth.newSession(token,user,3600,auth.hubConfig(process.env),time)]));
-  const request=(path,{method='GET',body,user='student1'}={})=>new Request('http://127.0.0.1:3000'+path,{method,headers:{origin:'http://127.0.0.1:3000',cookie:sessions[user].cookie.split(';')[0],'x-hub-csrf':sessions[user].session.csrf,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+  const request=(path,{method='GET',body,user='student1',desktop=false}={})=>new Request('http://127.0.0.1:3000'+path,{method,
+    headers:{'content-type':'application/json',...(desktop?{'x-zero-desktop':'1',authorization:'Bearer '+Object.keys(users).find(token=>users[token].login===user)}:
+      {origin:'http://127.0.0.1:3000',cookie:sessions[user].cookie.split(';')[0],'x-hub-csrf':sessions[user].session.csrf})},
+    ...(body?{body:JSON.stringify(body)}:{})});
   const call=async(file,method,path,options={},params={})=>(await route(file))[method](request(path,{...options,method}),{params:Promise.resolve(params)});
   const at=offset=>new Date(time+offset).toISOString(),manifest=hostedManifest({schedule:{registrationOpensAt:at(-120000),registrationClosesAt:at(120000),startsAt:at(-60000),submissionsOpenAt:at(-30000),submissionsCloseAt:at(180000),galleryRevealAt:at(240000)}});
   let response=await call('api/jams/proposals/route.ts','POST','/api/jams/proposals',{user:'creator',body:{operationId:'route-proposal-001',manifest}});
   assert.equal(response.status,200);const proposal=await response.json(),id=proposal.eventId;
   assert.equal(proposal.status,'approved');
-  const joined=await Promise.all(['student1','student2'].map(user=>call('api/jams/[id]/actions/route.ts','POST',`/api/jams/${id}/actions`,{user,body:{operationId:`route-join-${user}`,action:'join',revision:proposal.revision,repositoryUrl:`https://github.com/${user}/project`}},{id})));
+  const joined=await Promise.all(['student1','student2'].map(user=>call('api/desktop/jams/[id]/join/route.ts','POST',`/api/desktop/jams/${id}/join`,{user,desktop:true,body:{operationId:`route-join-${user}`,repositoryId:user==='student1'?'1033':'1034',revision:proposal.revision,repositoryUrl:`https://github.com/${user}/project`}},{id})));
   assert.ok(joined.every(value=>value.status===200));assert.deepEqual(tokens.sort(),[['33','ghu_student_token_111'],['34','ghu_student_token_222']]);assert.equal(builds,1);
+  const readDesktop=async user=>call('api/desktop/jams/[id]/join/route.ts','GET',`/api/desktop/jams/${id}/join`,{user,desktop:true},{id});
+  const studentStatus=await readDesktop('student1');
+  assert.equal(studentStatus.status,200);assert.equal(studentStatus.headers.get('cache-control'),'no-store');
+  const studentJoin=await studentStatus.json();
+  assert.deepEqual(studentJoin.registration,{status:'joined',repository:{id:'1033',ownerId:'33',fullName:'student1/project'}});
+  assert.equal('participants' in studentJoin.event,false);
+  const creatorJoin=await readDesktop('creator');
+  assert.equal(creatorJoin.status,200);
+  assert.equal((await creatorJoin.json()).registration,null,'even the creator cannot retrieve another participant’s repository from the join route');
   if(mode==='staging'){
     assert.equal(latestAuthority.jamOptions.env.ZERO_JAMS_STAGING_PG_URI,undefined);assert.equal(latestAuthority.hubOptions.env.ZERO_JAMS_STAGING_PG_CA_PEM,undefined);
     assert.doesNotMatch(JSON.stringify(latestAuthority),/PRIVATE|BEGIN CERTIFICATE|synthetic-route-client-secret/);
@@ -134,7 +150,7 @@ for(const mode of ['local','staging'])test(`actual Next entrypoints share ${mode
   outage=true;
   const cases=[
     ['api/jams/route.ts','GET','/api/jams'],['api/jams/[id]/route.ts','GET',`/api/jams/${id}`,{}, {id}],['hub/jams/[id]/panel/route.ts','GET',`/hub/jams/${id}/panel`,{}, {id}],
-    ['api/jams/[id]/actions/route.ts','POST',`/api/jams/${id}/actions`,{body:{operationId:'route-outage-join',action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/student1/project'}},{id}],
+    ['api/desktop/jams/[id]/join/route.ts','POST',`/api/desktop/jams/${id}/join`,{desktop:true,body:{operationId:'route-outage-join',repositoryId:'1033',revision:proposal.revision,repositoryUrl:'https://github.com/student1/project'}},{id}],
     ['api/jams/proposals/route.ts','POST','/api/jams/proposals',{user:'creator',body:{operationId:'route-outage-propose',manifest:hostedManifest()}}],
     ['api/jams/settlements/route.ts','POST','/api/jams/settlements',{body:{operationId:'route-outage-settle',scope:id,payload:{action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/student1/project'}}}],
     ['api/hub/discovery/route.ts','GET','/api/hub/discovery'],['api/hub/projects/route.ts','GET',`/api/hub/projects?kind=game&ids=${sources.id}`],['api/hub/metrics/route.ts','GET',`/api/hub/metrics?kind=game&ids=${sources.id}`],
@@ -159,7 +175,7 @@ for(const mode of ['local','staging'])test(`actual Next entrypoints share ${mode
   process.env.NODE_ENV='production';const before=requests;
   for(const hosting of ['production','preview']){
     process.env.VERCEL_ENV=hosting;
-    for(const [file,method,path,options] of cases.filter(([file])=>file.startsWith('api/jams/')||file.startsWith('hub/jams/'))){response=await (await route(file))[method](request(path,{...options,method}),{get params(){assert.fail('hidden params');}});assert.equal(response.status,404,file);}
+    for(const [file,method,path,options] of cases.filter(([file])=>file.startsWith('api/jams/')||file.startsWith('api/desktop/jams/')||file.startsWith('hub/jams/'))){response=await (await route(file))[method](request(path,{...options,method}),{get params(){assert.fail('hidden params');}});assert.equal(response.status,404,file);}
   }
   assert.equal(requests,before);
   // A first POST must observe selection before its awaited /user check. Losing

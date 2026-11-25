@@ -6,7 +6,7 @@ import contracts from '../../extension/src/sharing/contracts.js';
 import {hostedManifest} from '../../jams/test/fixtures.mjs';
 import {hubConfig,newSession} from '../lib/hub-github-auth.mjs';
 import {createLocalJamAuthority} from '../lib/jams-local-authority.mjs';
-import {getJamResponse,postJamProposalResponse,postJamActionResponse} from '../lib/jams-http.mjs';
+import {getJamResponse,postJamProposalResponse,postJamActionResponse,postDesktopJamJoinResponse} from '../lib/jams-http.mjs';
 import {catalogResponse} from '../lib/sharing-catalog.mjs';
 
 function transactionalStore(){
@@ -50,7 +50,12 @@ test('local authority authenticates HTTP writes and CSRF before shared transacti
     return [name,newSession(token,actor,28800,config,time)];
   }));
   const fetchImpl=async(url,options)=>{
-    identityCalls.push(url);assert.equal(url,'https://api.github.com/user','No provider or registry fallback is permitted');assert.equal(options.method??'GET','GET');
+    identityCalls.push(url);
+    if(url===`https://api.github.com/applications/${zeroApp.clientId}/token`) {
+      const user=tokens.get(JSON.parse(options.body).access_token);assert.ok(user);
+      return Response.json({user,app:{client_id:zeroApp.clientId}});
+    }
+    assert.equal(url,'https://api.github.com/user','No provider or registry fallback is permitted');assert.equal(options.method??'GET','GET');
     const actor=tokens.get(options.headers.Authorization?.replace(/^Bearer /,''));assert.ok(actor,'Only a sealed synthetic session token may reach identity verification');
     return Response.json(actor);
   };
@@ -88,13 +93,22 @@ test('local authority authenticates HTTP writes and CSRF before shared transacti
   for(const body of [join,submit]){
     for(const headers of [{'X-Hub-CSRF':null},{'X-Hub-CSRF':'z'.repeat(43)}])
       await rejectedBeforeIdentity(()=>postJamActionResponse(post('participant',actionPath,body,headers),id,options),403);
-    response=await postJamActionResponse(post('participant',actionPath,body),id,options);assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');
+    if(body===join) {
+      const {action,...desktopBody}=join;
+      const token=[...tokens].find(([,actor])=>actor===actors.participant)[0];
+      const desktop=new Request(config.origin+`/api/desktop/jams/${id}/join`,{method:'POST',
+        headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({...desktopBody,repositoryId:"202"})});
+      response=await postDesktopJamJoinResponse(desktop,id,options);
+    } else {
+      response=await postJamActionResponse(post('participant',actionPath,body),id,options);
+    }
+    assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');
     assert.equal((await response.json()).status,body===join?'joined':'submitted');
   }
   const snapshot=await store.snapshot(),state=(await snapshot.read(id)).state;
   assert.equal(state.creator.id,'11');assert.equal(state.accepted.reviewedBy,null);assert.equal(state.registrations['33'].status,'joined');
   assert.equal(state.entries['33'].length,1);assert.equal(Object.keys(state.operations).length,3);assert.equal(store.commits,3);
-  assert.equal(identityCalls.length,6);assert.equal(repositoryCalls,2);assert.equal(pagesCalls,1);
+  assert.equal(identityCalls.length,7);assert.equal(repositoryCalls,2);assert.equal(pagesCalls,1);
   const ownerProposalBody={operationId:'http-local-owner-proposal',manifest:hostedManifest()};
   response=await postJamProposalResponse(post('owner',proposalPath,ownerProposalBody),options);assert.equal(response.status,200);
   const ownerProposal=await response.json(),ownerPath=`/api/jams/${ownerProposal.eventId}/actions`,beforeSelfApproval=await store.snapshot();
@@ -113,7 +127,7 @@ test('local authority authenticates HTTP writes and CSRF before shared transacti
   time=Date.parse('2030-01-05T00:00:00Z');
   response=await jam();assert.equal(response.status,200);assert.equal((await response.json()).event.entries.length,1);
   response=await hub();assert.equal(response.status,200);assert.equal((await response.json()).releases.length,1);
-  assert.equal(identityCalls.length,8,'Anonymous reveal reads do not dispatch identity or provider fallback requests');
+  assert.equal(identityCalls.length,9,'Anonymous reveal reads do not dispatch identity or provider fallback requests');
   assert.equal(store.commits,4,'Public projection cannot create registry writes');
   // A real authenticated Free account can participate above but cannot create,
   // and a browser license claim never becomes server entitlement authority.

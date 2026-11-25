@@ -14730,3 +14730,31 @@ TypeScript and 115 focused tests passed with disposable PostgreSQL. Independent
 GPT-6.1 Sol review at medium reasoning found no actionable issue in the reader
 and regression test against `b4f4d297f`. The review also checked failed or
 inconclusive probes, cancellation, the probe timeout and path-scoped cache reuse.
+
+### Editor-first Game Jams (2026-11-24)
+
+The integration ports the Game Jam join and publishing flow from the older
+working checkout onto `3a0e71d2a`. The original working checkout retains its
+unrelated changes. The Start Page presents the approved shaded rules and
+deadlines panel in light and dark themes. The browser preview exercised the
+Project menu and checked the join action, rules, deadline text and recent
+project badge with a sample jam.
+
+Independent GPT-6.2 Astra and GPT-6.2 Sol reviews at high reasoning covered the
+initial `b9c7dd4c8` candidate. The fixes bind the selected repository by ID,
+preserve the reviewed publishing destination, recover the exact approved Jam
+deployment, settle a superseded Pages attempt, and keep browser registration
+available until editor rollout is confirmed.
+
+The editor remediation suite passed 436 tests with one filesystem skip. A
+separate browser-repair and publishing suite passed 142 tests with one skip
+after restoring connected-repository fixtures for three existing CI scenarios.
+The authority suite passed 725 tests with seven optional integration skips.
+Website TypeScript passed. These checks used controlled data. A live account,
+native folder handoff, and production Pages submission remain separate acceptance.
+
+The targeted re-review of `91220a5e7` also found a completed Pages run can
+stay pending in the editor after its public marker changes. An explicit retry
+can now dismiss the saved Pages check after GitHub confirms successful
+completion. The editor keeps the Jam submission receipt and requires a fresh
+Publish action. Seven focused recovery checks passed.

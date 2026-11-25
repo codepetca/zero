@@ -3,7 +3,7 @@
 **Learn to Build** · **Starting from zero**
 
 Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.
-Use the Start Page to open Zero Docs, manage projects and connect GitHub.
+Use the Start Page to open Zero Web, manage projects and connect GitHub.
 
 Zero **0.5.43** uses core **0.2.1**. Each published download retains its
 bundled extension version and behavior.

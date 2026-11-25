@@ -45,12 +45,13 @@ test('hosted proposal validates the UTF-8 request envelope against the HTTP byte
   assert.equal(result.manifest,null);assert.match(result.errors.rules,/large/);
 });
 
-test('hosted defaults describe live Pages while legacy preparation retains exact source',async()=>{
+test('hosted default rules leave the submission instructions to each jam flow',async()=>{
   const {defaultHostedJamDraft}=await import('../lib/jam-draft.mjs');
   for (const type of ['game','app']) {
     const draft=defaultHostedJamDraft(type,'UTC');
     assert.equal(draft.type,type);assert.equal(draft.timezone,'UTC');assert.equal(draft.galleryRevealAt,'');
-    assert.match(draft.rules,/GitHub Pages URL/);assert.doesNotMatch(draft.rules,/exact commit/);
+    assert.match(draft.rules,/Submit your project before submissions close/);
+    assert.doesNotMatch(draft.rules,/GitHub Pages URL|exact commit/);
   }
   assert.match(defaultJamDraft().rules,/exact commit/);
 });

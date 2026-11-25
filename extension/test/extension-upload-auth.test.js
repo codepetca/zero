@@ -8,7 +8,7 @@ const {publishingFiles}=require('../src/web-publish-github');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
 const {createTransport}=require('../src/transport');
 const disposable=()=>({dispose(){}});
-async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutorial=false,selected=true,publishing=false,dirty=false,sourceUnsynced=dirty,publishSetup=false,publicChoice,branch='main',lateTransport=false,correctionValidator,realLedger=false,capabilities={contents:'write',workflows:'write'}}={}) {
+async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutorial=false,selected=true,publishing=false,dirty=false,sourceUnsynced=dirty,publishSetup=false,jamDestination=null,publicChoice,branch='main',lateTransport=false,correctionValidator,realLedger=false,capabilities={contents:'write',workflows:'write'}}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-native-upload-auth-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify(practice?{localOnly:true}:{}));
   if(publishing || practice) {
@@ -43,7 +43,8 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     return {head:plan.head,branch:'main',uploaded:true};
   };
   const accessCalls=[];
-  const repositories={checkSetup:async()=>({}),access:async(repositoryUrl,{ticket,permissions})=>{
+  const repositories={checkSetup:async()=>({}),
+    readOwnedRepository:async repositoryUrl=>({html_url:repositoryUrl,id:repositoryId,owner:{id:Number(accountId)}}),access:async(repositoryUrl,{ticket,permissions})=>{
     accessCalls.push({repositoryUrl,permissions,accountId:ticket.session.accountId});
     assert.equal(repositoryUrl,plan.page);assert.deepEqual(ticket.session.scopes,[]);
     if(ticket.session.accountId!==accountId || accountId!=='1')throw Error('The GitHub account changed. Review your upload again.');
@@ -66,13 +67,13 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
   const publishPublisher={review:async()=>{
     if(plan.branch!=='main')throw Error('Finish your change with Merge to main before publishing the app.');
     if(sourceUnsynced)throw Object.assign(Error('Upload required'),{code:'WEB_PUBLISH_UPLOAD_REQUIRED',plan:{...plan}});
-    return {status:'review',repository:plan.page,publicUrl:'https://student.github.io/app/',sha:plan.head,account:'1',setup:publishSetup&&!setupPrepared};
+    return {status:'review',root,repository:plan.page,repositoryId,publicUrl:'https://student.github.io/app/',sha:plan.head,account:'1',setup:publishSetup&&!setupPrepared};
   },setup:async()=>{
     setupPrepared=true;
     plan.status=' M .github/workflows/zero-web.yml';plan.fingerprint='publishing-files';plan.changes=[{path:'.github/workflows/zero-web.yml',kind:'M'}];
     return {status:'upload-required',uploadPlan:{...plan}};
-  },publish:async()=>{deploys++;return {status:'live',url:'https://student.github.io/app/',sha:plan.head,resume:{repository:plan.page,sha:plan.head,runId:42}};}};
-  const stored=new Map();
+  },verifyCurrent:async()=>({status:'stale'}),publish:async()=>{deploys++;return {status:'live',url:'https://student.github.io/app/',sha:plan.head,resume:{repository:plan.page,repositoryId,sha:plan.head,runId:42}};}};
+  const stored=new Map(),profile=new Map(),jamLookups=[];
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){
     if(correctionValidator&&id==='./project-restore-plan')return {...require('../src/project-restore-plan'),validatedCompletedProjectRestore:correctionValidator};
     if(id==='./git-tracking')return {updateRemoteTracking:async()=>{if(trackingError)throw trackingError;return {updated:true};}};
@@ -91,9 +92,9 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     return id==='vscode'?textInputs(vscode):originalLoad.call(this,id,...args);
   };
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
-  const subscriptions=[];extension.activate({extensionMode:2,subscriptions,workspaceState:{keys:()=>[...stored.keys()],get:key=>stored.get(key),update:async(key,value)=>{stored.set(key,value);}}},{env:{},...(realLedger?{}:{repositoryLedgerFactory:require('./fixtures/repository-ledger').repositoryLedgerFactory}),provider:appSessions(vscode,appProvider),repositories});await new Promise(resolve=>setImmediate(resolve));
+  const subscriptions=[];extension.activate({extensionMode:2,subscriptions,globalState:{keys:()=>[...profile.keys()],get:key=>profile.get(key),update:async(key,value)=>{if(value===undefined)profile.delete(key);else profile.set(key,value);}},workspaceState:{keys:()=>[...stored.keys()],get:key=>stored.get(key),update:async(key,value)=>{stored.set(key,value);}}},{env:{},gameJamRequest:async(url,options)=>{jamLookups.push({url,method:options.method});return Response.json({configured:true,destination:jamDestination});},...(realLedger?{}:{repositoryLedgerFactory:require('./fixtures/repository-ledger').repositoryLedgerFactory}),provider:appSessions(vscode,appProvider),repositories});await new Promise(resolve=>setImmediate(resolve));
   t.after(()=>{subscriptions.forEach(item=>item.dispose());core.git=originalGit;github.prepareUpload=originalPrepare;github.uploadPrepared=originalUpload;delete require.cache[require.resolve('../src/extension')];});
-  return {root,vscode,commands,calls,accessCalls,errors,notices,results,picks,plan,stored,set confirmedHead(value){confirmedHead=value;},get publishApi(){return publishApi;},get transportDispatches(){return transportDispatches;},set ancestor(value){ancestor=value;},set afterWarning(value){afterWarning=value;},set trackingError(value){trackingError=value;},set afterTransportPreparation(value){afterTransportPreparation=value;},set mode(value){mode=value;},get deploys(){return deploys;},get pushes(){return pushes;},set repositoryId(value){repositoryId=value;},set installationId(value){installationId=value;},set privacy(value){privacy=value;},set selected(value){selected=value;},set accountId(value){accountId=value;},set afterAccess(value){afterAccess=value;},set afterInput(value){afterInput=value;},set afterSave(value){afterSave=value;},set afterUpload(value){afterUpload=value;},removePermission(name){delete capabilities[name];},render(){const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;},get saves(){return saves;},get inputs(){return inputs;},get reviews(){return reviews;},get uploads(){return uploads;},get disposed(){return disposed;},set failPush(value){failPush=value;}};
+  return {root,vscode,commands,calls,accessCalls,errors,notices,results,picks,plan,stored,jamLookups,set confirmedHead(value){confirmedHead=value;},get publishApi(){return publishApi;},get transportDispatches(){return transportDispatches;},set ancestor(value){ancestor=value;},set afterWarning(value){afterWarning=value;},set trackingError(value){trackingError=value;},set afterTransportPreparation(value){afterTransportPreparation=value;},set mode(value){mode=value;},get deploys(){return deploys;},get pushes(){return pushes;},set repositoryId(value){repositoryId=value;},set installationId(value){installationId=value;},set privacy(value){privacy=value;},set selected(value){selected=value;},set accountId(value){accountId=value;},set afterAccess(value){afterAccess=value;},set afterInput(value){afterInput=value;},set afterSave(value){afterSave=value;},set afterUpload(value){afterUpload=value;},removePermission(name){delete capabilities[name];},render(){const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;},get saves(){return saves;},get inputs(){return inputs;},get reviews(){return reviews;},get uploads(){return uploads;},get disposed(){return disposed;},set failPush(value){failPush=value;}};
 }
 test('direct upload blocks dirty project aliases before auth and leaves unrelated editors untouched',async t=>{
   const h=await harness(t),alias=h.root+'-alias';await fs.symlink(h.root,alias);t.after(()=>fs.unlink(alias));
@@ -229,6 +230,21 @@ test('tutorial sidebar retains normal GitHub controls and hides original-only Sh
   assert.match(webview.html,/Current branch: main/);
   await h.commands.get('zero.shareGame')();assert.match(h.errors.at(-1),/separate original project/);
 });
+test('a linked repository gets one Publish to Jam action on initial editor activation',async t=>{
+  const destination={id:'jam-17',title:'Moon Games',revision:'a'.repeat(64),entryRevision:'',submissionsOpen:true,
+    submissionsCloseAt:'2026-12-01T12:00:00Z'};
+  const h=await harness(t,{kit:false,tutorial:true,jamDestination:destination});
+  const webview=h.render(),deadline=Date.now()+5000;
+  while(!webview.html.includes('>Publish to Jam</button>')) {
+    assert.ok(Date.now()<deadline,'The linked destination should update the existing publish control');
+    await new Promise(resolve=>setImmediate(resolve));
+  }
+  assert.equal((webview.html.match(/data-command="zero.publishAndOpenWeb"/g)||[]).length,1);
+  await h.commands.get('zero.chooseRepository')();
+  assert.equal(h.picks.at(-1).items.find(item=>item.action==='publish').label,'Publish to Jam');
+  assert.deepEqual(h.jamLookups,[{method:'GET',url:'https://zero.codepet.ca/api/desktop/jams/project?repositoryId=12'}]);
+});
+
 test('original project ZeroHub menu offers no Share project',async t=>{
   const h=await harness(t,{kit:false});const webview=h.render();const deadline=Date.now()+5000;
   while(!webview.html.includes('data-command="zero.chooseRepository"')) {assert.ok(Date.now()<deadline,'Signed-in original project should finish rendering');await new Promise(resolve=>setImmediate(resolve));}
@@ -309,12 +325,28 @@ test('Commit & push clears its indicator on preparation failure and after a conf
 test('Publish syncs reviewed setup files through guarded native upload and retains the verified playable link',async t=>{
   const h=await harness(t,{publishing:true,publishSetup:true});
   // Reuse the existing approval for the public destination and its ZeroHub listing.
-  h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/',listingNotice:true});
+  h.stored.set('zero.webPublish.approval',{root:h.plan.root,account:'1',repository:h.plan.page,url:'https://student.github.io/app/',repositoryId:'12',listingNotice:true});
   await h.commands.get('zero.publishWeb')();
   assert.deepEqual(h.errors,[]);assert.equal(h.inputs,1);assert.equal(h.pushes,1);assert.equal(h.deploys,1);
   assert.equal(h.stored.get('zero.webPublish.lastLive').url,'https://student.github.io/app/');
   assert.match(h.results.at(-1),/https:\/\/student.github.io\/app\//);
   const webview=await uploadSidebar(h);assert.doesNotMatch(webview.html,/published-app-link|Open published app/);assert.doesNotMatch(webview.html,/Copy playable link/);assert.match(webview.html,/data-command="zero.publishAndOpenWeb"/);
+});
+test('Publish to Jam refuses to commit or push to a same-name replacement repository',async t=>{
+  const jamDestination={id:'jam-17',title:'Moon Games',revision:'a'.repeat(64),entryRevision:'',
+    submissionsOpen:true,submissionsCloseAt:'2030-12-01T12:00:00Z'};
+  const h=await harness(t,{publishing:true,publishSetup:true,jamDestination});
+  h.afterSave=async()=>{h.repositoryId=88;};
+  h.vscode.window.showInformationMessage=async message=>{
+    assert.equal(message,'Publish to Moon Games?');
+    return 'Publish to Jam';
+  };
+  await h.commands.get('zero.publishWeb')();
+  assert.match(h.errors.at(-1),/account or repository changed/);
+  assert.equal(h.inputs,0);
+  assert.equal(h.uploads,0);
+  assert.equal(h.transportDispatches,0);
+  assert.equal(h.deploys,0);
 });
 test('Publish leaves both saved commits and dirty changes for an explicit Sync',async t=>{
   for(const dirty of [false,true])await t.test(dirty?'dirty source':'saved commits',async t=>{

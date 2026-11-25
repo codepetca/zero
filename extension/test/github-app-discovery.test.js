@@ -88,6 +88,8 @@ test('ordinary and legacy Zero markers are identified without reading arbitrary 
   const markers=new Map([[markerPath(roots[0]),contents({...ordinaryMarker,tutorialProjectId:'greeting',repositoryRequired:true})],[markerPath(roots[1],'student-template/zero.json'),contents({...ordinaryMarker,mainClass:'school.Main'},'student-template/zero.json')],[markerPath(roots[2]),contents({description:'Not Zero'})]]);
   const f=fixture({pages:[roots],markers});const result=await f.api.listZero();assert.deepEqual(result.repositories.map(item=>item.id),[1,2]);
   assert.ok(f.calls.filter(call=>call.url.includes('/contents/')).every(call=>/\/contents\/(?:student-template\/)?zero\.json$/.test(call.url)));
+  const standalone=fixture({pages:[roots],markers});
+  assert.deepEqual((await standalone.api.listZero({standaloneOnly:true})).repositories.map(item=>item.id),[1]);
 });
 
 test('missing, malformed, non-file, foreign-path and oversized markers are skipped safely',async()=>{

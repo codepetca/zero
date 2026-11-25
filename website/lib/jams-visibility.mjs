@@ -11,6 +11,8 @@ export function jamsNavigationAvailable(env=process.env) {
     (env.NODE_ENV==='development' || env.ZERO_JAMS_DISCOVERY_ENABLED==='1' && env.ZERO_JAMS_ENABLED==='1');
 }
 
+export const editorGameJamJoinRequired = (env=process.env) => env.ZERO_JAMS_EDITOR_JOIN_REQUIRED === '1';
+
 export function hiddenJamsResponse(env) {
   return jamsPreviewAvailable(env) ? null : new Response('Not found', {status:404,
     headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store','X-Robots-Tag':'noindex'}});

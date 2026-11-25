@@ -45,6 +45,10 @@ test('default local authority shares a real PostgreSQL registry across authentic
   const repo={id:202,name:'project',full_name:'student/project',private:false,visibility:'public',owner:{id:33,login:'student',type:'User'}};
   const transport=async(input,init={})=>{
     const url=String(input),method=init.method||'GET',auth=init.headers?.Authorization;
+    if(url===`https://api.github.com/applications/${zeroApp.clientId}/token`&&method==='POST'){
+      const user=tokens.get(JSON.parse(init.body).access_token);assert.ok(user);
+      return Response.json({user,app:{client_id:zeroApp.clientId}});
+    }
     if(url==='https://api.github.com/user'&&method==='GET'){const actor=tokens.get(auth?.replace(/^Bearer /,''));assert.ok(actor);return Response.json(actor);}
     if(url==='https://api.github.com/repos/student/project/installation'&&method==='GET')return Response.json({id:606,app_id:5367740,suspended_at:null,account:{id:33,login:'student',type:'User'},target_id:33,target_type:'User',permissions:{metadata:'read',pages:'read'}});
     if(url==='https://api.github.com/app/installations/606/access_tokens'&&method==='POST'){assert.deepEqual(JSON.parse(init.body),{repository_ids:[202],permissions:{pages:'read',metadata:'read'}});return Response.json({token:'synthetic-installation-token',expires_at:new Date(time+3600000).toISOString(),repository_selection:'selected',repositories:[repo],permissions:{pages:'read',metadata:'read'}},{status:201});}
@@ -56,7 +60,7 @@ test('default local authority shares a real PostgreSQL registry across authentic
   globalThis.fetch=transport;Date.now=()=>time;
   // Import only after installing the deny-by-default transport: the real shared
   // default manager captures fetch once, without a selector/test manager mock.
-  const {getJamResponse,postJamProposalResponse,postJamActionResponse}=await import('../lib/jams-http.mjs');
+  const {getJamResponse,postJamProposalResponse,postJamActionResponse,postDesktopJamJoinResponse}=await import('../lib/jams-http.mjs');
   const {catalogResponse}=await import('../lib/sharing-catalog.mjs');
   const {hubPublicListingsResponse}=await import('../lib/hub-listings-http.mjs');
   const {createHubListingsStore}=await import('../lib/hub-listings-store.mjs');
@@ -68,7 +72,9 @@ test('default local authority shares a real PostgreSQL registry across authentic
   const proposal=await response.json(),id=proposal.eventId,action=`/api/jams/${id}/actions`,approval={operationId:'pg-http-approve-0001',action:'approve',revision:proposal.revision};
   response=await postJamActionResponse(post('student',action,approval),id,options);assert.equal(response.status,403);
   assert.equal(proposal.status,'approved');
-  response=await postJamActionResponse(post('student',action,{operationId:'pg-http-join-0001',action:'join',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'}),id,options);assert.equal(response.status,200,await response.clone().text());
+  const desktop=new Request(config.origin+`/api/desktop/jams/${id}/join`,{method:'POST',headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+studentToken,'Content-Type':'application/json'},
+    body:JSON.stringify({operationId:'pg-http-join-0001',repositoryId:'202',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'})});
+  response=await postDesktopJamJoinResponse(desktop,id,options);assert.equal(response.status,200,await response.clone().text());
   response=await postJamActionResponse(post('student',action,{operationId:'pg-http-submit-0001',action:'submit',revision:proposal.revision,title:'Project',description:'Synthetic',demoUrl:'https://student.github.io/project/'}),id,options);assert.equal(response.status,200,await response.clone().text());
   const entryRevision=(await response.json()).revision;
   assert.ok(pagesCalls>0,'The actual Pages runtime path used the synthetic transport');

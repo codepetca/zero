@@ -35,7 +35,7 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     try{throwIfCancelled(signal);return await repositories.create({name:input.draft.name,private:false,...(template?{template}:{})},{ticket:input.ticket,onProgress:notify,signal,...(beforeCreate?{beforeCreate}:{})});}
     catch(error){if(error.code&&error.code!=='creation-uncertain')await onRecovery(undefined);throw error;}
   }
-  async function createAndClone(title,template,key,defaultName,preparedTicket){
+  async function createAndClone(title,template,key,defaultName,preparedTicket,onCloned){
     const input=await collect(title,key,{clone:true,defaultName,preparedTicket});
     if(!input||!isActive())return;
     await authentication.assertCurrent(input.ticket);
@@ -72,14 +72,19 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
         if(!isActive())throw Error(`Your repository was created at ${result.repository.html_url}. Clone it from Zero when you return.`);
         try{
           throwIfCancelled(signal);notify('Opening your project…');
-          const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal,reservation});
+          const repositoryId=String(result.repository.id);
+          if(onCloned && !/^[1-9][0-9]{0,19}$/.test(repositoryId))throw Error('GitHub did not identify the new Game Jam repository.');
+          const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal,reservation,
+            ...(onCloned ? {expectedRepositoryId:repositoryId,assertCurrent:()=>authentication.assertCurrent(input.ticket),
+              onCloned:details=>onCloned({...details,repositoryId,repositoryUrl:result.repository.html_url,ticket:input.ticket})} : {})});
           throwIfCancelled(signal);
           if(!cloned||!isActive())throw Error('The project was not opened.');
           // Only the next activation can confirm a same-window switch was accepted.
           drafts.delete(input.draftKey);
-          notify('Project created');
+          if(!onCloned)notify('Project created');
           return result;
         }catch(error){
+          if(onCloned && error.gameJamJoin)throw error;
           const failure=Error(`Your GitHub repository is ready at ${result.repository.html_url}. ${error.message} Use Clone from GitHub to continue; the repository was kept.`);
           if(['git-prerequisite','git-setup-retry'].includes(error.code))failure.code=error.code;
           throw failure;
@@ -166,6 +171,8 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
       if(record.projectRoot)await onRecovery(undefined);return true;
     });
   }
-  return {startTutorial,resumeCreated,newProject:()=>createAndClone('New project',ORIGINAL_TEMPLATE,'original','my-project'),createRepository,dispose(){disposed=true;progress.dispose();}};
+  return {startTutorial,resumeCreated,
+    newProject:({preparedTicket,onCloned}={})=>createAndClone('New project',ORIGINAL_TEMPLATE,'original','my-project',preparedTicket,onCloned),
+    createRepository,dispose(){disposed=true;progress.dispose();}};
 }
 module.exports={createGitHubProjectCommands,nameError,ORIGINAL_TEMPLATE};

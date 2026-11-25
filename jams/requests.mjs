@@ -17,10 +17,10 @@ export function requestPayload(scope,input) {
     return {action:'propose',repositoryUrl:url,commit:input.commit};
   }
   if(typeof scope!=='string'||!ID.test(scope))fail(400,'Invalid request scope.');
-  keys(input,['action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl','participationRevision'],['action']);
+  keys(input,['action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl','repositoryId','participationRevision','publication'],['action']);
   const {action}=input;
   if(!ACTIONS.includes(action))fail(400,'Unknown jam action.');
-  const allowed=['action',...(PARTICIPATION.has(action)?['participationRevision']:[]),...(REVIEW.has(action)?['revision','reason']:MODERATION.has(action)?['reason']:action==='withdraw-entry'?['participantId','reason']:action==='pick-winner'?['participantId','revision']:action==='join'?['revision','repositoryUrl','demoUrl']:action==='submit'?['revision','source','title','description','demoUrl','instructions']:[])];
+  const allowed=['action',...(PARTICIPATION.has(action)?['participationRevision']:[]),...(REVIEW.has(action)?['revision','reason']:MODERATION.has(action)?['reason']:action==='withdraw-entry'?['participantId','reason']:action==='pick-winner'?['participantId','revision']:action==='join'?['revision','repositoryUrl','repositoryId','demoUrl']:action==='submit'?['revision',...(Object.hasOwn(input,'publication')?['publication']:['source','title','description','demoUrl','instructions'])]:[])];
   keys(input,allowed,['action']);
   const payload={action};
   // Preserve historical participation bindings for recovery and settlement;
@@ -31,6 +31,11 @@ export function requestPayload(scope,input) {
   }
   if(REVIEW.has(action)||action==='join'||action==='submit') {if(!/^[a-f0-9]{64}$/.test(input.revision||''))fail(400,'A reviewed event revision is required.');payload.revision=input.revision;}
   if(action==='join'&&Object.hasOwn(input,'repositoryUrl'))payload.repositoryUrl=repositoryUrl(input.repositoryUrl).url;
+  if(action==='join'&&Object.hasOwn(input,'repositoryId')) {
+    if(!payload.repositoryUrl||typeof input.repositoryId!=='string'||!ACCOUNT.test(input.repositoryId)||input.repositoryId.trim()!==input.repositoryId)
+      fail(400,'Choose a Game Jam and your public GitHub repository in Zero.');
+    payload.repositoryId=input.repositoryId;
+  }
   // Keep old repo+demo Join digests recoverable; new admission creates no entry.
   if(action==='join'&&Object.hasOwn(input,'demoUrl'))payload.demoUrl=httpsUrl(input.demoUrl);
   if(MODERATION.has(action)||['request-changes','reject','withdraw-entry'].includes(action))payload.reason=text(input.reason,SAFETY.has(action)?256:2000);
@@ -41,6 +46,18 @@ export function requestPayload(scope,input) {
     payload.revision=input.revision;
   }
   if(action==='submit') {
+    if(Object.hasOwn(input,'publication')) {
+      const {publication}=input;
+      keys(publication,['repositoryId','pagesUrl','commit','runId','entryRevision']);
+      if(typeof publication.repositoryId!=='string'||!ACCOUNT.test(publication.repositoryId)||
+          typeof publication.commit!=='string'||!SHA.test(publication.commit)||
+          typeof publication.runId!=='string'||!ACCOUNT.test(publication.runId)||!Number.isSafeInteger(Number(publication.runId))||
+          typeof publication.entryRevision!=='string'||publication.entryRevision!==''&&!/^[a-f0-9]{64}$/.test(publication.entryRevision))
+        fail(400,'Publish the linked project in Zero to submit its verified build.');
+      payload.publication={repositoryId:publication.repositoryId,pagesUrl:httpsUrl(publication.pagesUrl),commit:publication.commit,
+        runId:publication.runId,entryRevision:publication.entryRevision};
+      return payload;
+    }
     // Legacy submissions preserve their normalized payload and digest. A live
     // showcase uses the repository bound at Join and has no commit snapshot.
     if(Object.hasOwn(input,'source')) {
@@ -56,7 +73,7 @@ export function requestPayload(scope,input) {
 // This alias is recovery-only: never use it to deduplicate distinct payloads.
 export function legacyRequestDigest(scope,payload) {
   if(!(scope==='proposals'&&Object.hasOwn(payload||{},'manifest')||payload?.action==='pick-winner'||payload?.action==='join'&&(Object.hasOwn(payload,'repositoryUrl')||Object.hasOwn(payload,'demoUrl'))||
-    payload?.action==='submit'&&!Object.hasOwn(payload,'source')||PARTICIPATION.has(payload?.action)&&Object.hasOwn(payload,'participationRevision')))return;
+    payload?.action==='submit'&&!Object.hasOwn(payload,'source')&&!Object.hasOwn(payload,'publication')||PARTICIPATION.has(payload?.action)&&Object.hasOwn(payload,'participationRevision')))return;
   try{requestPayload(scope,payload);}catch(error){if(error instanceof JamError)return;throw error;}
   return digest({invalidJSON:JSON.stringify(payload)});
 }

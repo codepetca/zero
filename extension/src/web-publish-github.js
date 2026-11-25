@@ -187,7 +187,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     const pages=await api(state,'GET','/pages',null,{allow404:true,signal});
     if(pages && (pages.build_type!=='workflow' || missing.length))return action('This repository already has a Pages site or a different publishing setup. Keep it and choose another repository for this game.',plan.page+'/settings/pages');
     if(pages && pages.public!==true)return action('This Pages site is not a public playable page. Review its access settings in GitHub and recheck.',plan.page+'/settings/pages');
-    const result=Object.freeze({status:'review',root:plan.root,repository:plan.page,sha:plan.head,setup:missing.length>0,upgrade:upgrade?Object.freeze({files:Object.freeze([...inspection.changed]),previousSha:plan.head}):undefined,needsPages:!pages,publicUrl:pages?.html_url ? safeUrl(pages.html_url,pages.cname):defaultDestination(repo.full_name).url,account:ticket.session.accountId});
+    const result=Object.freeze({status:'review',root:plan.root,repository:plan.page,repositoryId:repo.id,sha:plan.head,setup:missing.length>0,upgrade:upgrade?Object.freeze({files:Object.freeze([...inspection.changed]),previousSha:plan.head}):undefined,needsPages:!pages,publicUrl:pages?.html_url ? safeUrl(pages.html_url,pages.cname):defaultDestination(repo.full_name).url,account:ticket.session.accountId});
     reviews.set(result,{...state,files,missing,pages,upgrade,original:inspection.original,approvedDestination:pages?pagesDestination(pages):defaultDestination(repo.full_name)});return result;
   }
   async function setup(reviewed,{signal}={}) {
@@ -468,7 +468,10 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(isSimulation())throw new Error('Live publishing is disabled. Review again after choosing live uploads.');
     const matches=await publicVersion(resume,url,signal);
     await guard(state,signal,{tracking:true});
-    if(!matches)return pending('Deployment succeeded; waiting for the public page to serve this version.');
+    if(!matches)return {
+      ...pending('Deployment succeeded; waiting for the public page to serve this version.'),
+      pendingReason:'public-marker'
+    };
     return {status:'live',url,sha:resume.sha,resume,message:'Your playable game is live.'};
   }
   async function restore(root,saved,{signal,onStage=()=>{},onProgress=()=>{}}={}) {
@@ -556,7 +559,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
   // Fast, read-only reuse of an already published commit. Nothing is cached
   // across commands: verify access once, batch independent reads, then recheck
   // exact local inputs, identity and destination immediately before opening.
-  async function verifyUnchanged(root,saved,{signal,beforeFinalCheck=async()=>{},onCurrent=()=>{}}={}) {
+  async function verifyUnchanged(root,saved,{signal,beforeFinalCheck=async()=>{},onCurrent=()=>{},reviewChangedDestination=false}={}) {
     if(isSimulation())return simulation();
     const receipt=saved?.resume;
     if(saved?.root!==root || !shaPattern.test(saved?.sha||'') || receipt?.sha!==saved.sha ||
@@ -585,6 +588,10 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
       sendApi(state,'GET','/pages',null,{signal}),
       sendApi(state,'GET','/actions/runs/'+receipt.runId,null,{signal})
     ]);
+    if(reviewChangedDestination) {
+      const current=pagesDestination(pages);
+      if(current && (current.url!==receipt.destination.url || current.cname!==receipt.destination.cname))return {status:'stale'};
+    }
     const {url}=assertDestination(pages,receipt.destination);
     assertRun(state,receipt,run);
     if(run.status!=='completed')return {status:'pending',message:'GitHub is deploying your locally built app.'};

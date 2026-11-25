@@ -301,6 +301,14 @@
         "title": "Zero: Set Up GitHub"
       },
       {
+        "command": "zero.joinGameJam",
+        "title": "Zero: Join a Game Jam"
+      },
+      {
+        "command": "zero.continueGameJamJoin",
+        "title": "Zero: Continue Game Jam Registration"
+      },
+      {
         "command": "zero.startPage",
         "title": "Zero: Start Page",
         "shortTitle": "Start Page"
@@ -615,6 +623,10 @@
     },
     "menus": {
       "commandPalette": [
+        {
+          "command": "zero.continueGameJamJoin",
+          "when": "false"
+        },
         {
           "command": "zero.shareGame",
           "when": "false"

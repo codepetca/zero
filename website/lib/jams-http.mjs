@@ -1,4 +1,4 @@
-import {hubConfig, readSession, sameOrigin, equalSecret, githubUser, json, updatedGitHubSession} from './hub-github-auth.mjs';
+import {checkGitHubAppUserToken, hubConfig, readSession, sameOrigin, equalSecret, githubUser, json, updatedGitHubSession} from './hub-github-auth.mjs';
 import {createJamRuntime, jamServiceConfig} from './jams-runtime.mjs';
 import {JamError,JAM_PROJECTION_REVISION,JAM_PAGE_METADATA} from '../../jams/service.mjs';
 import {createJamGalleryCursor,readJamGalleryCursor} from './jam-gallery-cursor.mjs';
@@ -9,14 +9,19 @@ import {repositoryParts} from './hub-project-status.mjs';
 import {LIMITS} from '../../jams/schema.mjs';
 import {localJamAuthorityRequested} from './jams-default-authority.mjs';
 import {ACTIONS} from '../../jams/requests.mjs';
+import {verifyLinkedProjectPublication} from './hub-listings-verification.mjs';
+import {editorGameJamJoinRequired} from './jams-visibility.mjs';
 
 const actions = new Set(ACTIONS);
 const actionKeys = new Set(['operationId','action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl']);
 const proposalKeys = new Set(['operationId','manifest']);
+const desktopJoinKeys = ['operationId','revision','repositoryUrl','repositoryId'];
+const desktopSubmitKeys = ['operationId','revision','repositoryId','pagesUrl','commit','runId','entryRevision'];
 const unavailable = () => json({configured:false,error:'ZeroJams participation is not available yet. You can still prepare your proposal.'},503);
 const validId = value => typeof value === 'string' && /^jam-(?:[1-9][0-9]{0,19}|zero-[a-f0-9]{32})$/.test(value);
 export const MAX_PUBLIC_JAM_DESTINATIONS = LIMITS.participants;
 const numericId = value => typeof value === 'string' && /^[1-9][0-9]{0,19}(?![\s\S])/.test(value);
+const githubLogin = value => typeof value==='string' && /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(value);
 const galleryUnavailable = () => {throw new JamError(503,'The public jam gallery is unavailable. Try again shortly.');};
 const FINAL_VISIBILITY_TIME=Symbol('ZeroJams final visibility time');
 
@@ -104,7 +109,7 @@ async function publicGallery(result, options, deadline, directory, actor) {
 
 function failure(error,signal) {
   if(signal?.aborted)return json({error:'ZeroJams could not confirm this request. Keep it and retry with the same operation ID.',configured:true},503);
-  if (error instanceof JamError && [400,401,403,404,409,413,429,503].includes(error.status))
+  if (error instanceof JamError && [400,401,403,404,409,413,415,429,503].includes(error.status))
     return json({error:error.message,configured:true}, error.status);
   return json({error:'ZeroJams could not confirm this request. Keep your details and retry with the same request.',configured:true},503);
 }
@@ -218,7 +223,9 @@ export async function getJamResponse(request, id, inputOptions = {}) {
       nextCursor=createJamGalleryCursor({id,offset:metadata.nextOffset,revision:metadata.revision,validUntil:metadata.validUntil,now:checkedAt},config);
       if(!nextCursor)galleryUnavailable();
     }
-    const result = {configured:true,...visible,...(paged?{nextCursor}:{}),checkedAt:new Date(checkedAt).toISOString()};
+    const result = {configured:true,...visible,...(paged?{nextCursor}:{}),
+      ...(visible.event.type==='game'&&editorGameJamJoinRequired(options.env)?{editorGameJamJoinRequired:true}:{}),
+      checkedAt:new Date(checkedAt).toISOString()};
     deadline.check();
     return json(result);
   } catch (error) { return failure(error,deadline.signal); }
@@ -256,13 +263,14 @@ async function postResponse(request, id, proposal, inputOptions,settlement=false
       session = updated;
       user = await deadline.run(() => githubUser(session.token,options.fetchImpl));
     }
-    if (String(user.id) !== session.id || !/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(user.login || ''))
+    if (String(user.id) !== session.id || !githubLogin(user.login))
       return json({error:'Your GitHub account changed. Reconnect to continue.'},401);
     const actor = {id:session.id,login:user.login};
     const service = await deadline.run(()=>serviceFor(options,session.token));
     // Expiry stops waiting, but cannot undo a dispatched registry write. Keep
     // the original operation ID until its durable settlement is confirmed.
-    const result = await deadline.run(signal=>settlement?service.settle({...body,actor}):proposal?service.propose({...body,actor}):service.mutate({...body,id,actor},{signal}));
+    const result = await deadline.run(signal=>settlement?service.settle({...body,actor}):proposal?service.propose({...body,actor}):service.mutate({...body,id,actor},
+      {signal,joinChannel:'browser',editorJoinRequired:editorGameJamJoinRequired(options.env)}));
     if(!settlement&&result.settlement==='not-applied')return json({configured:true,...result,error:'This earlier request was closed without being applied. Reload Zero to start a new action.'},409);
     return json({configured:true,...result});
   } catch (error) { return failure(error,deadline?.signal); }
@@ -273,3 +281,100 @@ export const postJamProposalResponse = (request, options = {}) => postResponse(r
 export const postJamActionResponse = (request, id, options = {}) => postResponse(request,id,false,options);
 
 export const postJamSettlementResponse = (request,options={})=>postResponse(request,null,false,options,true);
+
+const desktopError = (error,status) => json({configured:true,error},status);
+function desktopEventId(id) {
+  if (!validId(id)) throw new JamError(404,'Unknown jam.');
+}
+async function desktopBody(request,keys,error) {
+  if (!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(request.headers.get('content-type') || ''))
+    throw new JamError(415,'Expected JSON request details.');
+  const body = await bodyJson(request,4096);
+  if (Object.keys(body).length!==keys.length || keys.some(key=>typeof body[key]!=='string'))
+    throw new JamError(400,error);
+  return body;
+}
+function desktopMutationResult(result) {
+  if (result.settlement==='not-applied') {
+    const error=result.publicationSuperseded===true?'A newer build is live on GitHub Pages. Choose Publish to Jam again to submit the current build.':
+      'This earlier request was closed without being applied. Start again in Zero.';
+    return json({configured:true,...result,error},409);
+  }
+  return json({configured:true,...result});
+}
+
+async function desktopJamResponse(request,inputOptions,readInput,perform) {
+  const options = optionsFor(inputOptions);
+  if (!enabled(options)) return unavailable();
+  if (request.headers.get('x-zero-desktop')!=='1' || request.headers.has('origin') ||
+      request.headers.has('sec-fetch-site') || request.headers.has('cookie'))
+    return desktopError('Open the project in Zero to continue.',403);
+  const config = hubConfig(options.env);
+  if (!config) return desktopError('GitHub sign-in is unavailable.',503);
+  const token = /^Bearer (ghu_[A-Za-z0-9_]{10,512})$/.exec(request.headers.get('authorization') || '')?.[1];
+  const signIn = () => desktopError('Sign in with GitHub in Zero to continue.',401);
+  if (!token) return signIn();
+  let deadline;
+  try {
+    deadline=createHubRequestDeadline({budgetMs:options.responseBudgetMs??18_000,signal:request.signal,now:options.deadlineNow});
+    const input = await deadline.run(readInput);
+    const accountId = await deadline.run(signal=>checkGitHubAppUserToken(token,config,signal,options.fetchImpl));
+    if (!accountId) return signIn();
+    const user = await deadline.run(signal=>githubUser(token,(url,init)=>options.fetchImpl(url,{...init,signal})));
+    if (String(user.id)!==accountId || !githubLogin(user.login)) return signIn();
+    const actor = {id:accountId,login:user.login};
+    const service = await deadline.run(()=>serviceFor(options,token));
+    return await perform(input,{service,actor,deadline,token,fetchImpl:options.fetchImpl,readPublishedMarker:options.readPublishedMarker});
+  } catch(error) { return failure(error,deadline?.signal); }
+  finally { deadline?.dispose(); }
+}
+
+export function getDesktopJamJoinResponse(request,id,options={}) {
+  return desktopJamResponse(request,options,()=>desktopEventId(id),async(_,{service,actor,deadline})=>{
+    const {event,registration,hasRegistrationSpace} = await deadline.run(signal=>service.readOverview(id,actor,{signal}));
+    if (event.type!=='game' || !event.revision) return desktopError('Choose an approved Game Jam in Zero.',409);
+    const {type,title,revision,rules,eligibility,timezone,schedule,registrationOpen} = event;
+    const repository = registration?.repository;
+    return json({configured:true,event:{id,type,title,revision,rules,eligibility,timezone,schedule,registrationOpen},hasRegistrationSpace,
+      registration:registration ? {status:registration.status,...(repository?{
+        repository:{id:repository.id,ownerId:repository.ownerId,fullName:repository.fullName}
+      }:{})} : null});
+  });
+}
+
+export function postDesktopJamJoinResponse(request,id,options={}) {
+  const message='Choose a Game Jam and your public GitHub repository in Zero.';
+  return desktopJamResponse(request,options,async()=>{
+    desktopEventId(id);
+    const body=await desktopBody(request,desktopJoinKeys,message);
+    if (!repositoryParts(body.repositoryUrl)||!numericId(body.repositoryId)) throw new JamError(400,message);
+    return body;
+  },async(body,{service,actor,deadline})=>{
+    const result=await deadline.run(signal=>service.mutate({...body,id,actor,action:'join'},{signal,joinChannel:'editor'}));
+    return desktopMutationResult(result);
+  });
+}
+
+export function getDesktopJamProjectResponse(request,options={}) {
+  return desktopJamResponse(request,options,()=>{
+    const params=new URL(request.url).searchParams,repositoryId=params.get('repositoryId');
+    if(params.size!==1 || !numericId(repositoryId)) throw new JamError(400,'Choose a GitHub project in Zero.');
+    return repositoryId;
+  },async(repositoryId,{service,actor,deadline})=>{
+    const result=await deadline.run(signal=>service.projectDestination(repositoryId,actor,{signal}));
+    return json({configured:true,...result});
+  });
+}
+
+export function postDesktopJamSubmitResponse(request,id,options={}) {
+  return desktopJamResponse(request,options,async()=>{
+    desktopEventId(id);
+    return desktopBody(request,desktopSubmitKeys,'Publish the linked project in Zero to submit its verified build.');
+  },async({operationId,revision,...publication},{service,actor,deadline,token,fetchImpl,readPublishedMarker})=>{
+    const verifyPublication=(receipt,repository,{signal})=>verifyLinkedProjectPublication(receipt,repository,
+      {token,signal,fetchImpl,readPublic:readPublishedMarker});
+    const result=await deadline.run(signal=>service.mutate({id,actor,action:'submit',operationId,revision,publication},
+      {signal,verifyPublication}));
+    return desktopMutationResult(result);
+  });
+}
