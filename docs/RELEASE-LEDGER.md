@@ -1,6 +1,6 @@
 # Zero release ledger
 
-Last reconciled 2026-11-24 (America/Toronto). This is a dated working record,
+Last reconciled 2026-11-25 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
@@ -8,11 +8,30 @@ permission to publish from this ledger.
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
 | GitHub manual kit | [Zero 0.5.87](https://github.com/codepetca/zero/releases/tag/v0.5.87) is public. The three anonymous downloads match preparation run 45543668597. | Preserve immutable assets. |
-| Website | This promotion selects the verified 0.5.87 downloads and signed build 86 feed. | Check the production download links and feed after deployment. |
-| Mac installer | [0.5.87](https://github.com/codepetca/zero/releases/tag/setup-v0.5.87) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 86 feed references the measured public DMG. |
+| Website | [Lesson 11](https://zero.codepet.ca/tutorials/11) and the ZeroHub library guides are live. This promotion selects the verified Mac 0.5.88 download and signed build 87 feed. | Check the production Mac link and feed after deployment. |
+| Mac installer | [0.5.88](https://github.com/codepetca/zero/releases/tag/setup-v0.5.88) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 87 feed references the measured public DMG. |
 | Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.87.0 x64 from submission 22 is listed in the Canadian Store catalog. | Check distribution on physical and school-managed devices separately. |
 | Windows Portable | [0.5.87 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.87) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.87) both embed the canonical kit from run 45543668597. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.88 Mac release — 2026-11-25
+
+[PR #423](https://github.com/codepetca/zero/pull/423) merged the release source
+after Astra high review and 12 checks. Production deployment 8066026546 served
+the revised Lesson 11 and ZeroHub library guides. Apple accepted notarization
+`1bcdc14a-bacf-4dad-902c-18caca4a29ed`. Seal `e7d8d530dac07bd1a6454e2212702caecdb06bd1`
+binds the exact signed DMG, Git source companions and build 87 signed appcast.
+The anonymous Mac DMG was 12,706,475 bytes with SHA-256
+`39b851431d25ee43d8d0eed89fe40f2f2f3b0cc613d49bb96244efbb19002b91`.
+
+The public installer provisioned 0.5.88 in an isolated profile on an Apple
+Silicon Mac. In a fresh local copy of the public starter, the editor added
+Collision Helper Pilot 0.2.0 from ZeroHub and all three artifact hashes matched.
+The exact example from the live lesson displayed “Collision Helper Pilot works”
+in JavaFX and in the editor’s WebFX preview after approving the browser-tools
+update. The trial ran signed out. Hosted Windows installation, JavaFX and
+Portable cold/warm launch tests passed in
+[run 45675175020](https://github.com/codepetca/zero/actions/runs/45675175020).
 
 ## Zero 0.5.88 release preparation — 2026-11-25
 
