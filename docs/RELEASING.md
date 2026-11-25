@@ -22,7 +22,8 @@ existing CLI account; CI preparation retains read-only GitHub permissions.
 1. Create a feature branch from current `main`. Choose an unused numeric version,
    for example `0.5.2`. Set the kit/extension versions, tag and filename together:
    `release/kit.json` → `kitVersion`, `publication.tag` and extension filename;
-   `extension/package.json` → `version`. Set publication status to `local` and
+   `extension/package.json` → `version` and the `zero-student-explorer` title
+   (`Zero <version>`). Set publication status to `local` and
    clear the main assets' old `url`, `size` and `sha256` values. Keep optional
    components local. Update the VSIX filename in `release/START-HERE.md`,
    `docs/GETTING-STARTED.md` and `student-template/README.md`. Change core versions

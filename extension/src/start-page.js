@@ -274,6 +274,7 @@ main{max-width:760px;margin:0 auto;padding:48px 28px}h2{font-size:1.15em;font-we
 p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#status,#error{overflow-wrap:anywhere}#error{color:var(--vscode-errorForeground)}[hidden]{display:none!important}ul{list-style:none;padding:0;margin:0}li{margin:4px 0}.recent{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-textLink-foreground);padding:8px 4px}.recent:hover{background:var(--vscode-list-hoverBackground)}.name,.path{display:block;overflow-wrap:anywhere}.path{font-size:.9em}.vscode-high-contrast button,.vscode-high-contrast-light button{border-color:var(--vscode-contrastBorder)}
 .start-intro{margin-bottom:24px}.start-title-row{display:flex;align-items:center;gap:8px}
 .start-intro h1{display:flex;align-items:center;gap:8px;font-size:2em;font-weight:600;margin:0}.start-intro .zero-mark{width:1em;height:1em;flex:none}
+.start-version{font-size:.9em;margin:0 0 4px}
 button.start-web{width:32px;height:32px;padding:0;background:transparent;color:var(--vscode-textLink-foreground,var(--vscode-foreground))}
 button.start-web svg{width:22px;height:22px}
 button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackground,var(--vscode-list-hoverBackground))}
@@ -299,6 +300,7 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
     <h1 id="start-title" tabindex="-1">${icon('Zero')}<span>Zero</span></h1>
     <button class="start-web" data-action="tutorials" aria-label="Zero Web" title="Zero Web" disabled>${icon('ExternalLink')}</button>
   </div>
+  <p class="muted start-version">${version}</p>
   <div id="github-profile" class="github-profile" role="group" aria-label="Signed-in GitHub profile" hidden>${icon('CircleUserRound')}<span id="account"></span></div>
 </header>
 <div class="start-actions">
@@ -325,7 +327,6 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
 <p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
 <button id="check-for-updates" class="secondary" hidden>Check for updates</button>
-<p class="muted">Zero ${version}</p>
 </main><script nonce="${nonce}">
 (() => {
   const publishProgressDetails = ${publishProgressDetails.toString()};

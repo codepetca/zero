@@ -42,7 +42,10 @@ test('one reusable native start tab, stable document, explicit focus and lifecyc
   assert.equal(panel.options.enableCommandUris, false);assert.deepEqual(panel.options.localResourceRoots, []);
   assert.equal(panel.options.retainContextWhenHidden, true);
   const html = panel.webview.html;
-  assert.ok(html.includes(`<p class="muted">Zero ${require('../package.json').version}</p>`));
+  const versionLabel = `<p class="muted start-version">${require('../package.json').version}</p>`;
+  assert.match(html, /<div class="start-title-row">[\s\S]+?<\/div>\s+<p class="muted start-version">/);
+  assert.ok(html.includes(versionLabel));
+  assert.equal(html.split(versionLabel).length, 2);
   assert.equal(page.show({preserveFocus:true, viewColumn:3}), panel);
   assert.deepEqual(panel.reveals, [[3, true]]);assert.equal(f.panels.length, 1);
   for (let index = 0; index < 10; index++) await page.refresh();

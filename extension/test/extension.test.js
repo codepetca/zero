@@ -335,7 +335,7 @@ test("Zero offers the native student explorer with a standard Explorer escape",(
   assert.deepEqual(manifest.contributes.views['zero-student-explorer'].map(item=>item.name),['Project','Files']);
   assert.ok(manifest.contributes.views['zero-student-explorer'].every(item=>item.when==='zero.studentExplorerPreview'));
   assert.deepEqual(manifest.contributes.viewsContainers.activitybar.map(item=>item.id),['zero-student-explorer']);
-  assert.equal(manifest.contributes.viewsContainers.activitybar[0].title,'Zero');
+  assert.equal(manifest.contributes.viewsContainers.activitybar[0].title,`Zero ${manifest.version}`);
   assert.equal(manifest.contributes.commands.find(item=>item.command==='zero.previewStudentExplorer').title,'Zero: Show Project Explorer');
   assert.equal(manifest.contributes.commands.find(item=>item.command==='zero.standardExplorer').title,'Zero: Show Standard Explorer');
   const standard=manifest.contributes.menus['view/title'].filter(item=>item.when==='view == zero.controls').map(item=>item.command);
