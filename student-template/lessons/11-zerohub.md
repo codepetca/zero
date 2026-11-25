@@ -259,11 +259,17 @@ Then choose:
 Select **only CreditsBadge.java**, choose **UI component**, and use the
 exact library name **`tutorial-credits-badge`**, version **`0.1.0`**. Give it the
 title **Tutorial practice: CreditsBadge** and a short description saying it is
-from this lesson. Retain the supplied MIT licence and credit Zero's tutorial.
+from this lesson. Enter **MIT** for the library licence.
 
 Review the preview: CreditsBadge moves to **Libraries → Tutorial practice: CreditsBadge → java**, its package gains your numeric repository ID, and Main imports that package. Zero updates the build source roots.
 Keep Main, PlayerInput, Player, Coin and ScoreDisplay in the game. Accept the
 reviewed extraction, Run again, and check the badge and game still work.
+
+In **Files**, choose **… → Show All Project Files**. Open
+`libraries/tutorial-credits-badge/LICENSE` and replace its contents with the full
+[MIT licence originally published with CreditsBadge](https://github.com/codepetca/zero/blob/82cb6ff7f2f94a9f900e95cddb64c4cde3bf57b3/LICENSE).
+Keep its Codepet copyright line, credit Zero's tutorial in the library README
+and keep the Coin project's own `LICENSE` file.
 
 The reserved library name is the practice marker. Keep it unchanged; using an
 ordinary library name would place a copied exercise in the wrong category. There
@@ -319,19 +325,22 @@ preparing a submission.
 
 ## 9. Practise submitting and using a classmate's badge
 
-The hosted library service must be enabled by the maintainers before a
-submission can be accepted. **Library publication is currently paused.** While
-it is paused, finish extraction and Check locally, save the README, and prepare
-the submission; an opened form is not a listing. Do not rename the badge or use
-the ordinary community path to bypass that state.
+Use your own GitHub account and this same public tutorial repository. Confirm
+the checked badge changes are on GitHub **main**. Open **Zero: Libraries and
+Games** from the Command Palette and choose the sharing action.
 
-When practice sharing is enabled, use your own GitHub account and this same
-public tutorial repository. Confirm the reviewed badge changes are committed and
-merged to main. Choose **Share library**, select
-the practice badge, review its exact committed folder/version and submit the
-prefilled official GitHub form. Requests are public; keep private information
-out of the source and metadata. The usual ownership, licence, source and library
-checks still apply. Practice does not skip checking.
+**Share library**
+
+Select the practice badge. Review the exact committed folder and version,
+choose **Open GitHub form**, and submit the form on GitHub. Keep private
+information out of the public source and request.
+
+Open [Requests and results](https://zero.codepet.ca/hub/share?view=requests).
+Enter the GitHub issue URL and choose **Check request**. If the request is
+queued, check again later. If it shows a correction, fix the source and
+prepare a new request. When **View exact release** appears, open the listing.
+The hosted checker runs the submitted version’s API and behavior checks and
+both examples.
 
 [Browse practice badges](https://zero.codepet.ca/hub?kind=practice) to find accepted badges in ZeroHub.
 They are labelled tutorial copies and excluded from ordinary Projects/Libraries
@@ -373,7 +382,59 @@ or checking a withdrawn dependency follows Zero's normal availability rules;
 clearing the gallery is not a promise that every later dependency operation will
 succeed. Coursework repository links still go separately to Pika.
 
-## 10. Optional extension: contribute an original idea
+## 10. Optional extension: add Collision Helper
+
+Try an [original library from ZeroHub](https://zero.codepet.ca/hub?kind=library&id=lib-r1471779330-collision-helper&version=0.2.0)
+with a Zero editor that lists **Collision Helper Pilot 0.2.0** under **Browse
+libraries**. If that version is missing, continue with lesson 12. Use a separate
+project for the exercise so your Coin game is ready for that lesson.
+
+1. Start a new project in Zero.
+
+   **Project → New**
+
+   Name the project `zero-collision-check`.
+
+2. Open the Command Palette in the new project and browse the libraries.
+
+   **Zero: Libraries and Games → Browse libraries**
+
+   Choose **Collision Helper Pilot 0.2.0**, then **Add library → Apply**.
+   Zero records the exact version in `pom.xml` and saves its files in
+   `zero-dependencies/`.
+
+3. Replace all of `src/main/java/Main.java` with this code. The first call
+   checks overlapping rectangles. The second checks rectangles with a gap.
+
+   ```java
+   import zero.App;
+   import zero.lib.r1471779330.collision_helper.CollisionHelper;
+   import zero.ui.Label;
+
+   public final class Main extends App {
+       @Override
+       public void setup() {
+           boolean overlap = CollisionHelper.overlaps(0, 0, 20, 20, 15, 10, 10, 10);
+           boolean gap = !CollisionHelper.overlaps(0, 0, 20, 20, 25, 10, 10, 10);
+           show(new Label(overlap && gap ? "Collision Helper Pilot works" : "Check the rectangles"));
+       }
+
+       public static void main(String[] args) {
+           launch(args);
+       }
+   }
+   ```
+
+4. Choose **Run** and look for `Collision Helper Pilot works`. In the
+   Command Palette, choose **Zero: Export for Web**. If Zero offers
+   **Update Browser Tools**, review the update. Wait for **Export ready**,
+   then choose **Preview export** in Zero and look for the same message.
+
+Use the exact import shown for each release. The updated editor extracts
+original libraries from current Zero projects into `zero.lib`. This lesson's
+CreditsBadge uses `zero.contrib` to work with the Coin tutorial's saved builder.
+
+## 11. Optional extension: contribute an original idea
 
 After practising the workflow, look for a capability your own app actually needs:
 a configurable input mapping, a useful animation helper or another component you
@@ -382,10 +443,14 @@ community catalogue. Build an original or meaningfully adapted component in an
 original project you own, outside `zero.*`, and credit sources and licences.
 This extension is optional; it is not a required tutorial project.
 
-Document its public methods and ownership, meaningful behaviour checks and two
-small consumers. Run Check library and record the exact source/version. For
-browser consumers, also export through WebFX and try the relevant behaviour.
-Use the ordinary community sharing flow only when hosted acceptance is enabled.
+Choose **Extract library** and review the generated package and imports.
+Document the public methods, write behavior checks and add two runnable
+examples. Use **MIT** and put the complete notice with its copyright line
+in the library's `LICENSE` file when you have the rights to share it under MIT.
+Run **Check library**, commit and push the checked version, then use
+**Share library** and follow its issue in **Requests and results**. When the
+release is available, add that exact version in a second project and test the
+behavior there. For browser use, try the exported WebFX project as well.
 
 Once the component has helped more than one app, you may propose the proven idea
 for Zero itself. Include the problem, proposed API, source/version and contributor

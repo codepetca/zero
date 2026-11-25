@@ -137,7 +137,11 @@ test('practice discovery stays accessible outside the main catalog navigation',a
   const prepare=await readFile(new URL('../components/HubPrepare.tsx',import.meta.url),'utf8');
   const navigation=await readFile(new URL('../components/HubNavigation.tsx',import.meta.url),'utf8');
   assert.match(discovery,/Tutorial practice/);assert.match(discovery,/Add library → Apply/);
-  assert.match(discovery,/Libraries and games →/);assert.match(discovery,/Browse tutorial practice/);
+  assert.match(discovery,/Zero: Libraries and Games/);assert.match(discovery,/Browse tutorial practice/);assert.match(discovery,/Browse libraries/);
   assert.doesNotMatch(navigation,/kind=practice/);
-  assert.match(prepare,/publication, including practice, remains paused/);assert.match(prepare,/local passing check does not publish a library/);
+  assert.match(prepare,/href="\/hub\/share\?view=requests">Requests and results/);
+  assert.match(prepare,/View exact release/);
+  assert.match(prepare,/<code>zero\.lib<\/code>/);
+  assert.match(prepare,/same hosted checks/);
+  assert.doesNotMatch(prepare,/publication.*remains paused/);
 });

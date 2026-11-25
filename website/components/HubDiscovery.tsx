@@ -464,7 +464,7 @@ export function HubDiscovery({enforceJamVisibility=true, showListings=false, lib
     details={isGame&&available?identity=><HubProjectDetails {...entry} description={description} pending={showDiscoveryCards}>{identity}</HubProjectDetails>:undefined}
     feedback={!isGame&&!practiceOnly&&available?<HubProjectFeedback {...entry} id={release.id} kind="library" metric={projectMetric(release.id)} />:undefined}>
     {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
-      <p>In the updated Zero editor, choose Libraries and games → {practiceOnly?'Browse tutorial practice':'Browse ZeroHub'} → {release.title} → Add library → Apply. Check the author and exact version before applying.</p>
+      <p>In the updated Zero editor, open Zero: Libraries and Games from the Command Palette. Choose {practiceOnly?'Browse tutorial practice':'Browse libraries'} → {release.title} → Add library → Apply. Check the author and exact version before applying.</p>
       <p><a href={`${sourceLink(release)}/examples`}>View examples</a></p>
       {release.components?.map(component=><div key={component.className}><h4>{component.className}</h4>{component.description && <p>{component.description}</p>}<CodeBlock><code>{`import ${component.className};${component.usage ? `\n\n${component.usage}` : ''}`}</code></CodeBlock><details><summary>Public API</summary><CodeBlock><code>{component.api.join('\n')}</code></CodeBlock></details></div>)}
       {!release.components?.length && <p>Read the exact source for this library’s Java API and examples. Namespace: <code>{release.namespace}</code>.</p>}

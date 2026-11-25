@@ -211,10 +211,9 @@ separate source repository link.
 
 The hidden **Share game** command prepares a separate source contribution. It attaches a playable
 receipt only when the saved publication verifies for the exact uploaded commit.
-ZeroHub’s **Play latest** opens the student-hosted app; source downloads remain
-exact versions. Public checker acceptance and activation are still pending;
-public ZeroHub uploads are not open yet. Maintainer details are in
-`docs/WEB-EXPORT.md` in the Zero source repository.
+ZeroHub’s **Play latest** opens the student-hosted app. A source download
+identifies the exact version. Maintainer details are in `docs/WEB-EXPORT.md`
+in the Zero source repository.
 
 ## Development and verification
 
@@ -244,7 +243,7 @@ Choose **ZeroHub → Libraries**, or **Zero: Browse Libraries** in the Command P
 
 Dirty/drifted POMs, incompatible layouts and source copies that shadow installed classes require correction before editing. No automatic upgrade, Git commit or upload occurs. Use the card's exact Java import and ordinary methods, then Run App.
 
-Library authors use **Extract library** inside their existing game repository, then **Check library** locally. Upload the source normally and choose **Share library** to prepare a GitHub request for the exact committed folder/version. `/hub/share` explains this flow and shows public request results. GitHub supplies the real personal-account identity; local Check does not grant hosted acceptance. Public library activation and physical Windows library flows remain unverified.
+Library authors use **Extract library** inside their existing game repository, then **Check library** locally. Upload the source and choose **Share library** to prepare a GitHub request for the exact committed folder and version. Submit it using the same GitHub account as Zero. Follow the hosted check and published release in **Requests and results** at `/hub/share`. Use the exact import on the release card. The hosted release and add flow was verified on an Apple Silicon Mac. Physical Windows library testing remains pending.
 
 ## Setup checklist
 

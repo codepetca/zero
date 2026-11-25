@@ -13,7 +13,7 @@ the intended result; native controls vary by platform.
 
 ## Keep building
 
-- [Coin game revisited](10-components.md): return to Coin in lessons 10–13 to refactor input, practise sharing a CreditsBadge, add media and try Actors. Tutorial-practice copies are expected; hosted acceptance may be paused.
+- [Coin game revisited](10-components.md): return to Coin in lessons 10–13 to refactor input, practise sharing a CreditsBadge, add media and try Actors. [Lesson 11](11-zerohub.md) also shows how to check a sharing request and add Collision Helper in a separate project.
 - [Build and publish your own game](19-original-game.md): create an original project, publish your game and play it from your ZeroHub listing.
 
 ## Start a lesson

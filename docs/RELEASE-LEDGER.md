@@ -14,6 +14,13 @@ permission to publish from this ledger.
 | Windows Portable | [0.5.87 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.87) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.87) both embed the canonical kit from run 45543668597. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
+## Zero 0.5.88 release preparation — 2026-11-25
+
+This candidate ships the ZeroHub request status, hosted library support and new
+`zero.lib` packages from PRs #418, #420 and #421, with updated Lesson 11
+instructions. Reserve Mac update build 87. Public 0.5.87 downloads and the
+signed build 86 feed remain in use while the new artifacts are prepared.
+
 ## Zero 0.5.87 release promotion — 2026-11-24
 
 [Source PR #416](https://github.com/codepetca/zero/pull/416) passed all 12 checks.
