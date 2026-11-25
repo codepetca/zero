@@ -153,6 +153,15 @@ test('a student who left can rejoin with the same repository under its current n
   assert.deepEqual(f.calls.rules,[JAM.id]);
 });
 
+test('a student who left can create a project when the join response has no available binding',async()=>{
+  const f=fixture({registration:{status:'left'}});
+  await f.run();
+  assert.deepEqual(f.calls.picks[1].map(item=>item.label),['New project','Use an existing repository']);
+  assert.equal(f.calls.newProject,1);
+  assert.deepEqual(f.calls.lookups,[]);
+  assert.equal(f.calls.writes[0].repositoryId,'456');
+});
+
 test('a newer approved revision reopens the rules before offering repository choices',async()=>{
   const event={...JAM},f=fixture({events:[event]});
   await f.select();

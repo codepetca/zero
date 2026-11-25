@@ -229,8 +229,10 @@ deadlines and a short rules preview. The full rules open beside the editor.
 Students review the rules and choose **Continue joining** on the
 Start Page, then create a new public GitHub project or choose an existing
 standalone public Zero repository. The jam registration saves that repository
-before publishing. Zero opens the new project or a matching local checkout of
-the existing repository. If no local checkout is known, Zero offers
+before publishing. If a student left the jam and GitHub can no longer find the
+old repository, they can choose a new project while registration is open.
+Zero opens the new project or a matching local checkout of the existing
+repository. If no local checkout is known, Zero offers
 **Clone & open**. Students can return later using **Open jam project** in the
 jam picker while the jam accepts entries. The website shows the rules and
 directs students to Zero once editor-only Game Jam registration is enabled.

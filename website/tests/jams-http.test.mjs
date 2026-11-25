@@ -5,6 +5,8 @@ import zeroApp from '../../extension/src/github-app/config.json' with {type:'jso
 import {hubConfig,newSession} from '../lib/hub-github-auth.mjs';
 import {getJamsResponse,getJamResponse,postJamProposalResponse,postJamActionResponse,getDesktopJamJoinResponse,postDesktopJamJoinResponse} from '../lib/jams-http.mjs';
 import {JamError} from '../../jams/service.mjs';
+import {createGitHubRepositoryVerifier} from '../../jams/github-source.mjs';
+import {projectVisibility} from '../../jams/project-visibility.mjs';
 import {fixture as registryFixture,hostedManifest} from '../../jams/test/fixtures.mjs';
 
 const now = 1_800_000_000_000;
@@ -108,6 +110,62 @@ test('desktop Game Jam join verifies the app and repository, keeps the existing 
   assert.equal(status.event.registrationOpen,false);
   assert.equal(status.event.participants,undefined);
   assert.deepEqual(status.registration,{status:'left',repository:{id:'202',ownerId:'123',fullName:'student/project'}});
+});
+
+test('desktop rejoin offers a new project after the old repository disappears by ID',async()=>{
+  const actor={id:'123',login:'student'},user={id:123,login:'student'},token='ghu_'+'a'.repeat(24);
+  const repositoryUrl='https://github.com/student/project';
+  let currentId=202,oldStatus=200;
+  const githubRepo=id=>Response.json({id,owner:{id:123,type:'User'},full_name:'student/project',private:false});
+  const fetchImpl=async(url)=>{
+    switch(url) {
+      case 'https://api.github.com/applications/'+config.clientId+'/token':
+        return Response.json({user,app:{client_id:config.clientId}});
+      case 'https://api.github.com/user': return Response.json(user);
+      case 'https://api.github.com/repos/student/project': return githubRepo(currentId);
+      case 'https://api.github.com/repositories/202':
+        return oldStatus===200?githubRepo(202):new Response(null,{status:oldStatus});
+      default: throw Error(`Unexpected provider request ${url}`);
+    }
+  };
+  const {service,store,setTime}=registryFixture({limits:{participants:1},verifyRepository:createGitHubRepositoryVerifier({token,fetchImpl})});
+  const {eventId,revision}=await service.propose({actor:{id:'11',login:'creator'},operationId:'desktop-rejoin-event',manifest:hostedManifest()});
+  const headers={'X-Zero-Desktop':'1',Authorization:'Bearer '+token,'Content-Type':'application/json'};
+  const url=config.origin+'/api/desktop/jams/'+eventId+'/join',options={env,now,service,fetchImpl};
+  const read=()=>getDesktopJamJoinResponse(new Request(url,{headers}),eventId,options);
+  const join=(repositoryId,operationId)=>postDesktopJamJoinResponse(new Request(url,{method:'POST',headers,
+    body:JSON.stringify({repositoryId,operationId,repositoryUrl,revision})}),eventId,options);
+  assert.equal((await join('202','rejoin-original')).status,200);
+  currentId=203;
+  oldStatus=404;
+  assert.equal((await join('203','rejoin-still-joined')).status,409);
+  assert.equal((await (await read()).json()).registration.repository.id,'202');
+  await service.mutate({id:eventId,actor,operationId:'rejoin-leave',action:'leave'});
+
+  // Reusing a URL is insufficient while the old numeric ID still resolves.
+  oldStatus=200;
+  assert.equal((await (await read()).json()).registration.repository.id,'202');
+  assert.equal((await join('203','rejoin-old-present')).status,409);
+  oldStatus=503;
+  assert.equal((await read()).status,503);
+  assert.equal((await join('203','rejoin-provider-down')).status,503);
+  oldStatus=404;
+  const ready=await (await read()).json();
+  assert.deepEqual(ready.registration,{status:'left'});
+  assert.equal(ready.hasRegistrationSpace,true);
+  assert.equal((await service.readOverview(eventId,actor)).registration.repository.id,'202');
+  assert.equal((await join('203','rejoin-replacement')).status,200);
+  assert.equal((await (await read()).json()).registration.repository.id,'203');
+  assert.equal((await service.projectDestination('202',actor)).destination,null);
+  assert.equal((await service.projectDestination('203',actor)).destination.id,eventId);
+  assert.equal((await service.read(eventId,actor)).event.participantCount,1);
+  assert.equal((await service.read(eventId,actor)).entry,null);
+  const snapshot=await store.snapshot();
+  const reveal=Date.parse('2030-01-05T00:00:00Z');
+  assert.deepEqual([...(await projectVisibility(snapshot,reveal-1)).heldRepositoryIds()].sort(),['202','203']);
+  assert.deepEqual((await projectVisibility(snapshot,reveal)).heldRepositoryIds(),[]);
+  setTime(reveal);
+  assert.equal((await join('203','rejoin-replacement')).status,200);
 });
 
 test('directory hosting access is private and derived from the signed-in account and service policy',async()=>{

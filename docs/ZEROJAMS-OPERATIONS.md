@@ -287,6 +287,11 @@ prove old instances have stopped. Roll back only to a verified state-compatible
 version that understands automatic approvals and preserves all Hub holds; do not
 remove or rewrite approval records to make an old deployment accept them.
 
+Before serving Game Jam repository replacements, verify that all active Jam and
+Hub readers understand `replacedRepositoryIds`. Older readers reject records
+containing the field and fail discovery closed. Roll back only to a compatible
+reader once a replacement has been recorded.
+
 Before cutover, fence legacy writers and in-flight requests and confirm both Jam
 and Hub use the same complete Neon authority. Provisioning, configuration and
 release must be coordinated: deploying this source without valid Neon configuration
