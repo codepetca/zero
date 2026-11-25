@@ -60,7 +60,6 @@ const messages = {
   'source-failure':'Source checks failed. Correct your source, upload the new commit and prepare another Share request.',
   'version-conflict':'This exact version was already accepted with different source. Choose a new version, upload its metadata and prepare another Share request.',
   paused:'Publication is paused after service failures. Your source has not failed. An operator must resume processing; check again later.',
-  'library-closed':'Public library checking is not active. Local Check library does not publish a release. Keep your source and check again after activation.',
   cancelled:'This request was cancelled or its issue was closed. Prepare a new Share request if you still want to share.',
   'accepted-pending':'This exact version was accepted, but delivery or catalog publication is still pending. Check again later; do not change this accepted version.',
   available:'This exact release is available on ZeroHub.',
@@ -90,7 +89,6 @@ function summary(record, state, artifactOrigin) {
   } else if (record.status === 'available' || record.status === 'delivery-pending') throw new Error('Missing acceptance.');
   else if (record.status === 'cancelled') status = 'cancelled';
   else if (record.status === 'failed') status = correction?.code === 'version-conflict' ? 'version-conflict' : 'source-failure';
-  else if (frozen.kind === 'library') status = 'library-closed';
   else if (record.status === 'paused') status = 'paused';
   else status = record.infrastructureFailures > 0 ? 'retrying' : 'queued';
   return {requestId:record.id,status,kind:frozen.kind,version:frozen.version,commit:frozen.commit,message:messages[status],...(correction && !record.releaseKey ? {correction} : {})};

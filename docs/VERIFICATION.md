@@ -1,3 +1,13 @@
+# ZeroHub library request status — 2026-11-25
+
+The regression reproduced the `library-closed` result for a queued library on
+base `b9f22e42e`. With the fix, game and library request tests verify the queued,
+retrying, paused, failed and cancelled results and their messages. All 76 focused
+website sharing, request deadline and Jam route tests passed. GPT-6.2 Astra was
+requested at high reasoning for the independent review of the status and test
+diff. It found no actionable issues and independently passed all 23 request
+tests. Verification was local.
+
 # Current-format ZeroHub library verification — 2026-11-24
 
 GPT-6.2 Astra at high reasoning reviewed the existing checker and publication
