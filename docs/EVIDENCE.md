@@ -1,3 +1,33 @@
+# Windows Merge and Check Library — 2026-11-24
+
+The classroom report describes Merge failing in lessons 9 and 11 with
+`Git rev-parse failed (exit 128)`, and Check Library failing in lesson 11 with
+Windows' network-path error. The installed version, project location and raw Git
+diagnostic on that machine are unknown.
+
+The Merge transaction now uses Git's `/dev/null` global config path. The pinned
+MinGit recognizes that value before it calls the Windows access function. A
+disposable Git workflow fixture reproduced the reported exit 128 message on the
+0.5.86 source by injecting the Windows config-path failure. With the fix, Merge
+review, checkout and a non-force push to a local bare repository completed. The
+ownership refusal test also passed. [Git configuration reference](https://git-scm.com/docs/git#Documentation/git.txt-GITCONFIGGLOBAL)
+[Pinned MinGit implementation](https://github.com/git-for-windows/git/blob/v2.56.1.windows.1/compat/mingw.c#L1101-L1113)
+
+Check Library now passes the already quoted Maven command directly to `cmd.exe`
+for both library formats. The regression reproduced argument corruption on the
+0.5.86 source using the Windows argument encoding contract. The fixed macOS
+run extracted the maintained Lesson 11 badge, built the real core and library
+JARs, and ran the supplied `LibraryCheck`, `FirstExample` and `SecondExample`.
+A deliberately failing practice assertion remained visible. Windows-native
+execution and a repeat on the affected school device remain unverified.
+[Node process launch options](https://nodejs.org/docs/latest-v22.x/api/child_process.html#child_processspawncommand-args-options)
+
+Independent GPT-6.2 Sol review at medium reasoning found no blocking source
+issues across the four implementation and regression files at `009cade7f`.
+`npm run check` passed. The full `npm test` command prepared the generated
+editor assets and finished on macOS with 2,682 passes, 155 skips and zero
+failures, including the new regressions and the editor Merge conflict handoff.
+
 # Coin game recovery code — 2026-11-24
 
 Lesson 5 ends with a collapsed **Restore the finished game** section. Its three
