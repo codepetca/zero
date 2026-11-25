@@ -78,7 +78,7 @@ jobs:
         shell: pwsh
         run: |
           $package = Join-Path $env:RUNNER_TEMP 'zero-msix-original/Zero-0.5.88-msix-store-x64.msix'
-          & .\scripts\test-windows-msix.ps1 -Package $package -PackageVersion 1.5.88.0 -RunFirstRun -RequireGit `
+          & .\scripts\test-windows-msix.ps1 -Package $package -PackageVersion 1.5.88.0 -Windows2025Diagnostic -RunFirstRun -RequireGit `
               -Receipt "${env:RUNNER_TEMP}/candidate-install-proof.json" -CollisionRehearsalOutput "${env:RUNNER_TEMP}/zero-collision-exercise"
       - name: Retain the public installer receipt
         if: always()
