@@ -155,7 +155,14 @@ test('conflicting workflow or symlink is never overwritten',async t=>{
 test('unrelated runs, old public version and failed deployment never claim Live',async t=>{
   const h=await fixture(t),review=await h.publisher.review(h.root);
   const pending=await h.publisher.publish(review);h.run.head_sha='a'.repeat(40);await assert.rejects(h.publisher.check(pending.resume),/different publishing run/);h.run.head_sha=h.head;
-  h.marker=h.head+'\n41\n';assert.equal((await h.publisher.check(pending.resume)).status,'pending');h.marker=h.head+'\n42\n';h.publicStatus=404;assert.equal((await h.publisher.check(pending.resume)).status,'pending');
+  h.run.status='in_progress';
+  const running=await h.publisher.check(pending.resume);assert.equal(running.status,'pending');assert.equal(running.pendingReason,undefined);
+  h.run.status='completed';h.run.conclusion=null;
+  const unknown=await h.publisher.check(pending.resume);assert.equal(unknown.status,'pending');assert.equal(unknown.pendingReason,undefined);
+  h.run.conclusion='success';h.marker=h.head+'\n41\n';
+  const wrongMarker=await h.publisher.check(pending.resume);assert.equal(wrongMarker.status,'pending');assert.equal(wrongMarker.pendingReason,'public-marker');
+  h.marker=h.head+'\n42\n';h.publicStatus=404;
+  const missingMarker=await h.publisher.check(pending.resume);assert.equal(missingMarker.status,'pending');assert.equal(missingMarker.pendingReason,'public-marker');
   for(const conclusion of ['failure','timed_out','startup_failure']) {
     h.run.conclusion=conclusion;const result=await h.publisher.check(pending.resume);
     assert.equal(result.status,'failed');assert.equal(result.reportCode,'WEB_PUBLISH_DEPLOYMENT_FAILED');

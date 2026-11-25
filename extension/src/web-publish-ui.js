@@ -140,8 +140,9 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     progress(message);
     return {status:'upload-required',message};
   }
-  async function waitForDeployment(result,expected,account,routeReceipt) {
+  async function waitForDeployment(result,expected,account,routeReceipt,pauseForPublicMarker) {
     for(let attempt=0;result.status==='pending' && attempt<maxChecks;attempt++) {
+      if(pauseForPublicMarker && result.pendingReason==='public-marker')break;
       await stillCurrent(expected);stage('deploying');progress(result.message);
       await savePending(expected,result.resume,account,routeReceipt);
       await new Promise(resolve=>{const timer=setTimeout(done,pollIntervalMs);function done(){clearTimeout(timer);controller?.signal.removeEventListener('abort',done);resolve();}controller.signal.addEventListener('abort',done,{once:true});});
@@ -386,6 +387,37 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       consent.pagesUrl===live.url && consent.sha===live.sha &&
       typeof consent.dispatchTag==='string' && consent.dispatchTag===live.resume?.staging?.tag;
   }
+  async function stopCheckingUnverifiedRun(result,expected,target,jam) {
+    const key='zero.webPublish.pending';
+    const saved=workspaceState?.get(key);
+    if(!saved?.jamConsent || !target ||
+       !isPublishTarget(target,saved.jamConsent) ||
+       !isPublishTarget(target,{...saved.value,root:saved.root,account:saved.account}) ||
+       !isPublishTarget(target,{...result.resume,root:expected,account:saved.account}) ||
+       saved.value.runId!==result.resume?.runId || saved.value.sha!==result.resume?.sha ||
+       saved.value.destination?.url!==result.resume?.destination?.url ||
+       typeof saved.jamConsent.dispatchTag!=='string' || saved.jamConsent.dispatchTag!==result.resume?.staging?.tag ||
+       saved.value.staging?.tag!==result.resume?.staging?.tag)return;
+    const snapshot=JSON.stringify(saved);
+    clearProgress();
+    const choice=await vscode.window.showInformationMessage('Stop checking this publishing run?',{
+      modal:true,
+      detail:'GitHub finished this run, but Zero could not verify this version on Pages. Stopping clears the saved check in Zero. Your Pages site, GitHub run and jam submission are kept.'
+    },'Stop checking this run');
+    if(choice!=='Stop checking this run')return;
+    await stillPublishable(expected);
+    const current=await gameJam.resolve(expected,jamRequest(expected));
+    assertPublishTarget(target,current,jam);
+    await stillPublishable(expected);
+    if(JSON.stringify(workspaceState.get(key))!==snapshot) {
+      resume=undefined;
+      throw Error('The saved publishing run changed. Check it again.');
+    }
+    await workspaceState.update(key,undefined);
+    resume=undefined;
+    progress(`Stopped checking this run. Choose ${publishLabel(jam)} to start a new publish.`);
+    return {status:'reset'};
+  }
   async function publishOnce(expected,{reuse=false,recovering=false,target,jam,webOnly=false}={}) {
     const listOnHub=listPublication&&!jam&&!webOnly;
     let result,approvedAccount,savedRoute={};
@@ -557,7 +589,8 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
           onPending:value=>trackDispatch(expected,value,approvedAccount,bindDispatch(value))});
       }
     }
-    result=await waitForDeployment(result,expected,approvedAccount,savedRoute);
+    const pauseForPublicMarker=Boolean(recovering && savedRoute.jamConsent && target);
+    result=await waitForDeployment(result,expected,approvedAccount,savedRoute,pauseForPublicMarker);
     await stillCurrent(expected);
     if(result.status==='live') {
       assertPublishTarget(target,{...result.resume,root:expected,account:approvedAccount},jam);
@@ -577,7 +610,14 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
         clearProgress();
         progress(lastLive.listingMessage ? `App published · ${lastLive.listingMessage}` : 'App published',`Your playable app is live: ${result.url}`);
       }
-    } else if(result.status==='pending')progress(`Publishing is still running. Choose ${publishLabel(jam)} again to recheck this run.`);
+    } else if(result.status==='pending') {
+      if(pauseForPublicMarker && result.pendingReason==='public-marker') {
+        const stopped=await stopCheckingUnverifiedRun(result,expected,target,jam);
+        if(stopped)return stopped;
+      }
+      const status=result.pendingReason==='public-marker' ? 'Zero could not verify this run on Pages.' : 'Publishing is still running.';
+      progress(`${status} Choose ${publishLabel(jam)} again to recheck this run.`);
+    }
     else if(result.status==='dispatch-uncertain')return await showDispatchAction(result,expected) || result;
     else {
       if(result.reportCode==='WEB_PUBLISH_DEPLOYMENT_FAILED') {

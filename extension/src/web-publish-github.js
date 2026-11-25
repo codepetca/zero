@@ -468,7 +468,10 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(isSimulation())throw new Error('Live publishing is disabled. Review again after choosing live uploads.');
     const matches=await publicVersion(resume,url,signal);
     await guard(state,signal,{tracking:true});
-    if(!matches)return pending('Deployment succeeded; waiting for the public page to serve this version.');
+    if(!matches)return {
+      ...pending('Deployment succeeded; waiting for the public page to serve this version.'),
+      pendingReason:'public-marker'
+    };
     return {status:'live',url,sha:resume.sha,resume,message:'Your playable game is live.'};
   }
   async function restore(root,saved,{signal,onStage=()=>{},onProgress=()=>{}}={}) {

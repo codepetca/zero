@@ -14752,3 +14752,9 @@ after restoring connected-repository fixtures for three existing CI scenarios.
 The authority suite passed 725 tests with seven optional integration skips.
 Website TypeScript passed. These checks used controlled data. A live account,
 native folder handoff, and production Pages submission remain separate acceptance.
+
+The targeted re-review of `91220a5e7` also found a completed Pages run can
+stay pending in the editor after its public marker changes. An explicit retry
+can now dismiss the saved Pages check after GitHub confirms successful
+completion. The editor keeps the Jam submission receipt and requires a fresh
+Publish action. Seven focused recovery checks passed.

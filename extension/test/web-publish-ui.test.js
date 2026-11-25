@@ -472,12 +472,48 @@ test('a recovered deployment still in progress retains the exact Jam handoff acr
   };
   h.publisher.check=async()=>({status:'pending',resume:value});
   assert.equal((await h.api.publishAndOpen()).status,'pending');
+  assert.equal(h.messages.length,0);
   assert.equal(h.stored.get('zero.webPublish.pending').jamConsent.dispatchTag,stage.staging.tag);
   h.publisher.restore=async()=>({status:'live',url:'https://student.github.io/game/',sha:stage.sha,resume:value});
   assert.equal((await h.api.publishAndOpen()).jamSubmission.status,'submitted');
   assert.equal(h.stored.has('zero.webPublish.pending'),false);
   assert.equal(submissions,1);
   assert.deepEqual(h.opened,[]);
+});
+
+test('a completed Jam run awaiting its Pages marker can stop only its own saved check',async t=>{
+  for(const action of ['stop','cancel','receipt changed','repository changed'])await t.test(action,async t=>{
+    let target=linkedJam;
+    const h=fixture(t,{gameJam:{resolve:async()=>target,submit:async()=>assert.fail('Do not submit an unverified run')}});
+    const key='zero.webPublish.pending';
+    const value={runId:41,repository:uncertainStage.repository,repositoryId:24,sha:uncertainStage.sha,staging:uncertainStage.staging};
+    const saved={root:'/student',account:'1',value,jamConsent:{
+      ...linkedJam,dispatchTag:value.staging.tag,pagesUrl:'https://student.github.io/game/',sha:value.sha
+    }};
+    const replacement={...saved,value:{...value,runId:42}};
+    const live={root:'/student',url:'https://student.github.io/game/',sha:'c'.repeat(40)};
+    h.stored.set(key,saved);
+    h.stored.set('zero.webPublish.lastLive',live);
+    h.publisher.restore=async()=>({status:'pending',pendingReason:'public-marker',resume:value});
+    h.publisher.check=async()=>assert.fail('Offer a choice when the completed run cannot be verified');
+    h.vscode.window.showInformationMessage=async (message,options,button)=>{
+      assert.equal(message,'Stop checking this publishing run?');assert.equal(options.modal,true);
+      assert.equal(button,'Stop checking this run');
+      if(action==='receipt changed')h.stored.set(key,replacement);
+      if(action==='repository changed')target={...linkedJam,repositoryId:'25'};
+      return action==='cancel' ? undefined : button;
+    };
+    if(action==='receipt changed')await assert.rejects(h.api.publishAndOpen(),/saved publishing run changed/);
+    else if(action==='repository changed')await assert.rejects(h.api.publishAndOpen(),/account or repository changed/);
+    else assert.equal((await h.api.publishAndOpen()).status,action==='stop' ? 'reset' : 'pending');
+    await new Promise(resolve=>setImmediate(resolve));
+    if(action==='stop')assert.match(h.states.at(-1),/Choose Publish to Jam to start a new publish/);
+    assert.equal(h.stored.get(key),action==='stop' ? undefined : action==='receipt changed' ? replacement : saved);
+    assert.equal(h.stored.get('zero.webPublish.lastLive'),live);
+    assert.equal(h.reviewed,0);
+    assert.equal(h.published,0);
+    assert.deepEqual(h.opened,[]);
+  });
 });
 
 test('legacy and revised Jam dispatch consent require a new explicit Publish to Jam',async t=>{
