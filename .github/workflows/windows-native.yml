@@ -1,26 +1,53 @@
-name: Public Windows release environment check
+name: Public Zero Studio installation proof
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: Public Zero kit version to verify
+        required: true
+        type: choice
+        options:
+          - 0.5.87
+          - 0.5.88
 permissions:
   contents: read
 jobs:
-  check:
+  store:
     runs-on: windows-2025
-    timeout-minutes: 5
+    timeout-minutes: 22
     steps:
-      - name: Inspect public upload routing and Store installer support
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Install the public Store package on a clean runner
         shell: pwsh
+        env:
+          ZERO_PROOF_VERSION: ${{ inputs.version }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $head = curl.exe --disable --head --silent --show-error --output NUL --connect-timeout 10 --max-time 15 --write-out 'HTTP=%{http_code} TLS=%{time_appconnect}' https://upload.xboxlive.com/
-          Write-Host "Official upload endpoint: $head (curl exit $LASTEXITCODE)"
-          $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
-          $appInstaller = Get-AppxPackage -Name Microsoft.DesktopAppInstaller -ErrorAction SilentlyContinue
-          $store = Get-AppxPackage -Name Microsoft.WindowsStore -ErrorAction SilentlyContinue
-          $licenseService = Get-Service -Name ClipSVC -ErrorAction SilentlyContinue
+          $app = 'Codepet.zerostudio'
+          $family = 'Codepet.zerostudio_g62pw1js6rhjp'
+          $version = $env:ZERO_PROOF_VERSION
+          if ($version -notin '0.5.87','0.5.88' -or (Get-AppxPackage -Name $app)) { throw 'Invalid version or previously installed application.' }
+          $winget = (Get-Command winget.exe -ErrorAction Stop).Source
+          & $winget install --id 9MXKD6DQLFGX --exact --source msstore --silent --disable-interactivity --authentication-mode silent --accept-source-agreements --accept-package-agreements
+          if ($LASTEXITCODE -ne 0) { throw "Public Store installation failed with exit $LASTEXITCODE." }
+          $package = Get-AppxPackage -Name $app
+          $packageVersion = '1' + $version.Substring(1) + '.0'
+          $expectedName = "${app}_${packageVersion}_x64__g62pw1js6rhjp"
+          if ($package.PackageFullName -ne $expectedName -or $package.SignatureKind -ne 'Store' -or $package.Status -ne 'Ok') { throw 'Expected the exact Microsoft Store-signed Zero Studio release.' }
           [pscustomobject]@{
-            winget = [bool]$winget
-            appInstaller = [bool]$appInstaller
-            store = [bool]$store
-            licenseService = [bool]$licenseService
-          } | ConvertTo-Json
+            fullName = $package.PackageFullName
+            signatureKind = $package.SignatureKind.ToString()
+            status = $package.Status.ToString()
+            acquiredFrom = 'winget msstore'
+          } | ConvertTo-Json | Tee-Object -FilePath "${env:RUNNER_TEMP}/public-store-proof.json"
+          & .\scripts\test-msix-first-run.ps1 -PackageFamily $family -KitVersion $version -RequireGit
+      - name: Retain the public installer receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: public-store-install-${{ github.run_id }}
+          path: ${{ runner.temp }}/public-store-proof.json
+          if-no-files-found: ignore
+          retention-days: 7
