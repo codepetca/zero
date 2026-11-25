@@ -1,3 +1,20 @@
+# Game Jam rejoin after repository deletion — 2026-11-25
+
+Local change on `codex/game-jam-rejoin` from `7b0e53544`. An authenticated
+participant who left can choose a different verified public repository while
+registration is open if GitHub returns 404 for the old repository ID. The
+replacement and the old ID’s discovery hold are saved together. The existing
+editor accepts the updated join response. Withdrawn submissions stay in history.
+
+The website suite passed 911 tests with 3 skipped. The jam registry suite passed
+233 tests with 4 skipped. All 13 editor join tests and the website typecheck
+passed. The regressions cover URL reuse, provider failure, concurrent rejoin,
+publication metadata and holds through reveal using local fixtures. Independent
+GPT-6.2 Sol and GPT-6.1 Terra reviews at high effort found no blockers in the
+implementation diff. Hosted GitHub and the student’s own registration were not
+exercised. The local fix awaits website deployment with compatible Jam and Hub
+readers.
+
 # Windows Merge and Check Library — 2026-11-24
 
 The classroom report describes Merge failing in lessons 9 and 11 with

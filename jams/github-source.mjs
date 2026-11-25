@@ -10,7 +10,7 @@ export function decodeGitHubBlob(data,maxBytes) {
 }
 /** Check current ownership without requiring a commit or accessing repository contents. */
 export function createGitHubRepositoryVerifier({token,fetchImpl=fetch,timeoutMs=8000}={}) {
-  return async function verifyRepository({repositoryUrl:url,repositoryId,actor}) {
+  return async function verifyRepository({repositoryUrl:url,repositoryId,actor,allowMissing=false}) {
     credential(token);
     actor = actorIdentity(actor);
     if ((url == null) === (repositoryId == null)) fail(400,'Choose one public source repository.');
@@ -18,7 +18,10 @@ export function createGitHubRepositoryVerifier({token,fetchImpl=fetch,timeoutMs=
     const parts = url == null ? null : repositoryUrl(url);
     const route = parts ? `/repos/${parts.owner}/${parts.repo}` : `/repositories/${repositoryId}`;
     const result = await githubRequest(route,{token,fetchImpl,timeoutMs,maxBytes:32768});
-    if (result.status === 404) fail(400,'The public source repository was not found.');
+    if (result.status === 404) {
+      if (allowMissing && repositoryId != null) return null;
+      fail(400,'The public source repository was not found.');
+    }
     if (result.status !== 200) fail(503,'The public source could not be verified.');
     const repo = result.data;
     if (!Number.isSafeInteger(repo?.id) || !ACCOUNT.test(String(repo.id)) ||

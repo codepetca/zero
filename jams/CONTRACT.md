@@ -118,7 +118,11 @@ Return methods:
   published site. Submit rechecks that repository and requires a Pages URL with
   a server-observed matching repository/owner receipt; matching configured custom domains
   qualify. Legacy submissions retain `source:{repositoryUrl,commit}`. One active entry
-  per actor; replacement adds history; leave withdraws and rejoin does not restore.
+  per actor; replacement adds history; leave withdraws and rejoin does not restore. In a Game Jam,
+  a left participant may choose another verified repository when GitHub returns
+  404 for the old numeric ID. The desktop join read omits that unavailable binding.
+  A replacement records the old ID in `replacedRepositoryIds` in the same registry
+  update, so both repositories stay subject to the discovery hold until reveal.
   `withdraw-entry` requires a numeric participantId and a reason visible to the
   participant. The host can withdraw entries from their own active jam after the
   scheduled end, even after Pro revocation. Maintainers can withdraw entries at any time, including

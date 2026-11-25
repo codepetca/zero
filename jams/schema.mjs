@@ -58,7 +58,7 @@ export function validateState(state, id, limit = LIMITS, {enforceReserve=true} =
   // The registry is operator-controlled, but malformed/truncated state must never
   // become an empty event or supply authority through an unchecked record.
   try {
-    keys(state,['schema','id','creator','repositoryId','hosting','proposals','accepted','moderation','registrations','entries','operations','history','updatedAt'],['schema','id','creator','repositoryId','proposals','accepted','moderation','registrations','entries','operations','history','updatedAt']);
+    keys(state,['schema','id','creator','repositoryId','hosting','proposals','accepted','moderation','registrations','entries','operations','history','updatedAt','replacedRepositoryIds'],['schema','id','creator','repositoryId','proposals','accepted','moderation','registrations','entries','operations','history','updatedAt']);
     const hosted=state.hosting==='zero';
     if (state.schema !== 1 || state.id !== id || !ID.test(id) || (hosted? !HOSTED_ID.test(id)||state.repositoryId!==null : Object.hasOwn(state,'hosting')||HOSTED_ID.test(id)||state.repositoryId!==id.slice(4))) throw Error();
     actorIdentity(state.creator);
@@ -85,6 +85,12 @@ export function validateState(state, id, limit = LIMITS, {enforceReserve=true} =
       const {approvedBy,approvedAt,...acceptedProposal}=state.accepted;
       const automatic=proposal?.approvalMode===PRO_AUTO_APPROVAL;
       if(!proposal||canonical(proposal)!==canonical(acceptedProposal)||(automatic?approvedBy!==null:!ACCOUNT.test(approvedBy)||approvedBy===state.creator.id)||approvedAt!==proposal.reviewedAt)throw Error();
+    }
+    if(Object.hasOwn(state,'replacedRepositoryIds')) {
+      const replaced=state.replacedRepositoryIds;
+      if(state.accepted?.manifest.type!=='game'||!Array.isArray(replaced)||!replaced.length||
+          replaced.length>counts.ordinary||new Set(replaced).size!==replaced.length||
+          replaced.some(id=>typeof id!=='string'||!ACCOUNT.test(id)))throw Error();
     }
     for (const [key,value] of Object.entries(state.registrations)) {
       if (!ACCOUNT.test(key) || value.id !== key || !LOGIN.test(value.login) || !['joined','left'].includes(value.status)) throw Error();

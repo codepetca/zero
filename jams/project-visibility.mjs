@@ -44,6 +44,7 @@ export async function projectVisibility(snapshot, now) {
         if (!registration.repository) throw Error();
         held.add(registration.repository.id);
       }
+      for (const repositoryId of state.replacedRepositoryIds??[]) held.add(repositoryId);
       for (const history of Object.values(state.entries)) {
         for (const entry of history) if (entry.repository) held.add(entry.repository.id);
       }

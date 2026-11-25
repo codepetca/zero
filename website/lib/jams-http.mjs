@@ -331,7 +331,7 @@ async function desktopJamResponse(request,inputOptions,readInput,perform) {
 
 export function getDesktopJamJoinResponse(request,id,options={}) {
   return desktopJamResponse(request,options,()=>desktopEventId(id),async(_,{service,actor,deadline})=>{
-    const {event,registration,hasRegistrationSpace} = await deadline.run(signal=>service.readOverview(id,actor,{signal}));
+    const {event,registration,hasRegistrationSpace} = await deadline.run(signal=>service.readEditorJoin(id,actor,{signal}));
     if (event.type!=='game' || !event.revision) return desktopError('Choose an approved Game Jam in Zero.',409);
     const {type,title,revision,rules,eligibility,timezone,schedule,registrationOpen} = event;
     const repository = registration?.repository;
