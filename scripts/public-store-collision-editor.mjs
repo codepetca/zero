@@ -59,9 +59,20 @@ try {
     await page.keyboard.press('Control+Shift+P');
     const input = quick.locator('input:visible').first();
     await input.waitFor({state:'visible',timeout:15000});
-    await input.fill('>' + title);
-    const item = quick.getByText(title, {exact:true}).first();
-    await item.waitFor({state:'visible',timeout:15000});
+    await input.press('Control+A');
+    await input.press('Backspace');
+    await input.pressSequentially('>' + title, {delay:20});
+    const item = quick.getByRole('option', {name:title})
+      .or(quick.getByText(title, {exact:true})).first();
+    try {
+      await item.waitFor({state:'visible',timeout:20000});
+    } catch (error) {
+      console.log(JSON.stringify({command:title, query:await input.inputValue(),
+        quickInput:(await quick.innerText()).slice(0,1200),
+        dialogs:(await page.getByRole('dialog').allTextContents()).join(' ').slice(0,700)}));
+      await page.screenshot({path:join(directory,'public-editor-command.png')});
+      throw error;
+    }
     await item.click();
   };
   const choose = async (title, timeout = 20000) => {

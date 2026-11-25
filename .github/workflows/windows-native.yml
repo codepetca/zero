@@ -90,6 +90,7 @@ jobs:
             ${{ runner.temp }}/candidate-install-proof.json
             ${{ runner.temp }}/zero-collision-exercise/collision-result.json
             ${{ runner.temp }}/zero-collision-exercise/public-editor-add.png
+            ${{ runner.temp }}/zero-collision-exercise/public-editor-command.png
             ${{ runner.temp }}/zero-collision-exercise/public-browser-preview.png
           if-no-files-found: ignore
           retention-days: 7
