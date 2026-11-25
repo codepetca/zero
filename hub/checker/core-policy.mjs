@@ -47,5 +47,7 @@ export function coreLibraryPom(descriptor, coordinate, coreBuild) {
   if (descriptor.license !== 'MIT' || coordinate.version !== undefined && coordinate.version !== descriptor.version) {
     throw new Error('Hosted library POM requires the exact version and MIT license.');
   }
-  return Buffer.from(authoring.libraryPom({coordinate}, descriptor, {coreBuild, publishedLicense: 'MIT'}));
+  const pom = authoring.libraryPom({coordinate}, descriptor, {coreBuild});
+  const license = '<licenses><license><name>MIT License</name><url>https://opensource.org/licenses/MIT</url><distribution>repo</distribution></license></licenses>';
+  return Buffer.from(pom.replace('<dependencies>', license + '\n<dependencies>'));
 }

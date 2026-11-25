@@ -121,6 +121,25 @@ test('explicit scoped settings precede bundled operator configuration and real m
  const f=await fixture(t);let observed;f.vscode.workspace.getConfiguration=()=>({get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,globalValue:key==='sharingCatalogUrl'?'https://global.example/catalog.json':key==='sharingArtifactOrigin'?'https://global-files.example':undefined,workspaceValue:key==='sharingCatalogUrl'?'https://workspace.example/catalog.json':undefined,workspaceFolderValue:key==='sharingCatalogUrl'?'https://folder.example/catalog.json':undefined})});
  const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[]}};}}});await editor.commands['zero.browseHub']();assert.equal(observed.catalogUrl,'https://folder.example/catalog.json');assert.equal(observed.artifactOrigin,'https://global-files.example');
 });
+test('current editor upgrades the bundled public catalog while honoring an explicit legacy URL',async t=>{
+ const bundle=require('../../release/sharing.json'),legacy=bundle.catalogUrl;
+ assert.equal(new URL(legacy).pathname,'/api/sharing/catalog/web');
+ for(const override of [undefined,legacy]) {
+  const f=await fixture(t),observed=[];
+  f.vscode.workspace.getConfiguration=()=>({
+   get:()=>undefined,
+   inspect:key=>key==='sharingCatalogUrl'?{globalValue:override}:undefined
+  });
+  const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,consumer:{loadCatalog:async settings=>{
+   observed.push(new URL(settings.catalogUrl).pathname);
+   return {catalog:{releases:[]}};
+  }}});
+  await editor.commands['zero.browseHub']();
+  await editor.commands['zero.browseTutorialPractice']();
+  assert.deepEqual(observed,override?['/api/sharing/catalog/web','/api/sharing/catalog/practice']:
+   ['/api/sharing/catalog/v2','/api/sharing/catalog/v2/practice']);
+ }
+});
 test('explicit empty operator settings disable bundled activation; policy uses same precedence',async t=>{
  const manifest=require('../package.json').contributes.configuration.properties,bundle={catalogUrl:'https://operator.example/catalog.json',artifactOrigin:'https://artifacts.example',policyRevision:'e'.repeat(40)},f=await fixture(t);let observed;
  f.vscode.workspace.getConfiguration=()=>({get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,...(['sharingArtifactOrigin','sharingPolicyRevision'].includes(key)?{globalValue:''}:{})})});

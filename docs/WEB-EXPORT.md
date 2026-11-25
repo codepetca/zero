@@ -304,7 +304,8 @@ releases and approved Play links. The original catalog endpoint validates
 the same data and projects out optional web receipts for older strict clients.
 Install the compatible catalog before switching the checked publisher policy.
 An existing schema-2-capable editor can use the v2 catalog through its pilot
-profile setting. A future kit can supply the new path as its default.
+profile setting. The updated editor selects v2 by default while saved browser builders retain
+their original catalog configuration.
 
 ## Storage and distribution
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "catalogUrl": "https://zero.codepet.ca/api/sharing/catalog/v2",
+  "catalogUrl": "https://zero.codepet.ca/api/sharing/catalog/web",
   "artifactOrigin": "https://fdvfhpclefgmg9ks.public.blob.vercel-storage.com",
   "policyRevision": "11c54518320b52a659104eaf01d685fe2dd93917"
 }

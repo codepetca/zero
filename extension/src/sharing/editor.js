@@ -6,6 +6,17 @@ const {readProjectModel,ordinaryEntries}=require('../project-explorer-model');
 const {SLUG: PRACTICE_SLUG,isTutorialPractice,practiceCatalogUrl}=require('./tutorial-practice');
 const core=require('../core');const {assertShareable,assertOriginalProject,assertContributionProject,tutorialMarker}=require('../lesson-projects');const c=require('./contracts');const authoring=require('./authoring');const checks=require('./local-check');const consumer=require('./consumer');const ownedLibrary=require('./owned-library');const {createGitHubReader}=require('./github');const {parseXml,single,value}=require('../project-pom');
 const fail=message=>{throw new Error(message);};
+const LEGACY_CATALOG = 'https://zero.codepet.ca/api/sharing/catalog/web';
+const CURRENT_CATALOG = 'https://zero.codepet.ca/api/sharing/catalog/v2';
+
+function editorPracticeCatalogUrl(catalogUrl) {
+ const url = new URL(catalogUrl);
+ if(!/^\/api\/sharing\/catalog\/v2(?:\/practice)?$/.test(url.pathname))return practiceCatalogUrl(catalogUrl);
+ if(url.username||url.password||url.search||url.hash)
+  fail('This catalog does not offer tutorial practice. Use the configured ZeroHub catalog.');
+ url.pathname='/api/sharing/catalog/v2/practice';
+ return url.href;
+}
 const escape=text=>text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function assertSaved(vscode,root) {if((vscode.workspace.textDocuments||[]).some(d=>d.isDirty&&d.uri?.fsPath&&(d.uri.fsPath===root||d.uri.fsPath.startsWith(root+path.sep))))fail('Save your project files before reviewing this action.');}
 function trusted(vscode){if(vscode.workspace.isTrusted===false)fail('Trust your own project before editing or running its Java code.');}
@@ -65,8 +76,9 @@ function createSharingEditor(vscode,host,options={}) {
   // activation instead of silently falling back to an accepted bundled origin.
   return configuration.get(key,undefined)??bundledValue??fallback;
  }
- const settings=()=>({catalogUrl:operatorSetting('sharingCatalogUrl',bundled.catalogUrl,'https://zero.codepet.ca/api/sharing/catalog/v2'),artifactOrigin:operatorSetting('sharingArtifactOrigin',bundled.artifactOrigin,'')});
- const catalogSettings=practice=>{const configured=settings();return practice?{...configured,catalogUrl:practiceCatalogUrl(configured.catalogUrl)}:configured;};
+ const bundledCatalog = bundled.catalogUrl === LEGACY_CATALOG ? CURRENT_CATALOG : bundled.catalogUrl;
+ const settings=()=>({catalogUrl:operatorSetting('sharingCatalogUrl',bundledCatalog,CURRENT_CATALOG),artifactOrigin:operatorSetting('sharingArtifactOrigin',bundled.artifactOrigin,'')});
+ const catalogSettings=practice=>{const configured=settings();return practice?{...configured,catalogUrl:editorPracticeCatalogUrl(configured.catalogUrl)}:configured;};
  const practiceDetail=descriptor=>isTutorialPractice(descriptor)?'Tutorial practice · copied CreditsBadge exercise. Listed separately from original contributions.\n':'';
  async function current(root){if(await host.project()!==root)fail('The project changed during review. Prepare this action again.');assertSaved(vscode,root);}
  let running=false;
