@@ -31,7 +31,7 @@ function read(root, relative) {
 }
 // One minimal scaffold per continuing project. Finished programs and lesson
 // references are never copied into the learner's project.
-export function lessonProjects(root = repository) {
+export function lessonProjects(root = repository, {usePublishedBuilderOverlay = true} = {}) {
   const common = new Map();
   const add = (files, filename, bytes, mode = 0o644) => files.set(filename, {path:filename, content:Buffer.from(bytes).toString('base64'), mode});
   for (const name of ['pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/tasks.json']) add(common, name, read(root, `student-template/${name}`), name === 'mvnw' ? 0o755 : 0o644);
@@ -42,11 +42,14 @@ export function lessonProjects(root = repository) {
   // New tutorial scaffolds carry the current Zero license; prior grants remain intact.
   add(common, 'LICENSE', read(root, 'LICENSE'));
   for (const name of coreSources) add(common, `src/main/java/zero/${name}`, read(root, `framework/src/main/java/zero/${name}`));
-  const builder = projectBuilderFilesSync({sourceRoot:root}).filter(file => file.path !== 'builder.json').map(file => publishedBuilderFiles.has(file.path)
-    ? {...file,bytes:read(root,'teaching/published-builder/'+file.path)} : file);
-  const builderManifest = builderFormat.createBuilderManifest(builder);
+  let builder = projectBuilderFilesSync({sourceRoot:root});
+  if (usePublishedBuilderOverlay) {
+    builder = builder.filter(file => file.path !== 'builder.json').map(file => publishedBuilderFiles.has(file.path)
+      ? {...file,bytes:read(root,'teaching/published-builder/'+file.path)} : file);
+    const manifest = builderFormat.createBuilderManifest(builder);
+    builder.push({path:'builder.json',bytes:Buffer.from(JSON.stringify(manifest,null,2)+'\n')});
+  }
   for (const file of builder) add(common,'.zero-build/' + file.path,file.bytes);
-  add(common,'.zero-build/builder.json',JSON.stringify(builderManifest,null,2)+'\n');
   add(common, 'zero-core.json', JSON.stringify(core.makeCoreRecord(Object.fromEntries(core.coreSourcePaths.map(name =>
     [name, Buffer.from(common.get(name).content,'base64')]))),null,2) + '\n');
   const projects = practiceProjects.map(project => {

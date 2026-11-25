@@ -8,7 +8,7 @@ import {spawnSync} from 'node:child_process';
 import {verifyPublishedKit} from './verify-published-kit.mjs';
 
 const digest = value => createHash('sha256').update(value).digest('hex');
-function fixture(t) {
+function fixture(t, {separateBrowserBuilder = false} = {}) {
   const directory = mkdtempSync(path.join(tmpdir(), 'zero-published-test-'));
   t.after(() => rmSync(directory, {recursive:true, force:true}));
   const git = (...args) => {
@@ -26,6 +26,7 @@ function fixture(t) {
   git('config', 'user.name', 'Test');
   git('config', 'user.email', 'test@example.invalid');
   write('extension/source.js', 'reviewed original source');
+  if (separateBrowserBuilder) write('teaching/published-builder/src/sharing/contracts.js','archived tutorial source');
   git('add', '.');git('commit', '-m', 'reviewed original');
   const sourceRevision = git('rev-parse', 'HEAD');
   git('tag', 'v1.2.3');
@@ -49,8 +50,9 @@ function fixture(t) {
   for (const key of Object.keys(bytes)) write(`dist/${names[key]}`, bytes[key]);
   write('extension/source.js', 'new reporting source');
   git('add', 'extension');git('commit', '-m', 'new PR source');
-  const verify = ({sourceRoot, artifactRoot, release, compile}) => {
+  const verify = ({sourceRoot, artifactRoot, release, compile, legacyBrowserBuilder}) => {
     assert.equal(compile, false, 'Downloaded kit code must not run');
+    assert.equal(legacyBrowserBuilder,!separateBrowserBuilder,'Browser layout must come from the verified source archive');
     assert.equal(release.kitVersion, '1.2.3');
     assert.deepEqual(readFileSync(path.join(artifactRoot, release.assets.kit.filename)),
       readFileSync(path.join(sourceRoot, 'extension/source.js')), 'Packaged source drift');
@@ -64,6 +66,11 @@ test('published kit verification binds recorded assets to the original commit, n
   const result=f.run();
   assert.equal(result.sourceRevision,f.sourceRevision);
   assert.equal(readFileSync(path.join(f.directory,'extension/source.js'),'utf8'),'new reporting source');
+});
+
+test('published kit verification requires the separate asset layout from its archived source marker',t=>{
+  const f=fixture(t,{separateBrowserBuilder:true});
+  assert.equal(f.run().sourceRevision,f.sourceRevision);
 });
 
 test('published kit verification rejects corrupt assets, receipts and uncommitted metadata',async t=>{

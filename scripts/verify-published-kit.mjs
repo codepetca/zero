@@ -70,6 +70,7 @@ function snapshotSource(repositoryRoot, sourceRevision, destination) {
     mkdirSync(path.dirname(target), {recursive:true});
     writeFileSync(target, bytes, {flag:'wx'});
   }
+  return {legacyBrowserBuilder:!files.some(name => name.startsWith('teaching/published-builder/'))};
 }
 
 export function verifyPublishedKit({repositoryRoot = root, artifactRoot = path.join(root, 'dist'), verify = verifyKit} = {}) {
@@ -84,11 +85,11 @@ export function verifyPublishedKit({repositoryRoot = root, artifactRoot = path.j
   }
   const sourceRoot = realpathSync(mkdtempSync(path.join(tmpdir(), 'zero-published-source-')));
   try {
-    snapshotSource(repositoryRoot, sourceRevision, sourceRoot);
+    const {legacyBrowserBuilder} = snapshotSource(repositoryRoot, sourceRevision, sourceRoot);
     // The original commit records a local candidate; the reviewed published
     // manifest and receipt deliberately bind its immutable released bytes.
     // Do not run the downloaded kit's Maven wrapper or any other kit code.
-    verify({sourceRoot, artifactRoot, release:manifest, compile:false});
+    verify({sourceRoot, artifactRoot, release:manifest, compile:false, legacyBrowserBuilder});
   } finally {
     rmSync(sourceRoot, {recursive:true, force:true});
   }
