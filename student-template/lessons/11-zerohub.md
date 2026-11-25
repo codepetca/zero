@@ -425,7 +425,7 @@ project for the exercise so your Coin game is ready for that lesson.
    }
    ```
 
-4. Choose **Run App** and look for `Collision Helper Pilot works`. In the
+4. Choose **Run** and look for `Collision Helper Pilot works`. In the
    Command Palette, choose **Zero: Export for Web**. If Zero offers
    **Update Browser Tools**, review the update. Wait for **Export ready**,
    then choose **Preview export** in Zero and look for the same message.
