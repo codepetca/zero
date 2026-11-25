@@ -1,3 +1,25 @@
+# Current-format ZeroHub library verification — 2026-11-24
+
+GPT-6.2 Astra at high reasoning reviewed the existing checker and publication
+path before implementation. Independent changed-source security and compatibility
+reviews used Astra High and GPT-6.1 Sol High. Follow-up reviews verified strict
+MIT text, worker-side JAR inspection and mixed-catalog isolation fixes.
+
+A disposable current-core project extracted an original MIT-licensed Hit Test
+helper, passed local Check and committed its exact source. The Share editor
+command produced the prefilled form. The Linux ARM64 Docker checker ran all six
+stages against the reviewed Zero core JAR. The managed evidence verifier and
+publisher wrote a schema 2 release to a disposable registry and artifact store.
+GitHub issue and Actions responses were fixtures. A second project verified
+and saved the published dependency and used it in Maven and in a real WebFX
+build. Chrome rendered the expected result. A separate Docker test exercised a
+widget returning `zero.ui.Element` on the JavaFX thread. All 22 checker and
+end-to-end tests passed with JDK 17 and the exact Linux ARM64 image.
+
+Production policy promotion, real GitHub Actions provenance and public catalog
+delivery remain pending the authorized rollout. No new editor installer is part
+of this local proof. See [sharing operations](SHARING-OPERATIONS.md#current-format-rollout).
+
 # Zero 0.5.86 release verification — 2026-11-24
 
 Source PRs [#405](https://github.com/codepetca/zero/pull/405) and

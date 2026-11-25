@@ -5,6 +5,15 @@ on:
     paths:
       - 'hub/checker/**'
       - 'sharing/library-checker.mjs'
+      - 'sharing/managed-library.mjs'
+      - 'sharing/platform.mjs'
+      - 'sharing/publication.mjs'
+      - 'sharing/test/current-library-flow.test.mjs'
+      - 'extension/src/core-contract.js'
+      - 'extension/src/sharing/authoring.js'
+      - 'extension/src/sharing/jar.js'
+      - 'extension/src/sharing/library-license.js'
+      - 'framework/src/main/java/zero/**'
       - 'sharing/test/library-checker*.test.mjs'
       - 'extension/src/sharing/contracts.js'
       - '.github/workflows/library-checker-review.yml'
@@ -28,9 +37,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - run: npm ci --ignore-scripts
       - name: Build fixed reviewed checker image before test inputs
         run: node hub/checker/build-image.mjs amd64
       - name: Verify current contract and actual offline Linux checks
         env:
           ZERO_DOCKER_TEST: '1'
-        run: node --test hub/checker/test/validation.test.mjs hub/checker/test/jvm-boundary.test.mjs hub/checker/test/docker.test.mjs sharing/test/library-checker*.test.mjs
+        run: node --test hub/checker/test/validation.test.mjs hub/checker/test/jvm-boundary.test.mjs hub/checker/test/docker.test.mjs sharing/test/library-checker*.test.mjs sharing/test/current-library-flow.test.mjs

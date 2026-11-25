@@ -1,5 +1,10 @@
 import { createHash } from 'node:crypto';
 import { inflateSync } from 'node:zlib';
+import { requireTrustedCoreInput } from './core-policy.mjs';
+import license from '../../extension/src/sharing/library-license.js';
+
+const {isCompleteMitLicense} = license;
+export const {MIT_BODY} = license;
 
 export const POLICY = 'zero-widgets-v1';
 export const LIBRARY_POLICY = 'zero-libraries-v1';
@@ -94,28 +99,10 @@ export function validateBundle(bundle) {
       }
     }
   }
-  if (!/^MIT License\n\nCopyright \(c\) [^\n]+\n\n/.test(bundle.files.LICENSE) || !bundle.files.LICENSE.endsWith(MIT_BODY)) throw new Error('LICENSE must contain the complete MIT text and a copyright line');
+  if (!isCompleteMitLicense(bundle.files.LICENSE,{allowLegacyExtras:true})) throw new Error('LICENSE must contain the complete MIT text and a copyright line');
   if (Buffer.byteLength(JSON.stringify(bundle)) > MAX_REQUEST) throw new Error('Bundle exceeds 1 MiB');
   return bundle;
 }
-export const MIT_BODY = `Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-`;
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') return Object.fromEntries(Object.keys(value).sort().map(k => [k,canonical(value[k])]));
@@ -153,7 +140,10 @@ const visibleJava = source => source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|"""[
 export function validateLibraryBundle(bundle) {
   object(bundle, ['descriptor','files'], 'library bundle');
   const d=bundle.descriptor;
-  object(d,['schema','kind','slug','version','namespace','coordinate','libraryKind','classes','groups'],'library check descriptor');
+  const usesCore = Object.hasOwn(d || {}, 'coreInput') || Object.hasOwn(d || {}, 'coreRequirement');
+  const coreFields = usesCore ? ['coreInput','coreRequirement'] : [];
+  object(d,['schema','kind','slug','version','namespace','coordinate','libraryKind','classes','groups',...coreFields],'library check descriptor');
+  if (usesCore) requireTrustedCoreInput(d);
   if(d.schema!==2||d.kind!=='library'||!namespacePattern.test(d.namespace)||!['helper','widget'].includes(d.libraryKind)||!semver.test(d.version)||
     !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(d.slug)||d.namespace.split('.').at(-1)!==d.slug.replaceAll('-','_'))throw Error('Invalid current library identity');
   object(d.coordinate,['groupId','artifactId'],'library coordinate');
@@ -170,7 +160,7 @@ export function validateLibraryBundle(bundle) {
     if(path.includes('\\')||path.split('/').some(part=>!part||part==='.'||part==='..'))throw Error('Unsafe library path');
     const value=bundle.files[path];
     if(path==='LICENSE'){
-      if(typeof value!=='string'||!/^MIT License\n\nCopyright \(c\) [^\n]+\n\n/.test(value)||!value.endsWith(MIT_BODY))throw Error('Full MIT license required');
+      if(!isCompleteMitLicense(value,{allowLegacyExtras:!usesCore}))throw Error('Full MIT license required');
     }else if(path==='preview.png'){validatePng(value);}
     else if(classPath.test(path)||checkPath.test(path)){
       text(value,path,65536,true);
@@ -180,9 +170,11 @@ export function validateLibraryBundle(bundle) {
       const expected=pathPackage(path,prefix),actual=packageMatches[0]?.[1].replace(/\s/g,'')||'';
       if(packageMatches.length>1||actual!==expected)throw Error(`Package/path mismatch: ${path}`);
       const simple=path.split('/').at(-1).slice(0,-5),name=actual?actual+'.'+simple:simple;
-      if(!new RegExp(`\\bpublic\\s+(?:final\\s+|abstract\\s+)?class\\s+${simple}\\b`).test(visible))throw Error(`One declared public class required: ${path}`);
+      const types = usesCore && path.startsWith('src/main/java/') ? '(?:class|interface|record|enum)' : 'class';
+      if(!new RegExp(`\\bpublic\\s+(?:(?:final|abstract|sealed|non-sealed)\\s+)*${types}\\s+${simple}\\b`).test(visible))throw Error(`Expected one declared public Java type: ${path}`);
       if(path.startsWith('src/main/java/')){if(actual!==d.namespace&&!actual.startsWith(d.namespace+'.'))throw Error('Foreign library namespace');sourceClasses.push(name);}
       else {if(actual===d.namespace||actual.startsWith(d.namespace+'.'))throw Error('Check shadows library namespace');
+        if (usesCore && (actual === 'zero' || actual.startsWith('zero.'))) throw Error('Check shadows the reserved Zero namespace');
         const group=path.startsWith('src/test/java/')?'behavior':path.startsWith('examples/first/')?'first':'second';
         if(/\bpublic\s+static\s+void\s+main\s*\(\s*String\s*(?:\[\s*\]\s*\w+|\w+\s*\[\s*\])\s*\)/.test(visible))groupFiles[group].push(name);
       }

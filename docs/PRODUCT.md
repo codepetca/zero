@@ -714,7 +714,7 @@ updates. Develop local library and Use published version are distinct modes.
 Check library supplies local compilation/API/behavior/two-consumer feedback;
 local feedback is not public acceptance. Trusted checking and a separate publisher
 are the intended automatic publication path, without routine maintainer approval,
-but the unresolved library checker acceptance gate remains binding.
+and current-format library publication requires the reviewed hosted policy rollout.
 
 The replacement uses a Git CAS registry ledger and immutable public Blob artifacts
 with generated catalog snapshots. Optional website star sessions are separate from publication and cannot change the registry. Accepted versions

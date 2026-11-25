@@ -168,9 +168,9 @@ export function legacyCatalog(catalog) {
 }
 /** Both catalog APIs use the same bounded reader and canonical schema.
  * @param {Request} request
- * @param {{includeWeb?: boolean, practiceOnly?: boolean, reader?: typeof readCatalog, visibilityReader?: typeof readJamHubVisibility, destinationReader?: typeof readDestinationBinding, pagesBindingReader?: Function, responseBudgetMs?: number, decisionNow?: () => number}} [options]
+ * @param {{includeWeb?: boolean, practiceOnly?: boolean, includeV2?: boolean, reader?: typeof readCatalog, visibilityReader?: typeof readJamHubVisibility, destinationReader?: typeof readDestinationBinding, pagesBindingReader?: Function, responseBudgetMs?: number, decisionNow?: () => number}} [options]
  */
-export async function catalogResponse(request,{includeWeb=false,practiceOnly=false,reader=readCatalog,visibilityReader=readJamHubVisibility,destinationReader=readDestinationBinding,pagesBindingReader,env=process.env,responseBudgetMs=18_000,decisionNow=Date.now}={}) {
+export async function catalogResponse(request,{includeWeb=false,practiceOnly=false,includeV2=false,reader=readCatalog,visibilityReader=readJamHubVisibility,destinationReader=readDestinationBinding,pagesBindingReader,env=process.env,responseBudgetMs=18_000,decisionNow=Date.now}={}) {
   const deadline=createHubRequestDeadline({budgetMs:responseBudgetMs,signal:request.signal});
   try {
     const catalog=contracts.validateCatalog(await deadline.run(signal=>reader({signal})));
@@ -179,7 +179,8 @@ export async function catalogResponse(request,{includeWeb=false,practiceOnly=fal
     // Holds follow repository identity across games, libraries and practice.
     const visibility=await deadline.run(signal=>visibilityReader({env,signal}));
     assertJamVisibilityTime(visibility, decisionNow, env);
-    const candidates={...catalog,releases:catalog.releases.filter(release=>practice.isTutorialPractice(release)===practiceOnly)};
+    const candidates={...catalog,releases:catalog.releases.filter(release=>
+      practice.isTutorialPractice(release)===practiceOnly && (includeV2 || release.schema===1))};
     const bound=visibility===null?{catalog:candidates,visibility}:await bindJamCatalog(candidates,visibility,{deadline,visibilityReader:({signal})=>visibilityReader({env,signal}),destinationReader,decisionNow,env});
     const selected=practiceOnly||includeWeb?bound.catalog:legacyCatalog(bound.catalog);
     deadline.check();

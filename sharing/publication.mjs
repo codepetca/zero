@@ -69,12 +69,13 @@ export class PublicationService {
     currentOwner(request, metadata);
     const descriptor = request.descriptor;
     const release = {
-      schema: 1, kind: ident.kind, id: ident.id, slug: ident.slug, version: request.version,
+      schema: descriptor.schema === 2 && request.kind === 'library' ? 2 : 1, kind: ident.kind, id: ident.id, slug: ident.slug, version: request.version,
       title: descriptor.title, description: descriptor.description, license: descriptor.license,
       repository: contracts.validateRepository(Object.fromEntries(['id','ownerId','owner','name','url'].map(key => [key, metadata[key]]))),
       contributor: {githubId:request.requester.githubId,login:metadata.owner}, source: {commit: request.commit, folder: request.folder, sha256: request.sourceDigest},
       policyRevision: request.policyRevision, status: 'available', artifacts: manifest,
       ...(request.web?{web:structuredClone(request.web)}:{}),
+      ...(request.kind === 'library' && descriptor.schema === 2 ? {coreRequirement:structuredClone(descriptor.coreRequirement),coreBuild:structuredClone(evidence.coreBuild)} : {}),
       ...(request.kind === 'library' ? {namespace: ident.namespace, coordinate: {...ident.coordinate, version: request.version}, libraryKind: descriptor.libraryKind, ...(components ? {components} : {})} : {controls: descriptor.controls})
     };
     contracts.validateRelease(release, {artifactOrigin: this.artifactOrigin});

@@ -5,6 +5,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { POLICY, LIBRARY_POLICY, validateBundle, validateLibraryBundle, sourceDigest, expectedPom, expectedLibraryPom } from './policy.mjs';
 import { policyDigest } from './image-policy.mjs';
+import { coreLibraryPom, trustedCoreBuild } from './core-policy.mjs';
+import jars from '../../extension/src/sharing/jar.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 function execute(args, {timeout = 30000, maxBytes = 2 * 1024 * 1024} = {}) {
@@ -66,14 +68,47 @@ async function checkBundle(bundle,options,current) {
     const add=(id,run)=>{checks.push({id,passed:run.code===0&&!run.timedOut&&!run.limit,detail:run.timedOut?`Exceeded wall-clock limit: ${run.stderr.toString().slice(0,2000)}`:run.limit?`Exceeded output limit: ${run.stderr.toString().slice(0,2000)}`:run.code===0?'Trusted process completed successfully':`Process exited ${run.code}: ${run.stderr.toString().slice(0,3000)}`});};
     add('fixed-build',build);
     if(!checks.at(-1).passed)return result;
-    let artifacts;
-    try {const output=JSON.parse(build.stdout.toString());if(Object.keys(output).sort().join(',')!==(current?'components,jar,sources':'jar,sources'))throw Error('Unexpected output'); artifacts={jar:Buffer.from(output.jar,'base64'),sources:Buffer.from(output.sources,'base64'),pom:current?expectedLibraryPom(bundle):expectedPom(bundle)};if(!artifacts.jar.length||!artifacts.sources.length||artifacts.jar.length>1024*1024||artifacts.sources.length>1024*1024)throw Error('Artifact bound');if(current){if(!Array.isArray(output.components)||output.components.length!==bundle.descriptor.classes.length)throw Error('Invalid compiled API inventory');result.components=output.components;}}catch(e){throw new Error(`Trusted build protocol failure: ${e.message}`);}
+    let artifacts, coreBuild;
+    try {
+      const output=JSON.parse(build.stdout.toString());
+      const usesCore=current && bundle.descriptor.coreInput !== undefined;
+      const expected = current ? ['components','jar','sources'] : ['jar','sources'];
+      if (usesCore) expected.push('coreJarSha256');
+      if (Object.keys(output).sort().join(',')!==expected.sort().join(',')) throw Error('Unexpected output');
+      if (usesCore) {
+        const library={...bundle.descriptor, schema:2, license:'MIT'};
+        coreBuild=trustedCoreBuild(library, sourceLock.policyDigest, output.coreJarSha256);
+        artifacts={pom:coreLibraryPom(library, library.coordinate, coreBuild)};
+      } else {
+        artifacts={pom:current?expectedLibraryPom(bundle):expectedPom(bundle)};
+      }
+      artifacts.jar=Buffer.from(output.jar,'base64');
+      artifacts.sources=Buffer.from(output.sources,'base64');
+      if (!artifacts.jar.length || !artifacts.sources.length || artifacts.jar.length>1024*1024 || artifacts.sources.length>1024*1024) throw Error('Artifact bound');
+      if (current) {
+        if (!Array.isArray(output.components) || output.components.length!==bundle.descriptor.classes.length) throw Error('Invalid compiled API inventory');
+        result.components=output.components;
+      }
+    } catch(error) { throw new Error(`Trusted build protocol failure: ${error.message}`); }
+    if (coreBuild) {
+      const {namespace, coordinate, version}=bundle.descriptor;
+      try {
+        const identity={namespace,coordinate:{...coordinate,version}};
+        jars.inspectLibraryJar(artifacts.jar,{...identity,kind:'binary'});
+        jars.inspectLibraryJar(artifacts.sources,{...identity,kind:'sources'});
+      } catch(error) {
+        checks[checks.length-1]={id:'fixed-build',passed:false,detail:error.message};
+        return result;
+      }
+    }
     await writeFile(join(dir,'library.jar'),artifacts.jar,{mode:0o444});
     for(const stage of ['api','behavior','first','second']) {
       const run=await container(image,dir,stage,options.runTimeoutMs || 15000);
       if([125,126,127].includes(run.code))throw new Error(`Docker checker infrastructure failed: ${run.stderr.toString().slice(0,1000)}`);
       add(stage,run); if(!checks.at(-1).passed)return result;
     }
-    result.passed=true;result.artifacts=artifacts;return result;
+    result.passed=true;result.artifacts=artifacts;
+    if (coreBuild) result.coreBuild=coreBuild;
+    return result;
   } finally { await rm(dir,{recursive:true,force:true}); }
 }

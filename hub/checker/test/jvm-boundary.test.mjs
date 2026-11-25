@@ -22,7 +22,7 @@ async function setup() {
  const version=command('java',['-version'],dir);assert.match(version.stderr,/version "17\./,'The regression must use real JDK17');
  await put(dir,'fxsrc/javafx.controls/module-info.java','module javafx.controls { requires jdk.unsupported; requires java.desktop; exports javafx.application; exports javafx.scene; }');
  await put(dir,'fxsrc/javafx.controls/javafx/application/Application.java',`package javafx.application; public abstract class Application { public abstract void start(); public static void launch(Class<? extends Application> c,String[] args) throws Exception { c.getDeclaredConstructor().newInstance().start(); } }`);
- await put(dir,'fxsrc/javafx.controls/javafx/application/Platform.java','package javafx.application; public final class Platform { public static void exit() {} }');
+ await put(dir,'fxsrc/javafx.controls/javafx/application/Platform.java','package javafx.application; public final class Platform { public static void startup(Runnable callback) { callback.run(); } public static void exit() {} }');
  await put(dir,'fxsrc/javafx.controls/javafx/scene/Node.java','package javafx.scene; public class Node {}');
  await put(dir,'fxsrc/javafx.swing/module-info.java','module javafx.swing {}');
  let run=command('javac',['-proc:none','--release','17','--module-source-path',join(dir,'fxsrc'),'-d',join(dir,'modules'),...['javafx.controls/module-info.java','javafx.controls/javafx/application/Application.java','javafx.controls/javafx/application/Platform.java','javafx.controls/javafx/scene/Node.java','javafx.swing/module-info.java'].map(p=>join(dir,'fxsrc',p))],dir);assert.equal(run.status,0,run.stderr);

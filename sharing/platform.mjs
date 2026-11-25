@@ -51,7 +51,6 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     return request.policyRevision===policyRevision || request.policyRevision===COMPATIBLE_SHARED_REQUEST_POLICY || (request.kind==='game' && request.policyRevision===COMPATIBLE_GAME_REQUEST_POLICY);
   }
   function assertRequestPolicy(request) {
-    if(request.descriptor?.schema===2)throw sourceFailure('Core-dependent library schema 2 is not enabled for hosted preparation.');
     if(!compatibleRequestPolicy(request))throw sourceFailure('Request targets a different policy revision; prepare it again');
   }
   function validationSignal(requestId){const budget=publicationBudgets.get(requestId);if(budget&&now()-budget.started>=wallBudgetMs)throw new Error('Publication wall budget exhausted before acceptance');return budget?AbortSignal.any([budget.signal,AbortSignal.timeout(sourceTimeoutMs)]):AbortSignal.timeout(sourceTimeoutMs);}
@@ -164,6 +163,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     const evidence={status:'passed',requestFingerprint:record.id,sourceDigest:record.frozen.sourceDigest,
       commit:record.frozen.commit,policyRevision:record.frozen.policyRevision,
       artifacts:verified.receipt.artifacts,componentsDigest:verified.receipt.componentsDigest,
+      ...(verified.coreBuild?{coreBuild:verified.coreBuild}:{}),
       provenance:{kind:'managed-library-check',schema:1,runId,attempt,artifactId,checkerPolicy:verified.receipt.checkerPolicy,checkerPolicyDigest:verified.receipt.checkerPolicyDigest,image:verified.receipt.image}};
     receipts.add(evidence);
     await assertOpen(record,{signal:AbortSignal.timeout(sourceTimeoutMs)});

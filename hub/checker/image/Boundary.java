@@ -9,9 +9,10 @@ import javax.lang.model.element.Modifier;
 public final class Boundary {
   public static void main(String[] args) throws Exception {
     String namespace = args[0];
+    boolean core = args[1].equals("--core");
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     try (StandardJavaFileManager files = compiler.getStandardFileManager(null, null, null)) {
-      var units = files.getJavaFileObjectsFromStrings(Arrays.asList(args).subList(1, args.length));
+      var units = files.getJavaFileObjectsFromStrings(Arrays.asList(args).subList(core ? 2 : 1, args.length));
       var task = (JavacTask) compiler.getTask(null, files, null, List.of("-proc:none", "--release", "17"), null, units);
       for (CompilationUnitTree unit : task.parse()) {
         Path path = Path.of(unit.getSourceFile().toUri());
@@ -27,10 +28,14 @@ public final class Boundary {
           if (!pkg.equals(expectedPackage) || (library && !pkg.equals(namespace) && !pkg.startsWith(namespace + ".")))
             throw new IllegalArgumentException("Foreign or missing namespace: " + path);
         } else if (!pkg.equals(library ? namespace : "")) throw new IllegalArgumentException("Foreign or missing namespace: " + path);
+        if (core && !library && (pkg.equals("zero") || pkg.startsWith("zero.")))
+          throw new IllegalArgumentException("Checks cannot declare classes in the reserved Zero namespace: " + path);
+        Set<Tree.Kind> kinds = core && library
+            ? Set.of(Tree.Kind.CLASS, Tree.Kind.INTERFACE, Tree.Kind.RECORD, Tree.Kind.ENUM) : Set.of(Tree.Kind.CLASS);
         if (unit.getTypeDecls().size() != 1 || !(unit.getTypeDecls().get(0) instanceof ClassTree type)
-            || type.getKind() != Tree.Kind.CLASS || !type.getSimpleName().contentEquals(expected)
+            || !kinds.contains(type.getKind()) || !type.getSimpleName().contentEquals(expected)
             || !type.getModifiers().getFlags().contains(Modifier.PUBLIC))
-          throw new IllegalArgumentException("Exactly one declared public class matching its file is required: " + path);
+          throw new IllegalArgumentException("Exactly one declared public Java type matching its file is required: " + path);
       }
     }
   }

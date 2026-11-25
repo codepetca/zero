@@ -11,6 +11,7 @@ import { validateRegistryState } from '../github-registry.mjs';
 import { createSharingPlatform } from '../platform.mjs';
 import { libraryArtifactName, writeLibraryCheck, reviewedWorkflowBytes } from '../managed-library.mjs';
 import { expectedPolicyDigest } from '../../hub/checker/image-policy.mjs';
+import { trustedCoreSources, trustedCoreBuild, coreLibraryPom } from '../../hub/checker/core-policy.mjs';
 import { parseArguments, validateLibraryPlatformConfig, validatePlatformConfig } from '../cli.mjs';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -80,18 +81,22 @@ test('verified failed checker stage produces a fixed public correction without s
 });
 
 const compatibleSharedPolicy='11c54518320b52a659104eaf01d685fe2dd93917';
-for(const requestPolicy of [policyRevision,compatibleSharedPolicy])test(`verified ${requestPolicy===policyRevision?'current':'current-kit compatible'} policy check reaches immutable publication and catalog through the trusted service`,async t=>{
+for(const [requestPolicy,schema] of [[policyRevision,1],[compatibleSharedPolicy,1],[policyRevision,2]])test(`verified schema ${schema} ${requestPolicy===policyRevision?'current':'current-kit compatible'} policy check reaches immutable publication and catalog through the trusted service`,async t=>{
   const dir=await mkdtemp(join(tmpdir(),'zero-managed-publish-'));
   t.after(()=>rm(dir,{recursive:true,force:true}));
-  const descriptor={schema:1,kind:'library',slug:'flap-motion',version:'0.1.0',title:'Flap Motion',description:'Simple gravity and flap movement.',license:'MIT',libraryKind:'helper'};
+  const core=trustedCoreSources().record;
+  const descriptor={schema,kind:'library',slug:'flap-motion',version:'0.1.0',title:'Flap Motion',description:'Simple gravity and flap movement.',license:'MIT',libraryKind:'helper',...(schema===2?{coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},coreInput:{version:core.coordinate.version,sourceSha256:core.sourceSha256}}:{})};
   const frozen={schema:1,kind:'library',slug:'flap-motion',version:'0.1.0',repository:{id:'1417021749',ownerId:'7',owner:'student',name:'sky-hop',url:'https://github.com/student/sky-hop'},requester:{githubId:'7',login:'student'},commit,folder:'libraries/flap-motion',descriptor,policyRevision:requestPolicy,sourceDigest};
   const live={id:digest(frozen),frozen,issueIds:['1'],status:'queued',attempts:[],attemptCount:0,releaseKey:null};
   const registry=new FileRegistry({file:join(dir,'registry.json')});
   await registry.update(state=>{state.requests[live.id]=structuredClone(live);});
   const output=join(dir,'output'),components=[{className:'zero.contrib.r1417021749.flap_motion.FlapMotion',description:'Movement',usage:'new FlapMotion()',api:['public void flap()']}];
+  const coreBuild=schema===2?trustedCoreBuild(descriptor,expectedPolicyDigest(),'f'.repeat(64)):undefined;
+  const coordinate={groupId:'ca.codepet.zero.contrib.r1417021749',artifactId:'flap-motion',version:'0.1.0'};
+  const artifacts=schema===2?{jar:Buffer.from(zipSync({'zero/contrib/r1417021749/flap_motion/FlapMotion.class':new Uint8Array([1])})),sources:Buffer.from(zipSync({'zero/contrib/r1417021749/flap_motion/FlapMotion.java':new Uint8Array([1])})),pom:coreLibraryPom(descriptor,coordinate,coreBuild)}:{jar:Buffer.from('jar'),sources:Buffer.from('sources'),pom:Buffer.from('pom')};
   await writeLibraryCheck(output,{record:live,runId,attempt,result:{passed:true,policy:'zero-libraries-v1',policyDigest:expectedPolicyDigest(),sourceDigest,
     image:{id:'sha256:'+'f'.repeat(64),platform:'linux-amd64'},platforms:['linux-amd64'],checks:['bundle','fixed-build','api','behavior','first','second'].map(id=>({id,passed:true})),components,
-    artifacts:{jar:Buffer.from('jar'),sources:Buffer.from('sources'),pom:Buffer.from('pom')}}});
+    artifacts,...(coreBuild?{coreBuild}:{})}});
   const entries={};for(const name of ['receipt.json','jar','sources','pom'])entries[name]=new Uint8Array(await readFile(join(output,name)));
   const archive=Buffer.from(zipSync(entries)),workflow=await reviewedWorkflowBytes();
   const official={run:{id:runId,run_attempt:attempt,repository:{id:100,full_name:'codepetca/zero'},head_repository:{id:100,full_name:'codepetca/zero'},head_branch:'main',head_sha:'e'.repeat(40),event:'schedule',path:'.github/workflows/sharing-libraries.yml'},
@@ -115,6 +120,7 @@ for(const requestPolicy of [policyRevision,compatibleSharedPolicy])test(`verifie
   assert.equal(Object.keys(state.releases).length,1);
   assert.ok(state.catalog?.path.startsWith('catalog/snapshots/'));
   assert.deepEqual(state.requests[live.id].frozen,frozen);assert.equal(release.release.policyRevision,requestPolicy);
+  assert.equal(release.release.schema,schema);if(schema===2){assert.deepEqual(release.release.coreBuild,coreBuild);assert.deepEqual(release.release.coreRequirement,descriptor.coreRequirement);}
 });
 
 test('failed official check job retries infrastructure and pauses after three attempts',async t=>{
@@ -140,12 +146,14 @@ test('old-policy queued libraries never start a managed check while current-poli
  assert.deepEqual(await platform.selectLibraryForCheck(),{requestId:'3'.repeat(64),commit});
 });
 
-test('hosted preparation rejects schema2 core-dependent libraries before source access or execution',async t=>{
+test('hosted preparation reaches source validation for schema2 libraries',async t=>{
  let sourceReads=0;
- const request={...record.frozen,descriptor:{schema:2,kind:'library',coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},coreInput:{version:'0.3.0',sourceSha256:'a'.repeat(64)}}};
- const {platform}=await setup(t,null,{publicationIssue:async()=>({issueState:'open',request}),source:async()=>{sourceReads++;throw Error('Must not fetch source');}});
- await assert.rejects(platform.prepareIssue(1),/schema 2 is not enabled for hosted preparation/);
- assert.equal(sourceReads,0);
+ const descriptor={schema:2,kind:'library',slug:record.frozen.slug,version:record.frozen.version,title:'Demo',description:'A demo',license:'MIT',libraryKind:'helper',coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},coreInput:{version:'0.3.0',sourceSha256:'a'.repeat(64)}};
+ const request={...record.frozen,descriptor};
+ const {platform,registry}=await setup(t,null,{publicationIssue:async()=>({issueState:'open',request}),source:async()=>{sourceReads++;throw Error('Source unavailable');}});
+ await registry.update(state=>{delete state.requests[id];});
+ await assert.rejects(platform.prepareIssue(1),/Source unavailable/);
+ assert.equal(sourceReads,1);
 });
 
 test('unknown and legacy game-only policies never gain library intake, checking or publication authority',async t=>{

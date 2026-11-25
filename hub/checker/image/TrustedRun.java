@@ -2,6 +2,7 @@ package hub.policy;
 import java.lang.reflect.*;
 import java.nio.file.Path;
 import java.security.Permission;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -15,16 +16,27 @@ public final class TrustedRun {
     if (args[0].equals("api")) {
       boolean current = args.length > 1 && (args[1].equals("helper") || args[1].equals("widget"));
       boolean widget = !current || args[1].equals("widget");
-      for (int i = current ? 2 : 1; i < args.length; i++) {
+      boolean core = current && args.length > 2 && args[2].equals("--core");
+      Class<?> element = core ? requireCore() : null;
+      boolean widgetView = false;
+      for (int i = core ? 3 : current ? 2 : 1; i < args.length; i++) {
         Class<?> type = Class.forName(args[i], false, ClassLoader.getSystemClassLoader());
-        if (!Modifier.isPublic(type.getModifiers()) || !Path.of(type.getProtectionDomain().getCodeSource().getLocation().toURI()).equals(Path.of("/input/library.jar"))) throw new AssertionError("Declared public class must originate in built JAR");
-        if (widget) {
+        if (!Modifier.isPublic(type.getModifiers())) throw new AssertionError("Declared class must be public");
+        requireOrigin(type, Path.of("/input/library.jar"));
+        if (widget && core) {
+          for (Method view : type.getMethods()) {
+            if (view.getName().equals("view") && view.getParameterCount() == 0 && !Modifier.isStatic(view.getModifiers())
+                && (Node.class.isAssignableFrom(view.getReturnType()) || element.isAssignableFrom(view.getReturnType())))
+              widgetView = true;
+          }
+        } else if (widget) {
           Method view = type.getMethod("view");
           if ((current ? !Node.class.isAssignableFrom(view.getReturnType()) : view.getReturnType() != Node.class)
               || Modifier.isStatic(view.getModifiers()) || !Modifier.isPublic(view.getModifiers()))
             throw new AssertionError("Each widget needs public Node view()");
         }
       }
+      if (core && widget && !widgetView) throw new AssertionError("A widget needs a public Node or Zero Element view()");
       return;
     }
     // Initialize the JDK's address implementation before candidate execution.
@@ -71,16 +83,48 @@ public final class TrustedRun {
       }
     });
     try {
-      Class<?> entry = Class.forName(args[1]);
+      boolean core = args.length == 4 && (args[3].equals("--core-helper") || args[3].equals("--core-widget"));
+      if (core) requireCore();
+      Class<?> entry = Class.forName(args[1], false, ClassLoader.getSystemClassLoader());
       if (Application.class.isAssignableFrom(entry)) {
         Application.launch(entry.asSubclass(Application.class), new String[0]);
+      } else if (core && args[3].equals("--core-widget")) {
+        var completion = new CompletableFuture<Void>();
+        Platform.startup(() -> {
+          try {
+            runMain(entry);
+            completion.complete(null);
+          } catch (Throwable failure) { completion.completeExceptionally(failure); }
+        });
+        completion.get();
       } else {
-        try { entry.getMethod("main", String[].class).invoke(null, (Object) new String[0]); }
-        catch (InvocationTargetException failure) { throw new Exception("Declared check failed", failure.getCause()); }
-        Platform.exit();
+        runMain(entry);
       }
       if (uncaught.get()) throw new AssertionError("Uncaught candidate exception");
       if (!JarTracker.used()) throw new AssertionError("Consumer never loaded a component from the built JAR");
     } finally { Platform.exit(); }
+  }
+
+  private static void runMain(Class<?> entry) throws Exception {
+    Method main = entry.getMethod("main", String[].class);
+    if (!Modifier.isStatic(main.getModifiers()) || main.getReturnType() != void.class)
+      throw new AssertionError("Use public static void main(String[] args)");
+    try { main.invoke(null, (Object) new String[0]); }
+    catch (InvocationTargetException failure) { throw new Exception("Declared check failed", failure.getCause()); }
+  }
+
+  private static Class<?> requireCore() throws Exception {
+    Path coreJar = Path.of("/opt/zero/zero-core.jar");
+    ClassLoader loader = ClassLoader.getSystemClassLoader();
+    Class<?> element = Class.forName("zero.ui.Element", false, loader);
+    requireOrigin(element, coreJar);
+    requireOrigin(Class.forName("zero.App", false, loader), coreJar);
+    return element;
+  }
+
+  private static void requireOrigin(Class<?> type, Path expected) throws Exception {
+    var source = type.getProtectionDomain().getCodeSource();
+    if (source == null || !Path.of(source.getLocation().toURI()).equals(expected))
+      throw new AssertionError("Class must originate in its checked JAR: " + type.getName());
   }
 }

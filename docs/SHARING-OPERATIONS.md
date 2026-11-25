@@ -135,8 +135,8 @@ libraries. The checker, managed-evidence verifier and workflow files match that
 policy, but current source changes the shared contracts included in the checker
 digest. Compatibility does not establish unchanged checker evidence: acceptance
 requires evidence bound to the actual trusted source and current digest. Publisher
-policy/configuration rollout and core-dependent admission remain separately held;
-website/auth activation does not advance them. This exception keeps installed
+policy/configuration rollout and core-dependent admission require the reviewed
+procedure below; website/auth activation does not advance them. This exception keeps installed
 clients working when publisher source advances to collect dependency observations;
 it does not waive current
 source, screenshot, ownership, official-run or artifact checks. Library queue
@@ -233,6 +233,34 @@ library operator pin. Released0.5.19's compatibility exception remains game-only
 A local0.5.20 candidate supports browser builds from declared editable libraries
 or exact accepted source artifacts, with no local-source fallback for a missing
 published release. A pilot with that client does not update existing installers.
+
+## Current-format rollout
+
+Read-only local verification and source review do not change the production
+pins. Once authorized, deploy the schema-2-aware website first and verify the
+legacy and versioned catalog routes against the same registry. The existing
+`/api/sharing/catalog`, `/web` and `/practice` routes omit schema 2 library
+rows so older editors can still decode the response. Capable editors use
+`/api/sharing/catalog/v2` or `/api/sharing/catalog/v2/practice`. Zero 0.5.86 can
+use a dedicated test profile with its regular catalog URL pointed at v2.
+Older project-owned browser tools need their own deliberate update to the
+current browser tools before resolving current-format releases remotely.
+
+Before accepting any schema 2 request, pause both production sharing
+workflows and drain active jobs. Take a read-only snapshot of the current
+configuration, registry revision and accepted manifest hashes. Pin both
+workflows to the same reviewed revision with the schema-2-aware registry
+reader. Restore the approved gates and verify intake. Use an original,
+explicitly MIT-licensed sample and the normal editor Share form. Verify the
+official intake/check/publish run, immutable catalog/artifacts and Browse/Add
+in a clean second project. Build and exercise the native app and browser
+output from that second project.
+
+If rollout fails after a current-format request reaches the ledger, pause
+library intake and keep the compatible registry readers and public catalog
+projections. Preserve accepted releases, pending delivery and every committed
+registry event. An older reader that rejects the new rows is unsafe as a
+rollback target.
 
 ## Clear tutorial practice listings
 
