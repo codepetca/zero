@@ -152,6 +152,39 @@ test('legacy and web APIs exclude every practice version while explicit practice
   const {readFile}=await import('node:fs/promises');
   assert.match(await readFile(new URL('../app/api/sharing/catalog/practice/route.ts',import.meta.url),'utf8'),/practiceOnly:true/);
 });
+test('mixed schema snapshots preserve legacy readers and expose v2 libraries only to opted-in clients',async()=>{
+  const snapshot=webCatalog(), legacy=practiceRelease('123'), modern={...practiceRelease('999'),schema:2,
+    coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},
+    coreBuild:{version:'0.3.0',sourceSha256:'1'.repeat(64),jarSha256:'2'.repeat(64),buildRecipeSha256:'3'.repeat(64),javaRelease:'17',javafxVersion:'21.0.12'}};
+  // Include ordinary and practice schema-2 releases in one fully validated snapshot.
+  const identity=contracts.identity('library','999','scores');
+  const ordinary={...modern,id:identity.id,slug:identity.slug,namespace:identity.namespace,coordinate:{...identity.coordinate,version:modern.version},source:{...modern.source,folder:'libraries/scores'},artifacts:Object.fromEntries(['jar','sources','pom'].map(kind=>{const path=contracts.artifactPath(identity,modern.version,kind);return [kind,{path,url:env.ZERO_SHARING_ARTIFACT_ORIGIN+'/'+path,size:1,sha256:'e'.repeat(64)}];}))};
+  snapshot.releases.push(legacy,modern,ordinary);
+  const request=new Request('https://zero.codepet.ca/api/sharing/catalog'),reader=async()=>snapshot,visibilityReader=async()=>null;
+  for(const [options,expected] of [[{},[snapshot.releases[0]]],[{includeWeb:true},[snapshot.releases[0]]],[{practiceOnly:true},[legacy]],[{includeWeb:true,includeV2:true},[snapshot.releases[0],ordinary]],[{practiceOnly:true,includeV2:true},[legacy,modern]]]) {
+    const response=await catalogResponse(request,{reader,visibilityReader,...options});assert.equal(response.status,200);
+    const result=await response.json();assert.deepEqual(result.releases,options.includeWeb||options.practiceOnly?expected:expected.map(({web,...item})=>item));
+  }
+  // Invisible current-format rows cannot exhaust a legacy route's repository binding budget.
+  let destinationReads=0;
+  const now=Date.now(),onlyModern={...snapshot,releases:[ordinary]};
+  const guarded={
+    reader:async()=>onlyModern,
+    visibilityReader:async()=>({revision:'a'.repeat(40),observedAt:now,isHeld:()=>false}),
+    decisionNow:()=>now,
+    destinationReader:async()=>{destinationReads++;throw Error('Current-format repository unavailable');}
+  };
+  const legacyResponse=await catalogResponse(request,{...guarded,includeWeb:true});
+  assert.equal(legacyResponse.status,200);
+  assert.deepEqual((await legacyResponse.json()).releases,[]);
+  assert.equal(destinationReads,0);
+  assert.equal((await catalogResponse(request,{...guarded,includeWeb:true,includeV2:true})).status,503);
+  assert.equal(destinationReads,1);
+  const broken=structuredClone(snapshot);broken.releases[2].coreBuild.jarSha256='invalid';
+  for(const options of [{},{includeWeb:true},{practiceOnly:true},{includeV2:true}]) assert.equal((await catalogResponse(request,{reader:async()=>broken,visibilityReader,...options})).status,503);
+  const {readFile}=await import('node:fs/promises');
+  for(const path of ['v2/route.ts','v2/practice/route.ts']) assert.match(await readFile(new URL(`../app/api/sharing/catalog/${path}`,import.meta.url),'utf8'),/includeV2:true/);
+});
 test('hidden practice and nonpractice records are validated before either API partitions the snapshot',async()=>{
   for(const practiceOnly of [false,true])for(const includeWeb of [false,true]) {
     const invalidPractice=webCatalog();invalidPractice.releases.push({...practiceRelease(),status:'invalid'});

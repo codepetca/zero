@@ -1,9 +1,13 @@
 """Fixed trusted policy. Candidate Java is only loaded in separately invoked runtime stages."""
-import base64, json, pathlib, subprocess, sys, zipfile, io, os
+import base64, hashlib, json, pathlib, subprocess, sys, zipfile, io, os
 ROOT=pathlib.Path('/input'); TMP=pathlib.Path('/tmp/work'); TMP.mkdir()
 FX='/opt/javafx'; MODULES='javafx.controls,javafx.swing'
 d=json.loads((ROOT/'descriptor.json').read_text())
 current=d.get('schema')==2
+core=current and 'coreInput' in d
+CORE_JAR='/opt/zero/zero-core.jar'
+if core:
+    MODULES+=',javafx.media'
 namespace=d['namespace'] if current else 'zero.'+d['libraryId']
 names=d['classes'] if current else [namespace+'.'+c['className'] for c in d['components']]
 source_root=ROOT/'src/main/java' if current else ROOT/'src'
@@ -26,8 +30,8 @@ try:
  if mode=='build':
     sources=sorted(source_root.rglob('*.java'))
     checks=sorted((ROOT/'src/test/java').rglob('*.java'))+sorted((ROOT/'examples/first').rglob('*.java'))+sorted((ROOT/'examples/second').rglob('*.java')) if current else [ROOT/'checks/BehaviorCheck.java',ROOT/'examples/first/Main.java',ROOT/'examples/second/Main.java']
-    run(['java','--module-path',FX+':/policy/checker.jar','--module','zero.hub.checker/hub.policy.Boundary',namespace]+[str(s) for s in sources+checks])
-    out=TMP/'classes';out.mkdir();javac(sources,out)
+    run(['java','--module-path',FX+':/policy/checker.jar','--module','zero.hub.checker/hub.policy.Boundary',namespace]+(['--core'] if core else [])+[str(s) for s in sources+checks])
+    out=TMP/'classes';out.mkdir();javac(sources,out,CORE_JAR if core else None)
     entries={'META-INF/LICENSE':(ROOT/'LICENSE').read_bytes(),'META-INF/MANIFEST.MF':b'Manifest-Version: 1.0\r\n\r\n'}
     allowed={n.replace('.','/')+'.class' for n in names}
     found=set()
@@ -57,18 +61,21 @@ try:
             if len(api)>100 or any(len(signature)>1000 for signature in api): raise ValueError('Public API exceeds checked inventory bounds')
             components.append({'className':name,'description':'','usage':'','api':api[:100]})
         if len(json.dumps(components).encode())>16384: raise ValueError('Public API inventory exceeds checked metadata bounds')
-    print(json.dumps({'jar':base64.b64encode(jar).decode(),'sources':base64.b64encode(archive(src)).decode(),**({'components':components} if current else {})}))
+    output={'jar':base64.b64encode(jar).decode(),'sources':base64.b64encode(archive(src)).decode()}
+    if current: output['components']=components
+    if core: output['coreJarSha256']=hashlib.sha256(pathlib.Path(CORE_JAR).read_bytes()).hexdigest()
+    print(json.dumps(output))
  else:
-    cp='/input/library.jar'; args=['java','-Xmx256m','-XX:ActiveProcessorCount=1','-Djava.library.path=/opt/javafx/native','-Djavafx.cachedir=/opt/javafx/native','-Dprism.order=sw','--module-path',FX+':/policy/checker.jar','--add-modules',MODULES]
+    cp=(CORE_JAR+':' if core else '')+'/input/library.jar'; args=['java','-ea','-Xmx256m','-XX:ActiveProcessorCount=1','-Djava.library.path=/opt/javafx/native','-Djavafx.cachedir=/opt/javafx/native','-Dprism.order=sw','--module-path',FX+':/policy/checker.jar','--add-modules',MODULES]
     if mode=='api':
-        run(args+['-cp',cp,'--module','zero.hub.checker/hub.policy.TrustedRun','api']+([d['libraryKind']] if current else [])+names)
+        run(args+['-cp',cp,'--module','zero.hub.checker/hub.policy.TrustedRun','api']+([d['libraryKind']] if current else [])+(['--core'] if core else [])+names)
     else:
         source_dir=ROOT/('src/test/java' if mode=='behavior' else 'examples/'+mode) if current else None
         sources=sorted(source_dir.rglob('*.java')) if current else [ROOT/('checks/BehaviorCheck.java' if mode=='behavior' else 'examples/'+mode+'/Main.java')]
-        out=TMP/'consumer';out.mkdir();javac(sources,out,'/input/library.jar')
+        out=TMP/'consumer';out.mkdir();javac(sources,out,cp)
         # No component source or build output on consumers' classpath: exact immutable JAR only.
         for main in groups[mode]:
-            one=args+['-javaagent:/policy/checker.jar='+namespace+'|/input/library.jar','-cp',cp+':'+str(out),'--module','zero.hub.checker/hub.policy.TrustedRun',mode,main,namespace]
+            one=args+['-javaagent:/policy/checker.jar='+namespace+'|/input/library.jar','-cp',cp+':'+str(out),'--module','zero.hub.checker/hub.policy.TrustedRun',mode,main,namespace]+(['--core-'+d['libraryKind']] if core else [])
             run(['xvfb-run','--auto-servernum','--server-args=-screen 0 1024x768x24 -nolisten tcp']+one)
 except Exception as failure:
     print(str(failure),file=sys.stderr);sys.exit(1)

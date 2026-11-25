@@ -277,6 +277,7 @@ async function practiceShareFixture(t,{slug=practiceSlug,...options}={}) {
  const f=await fixture(t,options),descriptor={schema:2,kind:'library',slug,version:'0.1.0',title:'CreditsBadge',description:'Tutorial badge exercise',license:'MIT',libraryKind:'widget',coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},coreInput:{version:'0.3.0',sourceSha256:'1'.repeat(64)}};
  await fs.writeFile(path.join(f.root,'zero.json'),JSON.stringify(coinMarker));
  const folder=`libraries/${slug}`;await fs.mkdir(path.join(f.root,folder),{recursive:true});await fs.writeFile(path.join(f.root,folder,'zero-library.json'),JSON.stringify(descriptor));
+ await fs.writeFile(path.join(f.root,folder,'LICENSE'),'MIT License\n\nCopyright (c) 2026 Student\n\n'+require('../src/sharing/library-license').MIT_BODY);
  const library={slug,folder,mode:'local',descriptor,identity:require('../src/sharing/contracts').identity('library',repository.id,slug)};
  const api={...authoring,discoverLibraries:async()=>[library]};
  const git=async(root,args)=>args[0]==='show'?JSON.stringify(descriptor):f.git(root,args);
@@ -312,6 +313,19 @@ test('Share library allows only exact Coin tutorial practice and labels the expl
  for(const slug of ['credits-badge','tutorial-credits-badge-extra']){const blocked=await practiceShareFixture(t,{slug,approval:'Open GitHub form'});await assert.rejects(blocked.editor.commands['zero.shareLibrary'](),/separate original project/);assert.equal(blocked.opened.length,0);}
  for(const marker of [{tutorialProjectId:'greeting',lessonId:'0',repositoryRequired:true},{tutorialProjectId:'study',lessonId:'3',repositoryRequired:true}]){await fs.writeFile(path.join(f.root,'zero.json'),JSON.stringify(marker));await assert.rejects(f.editor.commands['zero.shareLibrary'](),/separate original project/);}
  await fs.writeFile(path.join(f.root,'zero.json'),JSON.stringify(coinMarker));await assert.rejects(f.editor.commands['zero.shareGame'](),/separate original project/);
+});
+test('MIT preflight matches the hosted license shape',()=>{
+ const {MIT_BODY,isCompleteMitLicense}=require('../src/sharing/library-license');
+ const valid='MIT License\n\nCopyright (c) 2026 Student\n\n'+MIT_BODY;
+ assert.equal(isCompleteMitLicense(valid),true);
+ for(const value of [null,'MIT',valid.replace('Copyright (c) 2026 Student','Copyright'),valid.slice(0,-1),'\uFEFF'+valid,valid.replaceAll('\n','\r\n')])assert.equal(isCompleteMitLicense(value),false);
+});
+test('Share stops early for the copied project license without changing either license',async t=>{
+ const f=await practiceShareFixture(t,{approval:'Open GitHub form'}),libraryLicense=path.join(f.root,f.library.folder,'LICENSE'),projectLicense=path.join(f.root,'LICENSE');
+ const copied='Project license: all rights reserved';await fs.writeFile(projectLicense,copied);await fs.writeFile(libraryLicense,copied);
+ await assert.rejects(f.editor.commands['zero.shareLibrary'](),/complete MIT license with a copyright line.*libraries\/tutorial-credits-badge\/LICENSE/);
+ assert.equal(await fs.readFile(projectLicense,'utf8'),copied);assert.equal(await fs.readFile(libraryLicense,'utf8'),copied);
+ assert.equal(f.opened.length,0);assert.equal(f.stats().sources,0);
 });
 test('practice Share keeps cancellation, dirty source, trust, ownership, metadata and review revalidation gates',async t=>{
  for(const scenario of ['cancel','dirty','unsaved','trust','owner','marker','account','head','metadata']) {
@@ -354,11 +368,11 @@ test('normal browse excludes raw practice fixtures, while explicit practice brow
   f.vscode.window.showQuickPick=async(entries,options)=>{if(options.title.includes('libraries'))assert.equal(entries.length,1);return entries[0];};
   const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[practice,ordinary]},catalogUrl:settings.catalogUrl};},planChange:async(_root,context,release)=>{selected=release;return {beforeText:before,afterText:before+'<!-- exact pin -->'};},validatePlan:async(_plan,context)=>{assert.equal(context.catalogUrl,observed.catalogUrl);validated++;}}});
   await editor.commands[command]();assert.equal(selected,command==='zero.browseHub'?ordinary:practice);assert.equal(validated,1);
-  assert.equal(new URL(observed.catalogUrl).pathname,command==='zero.browseHub'?'/api/sharing/catalog/web':'/api/sharing/catalog/practice');
+  assert.equal(new URL(observed.catalogUrl).pathname,command==='zero.browseHub'?'/api/sharing/catalog/v2':'/api/sharing/catalog/v2/practice');
  }
  const f=await fixture(t);let loaded=false;
  f.vscode.window.showQuickPick=async entries=>entries.find(entry=>entry.command==='zero.browseTutorialPractice');
- const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async settings=>{loaded=true;assert.match(settings.catalogUrl,/\/catalog\/practice$/);return {catalog:{releases:[]}};}}});
+ const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async settings=>{loaded=true;assert.match(settings.catalogUrl,/\/catalog\/v2\/practice$/);return {catalog:{releases:[]}};}}});
  await editor.commands['zero.sharingActions']();assert.equal(loaded,true);assert.equal(f.opened.length,0);
 });
 test('published practice mode uses its catalog for exact-version selection and review revalidation',async t=>{
@@ -368,7 +382,7 @@ test('published practice mode uses its catalog for exact-version selection and r
   const api={...authoring,discoverLibraries:async()=>[f.library],previewMode:async(_root,options)=>{assert.equal(options.publishedRelease,release);return {changes:[{path:'pom.xml',before:'original',after:'published'}]};},applyPlan:async()=>{applied++;}};
   const editor=f.makeEditor({authoring:api,consumer:{loadCatalog:async settings=>{urls.push(settings.catalogUrl);return {artifactOrigin:'https://files.example',fingerprint:drift&&urls.length>1?'changed':'stable',catalog:{releases:[release]}};},verifyLibrary:async()=>{verified++;},addArtifactRepository:text=>text}});
   if(drift)await assert.rejects(editor.commands['zero.switchLibraryMode'](),/catalog changed during mode review/);else await editor.commands['zero.switchLibraryMode']();
-  assert.equal(urls.length,2);assert.ok(urls.every(url=>url.endsWith('/catalog/practice')));assert.equal(verified,drift?1:2);assert.equal(applied,drift?0:1);
+  assert.equal(urls.length,2);assert.ok(urls.every(url=>url.endsWith('/catalog/v2/practice')));assert.equal(verified,drift?1:2);assert.equal(applied,drift?0:1);
  }
 });
 test('practice discovery groups repository identities before deliberate exact-version and revert selection',async t=>{

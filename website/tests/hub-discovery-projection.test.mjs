@@ -48,6 +48,15 @@ test('active mixed projection hides held metadata while retaining submitted Page
   assert.deepEqual(contracts.validateCatalog(body.catalog),body.catalog);
 });
 
+test('discovery exposes schema-2 libraries while enforcing Jam holds',async()=>{
+ const modern={...library(),schema:2,coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},
+   coreBuild:{version:'0.3.0',sourceSha256:'1'.repeat(64),jarSha256:'2'.repeat(64),buildRecipeSha256:'3'.repeat(64),javaRelease:'17',javafxVersion:'21.0.12'}};
+ const visible=await invoke({catalogReader:async()=>snapshot([modern])});
+ assert.deepEqual(visible.body.catalog.releases,[modern]);
+ const held=await invoke({catalogReader:async()=>snapshot([modern]),visibilityReader:async()=>decision(['456'])});
+ assert.deepEqual(held.body.catalog.releases,[]);
+});
+
 test('maintained custom-domain links survive source binding, but held cards remain hidden',async()=>{
   const custom=project();custom.web.url='https://games.example/student/';
   const visible=await invoke({projects:[custom]});

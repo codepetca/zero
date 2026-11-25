@@ -4,6 +4,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { policyDigest as currentPolicyDigest, imageFiles } from './image-policy.mjs';
 import { spawnSync } from 'node:child_process';
+import { trustedCoreSources } from './core-policy.mjs';
 const root=dirname(fileURLToPath(import.meta.url));
 const arch=process.argv[2] || (process.arch==='arm64'?'arm64':'amd64');
 if(!['arm64','amd64'].includes(arch))throw Error('Expected arm64 or amd64');
@@ -12,6 +13,12 @@ const dir=await mkdtemp(join(scratch,'image-'));await mkdir(join(dir,'javafx'));
 const lock=JSON.parse(await readFile(join(root,'dependencies.json'),'utf8'));
 try {
  for(const name of imageFiles) {const bytes=await readFile(join(root,'image',name));await writeFile(join(dir,name),bytes);}
+ const {sources:coreSources}=trustedCoreSources();
+ for(const [name,source] of Object.entries(coreSources)) {
+  const filename=join(dir,'core-source',name);
+  await mkdir(dirname(filename),{recursive:true});
+  await writeFile(filename,source);
+ }
  const policyDigest=await currentPolicyDigest();
  for(const [name,entry] of Object.entries(lock)) {
   if(!name.endsWith((arch==='arm64'?'linux-aarch64':'linux')+'.jar'))continue;

@@ -298,10 +298,13 @@ not another compiled game. Existing versioned source-project ZIPs still use
 ZeroHub artifact storage and include the project assets. Withdrawn games have no
 Play action.
 
-New kits use `/api/sharing/catalog/web`; the original catalog endpoint validates
+Capable new kits use `/api/sharing/catalog/v2` for current-format libraries.
+Released older kits can still use `/api/sharing/catalog/web` for schema 1
+releases and approved Play links. The original catalog endpoint validates
 the same data and projects out optional web receipts for older strict clients.
-Rollout requires coordinated website/checker policy deployment and a new kit;
-existing published kits and the inactive public publication policy remain unchanged.
+Install the compatible catalog before switching the checked publisher policy.
+An existing schema-2-capable editor can use the v2 catalog through its pilot
+profile setting. A future kit can supply the new path as its default.
 
 ## Storage and distribution
 

@@ -3,6 +3,9 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { unzipSync } from 'fflate';
 import { digest } from './registry.mjs';
+import contracts from '../extension/src/sharing/contracts.js';
+import jars from '../extension/src/sharing/jar.js';
+import { validateTrustedCoreBuild, coreLibraryPom } from '../hub/checker/core-policy.mjs';
 
 export const LIBRARY_WORKFLOW = '.github/workflows/sharing-libraries.yml';
 export const LIBRARY_REPOSITORY = 'codepetca/zero';
@@ -24,6 +27,9 @@ export async function writeLibraryCheck(dir, {record, result, runId, attempt}) {
   const preflightFailure=!result.passed && result.checks?.length===1 && result.checks[0]?.id==='source' && result.checks[0]?.passed===false;
   if (typeof result.policy !== 'string' || !hex64.test(result.policyDigest) || !result.image || !(preflightFailure && result.image.id===null && result.image.platform===null) && (!/^sha256:[a-f0-9]{64}$/.test(result.image.id) || !/^linux-(amd64|arm64)$/.test(result.image.platform))) throw new Error('Checker image provenance missing');
   if (!Array.isArray(result.checks) || !Array.isArray(result.platforms) || !(preflightFailure && result.platforms.length===0) && (result.platforms.length!==1 || result.platforms[0]!==result.image.platform)) throw new Error('Checker checks/platform missing');
+  const coreDependent = record.frozen.descriptor?.schema === 2;
+  if (result.passed && coreDependent) validateTrustedCoreBuild(result.coreBuild, record.frozen.descriptor, result.policyDigest);
+  else if (result.coreBuild !== undefined) throw new Error('Unexpected checker core build');
   const name = libraryArtifactName(runId, attempt, record.id);
   const artifacts = result.passed ? result.artifacts : undefined;
   if (result.passed && (!artifacts?.jar || !artifacts?.sources || !artifacts?.pom || !Array.isArray(result.components))) throw new Error('Passing checker omitted artifacts/components');
@@ -37,7 +43,7 @@ export async function writeLibraryCheck(dir, {record, result, runId, attempt}) {
     sourceDigest:record.frozen.sourceDigest, commit:record.frozen.commit, policyRevision:record.frozen.policyRevision,
     checkerPolicy:result.policy, checkerPolicyDigest:result.policyDigest, image:result.image,
     checks:result.checks, platforms:result.platforms, artifacts:hashes,
-    ...(result.passed?{components:result.components,componentsDigest:digest(result.components)}:{})};
+    ...(result.passed?{components:result.components,componentsDigest:digest(result.components),...(coreDependent?{coreBuild:result.coreBuild}:{})}:{})};
   const serialized = Buffer.from(JSON.stringify(receipt));
   if (serialized.length > MAX_RECEIPT) throw new Error('Checker receipt exceeds limit');
   await mkdir(dir,{recursive:true,mode:0o700});
@@ -95,7 +101,15 @@ export function verifyOfficialLibraryEvidence({record,official,runId,attempt,art
   if (receipt.status==='passed') {
     if (receipt.checks.length!==stageOrder.length || ['jar','sources','pom'].some(kind=>!artifacts[kind]) || !Array.isArray(receipt.components) || digest(receipt.components)!==receipt.componentsDigest || receipt.checks.some(check=>check.passed!==true)) throw new Error('Passing managed checker evidence is incomplete');
   } else if (Object.keys(artifacts).length || receipt.checks.every(check=>check.passed===true)) throw new Error('Failed managed checker evidence is inconsistent');
-  return {receipt,artifacts,components:receipt.components};
+  const coreDependent=record.frozen.descriptor?.schema===2;
+  if (receipt.status==='passed' && coreDependent) {
+    validateTrustedCoreBuild(receipt.coreBuild, record.frozen.descriptor, expectedPolicyDigest);
+    const ident=contracts.identity('library',record.frozen.repository.id,record.frozen.slug);
+    const coordinate={...ident.coordinate,version:record.frozen.version};
+    if (!artifacts.pom.equals(coreLibraryPom(record.frozen.descriptor,coordinate,receipt.coreBuild))) throw new Error('Managed checker POM differs from fixed core policy');
+    for (const [artifact,kind] of [['jar','binary'],['sources','sources']]) jars.inspectLibraryJar(artifacts[artifact],{namespace:ident.namespace,coordinate,kind});
+  } else if (receipt.coreBuild !== undefined) throw new Error('Unexpected managed checker core build');
+  return {receipt,artifacts,components:receipt.components,...(coreDependent && receipt.status==='passed'?{coreBuild:receipt.coreBuild}:{})};
 }
 
 export function verifyOfficialLibraryRun({record,official,runId,attempt,reviewedWorkflow,expectedConclusion}) {

@@ -1,5 +1,6 @@
 import contracts from '../extension/src/sharing/contracts.js';
 import { canonical } from './registry.mjs';
+import { requireTrustedCoreInput } from '../hub/checker/core-policy.mjs';
 import { checkLibrarySubmission, expectedPolicyDigest, LIBRARY_POLICY, validateLibraryBundle } from '../hub/checker/runner.mjs';
 
 const HEX64=/^[a-f0-9]{64}$/;
@@ -31,6 +32,14 @@ export function prepareLibraryBundle({request,files,sourceDigest}){
   if(!descriptorBytes)throw sourceError('Committed library descriptor missing');
   let descriptor;try{descriptor=contracts.validateDescriptor(JSON.parse(text(descriptorBytes,'zero-library.json')));}catch{throw sourceError('Committed library descriptor is invalid');}
   if(canonical(descriptor)!==canonical(checked.descriptor))throw sourceError('Committed library descriptor differs from the frozen request');
+  const core = descriptor.schema === 2
+    ? {coreRequirement: descriptor.coreRequirement, coreInput: descriptor.coreInput}
+    : {};
+  if (descriptor.schema === 2) {
+    if (descriptor.license !== 'MIT') throw sourceError('Share an original contribution with an explicit MIT license.');
+    try { requireTrustedCoreInput(descriptor); }
+    catch { throw sourceError('Library needs the reviewed Zero core version and exact source.'); }
+  }
   const license=byPath.get('LICENSE');if(!license)throw sourceError('Library license missing');selected.LICENSE=text(license,'LICENSE');
   const groups={behavior:[],first:[],second:[]},classes=[];
   for(const [path,bytes] of byPath){
@@ -53,7 +62,7 @@ export function prepareLibraryBundle({request,files,sourceDigest}){
   if(!classes.length||Object.values(groups).some(names=>!names.length))throw sourceError('Library source, behavior check and two examples with main methods are required');
   let preview;
   if(descriptor.preview){preview=byPath.get(descriptor.preview);if(!preview)throw sourceError('Committed library preview missing');selected['preview.png']=preview.toString('base64');}
-  const bundle={descriptor:{schema:2,kind:'library',slug:checked.slug,version:checked.version,namespace:identity.namespace,coordinate:identity.coordinate,libraryKind:descriptor.libraryKind,classes:classes.sort(),groups:Object.fromEntries(Object.entries(groups).map(([key,names])=>[key,names.sort()]))},files:selected};
+  const bundle={descriptor:{schema:2,kind:'library',slug:checked.slug,version:checked.version,namespace:identity.namespace,coordinate:identity.coordinate,libraryKind:descriptor.libraryKind,...core,classes:classes.sort(),groups:Object.fromEntries(Object.entries(groups).map(([key,names])=>[key,names.sort()]))},files:selected};
   validateLibraryBundle(bundle);
   return {bundle,preview};
 }

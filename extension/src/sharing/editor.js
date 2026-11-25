@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('node:fs/promises');const {constants}=require('node:fs');const path=require('node:path');const {randomUUID}=require('node:crypto');
 const {validateGamePreview,MAX_BYTES}=require('./game-preview');
+const {isCompleteMitLicense}=require('./library-license');
 const {readProjectModel,ordinaryEntries}=require('../project-explorer-model');
 const {SLUG: PRACTICE_SLUG,isTutorialPractice,practiceCatalogUrl}=require('./tutorial-practice');
 const core=require('../core');const {assertShareable,assertOriginalProject,assertContributionProject,tutorialMarker}=require('../lesson-projects');const c=require('./contracts');const authoring=require('./authoring');const checks=require('./local-check');const consumer=require('./consumer');const ownedLibrary=require('./owned-library');const {createGitHubReader}=require('./github');const {parseXml,single,value}=require('../project-pom');
@@ -64,7 +65,7 @@ function createSharingEditor(vscode,host,options={}) {
   // activation instead of silently falling back to an accepted bundled origin.
   return configuration.get(key,undefined)??bundledValue??fallback;
  }
- const settings=()=>({catalogUrl:operatorSetting('sharingCatalogUrl',bundled.catalogUrl,'https://zero.codepet.ca/api/sharing/catalog/web'),artifactOrigin:operatorSetting('sharingArtifactOrigin',bundled.artifactOrigin,'')});
+ const settings=()=>({catalogUrl:operatorSetting('sharingCatalogUrl',bundled.catalogUrl,'https://zero.codepet.ca/api/sharing/catalog/v2'),artifactOrigin:operatorSetting('sharingArtifactOrigin',bundled.artifactOrigin,'')});
  const catalogSettings=practice=>{const configured=settings();return practice?{...configured,catalogUrl:practiceCatalogUrl(configured.catalogUrl)}:configured;};
  const practiceDetail=descriptor=>isTutorialPractice(descriptor)?'Tutorial practice · copied CreditsBadge exercise. Listed separately from original contributions.\n':'';
  async function current(root){if(await host.project()!==root)fail('The project changed during review. Prepare this action again.');assertSaved(vscode,root);}
@@ -244,6 +245,13 @@ function createSharingEditor(vscode,host,options={}) {
   let selectedLibrary;if(kind==='library'){selectedLibrary=await pickLibrary(root,context);if(!selectedLibrary)return;folder=selectedLibrary.folder;filename=`${folder}/zero-library.json`;descriptor=selectedLibrary.descriptor;}else descriptor=await gameDescriptor(root,creation);
   if(!descriptor)return;
   await assertContributionProject(root,descriptor);
+  async function checkLibraryLicense() {
+   if(kind!=='library'||descriptor.schema!==2)return;
+   const filename=`${folder}/LICENSE`;
+   const license=await authoring.read(root,filename,true);
+   if(descriptor.license!=='MIT'||!isCompleteMitLicense(license))fail(`To share this library, set its sharing license to MIT and provide the complete MIT license with a copyright line in ${filename}. Only do this if you have the right to license the contribution under MIT. The project LICENSE is unchanged.`);
+  }
+  await checkLibraryLicense();
   if(kind==='game'&&!descriptor.preview){const preview=await gameScreenshot(root);if(!preview)return;descriptor={...descriptor,preview};if(await saveDescriptor(root,filename,descriptor)===false)return;}
   if(!creation.created) {
    const requestedVersion=await input('Sharing version',descriptor.version,c.validateVersion);if(!requestedVersion)return;
@@ -270,6 +278,7 @@ function createSharingEditor(vscode,host,options={}) {
   async function prepare() {
    trusted(vscode);await current(root);if(selectedLibrary)await selectedStillCurrent(root,selectedLibrary,context);
    if((await api.git(root,['status','--porcelain','-z'])).length)fail('Commit & push your changes before sharing this version.');
+   await checkLibraryLicense();
    const resolved=await freshRepository(),commit=(await api.git(root,['rev-parse','HEAD'])).trim();
    if(!/^[a-f0-9]{40}$/.test(commit))fail('Commit & push your first version before sharing.');
    const saved=c.validateDescriptor(JSON.parse(await authoring.read(root,filename)));

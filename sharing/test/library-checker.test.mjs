@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prepareLibraryBundle, checkLibrarySource } from '../library-checker.mjs';
+import { trustedCoreSources } from '../../hub/checker/core-policy.mjs';
 import { validateLibraryBundle, expectedLibraryPom, MIT_BODY, LIBRARY_POLICY } from '../../hub/checker/policy.mjs';
 
 export function fixture(){
@@ -18,6 +19,70 @@ export function fixture(){
   };
   return {request,sourceDigest:'c'.repeat(64),files:Object.entries(values).map(([path,value])=>({path,bytes:Buffer.from(value)}))};
 }
+
+export function coreWidgetFixture() {
+  const input=fixture(), {record}=trustedCoreSources();
+  const namespace='zero.contrib.r1417021749.flap_motion';
+  const descriptor={
+    ...input.request.descriptor,schema:2,libraryKind:'widget',
+    coreRequirement:{minVersion:'0.3.0',maxExclusive:'0.4.0'},
+    coreInput:{version:record.coordinate.version,sourceSha256:record.sourceSha256}
+  };
+  input.request.descriptor=descriptor;
+  input.files.find(file=>file.path==='zero-library.json').bytes=Buffer.from(JSON.stringify(descriptor));
+  const packagePath=namespace.replaceAll('.','/');
+  input.files.find(file=>file.path.endsWith('FlapMotion.java')).bytes=Buffer.from(`
+package ${namespace};
+public final class FlapMotion implements FlapView {
+  private final zero.ui.Label label = new zero.ui.Label("Ready");
+  public zero.ui.Element view() { return label; }
+}
+`);
+  input.files.push({
+    path:`src/main/java/${packagePath}/FlapView.java`,
+    bytes:Buffer.from(`package ${namespace}; public interface FlapView { zero.ui.Element view(); }`)
+  });
+  for (const file of input.files.filter(file=>file.path.startsWith('src/test/') || file.path.startsWith('examples/'))) {
+    const name=file.path.split('/').at(-1).slice(0,-5);
+    file.bytes=Buffer.from(`
+import ${namespace}.FlapMotion;
+public class ${name} {
+  public static void main(String[] args) {
+    assert javafx.application.Platform.isFxApplicationThread();
+    var view = new FlapMotion().view();
+    assert view instanceof zero.ui.Label;
+    assert view.fxNode() instanceof javafx.scene.control.Label;
+  }
+}
+`);
+  }
+  return input;
+}
+
+test('core-dependent adapter preserves exact core input and accepts public companion interfaces',()=>{
+  const input=coreWidgetFixture(), {bundle}=prepareLibraryBundle(input);
+  assert.deepEqual(bundle.descriptor.coreInput,input.request.descriptor.coreInput);
+  assert.deepEqual(bundle.descriptor.coreRequirement,input.request.descriptor.coreRequirement);
+  assert.equal(bundle.descriptor.classes.length,2);
+  assert.ok(Object.keys(bundle.files).every(name=>!name.startsWith('src/main/java/zero/ui/')));
+});
+
+test('rejects an unreviewed core or a check declaring types in the core namespace',()=>{
+  const wrongCore=coreWidgetFixture();
+  wrongCore.request.descriptor.coreInput.sourceSha256='f'.repeat(64);
+  wrongCore.files.find(file=>file.path==='zero-library.json').bytes=Buffer.from(JSON.stringify(wrongCore.request.descriptor));
+  assert.throws(()=>prepareLibraryBundle(wrongCore),/reviewed Zero core version and exact source/);
+  const shadow=coreWidgetFixture(), check=shadow.files.find(file=>file.path==='src/test/java/LibraryCheck.java');
+  check.path='src/test/java/zero/ui/LibraryCheck.java';
+  check.bytes=Buffer.from('package zero.ui; '+check.bytes.toString());
+  assert.throws(()=>prepareLibraryBundle(shadow),/reserved Zero namespace/);
+});
+
+test('reports extra terms in a current-format contribution license',()=>{
+  const input=coreWidgetFixture(), license=input.files.find(file=>file.path==='LICENSE');
+  license.bytes=Buffer.from(license.bytes.toString().replace(MIT_BODY,'Additional restrictions.\n\n'+MIT_BODY));
+  assert.throws(()=>prepareLibraryBundle(input),/Full MIT license required/);
+});
 
 test('current library bundle binds identity and uses fixed compiler inputs',()=>{
   const input=fixture(),{bundle}=prepareLibraryBundle(input);

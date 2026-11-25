@@ -80,17 +80,16 @@ runtime/profile must remain traceable in both targets. Imported library bodies
 are checked even when a method is unused; moving a native-only call behind an
 unused method is not a portability mechanism.
 
-The local unreleased core-dependent path now uses project-owned zero-core.json
-and schema2 library metadata. Check builds a separate core JAR, using it as a
-provided compile dependency; an importing app retains its own core source at
-runtime. A semantic requirement describes acceptable consumer versions, while
+Current projects use a project-owned `zero-core.json` and schema 2 library
+metadata. Local Check and the managed checker build separate core JARs from
+reviewed sources. An importing app uses its own core source at runtime. A semantic requirement describes acceptable consumer versions, while
 exact source/JAR/recipe hashes describe the checked build. New project extraction
 writes this metadata automatically. Existing schema1 libraries remain supported.
 
 Text/bar ScoreView implementations now pass real local-source and exact-artifact
 App/GameApp consumers, native JAR checks and four WebFX exports/browser tests.
-This is local acceptance with a disposable artifact fixture, not a public release
-or hosted checker admission. Hosted schema2 checking remains explicitly gated.
+These local checks use disposable library artifacts. Public publication of
+current-format libraries requires a reviewed hosted policy rollout.
 Replaceable animation is the next slice. Current native-only samples such as the
 ProgressBar health bar do not establish a portable widget.
 
@@ -140,6 +139,11 @@ change that request. The pilot requires public repositories owned by the
 requesting student’s personal account; private/organization/team publication
 needs a later policy.
 
+For a current-format library, Share checks the library folder's `LICENSE` and
+sharing details before opening the request. Use a complete MIT license with
+your copyright notice for code you have the right to share. Keep the project's
+Zero framework license in place.
+
 An accepted version’s source never changes. Correct failed unpublished source
 and submit its new commit; fixes to accepted releases use a new version.
 Contributor-supplied workflow results or claimed acceptance are not authority.
@@ -154,11 +158,12 @@ that fixed pointer and validates its exact artifact origin, digest and revision;
 there is no Neon database or website OAuth session on this read path.
 
 The automatic-publication design separates trusted checking from publication.
-Public library checking remains blocked by the unresolved checker acceptance
-gate. Moving execution to managed CI does not remove that gate. This local
-replacement does not activate public publication or prove a hosted candidate
-executor. A request alone is not an available release; failed or unavailable
-checks must never create one. See [the adoption plan](GITHUB-SHARING-PLAN.md) and
+The reviewed checker can build current-format libraries against the canonical
+core in its policy checkout. A passing receipt binds the source, tools, core
+JAR, provided Maven dependency and exact output. ZeroHub retains only the
+contribution artifacts. Older catalog routes keep their existing format.
+Current-format releases appear in the versioned catalog after rollout.
+See [sharing operations](SHARING-OPERATIONS.md#current-format-rollout) and the
 [sharing contract](../sharing/CONTRACT.md).
 
 Automatically checked can only mean the disclosed accepted checks actually

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkLibrarySource } from '../library-checker.mjs';
-import { fixture } from './library-checker.test.mjs';
+import { coreWidgetFixture, fixture } from './library-checker.test.mjs';
 
 const enabled=process.env.ZERO_DOCKER_TEST==='1';
 test('current helper builds deterministic Maven artifacts and each independent consumer runs',{skip:!enabled},async()=>{
@@ -49,4 +49,33 @@ test('namespaced resources are included in the checked binary and source artifac
   assert.ok(result.artifacts.jar.includes(Buffer.from('zero/contrib/r1417021749/flap_motion/setting.txt')));
   assert.ok(result.artifacts.sources.includes(Buffer.from('zero/contrib/r1417021749/flap_motion/setting.txt')));
   assert.ok(result.artifacts.jar.includes(Buffer.from('flap=5\n')));
+});
+
+test('core-dependent widget uses Element and separate JAR on the JavaFX thread',{skip:!enabled},async()=>{
+  const input=coreWidgetFixture();
+  const result=await checkLibrarySource(input);
+  assert.equal(result.passed,true,JSON.stringify(result.checks));
+  assert.equal(result.coreBuild.sourceSha256,input.request.descriptor.coreInput.sourceSha256);
+  assert.match(result.coreBuild.jarSha256,/^[a-f0-9]{64}$/);
+  assert.match(result.artifacts.pom.toString(),/<artifactId>zero-core<\/artifactId><version>0.3.0<\/version><scope>provided<\/scope>/);
+  assert.equal(result.artifacts.jar.includes(Buffer.from('zero/ui/Element.class')),false);
+  assert.equal(result.artifacts.sources.includes(Buffer.from('zero/ui/Element.java')),false);
+  const behavior=input.files.find(file=>file.path==='src/test/java/LibraryCheck.java');
+  behavior.bytes=Buffer.from(behavior.bytes.toString().replace('assert view instanceof zero.ui.Label;','assert false;'));
+  const failed=await checkLibrarySource(input);
+  assert.equal(failed.passed,false,JSON.stringify(failed.checks));
+  assert.equal(failed.checks.at(-1).id,'behavior');
+  assert.equal(failed.coreBuild,undefined);
+});
+
+test('a current-format JAR that would fail Add is a source check failure',{skip:!enabled},async()=>{
+  const input=coreWidgetFixture();
+  input.files.push({
+    path:'src/main/resources/zero/contrib/r1417021749/flap_motion/settings.yaml',
+    bytes:Buffer.from('value: 1')
+  });
+  const result=await checkLibrarySource(input);
+  assert.equal(result.passed,false,JSON.stringify(result.checks));
+  assert.equal(result.checks.at(-1).id,'fixed-build');
+  assert.equal(result.artifacts,undefined);
 });

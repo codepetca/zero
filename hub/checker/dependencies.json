@@ -11,6 +11,10 @@
     "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-controls/21.0.12/javafx-controls-21.0.12-linux.jar",
     "sha256": "de5417dbb39920d19376073dbbe896b97cbd5a4e88d56cc6627ff0a32666dc04"
   },
+  "javafx-media-21.0.12-linux.jar": {
+    "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-media/21.0.12/javafx-media-21.0.12-linux.jar",
+    "sha256": "927574bc433cbf9836058efcb216d93c5bdab6307cf4a9e0a28b1f8b4b311032"
+  },
   "javafx-swing-21.0.12-linux.jar": {
     "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-swing/21.0.12/javafx-swing-21.0.12-linux.jar",
     "sha256": "8ba36148dc4c01b40e632c657c6cb9ffd91bf7c4795e5a36bbf5ddb8713fa03d"
@@ -26,6 +30,10 @@
   "javafx-controls-21.0.12-linux-aarch64.jar": {
     "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-controls/21.0.12/javafx-controls-21.0.12-linux-aarch64.jar",
     "sha256": "55bce633784b51e097775283fab7b3ccaa320aea611fb676115d594b1a1a46c5"
+  },
+  "javafx-media-21.0.12-linux-aarch64.jar": {
+    "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-media/21.0.12/javafx-media-21.0.12-linux-aarch64.jar",
+    "sha256": "f84816f3cf906fe0be1b371eba52b9669201694fddd387fe62261271d07363aa"
   },
   "javafx-swing-21.0.12-linux-aarch64.jar": {
     "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-swing/21.0.12/javafx-swing-21.0.12-linux-aarch64.jar",
