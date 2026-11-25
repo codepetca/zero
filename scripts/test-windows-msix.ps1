@@ -205,7 +205,12 @@ public static class ZeroWts {
     if ($CollisionRehearsalOutput) {
         $stage = 'collision-lesson-candidate'
         if (-not $RunFirstRun) { throw 'The exercise requires packaged first-run setup.' }
-        & (Join-Path $PSScriptRoot 'test-public-store-collision.ps1') -OutputDirectory $CollisionRehearsalOutput -RehearseExactCandidate
+        try {
+            & (Join-Path $PSScriptRoot 'test-public-store-collision.ps1') -OutputDirectory $CollisionRehearsalOutput -RehearseExactCandidate
+        } catch {
+            Write-Host ("Collision exercise at line {0}: {1}" -f $_.InvocationInfo.ScriptLineNumber, $_.Exception.Message)
+            throw
+        }
     }
     if ($RunWack) {
         $stage = 'wack'

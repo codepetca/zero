@@ -42,9 +42,10 @@ $extensionManifest = Get-Content -LiteralPath (Join-Path $extensions 'zero.zero-
 if ($extensionManifest.version -ne '0.5.88') { throw 'The installed editor extension has the wrong version.' }
 
 # Restart only the Store-provisioned isolated editor with its own profile and tools.
-$profileExpression = [regex]::Escape($profile)
+$profilePaths = @($profile, (Join-Path $logical 'editor\user-data')) | Select-Object -Unique
+$profileExpression = ($profilePaths | ForEach-Object { [regex]::Escape($_) }) -join '|'
 $isolated = @(Get-CimInstance Win32_Process -Filter "Name='Code.exe'" | Where-Object {
-    $_.CommandLine -match ('--user-data-dir(?:=|\s+)"?' + $profileExpression + '"?(?:\s|$)') -and
+    $_.CommandLine -match ('(?:^|\s)"?--user-data-dir"?(?:=|\s+)"?(?:' + $profileExpression + ')"?(?:\s|$)') -and
     $_.CommandLine -notmatch '--type='
 })
 if ($isolated.Count -ne 1 -or -not (Test-Path -LiteralPath $isolated[0].ExecutablePath -PathType Leaf)) {
@@ -82,7 +83,11 @@ $launch.Environment['ZERO_KIT_DIR'] = $kit
 $launch.Environment['JAVA_HOME'] = $privateJava
 $launch.Environment['ZERO_JAVA_HOME'] = $privateJava
 $launch.Environment['ZERO_NODE_EXECUTABLE'] = $nodeRuntime[0]
-$launch.Environment['ZERO_GIT_EXECUTABLE'] = $settings['git.path']
+$git = $settings['git.path']
+if ($git.StartsWith($logical + '\', [StringComparison]::OrdinalIgnoreCase)) {
+    $git = Join-Path $data $git.Substring($logical.Length).TrimStart('\')
+}
+$launch.Environment['ZERO_GIT_EXECUTABLE'] = $git
 $launch.Environment['MAVEN_SKIP_RC'] = '1'
 $launch.Environment['PATH'] = (Join-Path $privateJava 'bin') + ';' + $env:Path
 foreach ($key in @('NODE_OPTIONS','NODE_PATH','ELECTRON_RUN_AS_NODE','GIT_CONFIG_COUNT','GIT_CONFIG_PARAMETERS','VSCODE_IPC_HOOK_CLI')) {
