@@ -69,6 +69,7 @@ function compose(options,hosted,checkHostedEntitlement) {
     }
   });
   const engine=createJamService({store:sharedStore,now,verifySource,verifyRepository,pagesBindingReader,
+    scheduleEditsEnabled:env.ZERO_JAMS_SCHEDULE_EDIT_ENABLED==='1',
     canCreateJam:hosted?checkHostedEntitlement:id=>hasManualJamPro(id,env),maintainerIds:[ZERO_JAMS_APPROVER_ID],...(hosted?{limits:{...limits,participants:HOSTED_PARTICIPANT_LIMIT}}:limits===undefined?{}:{limits})});
   const service=Object.freeze(Object.fromEntries(Object.keys(engine).map(method=>[method,async(...args)=>{
     const check=writes.has(method)?writable:local;check();

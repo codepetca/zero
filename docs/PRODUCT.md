@@ -213,7 +213,10 @@ or change the deployed service.
 Local source includes a Zero-hosted Game Jam and App Jam creation flow.
 A Pro creator supplies the public event details without creating a website. New
 Pro jams are automatically approved, and each organizer can have one active jam
-at a time. The creator can cancel their own automatically approved jam using a
+at a time. Game Jam organizers can use **Edit schedule** on their jam page
+to change upcoming dates and times. A date locks when it passes. Schedule
+changes preserve the jam link, registrations, and submitted entries.
+The creator can cancel their own automatically approved jam using a
 public reason, even after Pro access ends; cancellation preserves existing
 project holds until the scheduled reveal. Maintainers retain moderation controls;
 historical proposals retain their review records; creators cannot self-cancel historical manually approved

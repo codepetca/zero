@@ -96,7 +96,26 @@ function initial(id,actor,repositoryId,time) {
   return {schema:1,id,creator:actor,repositoryId,proposals:[],accepted:null,moderation:{status:'active'},registrations:{},entries:{},operations:{},history:[],updatedAt:time};
 }
 
-export function createJamService({store,verifySource,verifyRepository,pagesBindingReader,maintainerIds=[],now=Date.now,limits={},canCreateJam=()=>false}={}) {
+function recordHostedApproval(state,manifest,revision,stamp) {
+  const proposal={revision,hosting:'zero',manifest,repository:null,status:'approved',reason:'',proposedAt:stamp,approvalMode:PRO_AUTO_APPROVAL,reviewedBy:null,reviewedAt:stamp};
+  state.proposals.push(proposal);
+  state.accepted={...structuredClone(proposal),approvedBy:null,approvedAt:stamp};
+}
+
+function updatedJamSchedule(schedule,changes,time) {
+  let changed=false;
+  for(const [field,value] of Object.entries(changes)) {
+    const previous=Date.parse(schedule[field]), next=Date.parse(value);
+    if(previous===next)continue;
+    if(previous<=time)fail(409,'A schedule date has already passed. Reload the jam before trying again.');
+    if(next<=time)fail(400,'Choose future dates and times for the changes.');
+    changed=true;
+  }
+  if(!changed)fail(400,'Change at least one schedule date.');
+  return {...schedule,...changes};
+}
+
+export function createJamService({store,verifySource,verifyRepository,pagesBindingReader,maintainerIds=[],now=Date.now,limits={},canCreateJam=()=>false,scheduleEditsEnabled=false}={}) {
   if (!store?.snapshot || !store?.compareAndSwap || typeof verifySource !== 'function') fail(503,'ZeroJams is unavailable.');
   if (typeof canCreateJam!=='function') fail(503,'Jam creation access is unavailable.');
   if (store.transact!==undefined&&typeof store.transact!=='function') fail(503,'ZeroJams is unavailable.');
@@ -221,6 +240,9 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     return time<jamEndTime(current.manifest.schedule);
   }
   const canCancelOwnJam=(state,actor)=>state?.hosting==='zero'&&state.creator.id===actor.id&&state.accepted?.approvalMode===PRO_AUTO_APPROVAL;
+  function ownsEditableGameJam(state,actor) {
+    return !!actor&&canCancelOwnJam(state,actor)&&state.accepted.manifest.type==='game'&&state.moderation.status==='active';
+  }
   function canHostRemoveEntry(state,actor,time) {
     return !!state.accepted&&state.moderation.status==='active'&&actor?.id===state.creator.id&&
       time>=jamEndTime(state.accepted.manifest.schedule);
@@ -527,8 +549,9 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     if(page)moderationEntries.sort(participantOrder);
     const canPickWinner=overview&&actor?.id===state.creator.id&&canPickGameJamWinner(state,time);
     const canHostRemove=!overview&&canHostRemoveEntry(state,actor,time);
+    const canEditSchedule=scheduleEditsEnabled&&ownsEditableGameJam(state,actor)&&time<Date.parse(state.accepted.manifest.schedule.galleryRevealAt);
     const joinAvailability=overview&&actor?{hasRegistrationSpace:!!registration||Object.keys(state.registrations).length<bound.participants}:{};
-    const result=taggedProjection({event,registration:structuredClone(registration),entry:structuredClone(entry),canMaintain,...joinAvailability,...(canHostRemove?{canHostRemoveEntry:true}:{}),...(canPickWinner?{canPickWinner}:{}),...(canMaintain&&!overview?{moderationEntries}:{}),...(proposal?{proposal:structuredClone(proposal)}:{})},revision);
+    const result=taggedProjection({event,registration:structuredClone(registration),entry:structuredClone(entry),canMaintain,...joinAvailability,...(canHostRemove?{canHostRemoveEntry:true}:{}),...(canPickWinner?{canPickWinner}:{}),...(canEditSchedule?{canEditSchedule}:{}),...(canMaintain&&!overview?{moderationEntries}:{}),...(proposal?{proposal:structuredClone(proposal)}:{})},revision);
     return page?Object.defineProperty(result,JAM_PAGE_METADATA,{value:pageMetadata}):result;
   }
   async function propose(input) {
@@ -545,9 +568,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(next.hosting!=='zero'||next.creator.id!==actor.id||next.proposals.length)fail(409,'This jam identifier is already in use.');
       if(Date.parse(manifest.schedule.galleryRevealAt)<=time)fail(400,'Choose a future gallery reveal time after the submission deadline.');
       next.creator.login=actor.login;
-      const proposal={revision:proposalRevision,hosting:'zero',manifest,repository:null,status:'approved',reason:'',proposedAt:stamp,approvalMode:PRO_AUTO_APPROVAL,reviewedBy:null,reviewedAt:stamp};
-      next.proposals.push(proposal);
-      next.accepted={...structuredClone(proposal),approvedBy:null,approvedAt:stamp};
+      recordHostedApproval(next,manifest,proposalRevision,stamp);
       next.history.push({action:'auto-approve',policy:PRO_AUTO_APPROVAL,actorId:actor.id,revision:proposalRevision,at:stamp});
       return {revision:proposalRevision,status:'approved',approvalMode:PRO_AUTO_APPROVAL};
     },{create:true,scope:'proposals',legacyDigest:legacyRequestDigest('proposals',{manifest:input.manifest})});
@@ -572,7 +593,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     return registration.repository;
   }
   async function mutateScoped(input,callScope,{joinChannel,editorJoinRequired,verifyPublication}) {
-    keys(input,['id','actor','operationId','action','revision','reason','participantId','repositoryUrl','repositoryId','source','title','description','demoUrl','instructions','publication'],['id','actor','operationId','action']);
+    keys(input,['id','actor','operationId','action','revision','reason','participantId','repositoryUrl','repositoryId','source','title','description','demoUrl','instructions','publication','schedule'],['id','actor','operationId','action']);
     const actor=actorIdentity(input.actor),op=operationId(input.operationId),{id,action}=input;
     const {id:ignoredId,actor:ignoredActor,operationId:ignoredOperation,...publicInput}=input;
     const payload=requestPayload(id,publicInput),payloadDigest=digest(payload);
@@ -636,6 +657,19 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       verified={repository:current};
     }
     return commitLoop(id,actor,op,payloadDigest,(next,time,stamp)=>{
+      if(action==='edit-schedule') {
+        if(!scheduleEditsEnabled)fail(503,'Jam schedule editing is unavailable.');
+        if(!ownsEditableGameJam(next,actor))fail(403,'Only the organizer of an active Zero-hosted Game Jam can edit its schedule.');
+        const accepted=next.accepted;
+        if(payload.revision!==accepted.revision)fail(409,'The jam schedule changed. Reload the jam before editing.');
+        if(next.proposals.length>=bound.proposals)fail(429,'This jam has reached its schedule revision limit.');
+        const schedule=updatedJamSchedule(accepted.manifest.schedule,payload.schedule,time);
+        const manifest=hostedManifestData({...accepted.manifest,schedule});
+        const revision=digest({action,id,actorId:actor.id,operationId:op,previousRevision:accepted.revision,manifest});
+        recordHostedApproval(next,manifest,revision,stamp);
+        next.history.push({action,actorId:actor.id,previousRevision:accepted.revision,revision,at:stamp});
+        return {status:'schedule-updated',revision};
+      }
       if(action==='pick-winner') {
         if(next.creator.id!==actor.id)fail(403,'Only the host can pick a winner.');
         if(!canPickGameJamWinner(next,time))fail(409,'Pick a winner after submissions close for an active Game Jam.');

@@ -155,6 +155,33 @@ test('actor and target are server derived and clients cannot inject role/actor f
   assert.equal(f.calls[0][2].redirect,'error');
 });
 
+test('schedule edits use the signed-in organizer on the existing jam action route',async () => {
+  const {service}=registryFixture({scheduleEditsEnabled:true});
+  const initial=await service.propose({
+    actor:{id:'123',login:'student'},operationId:'host-original-jam',manifest:hostedManifest()
+  });
+  const f={...fixture(),service};
+  const id=initial.eventId;
+  const body={operationId:'edit-existing-jam',action:'edit-schedule',revision:initial.revision,
+    schedule:{galleryRevealAt:'2030-01-06T00:00:00Z'}};
+  const editPath='/api/jams/'+id+'/actions';
+  assert.equal((await postJamActionResponse(request({...body,timezone:'UTC'}, {}, editPath),id,f)).status,400);
+  const response=await postJamActionResponse(request(body,{},editPath),id,f);
+  assert.equal(response.status,200);
+  assert.equal(response.headers.get('cache-control'),'no-store');
+  const receipt=await response.json();
+  assert.equal(receipt.eventId,id);
+  assert.equal(receipt.status,'schedule-updated');
+
+  const url=config.origin+'/api/jams/'+id+'?view=overview';
+  const read=await getJamResponse(new Request(url,{headers:{Cookie:cookie.split(';')[0]}}),id,f);
+  const detail=await read.json();
+  assert.equal(detail.canEditSchedule,true);
+  assert.equal(detail.event.revision,receipt.revision);
+  assert.equal(detail.event.schedule.galleryRevealAt,'2030-01-06T00:00:00.000Z');
+  assert.equal((await (await getJamResponse(new Request(url),id,f)).json()).canEditSchedule,undefined);
+});
+
 test('new GitHub identity, revocation and network failures cannot accept an action',async () => {
   const f = fixture();
   const drift = await postJamActionResponse(request(join),'jam-55',{...f,

@@ -23,6 +23,25 @@ export function httpsUrl(value) {
 // jam pages never load creator-supplied or third-party image URLs.
 export const JAM_THEME_IDS = Object.freeze(['violet','ocean','sunset','forest','candy','midnight']);
 export const JAM_BACKDROP_IDS = Object.freeze(['stars','pixels','grid','waves','confetti','plain']);
+const scheduleFields = ['registrationOpensAt','registrationClosesAt','startsAt','submissionsOpenAt','submissionsCloseAt'];
+export const JAM_SCHEDULE_FIELDS = Object.freeze([...scheduleFields,'galleryRevealAt']);
+
+function scheduleInstant(date) {
+  if (typeof date !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(date) || !Number.isFinite(Date.parse(date))) {
+    fail(400,'Use valid ISO UTC schedule dates.');
+  }
+  const normalized = new Date(date).toISOString();
+  if (normalized.replace('.000Z','Z') !== date.replace('.000Z','Z')) fail(400,'Use valid ISO UTC schedule dates.');
+  return normalized;
+}
+
+export function scheduleChangesData(input) {
+  keys(input,JAM_SCHEDULE_FIELDS,[]);
+  const fields = Object.keys(input);
+  if (!fields.length) fail(400,'Change at least one schedule date.');
+  return Object.fromEntries(fields.map(field => [field,scheduleInstant(input[field])]));
+}
+
 function styleData(value) {
   keys(value,['theme','backdrop']);
   if (!JAM_THEME_IDS.includes(value.theme) || !JAM_BACKDROP_IDS.includes(value.backdrop)) fail(400,'Choose a listed jam theme and background.');
@@ -37,14 +56,12 @@ function normalizedManifest(input,hosted) {
   if (input.schema !== 1 || input.templateVersion !== '1.0.0' || !['game','app'].includes(input.type)) fail(400,'Unsupported jam manifest.');
   const timezone = text(input.timezone,100);
   try { new Intl.DateTimeFormat('en',{timeZone:timezone}).format(); } catch { fail(400,'Use an IANA timezone.'); }
-  const dateKeys = ['registrationOpensAt','registrationClosesAt','startsAt','submissionsOpenAt','submissionsCloseAt'];
   const hasReveal=Object.hasOwn(input.schedule||{},'galleryRevealAt');
-  keys(input.schedule,[...dateKeys,'galleryRevealAt'],hosted?[...dateKeys,'galleryRevealAt']:dateKeys);
+  keys(input.schedule,JAM_SCHEDULE_FIELDS,hosted?JAM_SCHEDULE_FIELDS:scheduleFields);
   const schedule = {}, times = {};
-  for (const key of hasReveal?[...dateKeys,'galleryRevealAt']:dateKeys) {
-    const date = input.schedule[key];
-    if (typeof date !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(date) || !Number.isFinite(Date.parse(date)) || new Date(date).toISOString().replace('.000Z','Z') !== date.replace('.000Z','Z')) fail(400,'Use valid ISO UTC schedule dates.');
-    times[key] = Date.parse(date); schedule[key] = new Date(date).toISOString();
+  for (const key of hasReveal?JAM_SCHEDULE_FIELDS:scheduleFields) {
+    schedule[key] = scheduleInstant(input.schedule[key]);
+    times[key] = Date.parse(schedule[key]);
   }
   if (!(times.registrationOpensAt < times.registrationClosesAt && times.registrationOpensAt <= times.startsAt && times.startsAt <= times.submissionsOpenAt && times.submissionsOpenAt < times.submissionsCloseAt && times.registrationClosesAt <= times.submissionsCloseAt)) fail(400,'Jam schedule boundaries are inconsistent.');
   if(hasReveal&&times.galleryRevealAt<=times.submissionsCloseAt)fail(400,'The gallery reveal must be after the submission deadline.');

@@ -47,6 +47,14 @@ moderation authority; historical review records remain available. This is a
 manual service entitlement, not an automated billing, checkout or subscription
 integration. No owner account receives an automatic grant from its login or role.
 
+Deploy the schedule-aware readers before enabling the server-only
+`ZERO_JAMS_SCHEDULE_EDIT_ENABLED=1` flag. Keep the flag off until active Jam
+and Hub visibility readers run compatible code. After schedule edits are
+enabled, roll back only to a build that understands approved schedule revisions:
+older readers reject a winner selected from an entry submitted under an earlier
+revision. Disabling editing still allows compatible readers to show edited
+schedules and lets hosts recover previously accepted edits.
+
 An authorized operator supplies the server-only `ZERO_JAMS_PRO_GITHUB_IDS`
 environment value as a comma-separated list of independently verified immutable
 GitHub numeric account IDs. Do not use logins, email addresses, a client-side

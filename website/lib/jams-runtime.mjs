@@ -92,5 +92,6 @@ export async function createJamRuntime({env = process.env, fetchImpl = fetch,
   return createJamService({store:createAtomicGitHubJamStore({token,fetchImpl}),
     verifyRepository:createGitHubRepositoryVerifier({token:sourceToken,fetchImpl}),verifySource:createGitHubSourceVerifier({token:sourceToken,fetchImpl}),
     pagesBindingReader:selectJamPagesBinding({env,reader:pagesBindingReader ?? createJamPagesRuntimeReader({env,fetchImpl,now})}),
-    canCreateJam:id=>hasManualJamPro(id,env),maintainerIds:config.maintainerIds, now});
+    canCreateJam:id=>hasManualJamPro(id,env),maintainerIds:config.maintainerIds, now,
+    scheduleEditsEnabled:env.ZERO_JAMS_SCHEDULE_EDIT_ENABLED==='1'});
 }

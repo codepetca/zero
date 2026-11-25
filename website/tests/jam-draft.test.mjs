@@ -93,3 +93,14 @@ test('non-Toronto hosted drafts preserve local wall times and reject DST gaps an
     const invalid=prepareHostedJamDraft({...draft,startsAt:value});assert.equal(invalid.manifest,null);assert.match(invalid.errors.startsAt,error);
   }
 });
+
+test('schedule edits retain untouched precision and convert only changed local dates',async()=>{
+  const {jamScheduleLocalValues,prepareJamScheduleEdit}=await import('../lib/jam-draft.mjs');
+  const schedule={registrationOpensAt:'2030-03-01T14:00:45.123Z',startsAt:'2030-03-15T13:00:00Z'};
+  const values=jamScheduleLocalValues(schedule,'America/Toronto');
+  assert.equal(values.registrationOpensAt,'2030-03-01T09:00');
+  assert.deepEqual(prepareJamScheduleEdit(schedule,'America/Toronto',values),{changes:{},errors:{}});
+  const result=prepareJamScheduleEdit(schedule,'America/Toronto',{...values,startsAt:'2030-03-16T09:30'});
+  assert.deepEqual(result,{changes:{startsAt:'2030-03-16T13:30:00.000Z'},errors:{}});
+  assert.match(prepareJamScheduleEdit(schedule,'America/Toronto',{...values,startsAt:'2030-03-10T02:30'}).errors.startsAt,/does not exist/);
+});
