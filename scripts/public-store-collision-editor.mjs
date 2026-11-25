@@ -54,7 +54,6 @@ try {
   const page = pages.find(item => item.url().includes('workbench')) ?? pages.find(item => item.url().startsWith('vscode-file:'));
   assert.ok(page, 'Expected the standalone installed editor window');
   const quick = page.locator('.quick-input-widget');
-  const escape = () => page.keyboard.press('Escape');
   const command = async title => {
     await page.keyboard.press('Control+Shift+P');
     const input = quick.locator('input:visible').first();
@@ -83,9 +82,23 @@ try {
   if (action === 'inspect') {
     console.log(JSON.stringify({url:page.url(),title:await page.title(),dialogs:await page.getByRole('dialog').allTextContents(),quick:await quick.locator('.quick-input-title').allTextContents(),notifications:await page.locator('.notification-list-item').allTextContents(),boxes:await page.locator('.monaco-dialog-box').allTextContents()}));
   } else if (action === 'add') {
-    const trust = page.getByRole('button', {name:'Yes, I trust the authors'});
-    if (await trust.isVisible()) await trust.click();
-    await escape();
+    // The starter's exact Git tree was verified before opening the folder.
+    const trust = page.getByRole('button', {name:/yes, i trust the authors/i}).first();
+    const restricted = page.getByText('Restricted Mode is intended for safe code browsing.', {exact:false}).first();
+    const needsTrust = await trust.or(restricted).first().waitFor({state:'visible',timeout:10000})
+      .then(() => true, error => {
+        if (error.name !== 'TimeoutError') throw error;
+        return false;
+      });
+    if (needsTrust) {
+      if (await trust.isVisible()) {
+        await trust.click();
+      } else {
+        await page.getByRole('link', {name:'Manage',exact:true}).click();
+        await page.getByRole('button', {name:'Trust',exact:true}).click();
+      }
+      await restricted.waitFor({state:'hidden',timeout:15000});
+    }
     await command('Zero: Libraries and Games');
     await choose('Browse libraries');
     await choose('Collision Helper Pilot', 45000);

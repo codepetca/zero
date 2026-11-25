@@ -56,6 +56,7 @@ Stop-Process -Id $isolated[0].ProcessId
 $settingsPath = Join-Path $profile 'User\settings.json'
 $settings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json -AsHashtable
 $settings['window.dialogStyle'] = 'custom'
+$settings['security.workspace.trust.startupPrompt'] = 'always'
 [IO.File]::WriteAllText($settingsPath, ($settings | ConvertTo-Json -Depth 30))
 $privateJava = @($settings['java.configuration.runtimes'] | Where-Object { $_.name -eq 'JavaSE-21' -and $_.default })[0].path
 if ($privateJava.StartsWith($logical + '\', [StringComparison]::OrdinalIgnoreCase)) {
