@@ -80,8 +80,16 @@ try {
   };
   const choose = async (title, timeout = 20000) => {
     const item = quick.getByText(title, {exact:true}).first();
-    await item.waitFor({state:'visible',timeout});
-    await item.click();
+    try {
+      await item.waitFor({state:'visible',timeout});
+      await item.click();
+    } catch (error) {
+      await page.screenshot({path:join(directory,'public-editor-command.png')});
+      console.log(JSON.stringify({choice:title, quickInput:(await quick.innerText()).slice(0,1200),
+        notifications:(await page.locator('.notification-list-item').allTextContents()).join(' ').slice(0,1200),
+        dialogs:(await page.getByRole('dialog').allTextContents()).join(' ').slice(0,700)}));
+      throw error;
+    }
   };
   if (action === 'inspect') {
     console.log(JSON.stringify({url:page.url(),title:await page.title(),dialogs:await page.getByRole('dialog').allTextContents(),quick:await quick.locator('.quick-input-title').allTextContents(),notifications:await page.locator('.notification-list-item').allTextContents(),boxes:await page.locator('.monaco-dialog-box').allTextContents()}));
