@@ -103,7 +103,6 @@ try {
       }
       await restricted.waitFor({state:'hidden',timeout:15000});
     }
-    await page.locator('.activitybar [aria-label^="Zero"]').first().waitFor({state:'visible',timeout:25000});
     await command('Zero: Libraries and Games');
     await choose('Browse libraries');
     await choose('Collision Helper Pilot', 45000);
