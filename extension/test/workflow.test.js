@@ -279,6 +279,51 @@ test('finish records a named merge on main and safely deletes only the feature',
   await assert.rejects(core.git(f.root, ['show-ref', '--verify', 'refs/heads/add-score']));
   assert.equal(await core.git(f.bare, ['for-each-ref', '--format=%(refname)']), 'refs/heads/main');
 });
+
+test('Merge uses a Git-compatible null config through review and checkout', async t => {
+  const f = await fixture(t);
+  const base = await core.git(f.root, ['rev-parse', 'HEAD']);
+  await start(f);
+  const feature = await commit(f.root, 'Score.java', 'class Score {}\n');
+  const windowsDevice = String.raw`\\.\nul`;
+  if (process.platform !== 'win32') {
+    const original = Object.getOwnPropertyDescriptor(os, 'devNull');
+    Object.defineProperty(os, 'devNull', {...original, value:windowsDevice});
+    t.after(() => Object.defineProperty(os, 'devNull', original));
+  }
+  const isolatedCommands = [];
+  const run = async (root, args, options) => {
+    if (options?.env?.GIT_CONFIG_GLOBAL) {
+      // Exercise Git for Windows' rejection on other platforms too. All Git
+      // commands on Windows, and the successful path elsewhere, use real Git.
+      if (process.platform !== 'win32' && options.env.GIT_CONFIG_GLOBAL === windowsDevice) {
+        throw Object.assign(new Error('Invalid Git config path'), {
+          code:128, stderr:`fatal: unable to access '${windowsDevice}': Invalid argument`
+        });
+      }
+      const output = await f.run(root, args, options);
+      assert.equal(options.env.GIT_CONFIG_GLOBAL, '/dev/null');
+      assert.equal(options.env.GIT_CONFIG_NOSYSTEM, '1');
+      isolatedCommands.push(args);
+      return output;
+    }
+    return f.run(root, args, options);
+  };
+  const options = {...f.options, run};
+  let result;
+  try {
+    result = await workflow.finishPrepared(await workflow.prepareFinish(f.root, options), options);
+  } catch (error) {
+    assert.fail([error.mergeGitDetail, error.message].filter(Boolean).join(' '));
+  }
+  assert.ok(isolatedCommands.some(args => args.includes('--show-ref-format')));
+  assert.ok(isolatedCommands.some(args => args.includes('checkout')));
+  assert.equal(await core.git(f.root, ['branch', '--show-current']), 'main');
+  assert.equal(await core.git(f.root, ['rev-parse', 'refs/heads/add-score']), feature);
+  assert.equal(await core.git(f.bare, ['rev-parse', 'refs/heads/main']), result.head);
+  assert.equal(await core.git(f.root, ['rev-list', '--parents', '-n', '1', result.head]), `${result.head} ${base} ${feature}`);
+});
+
 test('merge review reports an unreadable main tree without pushing or displaying object IDs', async t => {
   const f = await fixture(t);
   const main = await core.git(f.root, ['rev-parse', 'refs/heads/main']);
@@ -1645,7 +1690,7 @@ test('isolated merge ownership refusal hands off without trusting the folder or 
   const refs = await core.git(f.root, ['show-ref']);
   const run = async (root, args, options) => {
     if (args.includes('--show-ref-format')) {
-      assert.equal(options.env.GIT_CONFIG_GLOBAL, os.devNull);
+      assert.equal(options.env.GIT_CONFIG_GLOBAL, '/dev/null');
       assert.equal(options.env.GIT_CONFIG_NOSYSTEM, '1');
       assert.ok(!args.some(arg => arg.includes('safe.directory')));
       // Exercise Git's ownership check without changing actual file ownership.

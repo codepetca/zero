@@ -5,9 +5,12 @@ const {gitExecutable} = require('./git-executable');
 const path=require('node:path'),os=require('node:os'),fs=require('node:fs'),{spawn}=require('node:child_process');
 const core=require('./core');
 const oid=value=>typeof value==='string'&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
+// Git for Windows understands /dev/null as a config filename but may reject
+// the Windows device path returned by Node's os.devNull.
+const gitNullConfig='/dev/null';
 function ambient() {
  const allowed=new Set(['GIT_TERMINAL_PROMPT','GIT_OPTIONAL_LOCKS','GIT_TEMPLATE_DIR','GIT_ASKPASS','GIT_SSH','GIT_SSH_COMMAND','GIT_PAGER','GIT_EDITOR','GIT_SEQUENCE_EDITOR']);
- for(const [key,value]of Object.entries(process.env))if(/^GIT_/i.test(key)&&!allowed.has(key.toUpperCase())&&!(key.toUpperCase()==='GIT_CONFIG_NOSYSTEM'&&value==='1')&&!(key.toUpperCase()==='GIT_CONFIG_GLOBAL'&&value===os.devNull))throw new Error('Git environment overrides prevent a safe local main transaction. Inspect the project environment.');
+ for(const [key,value]of Object.entries(process.env))if(/^GIT_/i.test(key)&&!allowed.has(key.toUpperCase())&&!(key.toUpperCase()==='GIT_CONFIG_NOSYSTEM'&&value==='1')&&!(key.toUpperCase()==='GIT_CONFIG_GLOBAL'&&value===gitNullConfig))throw new Error('Git environment overrides prevent a safe local main transaction. Inspect the project environment.');
  return JSON.stringify([process.env.PATH,...Object.entries(process.env).filter(([key])=>/^GIT_/i.test(key)).sort(([a],[b])=>a.localeCompare(b))]);
 }
 function anchor(root){const entries=[root,path.join(root,'.git')].map(name=>{const info=fs.lstatSync(name);if(!info.isDirectory()||info.isSymbolicLink()||fs.realpathSync(name)!==name)throw new Error('The project Git directory changed. Review the operation again.');return [info.dev,info.ino,info.mode];});return JSON.stringify(entries);}
@@ -65,7 +68,7 @@ function cleanupRefStorage(root,branch,format) {
  }
  return entries;
 }
-const isolatedEnv=()=>Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:os.devNull,GIT_ATTR_NOSYSTEM:'1',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
+const isolatedEnv=()=>Object.assign(Object.fromEntries(Object.entries(process.env).filter(([key])=>!/^GIT_/i.test(key))),{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:gitNullConfig,GIT_ATTR_NOSYSTEM:'1',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'});
 async function probeTransaction(root,env){
  await new Promise((resolve,reject)=>{
   const child=spawn(gitExecutable(),['-c',`core.hooksPath=${os.devNull}`,'-c',`core.attributesFile=${os.devNull}`,'-c','core.fsmonitor=false','update-ref','--stdin'],{cwd:root,env,stdio:['pipe','pipe','pipe']});
