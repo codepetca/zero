@@ -31,14 +31,28 @@ test('empty registry reports unconfirmed waiting without substituting a request'
   const f=fixture();const result=await readRequestResults('124',{env,fetchImpl:fetcher(f.state)});
   assert.deepEqual(result.results,[]);assert.match(result.message,/no release is confirmed/);
 });
-test('selected summaries distinguish source failure, infrastructure retry and pause, cancellation and closed library checking',async()=>{
-  for(const [status,failures,kind,expected] of [['queued',0,'game','queued'],['queued',1,'game','retrying'],['failed',0,'game','source-failure'],['paused',3,'game','paused'],['cancelled',0,'game','cancelled'],['paused',1,'library','library-closed']]){
-    const f=fixture(kind);f.record.status=status;f.record.infrastructureFailures=failures;
-    const data=await readRequestResults('#123',{env,fetchImpl:fetcher(f.state)});
-    assert.equal(data.results[0].status,expected);assert.deepEqual(Object.keys(data.results[0]).sort(),['commit','kind','message','requestId','status','version']);
-    assert.doesNotMatch(JSON.stringify(data),/operator secret|private stack|sourceDigest|descriptor|attempts/);
-  }
-});
+for (const kind of ['game', 'library']) {
+  test(`${kind} requests report queued, retrying, paused, failed and cancelled states`, async () => {
+    const cases = [
+      ['queued', 0, 'queued', /waiting for processing/],
+      ['queued', 1, 'retrying', /the service will retry/],
+      ['paused', 3, 'paused', /An operator must resume processing/],
+      ['failed', 0, 'source-failure', /Source checks failed/],
+      ['cancelled', 0, 'cancelled', /request was cancelled/]
+    ];
+    for (const [status, failures, expected, message] of cases) {
+      const f = fixture(kind);
+      f.record.status = status;
+      f.record.infrastructureFailures = failures;
+      const data = await readRequestResults('#123', {env, fetchImpl: fetcher(f.state)});
+      const [result] = data.results;
+      assert.equal(result.status, expected);
+      assert.match(result.message, message);
+      assert.deepEqual(Object.keys(result).sort(), ['commit','kind','message','requestId','status','version']);
+      assert.doesNotMatch(JSON.stringify(data), /operator secret|private stack|sourceDigest|descriptor|attempts/);
+    }
+  });
+}
 test('accepted-pending is distinct from available; exact snapshot is required for a release link',async()=>{
   const f=fixture(),release=accept(f);
   let data=await readRequestResults('123',{env,fetchImpl:fetcher(f.state)});
@@ -91,7 +105,7 @@ test('only the latest typed source failure on a failed request exposes correctio
     assert.equal(result.results[0].status,expected);assert.equal(result.results[0].correction,undefined);assert.doesNotMatch(JSON.stringify(result),/operator secret|private stack|game-license|game-main|Main\.java/);
   }
   const f=fixture('library');f.record.status='paused';f.record.attempts=[{kind:'infrastructure-failure',message:'operator secret',sourceDiagnostic:{code:'game-license'}}];
-  const result=await readRequestResults('123',{env,fetchImpl:fetcher(f.state)});assert.equal(result.results[0].status,'library-closed');assert.equal(result.results[0].correction,undefined);
+  const result=await readRequestResults('123',{env,fetchImpl:fetcher(f.state)});assert.equal(result.results[0].status,'paused');assert.equal(result.results[0].correction,undefined);
 });
 test('unknown typed codes and unsafe paths fail closed without reflecting their payload',async()=>{
   for(const sourceDiagnostic of [{code:'unknown'},{code:'game-main',file:'/private/operator/config'},{code:'game-main',file:'src/main/java/../Secret.java'},{code:'game-main',file:'src/main/java/<script>.java'},{code:'game-pins',message:'operator secret'}]){
