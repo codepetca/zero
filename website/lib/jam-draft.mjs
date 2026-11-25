@@ -1,4 +1,4 @@
-import {manifestData, text, httpsUrl, JAM_THEME_IDS, JAM_BACKDROP_IDS} from '../../jams/manifest.mjs';
+import {manifestData, text, httpsUrl, JAM_THEME_IDS, JAM_BACKDROP_IDS, JAM_SCHEDULE_FIELDS} from '../../jams/manifest.mjs';
 
 export const JAM_DRAFT_LIMITS=Object.freeze({title:120,summary:1000,theme:1000,rules:8000,eligibility:2000,websiteUrl:2048,timezone:100});
 export function defaultJamDraft(type='game',timezone='America/Toronto') {
@@ -97,4 +97,31 @@ export function prepareHostedJamDraft(input) {
   if(new TextEncoder().encode(JSON.stringify({manifest:hosted,operationId:'0'.repeat(36)})).length>16384)
     return {manifest:null,errors:{rules:'These details are too large together. Shorten the rules and other text.'}};
   return {manifest:hosted,errors:{}};
+}
+
+// Edit fields show local minutes, but unchanged instants retain their exact precision.
+export function jamScheduleLocalValues(schedule,timezone) {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone:timezone, calendar:'iso8601', numberingSystem:'latn', hourCycle:'h23',
+    year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit',
+  });
+  return Object.fromEntries(JAM_SCHEDULE_FIELDS
+    .filter(field => schedule[field])
+    .map(field => {
+      const parts = Object.fromEntries(formatter.formatToParts(new Date(schedule[field]))
+        .map(part => [part.type,part.value]));
+      return [field,`${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`];
+    }));
+}
+export function prepareJamScheduleEdit(schedule,timezone,values) {
+  const original = jamScheduleLocalValues(schedule,timezone);
+  /** @type {Record<string,string>} */
+  const changes={};
+  /** @type {Record<string,string>} */
+  const errors={};
+  for(const field of JAM_SCHEDULE_FIELDS) {
+    if(!(field in original)||values[field]===original[field])continue;
+    try { changes[field]=localInstant(values[field],timezone); } catch(error) { errors[field]=error.message; }
+  }
+  return {changes,errors};
 }

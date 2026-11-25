@@ -1,3 +1,5 @@
+import {hostedManifestData} from './manifest.mjs';
+
 export function onTimePages(entry, schedule) {
   const deadline = Date.parse(schedule.submissionsCloseAt);
   return !!entry.pagesVerification && Date.parse(entry.pagesVerification.verifiedAt) < deadline &&
@@ -9,10 +11,27 @@ export function canPickGameJamWinner(state, time) {
     state.moderation.status === 'active' && time >= Date.parse(state.accepted.manifest.schedule.submissionsCloseAt);
 }
 
+function nonScheduleManifest(manifest) {
+  const {schedule,...details}=hostedManifestData(manifest);
+  return JSON.stringify(details);
+}
+
+// Schedule edits publish a new acknowledgment revision. Entries submitted
+// under the same approved details stay eligible without rewriting their history.
+export function acceptsGameJamEntryRevision(state, revision) {
+  const accepted=state.accepted;
+  if(!accepted||!revision)return false;
+  if(revision===accepted.revision)return true;
+  if(state.hosting!=='zero'||!accepted.approvalMode)return false;
+  const earlier=state.proposals.find(proposal=>proposal.revision===revision&&proposal.status==='approved');
+  return !!earlier&&earlier.approvalMode===accepted.approvalMode&&
+    nonScheduleManifest(earlier.manifest)===nonScheduleManifest(accepted.manifest);
+}
+
 export function eligibleGameJamEntry(state, participantId) {
   const entry = state.entries[participantId]?.at(-1);
   if (entry?.status !== 'active' || state.registrations[participantId]?.status !== 'joined' ||
-      entry.eventRevision !== state.accepted.revision || !onTimePages(entry, state.accepted.manifest.schedule)) return null;
+      !acceptsGameJamEntryRevision(state,entry.eventRevision) || !onTimePages(entry, state.accepted.manifest.schedule)) return null;
   return entry;
 }
 

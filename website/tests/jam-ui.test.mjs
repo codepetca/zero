@@ -18,10 +18,10 @@ function clientRequire(name) {
 function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null,refreshImpl=null}={}) {
   let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[],effects=[],directory;
   const self={},window={self,top:self};
-  const react={createContext:defaultValue=>({defaultValue,Provider:()=>null}),useContext:ctx=>directory??ctx.defaultValue,useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
+  const react={createContext:defaultValue=>({defaultValue,Provider:()=>null}),useContext:ctx=>directory??ctx.defaultValue,useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=typeof value==='function'?value():value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
   const module={exports:{}};
   const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return {default:()=>null};return clientRequire(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
-  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,JamLookPicker,EventFacts,EventStatus,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamCreationPane,JamDirectoryProvider,JamDiscovery,jamTimeRemaining,CreatorCancel,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
+  vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,JamLookPicker,EventFacts,EventStatus,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamCreationPane,JamDirectoryProvider,JamDiscovery,jamTimeRemaining,CreatorCancel,EditSchedule,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
   return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},renderDraft(name,initial,initializeFresh){index=0;return module.exports.testing.useDraft(name,initial,initializeFresh);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDirectory(value){directory=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
 function elements(node) {
@@ -769,4 +769,19 @@ test('jam discovery states joining and hosting in one line and links Zero Pro to
     assert.ok(nodes.some(node=>node.props?.href==='/hub/jams/rules#creating-a-jam'&&node.props.children==='Zero Pro'));
     assert.equal(nodes.some(node=>node.type?.name==='HubAccount'),false);
   }
+});
+
+test('schedule editor locks elapsed dates and refreshes only on confirmed updates',async()=>{
+  let calls=0,refreshed=0,received;
+  const event={revision:'rev-a',timezone:'UTC',schedule:{registrationOpensAt:'2030-01-01T00:00:32Z',startsAt:'2030-02-01T00:00:00Z'}};
+  const h=harness({participateData:{},fetcher:async(_url,init)=>{calls++;received=JSON.parse(init.body);return Response.json({configured:true,eventId:'jam-42',operationId:received.operationId,status:calls===1?'unexpected':'schedule-updated',revision:'rev-b'});}});
+  const props={id:'jam-42',event,checkedAt:'2030-01-15T00:00:00Z',onChanged:async()=>{refreshed++;}};
+  let tree=h.render('EditSchedule',props);
+  let inputs=elements(tree).filter(node=>node.type==='input');
+  assert.equal(inputs.find(node=>node.props.name==='registrationOpensAt').props.disabled,true);
+  inputs.find(node=>node.props.name==='startsAt').props.onChange({target:{value:'2030-02-02T00:00'}});
+  tree=h.render('EditSchedule',props);elements(tree).find(node=>node.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(refreshed,0);assert.deepEqual(JSON.parse(JSON.stringify(received.schedule)),{startsAt:'2030-02-02T00:00:00.000Z'});assert.equal(received.revision,'rev-a');
+  tree=h.render('EditSchedule',props);elements(tree).find(node=>node.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(refreshed,1);
 });

@@ -13,7 +13,7 @@ import {verifyLinkedProjectPublication} from './hub-listings-verification.mjs';
 import {editorGameJamJoinRequired} from './jams-visibility.mjs';
 
 const actions = new Set(ACTIONS);
-const actionKeys = new Set(['operationId','action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl']);
+const actionKeys = new Set(['operationId','action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl','schedule']);
 const proposalKeys = new Set(['operationId','manifest']);
 const desktopJoinKeys = ['operationId','revision','repositoryUrl','repositoryId'];
 const desktopSubmitKeys = ['operationId','revision','repositoryId','pagesUrl','commit','runId','entryRevision'];

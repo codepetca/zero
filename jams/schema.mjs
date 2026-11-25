@@ -1,7 +1,7 @@
 import {JamError, fail, object, keys, text, httpsUrl, manifestData, hostedManifestData} from './manifest.mjs';
 export {JamError, fail, object, keys, text, httpsUrl, manifestData, hostedManifestData} from './manifest.mjs';
 import {createHash} from 'node:crypto';
-import {onTimePages} from './winner.mjs';
+import {acceptsGameJamEntryRevision, onTimePages} from './winner.mjs';
 
 export const ID = /^jam-(?:[1-9][0-9]{0,19}|zero-[a-f0-9]{32})$/;
 export const HOSTED_ID = /^jam-zero-[a-f0-9]{32}$/;
@@ -119,7 +119,7 @@ export function validateState(state, id, limit = LIMITS, {enforceReserve=true} =
           typeof decision.revision !== 'string' || !/^[a-f0-9]{64}$/.test(decision.revision) ||
           !Number.isFinite(selectedAt) || new Date(selectedAt).toISOString() !== decision.at ||
           selectedAt < Date.parse(accepted.manifest.schedule.submissionsCloseAt) ||
-          entry?.eventRevision !== accepted.revision || !onTimePages(entry, accepted.manifest.schedule)) throw Error();
+          !acceptsGameJamEntryRevision(state,entry?.eventRevision) || !onTimePages(entry, accepted.manifest.schedule)) throw Error();
     }
     return structuredClone(state);
   } catch { fail(503,'Official jam records are unavailable.'); }

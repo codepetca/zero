@@ -14758,3 +14758,27 @@ stay pending in the editor after its public marker changes. An explicit retry
 can now dismiss the saved Pages check after GitHub confirms successful
 completion. The editor keeps the Jam submission receipt and requires a fresh
 Publish action. Seven focused recovery checks passed.
+
+### ZeroHub Game Jam schedule edits (2026-11-24)
+
+Organizers can change an upcoming boundary on an active Zero-hosted Game Jam.
+Zero checks the old and replacement dates at write admission and publishes a
+new approved revision under the same jam ID. Registrations, submitted work and
+winner selections carry forward. A Git update admitted before a cutoff can
+still finish after it if the provider is slow.
+
+On `3a0e71d2a`, the website typecheck and workspace checks passed. The jam
+suite passed 692 tests with six optional database tests skipped. Chrome with
+fixture data showed passed fields disabled and refreshed the public schedule
+after the organizer changed the upcoming gallery opening. Independent GPT-6.1
+Sol and GPT-6.1 Terra reviews at high reasoning checked stale revisions,
+retries, cutoff races and earlier winner revisions. Earlier readers cannot
+interpret some new winner records, so the rollout switch stays off until
+compatible readers are deployed. The live jam was not changed during
+verification.
+
+The integration on `d232be888` passed website TypeScript and 701 Jam tests,
+with six optional database tests skipped. Both independent reviewers checked
+`1f77430b5` against the editor-first merge. Browser join remains available,
+verified publications retain retry and winner eligibility, and the production
+Neon authority receives the schedule-edit switch.

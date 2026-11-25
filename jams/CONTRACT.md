@@ -92,19 +92,27 @@ Return methods:
   `{revision,manifest,repository,status,reason}` for authorized actors. Gallery
   reads set `canHostRemoveEntry: true` for the host of an active jam at or after
   its gallery reveal (or submission close for legacy jams without a reveal).
+  The organizer of an active, automatically approved Game Jam gets
+  `canEditSchedule: true` while its gallery opening is still in the future.
 - `readWinnerSelection(id,actor)` -> `{winnerSelection:{currentRevision,entries}}`.
   Only the host of an active Zero-hosted Game Jam can read this view after the
   submission deadline. Entries expose the participant ID, exact submission
   revision, title, login and demo URL for eligible choices.
 - `propose({actor,operationId,manifest})` -> `{eventId,operationId,...}`.
-- `mutate({id,actor,operationId,action,revision?,reason?,participantId?,source?,title?,description?,demoUrl?,instructions?})`
+- `mutate({id,actor,operationId,action,revision?,reason?,participantId?,source?,title?,description?,demoUrl?,instructions?,schedule?})`
   -> `{eventId,operationId,...}`. Actions: `approve`, `request-changes`, `reject`,
-  `suspend`, `resume`, `cancel`, `withdraw-entry`, `join`, `leave`, `submit`, `withdraw`, `pick-winner`.
+  `suspend`, `resume`, `cancel`, `withdraw-entry`, `join`, `leave`, `submit`, `withdraw`, `pick-winner`, `edit-schedule`.
   Approve/request-changes/reject require exact latest proposal `revision` and
   maintainer identity; no self-approval. Event moderation requires a public reason.
   A creator may cancel their own automatically approved jam even after Pro
   revocation; suspension and resumption remain maintainer-only. Cancellation preserves
   existing project holds until scheduled reveal.
+  `edit-schedule` requires the current accepted event revision and a nonempty
+  patch of UTC schedule fields. The organizer of an active, automatically
+  approved Game Jam can change a field only when its old and new times are both
+  in the future. The merged schedule must remain ordered. The same event ID,
+  registrations and entries survive. The edit records a new approved revision,
+  while entries from earlier schedule-only revisions stay eligible.
   `join` and `submit` require accepted event `revision` as acknowledgment. For
   showcase events, Join binds a verified public repository without requiring a
   published site. Submit rechecks that repository and requires a Pages URL with
