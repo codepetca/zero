@@ -14,7 +14,11 @@ function processRun(spec, {signal,timeoutMs = 120000,terminationMs = 5000,graceM
     if (![timeoutMs,terminationMs,graceMs].every(n => Number.isSafeInteger(n) && n > 0)) return reject(new Error('Invalid local Check deadline.'));
     // A separate POSIX session owns the wrapper's download helpers and JVM as
     // one process group. Signals never target VS Code's inherited group.
-    const child = spawnProcess(spec.command,spec.args,{cwd:spec.cwd,env:spec.env || process.env,shell:spec.shell || false,windowsHide:true,detached:platform !== 'win32'});
+    const child = spawnProcess(spec.command,spec.args,{
+      cwd:spec.cwd,env:spec.env || process.env,shell:spec.shell || false,
+      windowsHide:true,detached:platform !== 'win32',
+      ...(platform==='win32' && spec.windowsVerbatimArguments ? {windowsVerbatimArguments:true} : {})
+    });
     const pid = child.pid;
     let output = '', done = false, stopping = false, exited = false, closed = false, exitCode;
     let forcedError, lastProbeError, stopTimer, graceTimer, treePoll, treeKiller, killerExited = false, treeConfirmed = false;
@@ -149,14 +153,19 @@ async function captureInputs(root,names) {
   return {bytes,snapshot};
 }
 function javaTool(name, javaHome) { return javaHome ? path.join(javaHome,'bin',process.platform === 'win32' ? `${name}.exe` : name) : name; }
-function mavenCommand(wrapper,args,root,javaHome) {
-  const spec={command:wrapper,args:['-B','-ntp','-V',...args],cwd:root,...(javaHome?{env:{...process.env,JAVA_HOME:javaHome}}:{})};
-  if (process.platform === 'win32') {
-    if ([spec.command,...spec.args].some(s=>/["%&|<>^!\r\n]/.test(s))) fail('Local Check on Windows needs a project/temp path without command-shell special characters.');
-    const line='"'+[spec.command,...spec.args].map(s=>'"'+s+'"').join(' ')+'"';
-    spec.command=process.env.ComSpec || 'C:\\Windows\\System32\\cmd.exe'; spec.args=['/d','/s','/c',line];
-  }
-  return spec;
+function mavenCommand(wrapper,args,cwd,javaHome) {
+  const spec={command:wrapper,args:['-B','-ntp',...args],cwd,...(javaHome?{env:{...process.env,JAVA_HOME:javaHome}}:{})};
+  if (process.platform !== 'win32') return spec;
+  const values=[spec.command,...spec.args];
+  if (values.some(s=>/["%&|<>^!\r\n]/.test(s))) fail('Local Check on Windows needs a project/temp path without command-shell special characters.');
+  // cmd /s strips the outer quotes itself. Windows argv escaping would add
+  // backslashes to the inner quotes and change the command before cmd sees it.
+  return {
+    ...spec,
+    command:path.win32.join(process.env.SystemRoot || 'C:\\Windows','System32','cmd.exe'),
+    args:['/d','/s','/c','"'+values.map(s=>'"'+s+'"').join(' ')+'"'],
+    windowsVerbatimArguments:true
+  };
 }
 async function prepareCoreCheck(root,library,input,{temporaryRoot,javaHome,harnessPath}) {
   const core=require('../core-contract'), state=await coreState(root,library.descriptor);
@@ -199,7 +208,7 @@ async function prepareCoreCheck(root,library,input,{temporaryRoot,javaHome,harne
     const harnessSource=path.join(temp,'ZeroLibraryHarness.java');
     await fs.copyFile(harnessPath || await fs.access(HARNESS_SOURCE).then(()=>HARNESS_SOURCE,()=>HARNESS_BUNDLED),harnessSource,fs.constants.COPYFILE_EXCL);stagedNames.push('ZeroLibraryHarness.java');
     const jar=path.join(target,`${library.identity.coordinate.artifactId}-${library.descriptor.version}.jar`), sourcesJar=path.join(target,`${library.identity.coordinate.artifactId}-${library.descriptor.version}-sources.jar`), coreJar=path.join(temp,'core/target',`zero-core-${coreVersion}.jar`);
-    const commands=[mavenCommand(wrapper,['-f',pom,'clean','package','-Dmaven.test.skip=true'],temp,javaHome),mavenCommand(wrapper,['-f',corePom,'org.apache.maven.plugins:maven-dependency-plugin:3.8.1:build-classpath',`-Dmdep.outputFile=${classpathFile}`],temp,javaHome)];
+    const commands=[mavenCommand(wrapper,['-V','-f',pom,'clean','package','-Dmaven.test.skip=true'],temp,javaHome),mavenCommand(wrapper,['-V','-f',corePom,'org.apache.maven.plugins:maven-dependency-plugin:3.8.1:build-classpath',`-Dmdep.outputFile=${classpathFile}`],temp,javaHome)];
     const plan={schema:1,root,slug:library.slug,library,temp,pom,target,jar,sourcesJar,coreJar,corePom,artifactPom:path.join(temp,'artifact.pom'),classesDir,classpathFile,harnessSource,input,snapshot:original,maven:commands[0],commands,javaHome,stagedChecks,stagedNames,
       stagedSnapshot:await fingerprint(temp,stagedNames),toolSnapshot,coreSnapshot:state.snapshot,coreRecord:state.record,coreClasses:core.coreSourcePaths.map(n=>n.slice('src/main/java/'.length,-5).replaceAll('/','.')),
       buildRecipeSha256:hash(JSON.stringify({schema:1,reactorPom:reactorPomText,corePom:corePomText,libraryPom:libPomText,wrapper:stagedToolSnapshot,commands:[['clean','package','-Dmaven.test.skip=true'],['org.apache.maven.plugins:maven-dependency-plugin:3.8.1:build-classpath']],javac:['--release','17','-proc:none'],harness:hash(await fs.readFile(harnessSource))})),
@@ -252,12 +261,7 @@ async function prepareLocalCheck(root, slug, {temporaryRoot,javaHome = process.e
     const maintainedHarness = harnessPath || await fs.access(HARNESS_SOURCE).then(() => HARNESS_SOURCE, () => HARNESS_BUNDLED);
     await fs.copyFile(maintainedHarness,harnessSource,fs.constants.COPYFILE_EXCL);
     const jar=path.join(target,`${library.identity.coordinate.artifactId}-${library.descriptor.version}.jar`);
-    const maven={command:wrapper,...(javaHome?{env:{...process.env,JAVA_HOME:javaHome}}:{}),args:['-B','-ntp','-f',pom,'clean','package','-Dmaven.test.skip=true','org.apache.maven.plugins:maven-dependency-plugin:3.8.1:build-classpath',`-Dmdep.outputFile=${classpathFile}`],cwd:root};
-    if (process.platform === 'win32') {
-      if ([maven.command,...maven.args].some(s => /["%&|<>^!\r\n]/.test(s))) fail('Local Check on Windows needs a project/temp path without command-shell special characters.');
-      const line='"' + [maven.command,...maven.args].map(s => '"'+s+'"').join(' ') + '"';
-      maven.command=process.env.ComSpec || 'C:\\Windows\\System32\\cmd.exe'; maven.args=['/d','/s','/c',line];
-    }
+    const maven=mavenCommand(wrapper,['-f',pom,'clean','package','-Dmaven.test.skip=true','org.apache.maven.plugins:maven-dependency-plugin:3.8.1:build-classpath',`-Dmdep.outputFile=${classpathFile}`],root,javaHome);
     return {schema:1,root,slug,library,temp,pom,target,jar,classesDir,classpathFile,harnessSource,input,snapshot:await fingerprint(root,input.files),maven,javaHome,
       summary:{library:library.identity.id,version:library.descriptor.version,kind:library.descriptor.libraryKind,classes:input.classes,checks:input.mains,mode:library.mode}};
   } catch (error) { await fs.rm(temp,{recursive:true,force:true}); throw error; }
