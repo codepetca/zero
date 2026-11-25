@@ -43,11 +43,22 @@ jobs:
             acquiredFrom = 'winget msstore'
           } | ConvertTo-Json | Tee-Object -FilePath "${env:RUNNER_TEMP}/public-store-proof.json"
           & .\scripts\test-msix-first-run.ps1 -PackageFamily $family -KitVersion $version -RequireGit
+      - name: Prepare the installed-editor test driver
+        if: inputs.version == '0.5.88'
+        run: npm ci
+      - name: Run the exact production Lesson 11 in the installed Store editor
+        if: inputs.version == '0.5.88'
+        shell: pwsh
+        run: .\scripts\test-public-store-collision.ps1 -OutputDirectory "${env:RUNNER_TEMP}/zero-collision-exercise"
       - name: Retain the public installer receipt
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: public-store-install-${{ github.run_id }}
-          path: ${{ runner.temp }}/public-store-proof.json
+          path: |
+            ${{ runner.temp }}/public-store-proof.json
+            ${{ runner.temp }}/zero-collision-exercise/collision-result.json
+            ${{ runner.temp }}/zero-collision-exercise/public-editor-add.png
+            ${{ runner.temp }}/zero-collision-exercise/public-browser-preview.png
           if-no-files-found: ignore
           retention-days: 7
