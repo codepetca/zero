@@ -330,7 +330,12 @@ test('practice contribution uses a harmless badge, not duplicate input utilities
   assert.match(lesson,/Copies are expected/);
   assert.match(lesson,/tutorial-credits-badge/);
   assert.match(lesson,/Optional extension: contribute an original idea/);
-  assert.match(lesson,/Library publication is currently paused/);
+  assert.match(lesson,/libraries\/tutorial-credits-badge\/LICENSE/);
+  assert.match(lesson,/MIT licence originally published with CreditsBadge/);
+  assert.match(lesson,/Requests and results/);
+  assert.match(lesson,/View exact release/);
+  assert.match(lesson,/import zero\.lib\.r1471779330\.collision_helper\.CollisionHelper;/);
+  assert.match(lesson,/CreditsBadge uses\s+`zero\.contrib`/);
   for(const variant of ['12/media','12/scrolling'])assert.equal(readFileSync(path.join(root,'teaching/checkpoints',variant,'CreditsBadge.java'),'utf8'),badge);
   for(const name of ['LibraryCheck','FirstExample','SecondExample']) {
     const source=readFileSync(path.join(root,'teaching/checkpoints/11/practice',name+'.java'),'utf8');

@@ -32,7 +32,14 @@ In the project lessons, have students save and run at each checkpoint, explain o
 
 ## Optional paths
 
-- **Coin game revisited, 10–11:** continue the Coin project. Check PlayerInput extraction against movement, opposing keys, edges, focus loss and Restart. Lesson 11's copied CreditsBadge belongs only in the labelled Tutorial practice area from the Coin repository. Local extraction and checks can continue when hosted acceptance is paused; do not promise a listing. An original contribution proposal is optional.
+- **Coin game revisited, lessons 10–11.** Continue the Coin project. Check PlayerInput
+  extraction against movement, opposing keys, edges, focus loss and Restart.
+  Share the copied CreditsBadge through **Tutorial practice** from the Coin
+  repository. Have students show their local Check result, then use **Requests
+  and results** to follow a submitted version where school policy permits.
+  The optional Collision Helper exercise uses a separate project and a Zero
+  build that offers 0.2.0 under **Browse libraries**. An original contribution
+  proposal remains optional.
 - **Coin artwork and sound, 12:** use the supplied assets as an open-ended challenge, drawing on the Pet lessons. Check scoring, Restart, browser behavior and an understandable experience without sound.
 
 ## Save, share and recover

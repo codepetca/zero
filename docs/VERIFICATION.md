@@ -11,8 +11,19 @@ hashes. Lesson 11 keeps its practice package for the existing saved builder.
 The disposable pilot author project re-extracted Collision Helper 0.2.0 with
 `zero.lib.r1471779330.collision_helper`, passed all three checks and compiled
 under JDK 17. The local withdrawal tests verify exact-key authorization and
-preserve accepted artifact bytes. Production acceptance requires the deployed
-catalog, reviewed publisher and a second project.
+preserve accepted artifact bytes.
+
+[PR #421](https://github.com/codepetca/zero/pull/421) passed all 13 exact-head
+checks before deployment. The [withdrawal run](https://github.com/codepetca/zero/actions/runs/45661227349)
+removed 0.1.0 from browse results and preserved all three verified artifacts.
+The [hosted checker](https://github.com/codepetca/zero/actions/runs/45662300206)
+accepted [issue #422](https://github.com/codepetca/zero/issues/422). The
+[delivery recovery](https://github.com/codepetca/zero/actions/runs/45664685586)
+made 0.2.0 available using the accepted bytes. The exact release appeared in
+ZeroHub, and the v2 catalog excluded the new package. The updated editor
+command, driven with automated prompts, added all three verified artifacts
+to a second project. JDK 17 collision assertions passed. The saved WebFX
+export validated, and Chrome displayed the expected message.
 
 # ZeroHub library request status — 2026-11-25
 

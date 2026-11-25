@@ -4,7 +4,7 @@
 
 Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.
 
-This local kit candidate **0.5.87** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
+Zero **0.5.88** includes core **0.3.0**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
 
@@ -102,7 +102,7 @@ lesson 0, then create and clone your own tutorial repository.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.87.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.88.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors
@@ -170,15 +170,15 @@ public ZeroHub uploads are not open yet.
 
 ## Use a ZeroHub component
 
-This kit includes automatic library setup. Choose **Browse ZeroHub → Libraries**
-in the sidebar, pick a component, then choose
-**Add library → Apply**.
+In the Command Palette, choose **Zero: Libraries and Games → Browse libraries**.
+Pick a component, then choose **Add library → Apply**.
 Zero sets up the library for your app. Use the component's Java import and
 example, then **Run App**. You do not need to edit the project setup file.
 
 Choose **Update** when a newer compatible version is available; **Revert** returns
 to your preceding version. Existing app code is kept. Browsing and using public
-libraries needs no GitHub sign-in. Public library uploads are not open yet.
+libraries needs no GitHub sign-in. [Lesson 11](https://zero.codepet.ca/tutorials/11)
+shows how to check and share your own library and try Collision Helper in a new project.
 
 The starter also includes readable examples and editable ordinary Java
 framework source.

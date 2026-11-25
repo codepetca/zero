@@ -43,8 +43,8 @@ export default async function Hub({searchParams}:{searchParams:Promise<Record<st
     if(query.kind==='library'&&query.view==='use')return <>
       <h1>Add a library</h1>
       <ol className="steps">
-        <li>In Zero, open <strong>Libraries and games</strong>.</li>
-        <li>Choose <strong>Browse ZeroHub</strong> and select a library.</li>
+        <li>In the Zero Command Palette, open <strong>Zero: Libraries and Games</strong>.</li>
+        <li>Choose <strong>Browse libraries</strong> and select a library.</li>
         <li>Check the author and version, then choose <strong>Add library → Apply</strong>.</li>
       </ol>
       <p><Link href="/hub?kind=library">Browse libraries</Link></p>
