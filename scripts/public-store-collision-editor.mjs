@@ -55,24 +55,28 @@ try {
   assert.ok(page, 'Expected the standalone installed editor window');
   const quick = page.locator('.quick-input-widget');
   const command = async title => {
-    await page.keyboard.press('Control+Shift+P');
     const input = quick.locator('input:visible').first();
-    await input.waitFor({state:'visible',timeout:15000});
-    await input.press('Control+A');
-    await input.press('Backspace');
-    await input.pressSequentially('>' + title, {delay:20});
     const item = quick.getByRole('option', {name:title})
       .or(quick.getByText(title, {exact:true})).first();
-    try {
-      await item.waitFor({state:'visible',timeout:20000});
-    } catch (error) {
-      console.log(JSON.stringify({command:title, query:await input.inputValue(),
-        quickInput:(await quick.innerText()).slice(0,1200),
-        dialogs:(await page.getByRole('dialog').allTextContents()).join(' ').slice(0,700)}));
-      await page.screenshot({path:join(directory,'public-editor-command.png')});
-      throw error;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        if (!(await input.isVisible())) await page.keyboard.press('Control+Shift+P');
+        await input.waitFor({state:'visible',timeout:7000});
+        await input.fill('>' + title);
+        await item.waitFor({state:'visible',timeout:8000});
+        await item.click();
+        return;
+      } catch (error) {
+        if (error.name !== 'TimeoutError' || attempt === 2) {
+          await page.screenshot({path:join(directory,'public-editor-command.png')});
+          console.log(JSON.stringify({command:title,
+            query:await input.isVisible() ? await input.inputValue({timeout:1000}) : null,
+            quickInput:(await quick.innerText()).slice(0,1200),
+            dialogs:(await page.getByRole('dialog').allTextContents()).join(' ').slice(0,700)}));
+          throw error;
+        }
+      }
     }
-    await item.click();
   };
   const choose = async (title, timeout = 20000) => {
     const item = quick.getByText(title, {exact:true}).first();
@@ -99,6 +103,7 @@ try {
       }
       await restricted.waitFor({state:'hidden',timeout:15000});
     }
+    await page.locator('.activitybar [aria-label^="Zero"]').first().waitFor({state:'visible',timeout:25000});
     await command('Zero: Libraries and Games');
     await choose('Browse libraries');
     await choose('Collision Helper Pilot', 45000);
