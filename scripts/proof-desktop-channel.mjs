@@ -7,6 +7,7 @@ import {join} from 'node:path';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {fileURLToPath} from 'node:url';
 import net from 'node:net';
+import {openSync,closeSync} from 'node:fs';
 
 const repo = 'codepetca/zero';
 const branch = 'codex/zero-089-windows-interactive-proof';
@@ -84,6 +85,50 @@ async function download(run,name,directory) {
   return read(directory,'envelope');
 }
 
+function hostFailureReason(output) {
+  if (/too many|rate limit|429/i.test(output)) return 'service limit';
+  if (/not found|404/i.test(output)) return 'temporary tunnel is not yet visible';
+  if (/unauthori|forbidden|not authori|invalid.*token|401|403/i.test(output)) return 'service authorization';
+  if (/timed? out|timeout|connection|socket|relay unreachable|50[0234]/i.test(output)) return 'relay connection';
+  if (/another host|already hosted|conflict|409/i.test(output)) return 'another active host';
+  return 'unclassified startup error';
+}
+
+async function startPrivateHost(directory, config) {
+  const executable = join(directory,'devtunnel.exe');
+  const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => !/TOKEN|SECRET|ZERO_DESKTOP_/i.test(name)));
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const logPath = join(directory,'host-startup-' + attempt + '.log');
+    const log = openSync(logPath,'wx',0o600);
+    let child;
+    try {
+      child = spawn(executable,['host',config.id,'--access-token','-'],{
+        windowsHide:true,detached:true,stdio:['pipe',log,log],env,
+      });
+      child.stdin.on('error',() => {});
+      child.stdin.end(config.token + '\n');
+      await new Promise((resolve,reject) => {
+        child.once('spawn',resolve);
+        child.once('error',reject);
+      });
+    } finally {
+      closeSync(log);
+    }
+    await sleep(3000);
+    if (child.exitCode === null) {
+      child.unref();
+      await write(directory,'host-process',{pid:child.pid});
+      console.log('The authorized private tunnel host was started.');
+      return;
+    }
+    const reason = hostFailureReason(await readFile(logPath,'utf8'));
+    await rm(logPath,{force:true});
+    console.log('Private tunnel startup attempt ' + attempt + ' reported ' + reason + '.');
+    if (attempt < 3) await sleep(attempt*3000);
+  }
+  throw Error('The Windows Dev Tunnels host exited on all startup attempts.');
+}
+
 async function host(directory) {
   runner();
   assert.equal(process.platform,'win32');
@@ -108,22 +153,7 @@ async function host(directory) {
         if (response.nonce !== state.nonce) continue;
         assert.match(response.id,/^zeroqa-[a-f0-9]{10}(?:\.[a-z0-9]{2,12})?$/);
         assert.match(response.token,/^[A-Za-z0-9_.-]{30,10000}$/);
-        const executable = join(directory,'devtunnel.exe');
-        const processInfo = spawn(executable,['host',response.id,'--access-token','-'],{
-          windowsHide:true,detached:true,stdio:['pipe','ignore','ignore'],
-          env:Object.fromEntries(Object.entries(process.env).filter(([name]) => !/TOKEN|SECRET|ZERO_DESKTOP_/i.test(name))),
-        });
-        processInfo.stdin.on('error',() => {});
-        processInfo.stdin.end(response.token + '\n');
-        await new Promise((resolve,reject) => {
-          processInfo.once('spawn',resolve);
-          processInfo.once('error',reject);
-        });
-        await sleep(3000);
-        assert.equal(processInfo.exitCode,null,'The Windows Dev Tunnels host exited during startup.');
-        processInfo.unref();
-        await write(directory,'host-process',{pid:processInfo.pid});
-        console.log('The authorized private tunnel host was started.');
+        await startPrivateHost(directory,response);
         return;
       }
       await sleep(4000);
@@ -234,6 +264,8 @@ async function local(directory,devtunnel,rdpClient) {
         tunnel = spawn(devtunnel,['connect',reference],{stdio:'ignore'});
       }
       if (await connectable(3389)) break;
+      const view = await gh(['run','view',run,'--repo',repo,'--json','status']).then(JSON.parse).catch(() => null);
+      assert.notEqual(view?.status,'completed','The Windows tunnel host stopped before Remote Desktop connected.');
       await sleep(3500);
     } while (Date.now()<connectDeadline);
     assert.ok(await connectable(3389),'The private RDP forwarding was not ready.');
