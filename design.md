@@ -19,7 +19,7 @@ Owner reporting refinement, 2026-11-26. Place the Terms, Privacy Notice and
 checked public-reporting checkbox on the first Start Page. **Start building**
 saves the selection, which carries across updates. Closing the page saves no
 choice. Keep sidebar errors concise with **Show Problems** or **Repair and
-continue** when relevant. Keep **Report a problem** in Help. With reporting
+continue** when relevant. Keep **Report a problem** in the Zero sidebar menu. With reporting
 enabled, eligible reports send silently and manual reports send directly.
 A one-off manual report still asks before sending when automatic reporting is
 off. Public reports contain structured technical data only.

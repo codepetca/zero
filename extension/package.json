@@ -623,7 +623,7 @@
           "type": "boolean",
           "default": false,
           "scope": "machine",
-          "markdownDescription": "Choose during first-time setup or here. Send structured unexpected Zero operation failures to a public GitHub issue to help fix problems. Requires VS Code telemetry to be enabled. Reports include version information and operation steps, but no logs, paths, project URLs, credentials or free text. When enabled, Zero Help → Report a Problem sends directly. When disabled, a manual report asks before sending."
+          "markdownDescription": "Choose during first-time setup or here. Send structured unexpected Zero operation failures to a public GitHub issue to help fix problems. Requires VS Code telemetry to be enabled. Reports include version information and operation steps, but no logs, paths, project URLs, credentials or free text. When enabled, Report a problem in the Zero sidebar menu sends directly. When disabled, a manual report asks before sending."
         }
       }
     },

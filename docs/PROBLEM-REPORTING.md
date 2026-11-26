@@ -58,7 +58,7 @@ report or project data and is never uploaded.
 With the saved reporting choice enabled, eligible unexpected errors send silently. Automatic
 reports include operation history recorded while automatic reporting was active. The
 machine-scoped setting `zero.automaticPublicProblemReports` respects VS Code's
-telemetry preference; changing the public choice remains available in Help.
+telemetry preference. Use Zero’s settings to change the reporting choice.
 A prior private-reporting setting and queue do not enable or populate public
 reporting. The collector clears the legacy queue locally without submitting it.
 Public reports use schema version 2. The endpoint rejects version 1 requests,
