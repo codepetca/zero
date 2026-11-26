@@ -68,6 +68,7 @@ const {createSetupHelp} = require('./setup');
 const {isSetupProject,findSetupProject} = require('./setup-project');
 const {createNativeUpdateCommands} = require('./native-updates');
 const {createNativeUpdateReload} = require('./native-update-reload');
+const {createUpdateReminder} = require('./update-reminder');
 const {createWebExportCommands} = require('./web-export-ui');
 const {createProjectBuilder,readSavedBuilder,browserCacheRoot,browserToolingUpdateRequired} = require('./project-builder');
 const {createBrowserRunCommands,sourceDiagnostics} = require('./web-run-ui');
@@ -3875,9 +3876,11 @@ function activate(context, services = {}) {
     void configureProjectGitIdentity();
   }));
   context.subscriptions.push({dispose:() => {clearBrowserRepair();runGeneration++;if (execution) execution.terminate();}});
-  context.subscriptions.push(createNativeUpdateReload(vscode, {context,
-    isBusy:()=>disposed || isBusy() || auth.busy || Boolean(appProvider?.busy || execution || pendingLaunch || nativeStarting || browserActive),
-    log:message=>output.appendLine(message)}));
+  const updateBusy = () => disposed || isBusy() || auth.busy || Boolean(appProvider?.busy || execution || pendingLaunch || nativeStarting || browserActive);
+  context.subscriptions.push(
+    createNativeUpdateReload(vscode, {context, isBusy:updateBusy, log:message=>output.appendLine(message)}),
+    createUpdateReminder(vscode, {context, isBusy:updateBusy, environment:env})
+  );
   void introduceAfterConnection();
   queueMicrotask(()=>{void problemReporter.offerFirstRunChoice().catch(()=>{});});
 }
