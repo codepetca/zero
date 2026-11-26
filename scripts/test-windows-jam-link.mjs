@@ -5,6 +5,7 @@ import {setTimeout as sleep} from 'node:timers/promises';
 const {ZERO_JAM_PAGE:pageUrl,ZERO_JAM_ID:id,ZERO_JAM_TITLE:title,ZERO_JAM_RULES:rules,ZERO_JAM_EDITOR_PORT:editorPort,ZERO_JAM_CHROME_PORT:chromePort} = process.env;
 assert.match(id ?? '', /^jam-(?:[1-9][0-9]{0,19}|zero-[a-f0-9]{32})$/);
 assert.ok(title && rules && pageUrl && editorPort && chromePort);
+console.log('Connecting to the isolated editor and Chrome.');
 const editor = await chromium.connectOverCDP(`http://127.0.0.1:${editorPort}`);
 const chrome = await chromium.connectOverCDP(`http://127.0.0.1:${chromePort}`);
 const normalize = value => value.replace(/\s+/gu,' ').trim();
@@ -56,12 +57,15 @@ async function checkElectronWebview() {
 }
 try {
   const browserPage = chrome.contexts()[0].pages()[0] ?? await chrome.contexts()[0].newPage();
+  console.log('Opening the jam preview in Chrome.');
   await browserPage.goto(pageUrl,{waitUntil:'domcontentloaded',timeout:30000});
   // A real input click on the page, never a direct protocol invocation.
   const link = browserPage.getByRole('link',{name:'Open in Zero',exact:true});
   await link.waitFor({state:'visible',timeout:30000});
   assert.equal(await link.getAttribute('href'),`zero-studio://jam/${id}`);
+  console.log('Clicking Open in Zero with the exact jam URI.');
   await link.click({timeout:15000});
+  console.log('Chrome click completed. Waiting for the installed editor.');
   const deadline = Date.now()+120000;
   let passed = false;
   while (Date.now()<deadline && !passed) {
@@ -71,7 +75,10 @@ try {
       const dialog=page.locator('[role=dialog], [role=alertdialog]').filter({hasText:/Allow ['‘]Zero['’] extension to open this URI/i});
       if (await dialog.count()) {
         const open=dialog.first().getByRole('button',{name:/^(open|open uri|open link)$/i});
-        if (await open.count() && await open.first().isVisible()) await open.first().click();
+        if (await open.count() && await open.first().isVisible()) {
+          console.log('Approving the editor URI prompt.');
+          await open.first().click({timeout:5000});
+        }
       }
       for (const frame of page.frames()) {
         try {

@@ -72,7 +72,15 @@ try {
     $stage='browser-click-and-review'
     $env:ZERO_JAM_PAGE=$PageUrl; $env:ZERO_JAM_ID=$JamId; $env:ZERO_JAM_TITLE=$ExpectedTitle; $env:ZERO_JAM_RULES=$ExpectedRules
     $env:ZERO_JAM_EDITOR_PORT="$editorPort"; $env:ZERO_JAM_CHROME_PORT="$chromePort"
-    $driver=Start-Process -FilePath 'node' -ArgumentList @('"'+(Join-Path $PSScriptRoot 'test-windows-jam-link.mjs')+'"') -PassThru -RedirectStandardOutput (Join-Path $scratch 'stdout') -RedirectStandardError (Join-Path $scratch 'stderr')
+    $driverLaunch=[Diagnostics.ProcessStartInfo]::new((Get-Command node.exe -CommandType Application).Source)
+    $driverLaunch.UseShellExecute=$false
+    $driverLaunch.Arguments=Join-ProcessArguments @((Join-Path $PSScriptRoot 'test-windows-jam-link.mjs'))
+    $driverLaunch.RedirectStandardOutput=$true
+    $driverLaunch.RedirectStandardError=$true
+    $driver=[Diagnostics.Process]::Start($driverLaunch)
+    $stdoutTask=$driver.StandardOutput.ReadToEndAsync()
+    $stderrTask=$driver.StandardError.ReadToEndAsync()
+    $promptInvoked=$false
     $deadline=[DateTime]::UtcNow.AddSeconds(150)
     while (-not $driver.HasExited -and [DateTime]::UtcNow -lt $deadline) {
         # Chrome's OS protocol confirmation is accepted only in our test browser.
@@ -87,17 +95,17 @@ try {
             foreach($element in $elements) {
                 if ($element.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or $element.Current.Name -notmatch '^(?i:Open Zero|Open Zero Studio)$') { continue }
                 $patternValue=$null
-                if ($element.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$patternValue)) { $patternValue.Invoke(); break }
+                if ($element.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$patternValue)) { $patternValue.Invoke(); $promptInvoked=$true; break }
             }
         }
         Start-Sleep -Milliseconds 500; $driver.Refresh()
     }
-    if (-not $driver.HasExited) { Stop-Process -Id $driver.Id -Force; throw 'Browser-to-editor check timed out.' }
-    if ($driver.ExitCode -ne 0) {
-        $summary = (Get-Content -LiteralPath (Join-Path $scratch 'stderr') -Tail 20 | Out-String).Replace($env:USERPROFILE,'<user>').Replace($env:RUNNER_TEMP,'<temp>')
-        Write-Warning $summary
-        throw 'Browser-to-editor check failed; inspect sanitized stage and runner logs.'
-    }
+    if (-not $driver.HasExited) { $driver.Kill() }
+    $driver.WaitForExit()
+    $summary=($stdoutTask.GetAwaiter().GetResult() + $stderrTask.GetAwaiter().GetResult()).Replace($env:USERPROFILE,'<user>').Replace($env:RUNNER_TEMP,'<temp>')
+    Write-Host "Chrome prompt approved by UI Automation: $promptInvoked"
+    Write-Host $summary
+    if ($driver.ExitCode -ne 0) { throw "Browser-to-editor check exited with code $($driver.ExitCode)." }
     $result='passed'; $stage='complete'
 } catch { $failure=$_; Write-Warning (("Jam link check failed at stage ${stage}: " + $_.Exception.Message).Replace($env:USERPROFILE,'<user>').Replace($env:RUNNER_TEMP,'<temp>')) }
 finally {
