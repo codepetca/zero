@@ -30,6 +30,20 @@ test('snapshot reuses exact validated bytes and preserves ZIP member order',asyn
  const f=await fixture(t),result=await ensureValidatedExport({...f.options,engine:{exportForWeb:f.build}});
  assert.equal(f.builds,1);assert.equal(result.buildId,'build-1');assert.ok(result.zipBytes.equals(await fs.readFile(f.zipPath)));assert.equal(result.siteFiles.length,3);
 });
+test('Finder metadata in resource folders does not invalidate the browser snapshot',async t=>{
+ const f=await fixture(t),before=await captureBuildInputs(f.root);
+ const resourceRoot=path.join(f.root,'src/main/resources');
+ await fs.mkdir(path.join(resourceRoot,'images'));
+ await fs.writeFile(path.join(resourceRoot,'.DS_Store'),'folder view');
+ await fs.writeFile(path.join(resourceRoot,'images/.DS_Store'),'other folder view');
+ const captured=await captureBuildInputs(f.root);
+ assert.equal(captured.sourceHash,before.sourceHash);
+ assert.deepEqual(captured.files,before.files);
+ assert.equal((await validateExport(f.options)).buildId,'build-1');
+ await fs.unlink(path.join(resourceRoot,'.DS_Store'));
+ await fs.link(path.join(resourceRoot,'tone.wav'),path.join(resourceRoot,'.DS_Store'));
+ await assert.rejects(captureBuildInputs(f.root),/linked Finder metadata/);
+});
 for(const name of ['src/main/java/Main.java','src/main/resources/tone.wav','pom.xml','mvnw','.mvn/wrapper/maven-wrapper.properties'])test('input drift invalidates snapshot: '+name,async t=>{
  const f=await fixture(t);await fs.appendFile(path.join(f.root,name),' changed');await assert.rejects(validateExport(f.options),/project changed.*Choose Export for web or Publish app again/);
  const result=await ensureValidatedExport({...f.options,engine:{exportForWeb:f.build}});assert.equal(result.buildId,'build-2');
@@ -126,12 +140,13 @@ test('captured local library discovery retains validation and streams its resour
  await fs.writeFile(path.join(f.root,'pom.xml'),await fs.readFile(path.resolve(__dirname,'../../student-template/pom.xml')));
  await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository:{id:'12345',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'},descriptor:{schema:1,kind:'library',slug:'health-bar',version:'0.1.0',title:'Health bar',description:'Captured library resource test',license:'MIT',libraryKind:'helper'},sources:['src/main/java/Health.java']}));
  const name='libraries/health-bar/src/main/resources/zero/contrib/r12345/health_bar/icon.txt';await fs.mkdir(path.dirname(path.join(f.root,name)),{recursive:true});await fs.writeFile(path.join(f.root,name),'exact local resource');
+ await fs.writeFile(path.join(path.dirname(path.join(f.root,name)),'.DS_Store'),'Finder view');
  const open=fs.open,sourceReads=new Map();
  t.mock.method(fs,'open',async(filename,...args)=>{if(filename.endsWith('.java'))sourceReads.set(filename,(sourceReads.get(filename)||0)+1);return open(filename,...args);});
  const full=await captureBuildInputs(f.root),metadata=await captureBuildInputs(f.root,{metadataOnlyResources:true});
  assert.equal(metadata.sourceHash,full.sourceHash);assert.equal(Object.hasOwn(metadata.files.find(file=>file.path===name),'bytes'),false);
  const resolved=await require('../src/web-export/libraries').resolveLibrarySources(f.root,metadata);
- assert.equal(resolved.sources.length,1);assert.equal(resolved.resources[0].path,'zero/contrib/r12345/health_bar/icon.txt');
+ assert.equal(resolved.sources.length,1);assert.deepEqual(resolved.resources.map(file=>file.path),['zero/contrib/r12345/health_bar/icon.txt']);
  assert.equal(full.files.some(file=>file.path==='zero.json'),false,'marker remains outside the original browser digest');
  assert.ok(sourceReads.size>=2);assert.ok([...sourceReads.values()].every(count=>count===2),'discovery reuses each captured source, with one content read per snapshot');
 });
@@ -139,7 +154,9 @@ test('captured local library discovery retains validation and streams its resour
 test('publish binds every build input to committed Git blobs, including ignored resources',async t=>{
  const f=await fixture(t),{execFile}=require('node:child_process'),{promisify}=require('node:util'),exec=promisify(execFile);
  const git=async(root,args)=>(await exec('git',args,{cwd:root})).stdout;
+ await fs.writeFile(path.join(f.root,'src/main/resources/.DS_Store'),'tracked Finder metadata');
  await git(f.root,['init','-b','main']);await git(f.root,['add','src','pom.xml','mvnw','mvnw.cmd','.mvn']);
+ await git(f.root,['add','-f','src/main/resources/.DS_Store']);
  await git(f.root,['-c','user.name=Zero test','-c','user.email=test@example.invalid','commit','-m','test']);
  const sourceSha=(await git(f.root,['rev-parse','HEAD'])).trim();
  const {assertBuildInputsAtCommit}=require('../src/web-export/snapshot');

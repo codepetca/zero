@@ -17,12 +17,16 @@ async function ordinary(filename,{directory=false,maxBytes=LIMITS.totalBytes}={}
  if(directory?!stat.isDirectory():!stat.isFile()||stat.nlink!==1||stat.size>maxBytes)throw Error('Browser output needs bounded ordinary files and directories.');
  return stat;
 }
-async function readTree(root){
+async function readTree(root,{ignoreFile}={}){
  await ordinary(root,{directory:true});const files=[];let total=0,entries=0;const folded=new Set();
  async function walk(folder,prefix=''){
   for(const item of await fs.readdir(folder,{withFileTypes:true})){
    const name=prefix+item.name,file=path.join(folder,item.name),key=name.toLowerCase();
    if(++entries>LIMITS.files*4)throw Error('Browser output contains too many paths.');
+   if(item.isFile()&&ignoreFile?.(name)){
+    await ordinary(file,{maxBytes:Infinity});
+    continue;
+   }
    if(!relative(name)||folded.has(key))throw Error('Browser output contains unsafe or case-colliding paths.');folded.add(key);
    if(item.isDirectory()){await ordinary(file,{directory:true});await walk(file,name+'/');}
    else {await ordinary(file);const bytes=await fs.readFile(file);total+=bytes.length;

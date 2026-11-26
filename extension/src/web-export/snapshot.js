@@ -7,6 +7,7 @@ const contracts = require('../sharing/contracts');
 const {constants} = require('node:fs');
 const builderFormat = require('../project-builder-format');
 const {discoverBrowserLibraries,resolveLibrarySources}=require('./libraries');
+const {isFinderMetadataResource}=require('./finder-metadata');
 const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const abort = signal => {if(signal?.aborted){const error=new Error('Browser build cancelled.');error.name='AbortError';throw error;}};
 async function safePath(file,signal) {
@@ -59,6 +60,10 @@ async function inventoryInput(root,name,{optional=false,signal,budget,files,dept
   if(stat.isSymbolicLink())throw new Error('Browser builds refuse symbolic links: '+filename);
   if(stat.isFile()) {
     if(kind==='directory')throw new Error('Expected a browser build folder: '+name);
+    if(isFinderMetadataResource(name)) {
+      if(stat.nlink!==1)throw new Error('Browser builds refuse linked Finder metadata: '+name);
+      return;
+    }
     reserveInput(budget,name,stat.size);files.push({path:name,filename,stat});return;
   }
   if(kind==='file')throw new Error('Expected a regular build file: '+name);
@@ -325,7 +330,7 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git}={}) 
   for(const entry of String(raw).split('\0').filter(Boolean)) {
     const match=/^(100644|100755) blob ([a-f0-9]{40})\t([\s\S]+)$/.exec(entry);
     if(!match)throw new Error('Uploaded browser inputs must be ordinary tracked files.');
-    if(match[3]==='src/main/resources/.gitkeep'||(match[3].startsWith('libraries/')||match[3].startsWith('zero-dependencies/'))&&!inputs.files.some(file=>file.path===match[3]))continue;
+    if(match[3]==='src/main/resources/.gitkeep'||isFinderMetadataResource(match[3])||(match[3].startsWith('libraries/')||match[3].startsWith('zero-dependencies/'))&&!inputs.files.some(file=>file.path===match[3]))continue;
     committed.set(match[3],match[2]);
   }
   const gitBlob=gitBlobHash;
