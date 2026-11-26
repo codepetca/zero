@@ -1,3 +1,28 @@
+# ZeroJam sign-up integration — 2026-11-26
+
+Integrated the web, Start Page and native handoff changes on top of main
+`36547128b`. Chrome at 320 CSS pixels showed the checked first-launch reporting
+box and verified that Cancel joining closes the jam review and returns focus to
+Open Game Jams. The combined Start Page tests confirmed a browser link keeps its
+jam through first-launch setup. No sign-in or registration is initiated by the
+link alone.
+
+The repository check, website type check, 99 focused tests and 136 adjacent
+editor tests passed. The Jam suite passed 706 tests with 6 skips. Playground and
+packaging checks passed 26 tests with 2 skips. The disposable Mac launcher
+harness passed 390 assertions. Windows launcher and MSIX source match the
+Windows VM run below. Browser-to-app activation was exercised on the original
+signed test builds. The combined branch has no signed end-to-end run or live
+student registration result.
+
+Independent GPT-6.1 Terra review at medium reasoning covered source
+`2639a7123`, including URI handoff, onboarding and the web participation gate.
+The review suggested extending public rules previews to signed-out selections in
+the Start Page catalog. This integration preserves the original design: the
+website link opens public rules before sign-in, and catalog selection uses the
+existing authenticated flow. The follow-up test-only change covers the production
+visibility gate around the new panel helper.
+
 # Open in Zero for Game Jams — 2026-11-26
 
 The local website offers **Open in Zero** beside **Download Zero** on open Game
@@ -36,7 +61,8 @@ card. It discards the review and returns keyboard focus to **Open Game Jams**.
 68 focused editor and playground tests passed, including cancellation during a
 public rules lookup and account-scoped review dismissal. Chrome at 320 CSS
 pixels confirmed the upper-right placement and keyboard focus after Enter.
-The independent follow-up review found no actionable issue. These checks ran on the original feature builds.
+The independent follow-up review found no actionable issue. These checks ran on
+the original feature builds.
 
 # Game Jam participation entry points — 2026-11-26
 
