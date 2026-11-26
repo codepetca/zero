@@ -1,3 +1,18 @@
+# First-launch reporting choice — 2026-11-26
+
+The local Start Page shows the checked reporting choice before sign-in on a
+fresh profile. Start building saves the choice. The old popup marker and
+explicit settings preserve decisions from earlier versions. Help retains the
+manual command. Sidebar diagnostics and browser-tool repair retain their
+contextual actions.
+
+The packaged-mode startup fixture opens setup before the WorkOS sign-in
+prompt. Focused tests cover both choices, closing setup, competing windows,
+settings write failure, legacy profiles, and the telemetry boundary for
+automatic breadcrumbs. The local design fixture was checked in a browser with
+its simulated controls. The native installer and live report delivery are
+outside these checks.
+
 # Finder metadata during web publishing — 2026-11-25
 
 Zero 0.5.87 rejected an ordinary `.DS_Store` inside application resources in

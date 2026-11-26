@@ -170,7 +170,7 @@ test('private reporting consent and queue never authorize or supply public repor
   }
 });
 
-function firstRunFixture(t, {globalValue, workspaceValue, telemetry=true, legacyMarker=false, failSave=false}={}) {
+function firstRunFixture(t, {globalValue, workspaceValue, telemetry=true, legacyMarker=false, beforeSave, keepDefault=false}={}) {
   const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
   const directory=fs.mkdtempSync(path.join(os.tmpdir(),'zero-report-choice-'));
   t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));
@@ -179,7 +179,12 @@ function firstRunFixture(t, {globalValue, workspaceValue, telemetry=true, legacy
   const config={
     inspect:()=>({globalValue:current,workspaceValue,defaultValue:false}),
     get:()=>workspaceValue ?? current ?? false,
-    update:async(key,value,target)=>{if(failSave)throw Error('settings unavailable');writes.push({key,value,target});current=value;for(const listener of listeners)listener({affectsConfiguration:()=>true});}
+    update:async(key,value,target)=>{
+      await beforeSave?.();
+      writes.push({key,value,target});
+      current=keepDefault && value===false ? undefined : value;
+      for(const listener of listeners)listener({affectsConfiguration:()=>true});
+    }
   };
   const vscode={ConfigurationTarget:{Global:1},ExtensionMode:{Development:2},
     workspace:{getConfiguration:()=>config,onDidChangeConfiguration:fn=>{listeners.push(fn);return {dispose(){}};}},
@@ -242,6 +247,35 @@ test('two windows can commit only one setup choice', async t => {
   second.dispose();
 });
 
+test('a pending save keeps the notice available if another window fails to save', async t => {
+  let started, rejectSave;
+  const saving = new Promise(resolve => {started = resolve;});
+  const failingWrite = new Promise((_resolve, reject) => {rejectSave = reject;});
+  let attempts = 0;
+  const f = firstRunFixture(t, {beforeSave: () => {
+    if (++attempts === 1) {started();return failingWrite;}
+  }});
+  const first = f.make(), second = f.make();
+  const failed = assert.rejects(first.saveFirstRunChoice(true, () => true), /settings unavailable/);
+  await saving;
+  assert.equal(second.needsFirstRunChoice(), true);
+  const next = second.saveFirstRunChoice(false, () => true);
+  rejectSave(Error('settings unavailable'));
+  await Promise.all([failed, next]);
+  assert.deepEqual(f.writes, [{key:'automaticPublicProblemReports', value:false, target:1}]);
+  assert.equal(second.needsFirstRunChoice(), false);
+  first.dispose();
+  second.dispose();
+});
+
+test('an opt-out stays complete if the editor retains its default without a global override', async t => {
+  const f = firstRunFixture(t, {keepDefault:true}), reporter = f.make();
+  await reporter.saveFirstRunChoice(false, () => true);
+  assert.equal(f.current, undefined);
+  assert.equal(reporter.needsFirstRunChoice(), false);
+  reporter.dispose();
+});
+
 test('a closed setup or changed preference invalidates an unfinished save', async t => {
   for (const action of ['setting', 'close', 'dispose']) await t.test(action, async t => {
     const f = firstRunFixture(t), reporter = f.make();
@@ -260,13 +294,32 @@ test('a closed setup or changed preference invalidates an unfinished save', asyn
 });
 
 test('setup save failures allow a retry and leave collection off', async t => {
-  const f = firstRunFixture(t, {failSave:true}), reporter = f.make();
+  const f = firstRunFixture(t, {beforeSave: () => {throw Error('settings unavailable');}}), reporter = f.make();
   await assert.rejects(reporter.saveFirstRunChoice(true, () => true), /settings unavailable/);
   assert.equal(reporter.needsFirstRunChoice(), true);
   reporter.failure(bad(), 'publish', 'deploying');
   await tick();
   assert.deepEqual(f.deliveries, []);
   reporter.dispose();
+});
+
+test('automatic breadcrumbs start fresh after an opt-in or telemetry change', async () => {
+  const sent = [];
+  const f = fixture({enabled:false, send:async(_, options) => {sent.push(JSON.parse(options.body));return response();}});
+  f.reporter.breadcrumb('merge', 'checking', 'started');
+  f.setEnabled(true);
+  f.reporter.failure(bad(), 'publish', 'deploying');
+  await tick();
+  assert.deepEqual(sent[0]?.breadcrumbs.map(step => step.operation), ['publish']);
+  f.setTelemetry(false);
+  f.reporter.breadcrumb('merge', 'checking', 'started');
+  f.setTelemetry(true);
+  f.reporter.failure(bad(), 'run-browser', 'checking');
+  await tick();
+  assert.deepEqual(sent[1]?.breadcrumbs.map(step => step.operation), ['run-browser']);
+  await f.reporter.manual();
+  assert.ok(sent[2].breadcrumbs.some(step => step.operation === 'merge'));
+  f.reporter.dispose();
 });
 
 test('public consent sends a manual report directly even with telemetry disabled',async()=>{

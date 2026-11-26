@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const {constants, existsSync} = require('node:fs');
 const path = require('node:path');
+const {createCredentialLock} = require('./github-app/credential-store');
 const {
   REPORT_SCHEMA_VERSION, OPERATIONS, STAGES, REPORT_CODES, MANUAL_ONLY_CODES,
   validateProblemReport
@@ -150,6 +151,7 @@ function createProblemReporter(vscode, context, {
     ? path.join(storageDirectory, CHOICE_MARKER)
     : undefined;
   const crumbs = [];
+  const automaticCrumbs = [];
   const failures = new Map();
   const queueScopes = new Map();
   const observedErrors = new WeakMap();
@@ -195,6 +197,7 @@ function createProblemReporter(vscode, context, {
     timer = undefined;
     active?.abort();
     queue = [];
+    automaticCrumbs.length = 0;
     failures.clear();
     queueScopes.clear();
     if (hadStoredReports) void persist();
@@ -206,8 +209,13 @@ function createProblemReporter(vscode, context, {
   function breadcrumb(operation, stage, outcome) {
     if (!OPERATIONS.includes(operation) || !STAGES.includes(stage) ||
         !['started', 'succeeded', 'failed', 'cancelled'].includes(outcome)) return;
-    crumbs.push({operation, stage, outcome});
+    const step = {operation, stage, outcome};
+    crumbs.push(step);
     if (crumbs.length > 8) crumbs.shift();
+    if (enabled()) {
+      automaticCrumbs.push(step);
+      if (automaticCrumbs.length > 8) automaticCrumbs.shift();
+    }
   }
   async function makeReport(source, operation, stage, code, root) {
     const details = await projectEnvironment(vscode, context, env, root);
@@ -218,7 +226,7 @@ function createProblemReporter(vscode, context, {
       source, operation, stage, code,
       outcome: 'failed',
       environment: details,
-      breadcrumbs: crumbs.slice()
+      breadcrumbs: (source === 'automatic' ? automaticCrumbs : crumbs).slice()
     });
   }
   async function transmit(report, controller) {
@@ -372,30 +380,25 @@ function createProblemReporter(vscode, context, {
       ...failed.report,
       occurredAt: new Date(now()).toISOString(),
       outcome: 'recovered',
-      breadcrumbs: crumbs.slice()
+      breadcrumbs: automaticCrumbs.slice()
     });
     if (report) enqueue(report, undefined, generation);
   }
-  // Keep the old popup marker so previously offered or answered choices don't
-  // turn back on after an upgrade. Claim it only when Start building is clicked.
+  // The marker represents an earlier popup offer or a completed Start Page
+  // choice. An in-progress Settings write has a separate recoverable lock.
   async function saveFirstRunChoice(allow, isCurrent) {
     if (typeof allow !== 'boolean' || !isCurrent() || !needsFirstRunChoice()) return;
     const revision = settingRevision;
-    let claimed = false;
-    let saved = false;
-    try {
-      await fs.mkdir(storageDirectory, {recursive:true});
-      const handle = await fs.open(choiceMarker, 'wx', 0o600);
-      claimed = true;
-      await handle.close();
-      if (disposed || !isCurrent() || revision !== settingRevision || explicitChoice()) return;
+    const withChoiceLock = createCredentialLock({
+      globalStorageUri:{scheme:'file', fsPath:path.join(storageDirectory, 'reporting-setup')},
+      timeoutMs:5000
+    });
+    await withChoiceLock(async () => {
+      if (!isCurrent() || revision !== settingRevision || !needsFirstRunChoice()) return;
       await vscode.workspace.getConfiguration('zero').update('automaticPublicProblemReports', allow, vscode.ConfigurationTarget.Global);
-      saved = true;
-    } catch (error) {
-      if (claimed || error.code !== 'EEXIST') throw error;
-    } finally {
-      if (claimed && !saved) await fs.unlink(choiceMarker);
-    }
+      try {await fs.writeFile(choiceMarker, '', {flag:'wx', mode:0o600});}
+      catch (error) {if (error.code !== 'EEXIST' && !explicitChoice()) throw error;}
+    });
   }
   async function copyManualDraft() {
     try {
