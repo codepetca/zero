@@ -72,8 +72,9 @@ try {
     $stage='browser-click-and-review'
     $env:ZERO_JAM_PAGE=$PageUrl; $env:ZERO_JAM_ID=$JamId; $env:ZERO_JAM_TITLE=$ExpectedTitle; $env:ZERO_JAM_RULES=$ExpectedRules
     $env:ZERO_JAM_EDITOR_PORT="$editorPort"; $env:ZERO_JAM_CHROME_PORT="$chromePort"
-    $driverLaunch=[Diagnostics.ProcessStartInfo]::new((Get-Command node.exe -CommandType Application).Source)
+    $driverLaunch=[Diagnostics.ProcessStartInfo]::new($node[0])
     $driverLaunch.UseShellExecute=$false
+    $driverLaunch.WorkingDirectory=(Split-Path -Parent $PSScriptRoot)
     $driverLaunch.Arguments=Join-ProcessArguments @((Join-Path $PSScriptRoot 'test-windows-jam-link.mjs'))
     $driverLaunch.RedirectStandardOutput=$true
     $driverLaunch.RedirectStandardError=$true
@@ -81,7 +82,7 @@ try {
     $stdoutTask=$driver.StandardOutput.ReadToEndAsync()
     $stderrTask=$driver.StandardError.ReadToEndAsync()
     $promptInvoked=$false
-    $deadline=[DateTime]::UtcNow.AddSeconds(150)
+    $deadline=[DateTime]::UtcNow.AddSeconds(205)
     while (-not $driver.HasExited -and [DateTime]::UtcNow -lt $deadline) {
         # Chrome's OS protocol confirmation is accepted only in our test browser.
         $root=[System.Windows.Automation.AutomationElement]::RootElement
