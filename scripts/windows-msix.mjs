@@ -1,5 +1,7 @@
 import {createHash} from 'node:crypto';
 import {unzipSync} from 'fflate';
+import {msixVersion} from './windows-msix-version.mjs';
+export {msixVersion};
 
 export const feasibilityIdentity = Object.freeze({
   name:'Zero.MsixFeasibility', publisher:'CN=Zero MSIX Feasibility',
@@ -16,17 +18,6 @@ export const msixLogos = Object.freeze({
   'Assets/StoreLogo.png':50, 'Assets/Square44x44Logo.png':44, 'Assets/Square150x150Logo.png':150
 });
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
-
-export function msixVersion(version) {
-  if (typeof version !== 'string' || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) ||
-      version.split('.').some(value => Number(value) > 65534) || Number(version.split('.')[0]) > 65533) throw new Error('Store mapping requires a major between 0 and 65533 and minor/patch between 0 and 65534');
-  // The mapped version is also used by .NET AssemblyVersion (max65534).
-  // Store major must be positive, even while Zero uses 0.x versions. Offset
-  // every major consistently so 0.x -> 1.x and 1.x -> 2.x remain monotonic.
-  // The fourth component is reserved for the Store and must be zero.
-  const [major, minor, patch] = version.split('.').map(Number);
-  return `${major + 1}.${minor}.${patch}.0`;
-}
 
 export function msixManifest(version, identity = feasibilityIdentity) {
   const description = 'Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.';

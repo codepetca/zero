@@ -69,6 +69,16 @@ new kit version is observable on the website, or that Store installation passed.
 It reports release/PR URLs and a completion message; it never edits credentials,
 account settings, branch rules or community artifacts.
 
+## Desktop update reminders
+
+The website publishes version numbers at `/updates/desktop.json`. Mac and
+standalone Windows versions come from verified public updater metadata. The
+school Portable version comes from the verified public Complete ZIP record.
+Update `release/windows-store.json` after verifying that the matching Zero
+Studio package is available to users in the Microsoft Store catalog. Keep the
+previous version during submission and certification. Record the catalog
+verification in the [release ledger](RELEASE-LEDGER.md).
+
 ## Retry and verify
 
 A stopped run can leave a correctly published release or an open metadata PR.

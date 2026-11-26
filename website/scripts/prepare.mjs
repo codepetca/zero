@@ -23,6 +23,7 @@ import { loadWindowsPreview } from "../lib/windows-preview.mjs";
 import { windowsPortableBundleHref } from "../lib/windows-portable-bundle.mjs";
 import { windowsPortablePilotHref } from "../lib/windows-portable-pilot.mjs";
 import { loadUpdateFeed } from "../lib/update-feed.mjs";
+import { msixVersion } from "../../scripts/windows-msix-version.mjs";
 import { prepareBrandAssets } from "../lib/brand-assets.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
@@ -96,10 +97,8 @@ try {
 } catch (error) {
   if (error.code !== 'ENOENT') throw error;
 }
-windowsPortableBundleHref(
-  JSON.parse(await readFile(resolve(root, "release/windows-portable-bundle.json"), "utf8")),
-  release.publication.status === "published" ? release : publishedKit,
-);
+const portableBundle = JSON.parse(await readFile(resolve(root, "release/windows-portable-bundle.json"), "utf8"));
+windowsPortableBundleHref(portableBundle, release.publication.status === "published" ? release : publishedKit);
 let installer = null;
 try {
   installer = validateInstallerManifest(JSON.parse(await readFile(resolve(root, "release/installer.json"), "utf8")), release);
@@ -116,7 +115,20 @@ const updateFeed=await loadUpdateFeed(root,release,installer);
 const windowsInstaller = await loadWindowsInstaller(root,release);
 const windowsUpdateFeed = await loadWindowsUpdateFeed(root,release,windowsInstaller);
 const windowsPreview = await loadWindowsPreview(root,release);
+const store = JSON.parse(await readFile(resolve(root, "release/windows-store.json"), "utf8"));
+if (store?.packageVersion !== msixVersion(store?.kitVersion)) {
+  throw new Error("Invalid Microsoft Store release version");
+}
+const macVersion = updateFeed
+  ? JSON.parse(await readFile(resolve(root, "release/mac-update-feed.json"), "utf8")).kitVersion
+  : null;
 await mkdir(resolve(site, ".generated"), { recursive: true });
+await writeFile(resolve(site, ".generated/desktop-update-versions.json"), JSON.stringify({
+  mac: macVersion,
+  windowsStore: store.kitVersion,
+  windowsPortable: portableBundle.kitVersion,
+  windowsInstaller: windowsUpdateFeed ? windowsInstaller.kitVersion : null,
+}) + "\n");
 // Bundle the browser pages at build time so routes need no asset reads.
 await writeFile(resolve(site, ".generated/desktop-connection-pages.json"), JSON.stringify({
   pages: {failed: connectionPages.pages.failed, unavailable: connectionPages.pages.unavailable},

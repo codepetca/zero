@@ -13,6 +13,42 @@ automatic breadcrumbs. The local design fixture was checked in a browser with
 its simulated controls. The native installer and live report delivery are
 outside these checks.
 
+# Desktop update reminder port — 2026-11-25
+
+Ported the desktop reminder onto `e81a5a5bf`. Managed installs check the public
+version for their own channel. The notice waits for an idle editor, opens the
+existing updater or school guidance, and defers the same version for seven
+days after **Later**. Failed checks keep a one-hour retry interval after focus
+and settings changes.
+
+The initial prepared feed reported Mac 0.5.89, Microsoft Store 0.5.89, school Portable
+0.5.87, and no signed standalone Windows update. The public Mac appcast and
+Portable archive metadata match the recorded digests. The
+[Canadian Microsoft Store catalog](https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=9MXKD6DQLFGX&market=CA&languages=en-ca)
+lists `1.5.89.0` x64. The standalone feed returned HTTP 503.
+
+The repository check and 156 focused tests passed with one opt-in skip.
+Local Next served the exact version feed and platform-specific setup guidance.
+An isolated Mac VS Code fixture with a simulated 0.5.88 install displayed the
+0.5.89 reminder and dismissed it with **Later**. Windows checks exercised
+installer-layout fixtures, signed-feed validation and mocked OS handoffs.
+Physical Windows installs and live update installation were outside these
+checks. Local receipts are under `.verification/update-reminder-current-main/`.
+
+GPT-6.2 Sol at medium reviewed `06f887aff`, the backoff and cooldown fixes at
+`8cc017486`, and the setup-page correction at `657aefd72`. One full review and
+two targeted passes covered two fix batches with no open findings.
+
+Production verification on 2026-11-26 passed for DevQ job 927, including HTTP
+checks of the desktop version endpoint and setup page, the isolated runtime
+check and the function bundle audit. Main then included the published 0.5.89
+Portable release. The feature commits rebased with identical patches onto
+`457bb6918`. DevQ job 929 passed the production build, runtime check and
+bundle audit on the refreshed branch. The running build at `76f0f2073` served
+0.5.89 for Mac, Store and Portable. The standalone version was null and its
+signed feed returned HTTP 503. The production setup page retained the correct
+platform instructions, and all 45 focused post-rebase tests passed.
+
 # Finder metadata during web publishing — 2026-11-25
 
 Zero 0.5.87 rejected an ordinary `.DS_Store` inside application resources in
