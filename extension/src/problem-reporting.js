@@ -3,8 +3,9 @@
 const os = require('node:os');
 const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
-const constants = require('node:fs').constants;
+const {constants, existsSync} = require('node:fs');
 const path = require('node:path');
+const {createCredentialLock} = require('./github-app/credential-store');
 const {
   REPORT_SCHEMA_VERSION, OPERATIONS, STAGES, REPORT_CODES, MANUAL_ONLY_CODES,
   validateProblemReport
@@ -131,8 +132,7 @@ function classify(error) {
 
 function createProblemReporter(vscode, context, {
   send = globalThis.fetch, now = Date.now, retryDelay = 30000,
-  timeoutMs = TIMEOUT, env = process.env, getProject = () => undefined,
-  onAutomaticAcceptance = () => {}
+  timeoutMs = TIMEOUT, env = process.env, getProject = () => undefined
 } = {}) {
   let disposed = false;
   let active;
@@ -146,8 +146,12 @@ function createProblemReporter(vscode, context, {
   let latest;
   let consentGeneration = 0;
   let settingRevision = 0;
-  let choiceInFlight = false;
+  const storageDirectory = context.globalStorageUri?.fsPath;
+  const choiceMarker = typeof storageDirectory === 'string' && path.isAbsolute(storageDirectory)
+    ? path.join(storageDirectory, CHOICE_MARKER)
+    : undefined;
   const crumbs = [];
+  const automaticCrumbs = [];
   const failures = new Map();
   const queueScopes = new Map();
   const observedErrors = new WeakMap();
@@ -158,6 +162,13 @@ function createProblemReporter(vscode, context, {
     return inspected?.globalValue === true && config.get('automaticPublicProblemReports', false) === true;
   };
   const enabled = () => !disposed && vscode.env?.isTelemetryEnabled === true && publicConsent();
+  const explicitChoice = () => {
+    const config = vscode.workspace.getConfiguration('zero');
+    const setting = config.inspect?.('automaticPublicProblemReports');
+    return !setting || setting.globalValue !== undefined || setting.policyValue !== undefined;
+  };
+  const needsFirstRunChoice = () => !disposed && Boolean(choiceMarker) &&
+    vscode.ConfigurationTarget?.Global !== undefined && !explicitChoice() && !existsSync(choiceMarker);
   const persist = () => {
     const snapshot = JSON.parse(JSON.stringify(queue));
     persistence = persistence.then(() => context.globalState?.update(KEY, snapshot)).catch(() => {});
@@ -186,6 +197,7 @@ function createProblemReporter(vscode, context, {
     timer = undefined;
     active?.abort();
     queue = [];
+    automaticCrumbs.length = 0;
     failures.clear();
     queueScopes.clear();
     if (hadStoredReports) void persist();
@@ -197,8 +209,13 @@ function createProblemReporter(vscode, context, {
   function breadcrumb(operation, stage, outcome) {
     if (!OPERATIONS.includes(operation) || !STAGES.includes(stage) ||
         !['started', 'succeeded', 'failed', 'cancelled'].includes(outcome)) return;
-    crumbs.push({operation, stage, outcome});
+    const step = {operation, stage, outcome};
+    crumbs.push(step);
     if (crumbs.length > 8) crumbs.shift();
+    if (enabled()) {
+      automaticCrumbs.push(step);
+      if (automaticCrumbs.length > 8) automaticCrumbs.shift();
+    }
   }
   async function makeReport(source, operation, stage, code, root) {
     const details = await projectEnvironment(vscode, context, env, root);
@@ -209,7 +226,7 @@ function createProblemReporter(vscode, context, {
       source, operation, stage, code,
       outcome: 'failed',
       environment: details,
-      breadcrumbs: crumbs.slice()
+      breadcrumbs: (source === 'automatic' ? automaticCrumbs : crumbs).slice()
     });
   }
   async function transmit(report, controller) {
@@ -279,10 +296,6 @@ function createProblemReporter(vscode, context, {
         if (result.status === 'delivered' || result.status === 'pending') {
           const failed = failures.get(item.report.operation);
           if (failed?.report.reportId === item.report.reportId) failed.accepted = true;
-          if (latest?.automaticReportId === item.report.reportId && !latest.accepted) {
-            latest.accepted = true;
-            try { onAutomaticAcceptance(); } catch {}
-          }
         }
         // The same id is retried for server-side idempotency.
         if (result.status === 'retry' || result.status === 'pending') {
@@ -321,14 +334,13 @@ function createProblemReporter(vscode, context, {
     if (!enabled()) return;
     const code = classify(error);
     if (!code) return;
-    const snapshot = latest;
     const generation = consentGeneration;
     void makeReport('automatic', operation, stage, code, scope).then(report => {
       if (!report || !enabled() || generation !== consentGeneration) return;
-      enqueue(report, scope, generation, snapshot);
+      enqueue(report, scope, generation);
     }).catch(() => {});
   }
-  function enqueue(report, scope, generation = consentGeneration, snapshot) {
+  function enqueue(report, scope, generation = consentGeneration) {
     void serialize(async () => {
       if (!enabled() || generation !== consentGeneration) return;
       const duplicate = queue.find(item =>
@@ -339,7 +351,6 @@ function createProblemReporter(vscode, context, {
         // A persisted report has no project identity, so it must never be
         // associated with a current project's later recovery.
         if (report.outcome === 'failed' && scope && queueScopes.get(duplicate.report.reportId) === scope) {
-          if (snapshot && snapshot === latest) snapshot.automaticReportId = duplicate.report.reportId;
           const prior = failures.get(report.operation);
           if (prior?.report.reportId !== duplicate.report.reportId) {
             failures.set(report.operation, {scope, report:duplicate.report});
@@ -347,7 +358,6 @@ function createProblemReporter(vscode, context, {
         }
         return;
       }
-      if (snapshot && snapshot === latest) snapshot.automaticReportId = report.reportId;
       if (report.outcome === 'failed' && typeof scope === 'string' && scope) {
         failures.set(report.operation, {scope, report});
         queueScopes.set(report.reportId, scope);
@@ -370,46 +380,25 @@ function createProblemReporter(vscode, context, {
       ...failed.report,
       occurredAt: new Date(now()).toISOString(),
       outcome: 'recovered',
-      breadcrumbs: crumbs.slice()
+      breadcrumbs: automaticCrumbs.slice()
     });
     if (report) enqueue(report, undefined, generation);
   }
-  // The marker is local to VS Code's extension storage and contains no consent
-  // value. Exclusive creation prevents duplicate prompts in concurrent windows.
-  async function offerFirstRunChoice() {
-    if (disposed || choiceInFlight) return;
-    const directory = context.globalStorageUri?.fsPath;
-    const config = vscode.workspace.getConfiguration('zero');
-    if (typeof directory !== 'string' || !path.isAbsolute(directory) ||
-        typeof config.inspect !== 'function' || typeof config.update !== 'function' ||
-        vscode.ConfigurationTarget?.Global === undefined || !vscode.window.showInformationMessage) return;
-    const explicitSetting = () => {
-      const inspected = vscode.workspace.getConfiguration('zero').inspect('automaticPublicProblemReports');
-      if (!inspected) return true;
-      return inspected.globalValue !== undefined || inspected.policyValue !== undefined;
-    };
-    choiceInFlight = true;
+  // The marker represents an earlier popup offer or a completed Start Page
+  // choice. An in-progress Settings write has a separate recoverable lock.
+  async function saveFirstRunChoice(allow, isCurrent) {
+    if (typeof allow !== 'boolean' || !isCurrent() || !needsFirstRunChoice()) return;
     const revision = settingRevision;
-    const marker = path.join(directory, CHOICE_MARKER);
-    try {
-      await fs.mkdir(directory, {recursive:true});
-      const handle = await fs.open(marker, 'wx', 0o600);
-      await handle.close();
-      if (disposed || revision !== settingRevision || explicitSetting() || publicConsent()) return;
-      const choice = await vscode.window.showInformationMessage(
-        'Help improve Zero? With your permission, structured versions, failed actions and recent steps are sent to public GitHub issues. No free text, source, logs or paths. Automatic reports also follow VS Code telemetry settings.',
-        'Allow reports', 'No thanks'
-      );
-      if (disposed || revision !== settingRevision || choice !== 'Allow reports' || explicitSetting() || publicConsent()) return;
-      // Re-inspect immediately before the only configuration write. An explicit
-      // change made while the notification was open takes precedence.
-      await vscode.workspace.getConfiguration('zero').update('automaticPublicProblemReports', true, vscode.ConfigurationTarget.Global);
-    } catch {
-      // EEXIST means another window already offered the choice. Other failures
-      // leave reporting off and never interrupt the editor.
-    } finally {
-      choiceInFlight = false;
-    }
+    const withChoiceLock = createCredentialLock({
+      globalStorageUri:{scheme:'file', fsPath:path.join(storageDirectory, 'reporting-setup')},
+      timeoutMs:5000
+    });
+    await withChoiceLock(async () => {
+      if (!isCurrent() || revision !== settingRevision || !needsFirstRunChoice()) return;
+      await vscode.workspace.getConfiguration('zero').update('automaticPublicProblemReports', allow, vscode.ConfigurationTarget.Global);
+      try {await fs.writeFile(choiceMarker, '', {flag:'wx', mode:0o600});}
+      catch (error) {if (error.code !== 'EEXIST' && !explicitChoice()) throw error;}
+    });
   }
   async function copyManualDraft() {
     try {
@@ -512,8 +501,7 @@ function createProblemReporter(vscode, context, {
   else clear();
 
   return {
-    breadcrumb, recordManual, failure, success, manual, flush, offerFirstRunChoice,
-    latestAutomaticallyAccepted: scope => latest?.scope === scope && latest?.accepted === true,
+    breadcrumb, recordManual, failure, success, manual, flush, needsFirstRunChoice, saveFirstRunChoice,
     dispose() {
       disposed = true;
       clearTimeout(timer);

@@ -1,3 +1,21 @@
+# First-launch reporting choice — 2026-11-26
+
+The local Start Page shows the checked reporting choice before sign-in on a
+fresh profile. Start building saves the choice. The old popup marker and
+explicit settings preserve decisions from earlier versions. The Zero sidebar
+menu retains the manual command. Sidebar diagnostics and browser-tool repair
+retain their contextual actions.
+
+The packaged-mode startup fixture opens setup before the WorkOS sign-in
+prompt. Focused tests cover both choices, closing setup, competing windows,
+settings write failure, legacy profiles, and the telemetry boundary for
+automatic breadcrumbs. The local design fixture was checked in a browser with
+its simulated controls. An independent review covered the startup integration
+with the desktop update reminder. A local VSIX installed in two isolated macOS
+VS Code profiles displayed setup before sign-in and saved both checkbox choices.
+The smoke used editor telemetry disabled. Native installer execution, Windows
+UI and live report delivery remain untested for this change.
+
 # Desktop update reminder port — 2026-11-25
 
 Ported the desktop reminder onto `e81a5a5bf`. Managed installs check the public

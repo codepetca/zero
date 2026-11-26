@@ -15,14 +15,14 @@ action. Use the same feedback area for progress and recovery guidance.
 Keep explicit confirmation for a change of browser tools version. Surface
 an editor update check when it gives the student a next step.
 
-Owner reporting refinements, 2026-11-18–19. Keep sidebar error messages concise
-and useful. Offer the public-reporting choice once during first-run setup, then
-send eligible errors silently after affirmative consent. Manual reporting also
-sends directly when that public consent is on. An opted-out user must explicitly
-confirm a one-off public report. Technical payloads belong in the submitted
-report; publish only structured technical data, with a clear public notice and
-no free-text report description. Do not treat OS installation permission, a prior
-private-reporting preference or closing the setup notice as public consent.
+Owner reporting refinement, 2026-11-26. Place the Terms, Privacy Notice and
+checked public-reporting checkbox on the first Start Page. **Start building**
+saves the selection, which carries across updates. Closing the page saves no
+choice. Keep sidebar errors concise with **Show Problems** or **Repair and
+continue** when relevant. Keep **Report a problem** in the Zero sidebar menu. With reporting
+enabled, eligible reports send silently and manual reports send directly.
+A one-off manual report still asks before sending when automatic reporting is
+off. Public reports contain structured technical data only.
 
 Owner header refinement, 2026-11-10. Show **Beta** as plain text beside the
 Zero wordmark, with a full click and tap target and visible keyboard focus.

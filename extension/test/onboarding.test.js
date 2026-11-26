@@ -17,7 +17,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {workosReceipt=false, boundReceipt=false, studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, integratedBrowser=false, empty=false, profile, initialSession, repository=false, trusted, uploadMode, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, create=async()=>({repository:{html_url:'https://github.com/student/my-project'}}), execute=async()=>undefined, openDialog, dispatchRegistered=false, reportChoice}={}) {
+async function fixture(t, {workosReceipt=false, workosRequired=workosReceipt, boundReceipt=false, studentExplorer=false, lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, integratedBrowser=false, empty=false, profile, initialSession, repository=false, trusted, uploadMode, githubAccess=async()=>{}, unpublishedTutorials=false, staleTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, create=async()=>({repository:{html_url:'https://github.com/student/my-project'}}), execute=async()=>undefined, openDialog, dispatchRegistered=false, reportChoice}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   if (typeof profile === 'function') profile=profile(root);
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
@@ -88,8 +88,8 @@ async function fixture(t, {workosReceipt=false, boundReceipt=false, studentExplo
     else delete project.template.scaffoldSha256;}
   }
   await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
-  const secrets=workosReceipt ? {get:async()=>{receiptReads++;return savedReceipt && JSON.stringify(savedReceipt);},onDidChange:fn=>{receiptChanged=fn;return disposable();}} : undefined;
-  extension.activate({extensionPath,subscriptions,extensionMode:workosReceipt?1:2,secrets,...(reportChoice?{globalStorageUri:{fsPath:path.join(root,'report-choice')}}:{}),globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value,options){calls.push(['createRepository',value]);return create(value,options);}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
+  const secrets=workosRequired ? {get:async()=>{receiptReads++;return savedReceipt && JSON.stringify(savedReceipt);},onDidChange:fn=>{receiptChanged=fn;return disposable();}} : undefined;
+  extension.activate({extensionPath,subscriptions,extensionMode:workosRequired?1:2,secrets,...(reportChoice?{globalStorageUri:{fsPath:path.join(root,'report-choice')}}:{}),globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{repositoryLedgerFactory,env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:appSessions(vscode,{dispose(){},async removeSession(){session=undefined;}}),repositories:{checkSetup:githubAccess,async create(value,options){calls.push(['createRepository',value]);return create(value,options);}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
@@ -758,14 +758,17 @@ test('an explicit standard Explorer preference does not get migrated to the stud
 });
 
 
-test('first-run public reporting choice does not block editor commands or sign-in',async t=>{
-  let resolveChoice;const waiting=new Promise(resolve=>{resolveChoice=resolve;});
-  const reportChoice={updates:[]};
-  const f=await fixture(t,{reportChoice,information:async text=>text.startsWith('Help improve Zero?')?waiting:undefined});
-  await settle(()=>f.notices.some(item=>item.text.startsWith('Help improve Zero?')));
-  assert.deepEqual(reportChoice.updates,[]);
+test('fresh setup shows the Start Page before sign-in and saves reporting without a popup', async t => {
+  const reportChoice = {updates:[]};
+  const f = await fixture(t, {empty:true, zeroLaunch:true, workosRequired:true, reportChoice});
+  await settle(() => f.startState?.firstLaunch);
+  assert.equal(f.notices.length, 0);
+  assert.deepEqual(reportChoice.updates, []);
   await f.commands.get('zero.stopApp')();
-  assert.equal(reportChoice.updates.length,0,'Editor operation completes while the choice is pending');
-  resolveChoice('Allow reports');await settle(()=>reportChoice.updates.length===1);
-  assert.deepEqual(reportChoice.updates,[{key:'automaticPublicProblemReports',value:true,target:1}]);
+  assert.deepEqual(reportChoice.updates, []);
+  await f.startPage.message({type:'finishSetup', reporting:true, token:f.startPage.restored.token});
+  assert.deepEqual(reportChoice.updates, [{key:'automaticPublicProblemReports', value:true, target:1}]);
+  assert.equal(f.startState.firstLaunch, false);
+  assert.equal(f.notices.length, 0);
+  assert.ok(f.authCalls.every(call => call.options.silent));
 });

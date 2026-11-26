@@ -176,7 +176,7 @@ async function verifiedUnbornBranch(root,branch) {
 function activate(context, services = {}) {
   const vscode = minimalPrompts(editor);
   const env = services.env || process.env;
-  const problemReporter = createProblemReporter(vscode, context, {env,getProject:()=>projectRoot,onAutomaticAcceptance:()=>refresh()});
+  const problemReporter = createProblemReporter(vscode, context, {env,getProject:()=>projectRoot});
   context.subscriptions.push(problemReporter);
   const launchedForZero = path.isAbsolute(env.ZERO_KIT_DIR || '');
   for (const [id, action] of Object.entries(createNativeUpdateCommands(vscode))) {
@@ -562,6 +562,8 @@ function activate(context, services = {}) {
   const startPageInvocation=Object.freeze({});
   startPage=createStartPage(vscode,{
     onDidChangeOpen:refreshSidebarShortcut,
+    needsFirstRunChoice:problemReporter.needsFirstRunChoice,
+    saveFirstRunChoice:problemReporter.saveFirstRunChoice,
     executeAction:command=>vscode.commands.executeCommand(command,startPageInvocation),
     getState:()=>({phase:auth.signedIn ? githubReadiness.phase : auth.verificationUnavailable ? 'verification-unavailable' : hasLocalZeroAccount ? 'connect' : 'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,jamReview:joinGameJam.reviewDetails(auth.accountId),publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
     listRecent:accountId=>recentProjects.list(accountId),
@@ -778,7 +780,7 @@ function activate(context, services = {}) {
       problemReporter.recordManual('run-native',event.stage,event.code,metadata.root);
       buildFailed = true;
       metadata.runtimeProblems = publishRuntimeProblems(metadata,event);
-      errorAction = metadata.runtimeProblems ? 'problems' : 'report';
+      errorAction = metadata.runtimeProblems ? 'problems' : undefined;
       state = `App failed (${event.stage}/${event.code}).`;
     }
     else if (event.type === 'stopped') state = 'App stopped';
@@ -812,7 +814,7 @@ function activate(context, services = {}) {
       if (metadata && !metadata.fatal && !stoppedTasks.has(active)) recordNativeTaskFailure(metadata);
       // The fallback task has VS Code's Java problem matcher instead of the
       // diagnostics collection maintained by CustomExecution.
-      errorAction = metadata?.compilerItems?.length || metadata?.runtimeProblems || metadata?.custom === false ? 'problems' : 'report';
+      if (metadata?.compilerItems?.length || metadata?.runtimeProblems || metadata?.custom === false) errorAction = 'problems';
     }
     state = buildFailed ? 'App ended with an error.' : 'App stopped';
     refresh();
@@ -1747,7 +1749,6 @@ function activate(context, services = {}) {
       return await execute();
     } catch(error) {
       if (reportOperation) {
-        if (!error.conflict && !error.nativeUpdateHandoff && !error.workflowRecovery && !error.recoveryPath) errorAction = 'report';
         problemReporter.recordManual(reportOperation, reportStage, error?.code, operationRoot || projectRoot);
       }
       if (error.workflowRecovery) await rememberPush(error.workflowRecovery,reviewedAccountId);
@@ -3135,7 +3136,7 @@ function activate(context, services = {}) {
   const buildWithSavedProject=restart=>options=>withCurrentBrowserTooling(savedBuilder.ensureValidatedExport,options,restart);
   const validateWithSavedProject=options=>savedBuilder.validateExport({...options,explicitAction:true});
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
-  const browserRun=createBrowserRunCommands(vscode,{onReportManual:(stage,code,root)=>problemReporter.recordManual('run-browser',stage,code,root),onReportFailure:(error,stage,root)=>problemReporter.failure(error,'run-browser',stage,root),project:runnableProject,output,ensureValidatedExport:buildWithSavedProject(root=>browserRun.run(root)),validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:(failed,hasProblems)=>{buildFailed=failed;errorAction=failed?(hasProblems?'problems':'report'):undefined;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
+  const browserRun=createBrowserRunCommands(vscode,{onReportManual:(stage,code,root)=>problemReporter.recordManual('run-browser',stage,code,root),onReportFailure:(error,stage,root)=>problemReporter.failure(error,'run-browser',stage,root),project:runnableProject,output,ensureValidatedExport:buildWithSavedProject(root=>browserRun.run(root)),validateExport:validateWithSavedProject,validateRetainedExport:savedBuilder.validateRetainedExport,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:(failed,hasProblems)=>{buildFailed=failed;errorAction=failed&&hasProblems?'problems':undefined;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
   Object.assign(actions,browserRun.commands);
   actions['zero.runApp']=expectedRoot=>{
     if (stopPromise) return stopPromise;
@@ -3613,7 +3614,7 @@ function activate(context, services = {}) {
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);
   if (firstUse.enabled) {
-    const alwaysAvailable = new Set(['zero.stopApp', 'zero.openDocs', 'zero.showSetup', 'zero.reportProblem', 'zero.configureProblemReports']);
+    const alwaysAvailable = new Set(['zero.stopApp', 'zero.openDocs', 'zero.showSetup', 'zero.startPage', 'zero.getStarted', 'zero.reportProblem', 'zero.configureProblemReports']);
     if (sharedGitHubGrant) {
       alwaysAvailable.add('zero.signInToGitHub');
       alwaysAvailable.add('zero.githubAccount');
@@ -3653,7 +3654,6 @@ function activate(context, services = {}) {
       if(error instanceof BrowserToolingDecision)return handleBrowserToolingDecision(error);
       const starterMismatch = ['zero.newProject','zero.continueGameJamJoin'].includes(id) && error.code==='ZERO_STARTER_INCOMPATIBLE';
       if(starterMismatch && state==='Checking the GitHub starter…')state='';
-      if(operation && !error.zeroRunMessage) errorAction='report';
       if(operation && operation!=='publish')problemReporter.failure(error,operation,stage,projectRoot);
       if(!inline && starterMismatch && startPage.showStarterMismatch()){
         output.appendLine(error.message);
@@ -3761,9 +3761,6 @@ function activate(context, services = {}) {
     let recoveryAction;
     if (repair) recoveryAction = {command:'zero.repairBrowserTools',label:'Repair and continue',repairToken:repair.token};
     else if (errorAction === 'problems') recoveryAction = {command:'zero.showProblems',label:'Show Problems'};
-    else if (errorAction === 'report' && !problemReporter.latestAutomaticallyAccepted(projectRoot)) {
-      recoveryAction = {command:'zero.reportProblem',label:'Report a problem'};
-    }
     const status=repair?'Some browser tools are missing.':uploadProgress||commitFeedback||(showRepository&&!localPractice&&!updateRecovery&&!updateRecoveryError?(gitHint||''):'');
     const githubPanel = !showRepository ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${branchControl}${githubActions}${branchConnection}${gitRecoveryActions}`}`;
     const fileActions=projectRoot && !studentView ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>New${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newPackage','New package…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '';
@@ -3823,6 +3820,7 @@ function activate(context, services = {}) {
     metadataRefreshTimer=setTimeout(()=>{if(!disposed&&!isBusy())void repositoryStatus();},60);
   }, undefined, context.subscriptions);
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {
+    if (event.affectsConfiguration('zero.automaticPublicProblemReports')) void startPage.refresh();
     if (event.affectsConfiguration('zero.uploadMode')) {
       refreshJamDestination();
       refresh();
@@ -3855,7 +3853,11 @@ function activate(context, services = {}) {
     .then(() => gitIdentityRequest?.promise).catch(error => {
     if (!disposed) output.appendLine(`Getting started: ${error.message}`);
   });
-  if (!firstUse.enabled && !(vscode.workspace.workspaceFolders || []).length) void introduceProject().catch(error=>output.appendLine(`Start Page: ${error.message}`));
+  const emptyWindow = !(vscode.workspace.workspaceFolders || []).length;
+  const showFirstLaunch = emptyWindow && !hasOpenEditors() && problemReporter.needsFirstRunChoice();
+  if (emptyWindow && (showFirstLaunch || !firstUse.enabled)) {
+    void introduceProject().catch(error=>output.appendLine(`Start Page: ${error.message}`));
+  }
   const introduceAfterConnection = (options) => {
     const generation = runGeneration;
     return startup.then(async() => {
@@ -3881,7 +3883,6 @@ function activate(context, services = {}) {
     createNativeUpdateReload(vscode, {context, isBusy:updateBusy, log:message=>output.appendLine(message)}),
     createUpdateReminder(vscode, {context, isBusy:updateBusy, environment:env})
   );
-  void introduceAfterConnection();
-  queueMicrotask(()=>{void problemReporter.offerFirstRunChoice().catch(()=>{});});
+  if (!showFirstLaunch) void introduceAfterConnection();
 }
 module.exports = {activate,dirtyProjectDocuments};

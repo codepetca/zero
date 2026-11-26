@@ -96,10 +96,10 @@ truthful runtime error state. The [reliability plan](FRAMEWORK-RELIABILITY.md)
 evaluates PostHog for optional structured operational signals and Clarity for
 supplementary website usability. Neither replaces compiler/tests or automatically
 instruments student-owned sites. The [problem-reporting implementation](PROBLEM-REPORTING.md)
-adds optional bounded editor reports and a public structured-only GitHub issue service. Automatic
-reporting starts disabled, with an explicit one-time choice during first-run
-setup. After public consent, eligible errors are submitted silently and manual
-reporting needs no additional confirmation. Opted-out manual reports retain a
+adds optional bounded editor reports and a public structured-only GitHub issue service. The first Start Page shows a checked
+reporting checkbox that students can clear before saving their choice with
+**Start building**. With the saved choice enabled, eligible errors are submitted
+silently and manual reporting needs no additional confirmation. Opted-out manual reports retain a
 public-submission confirmation. Service activation and a published editor release
 are separate from source implementation; no PostHog integration is activated.
 
