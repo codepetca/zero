@@ -16,13 +16,44 @@ on:
         options:
           - exercise
           - prepare
+          - desktop
+          - relay
+      recipient:
+        description: One-run desktop public key
+        type: string
+      parent:
+        description: Parent desktop test run ID
+        type: string
+      packet:
+        description: Encrypted tunnel configuration
+        type: string
 permissions:
   contents: read
   actions: read
 jobs:
+  relay:
+    if: inputs.mode == 'relay' && github.actor == 'armorup'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Stage encrypted configuration for the original run
+        env:
+          ZERO_DESKTOP_PARENT: ${{ inputs.parent }}
+          ZERO_DESKTOP_PACKET: ${{ inputs.packet }}
+        run: node scripts/proof-desktop-channel.mjs reply "$RUNNER_TEMP/zero-desktop-reply"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: zero-qa-desktop-reply-${{ inputs.parent }}
+          path: ${{ runner.temp }}/zero-desktop-reply/envelope.json
+          if-no-files-found: error
+          retention-days: 1
   store:
+    if: inputs.mode != 'relay' && (inputs.mode != 'desktop' || github.actor == 'armorup')
     runs-on: windows-2025
-    timeout-minutes: 22
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -60,8 +91,47 @@ jobs:
         env:
           ZERO_PROOF_TEST_MODE: ${{ inputs.mode }}
         run: |
-          $phase = if ($env:ZERO_PROOF_TEST_MODE -eq 'prepare') { 'Prepare' } else { 'All' }
+          $phase = if ($env:ZERO_PROOF_TEST_MODE -in 'prepare','desktop') { 'Prepare' } else { 'All' }
           & .\scripts\test-public-store-collision.ps1 -Phase $phase -OutputDirectory "${env:RUNNER_TEMP}/zero-collision-exercise"
+      - name: Configure the private desktop on the disposable runner
+        if: inputs.mode == 'desktop'
+        shell: pwsh
+        env:
+          ZERO_DESKTOP_RECIPIENT: ${{ inputs.recipient }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $work = Join-Path $env:RUNNER_TEMP 'zero-private-desktop'
+          & .\scripts\prepare-proof-desktop.ps1 -Directory $work
+          node scripts/proof-desktop-channel.mjs begin $work
+      - name: Share encrypted desktop metadata
+        if: inputs.mode == 'desktop'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: zero-qa-desktop-${{ github.run_id }}
+          path: ${{ runner.temp }}/zero-private-desktop/envelope.json
+          if-no-files-found: error
+          retention-days: 1
+      - name: Host the private tunnel with its one-tunnel host token
+        if: inputs.mode == 'desktop'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/proof-desktop-channel.mjs host "${env:RUNNER_TEMP}/zero-private-desktop"
+      - name: Resume the editor exercise after the owner signs in
+        if: inputs.mode == 'desktop'
+        shell: pwsh
+        run: .\scripts\test-public-store-collision.ps1 -Phase Finish -OutputDirectory "${env:RUNNER_TEMP}/zero-collision-exercise"
+      - name: Close the temporary tunnel host
+        if: always() && inputs.mode == 'desktop'
+        shell: pwsh
+        run: |
+          $work = Join-Path $env:RUNNER_TEMP 'zero-private-desktop'
+          $record = Join-Path $work 'host-process.json'
+          if (Test-Path -LiteralPath $record) {
+            $process = Get-Content -LiteralPath $record -Raw | ConvertFrom-Json
+            Stop-Process -Id $process.pid -ErrorAction SilentlyContinue
+          }
+          if (Test-Path -LiteralPath $work) { Remove-Item -LiteralPath $work -Recurse -Force }
       - name: Retain the public installer receipt
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
