@@ -53,7 +53,7 @@ jobs:
   store:
     if: inputs.mode != 'relay' && (inputs.mode != 'desktop' || (github.actor == 'armorup' && github.triggering_actor == 'armorup'))
     runs-on: windows-2025
-    timeout-minutes: 30
+    timeout-minutes: 49
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:

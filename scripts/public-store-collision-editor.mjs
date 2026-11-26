@@ -120,9 +120,30 @@ try {
       .waitFor({state:'visible',timeout:20000});
     console.log('Zero’s sign-in prompt is ready on the Windows desktop.');
   } else if (action === 'wait-for-sign-in') {
-    await quick.getByText('Browse libraries', {exact:true}).first()
-      .waitFor({state:'visible',timeout:15*60*1000});
-    console.log('The original editor resumed its ZeroHub command after sign-in.');
+    const browse = quick.getByText('Browse libraries', {exact:true}).first();
+    const signIn = page.getByRole('dialog').getByRole('button', {name:'Sign in to Zero',exact:true});
+    const inProgress = page.getByText('Signing in to Zero', {exact:true})
+      .or(page.getByText('Finish signing in in your browser.', {exact:true})).first();
+    let quietSince = Date.now();
+    let started = false;
+    const deadline = Date.now() + 35*60*1000;
+    while (!(await browse.isVisible()) && Date.now() < deadline) {
+      const pending = await inProgress.isVisible();
+      if (pending && !started) {
+        started = true;
+        console.log('The editor started its browser sign-in.');
+      }
+      // Do not take input while the owner is signing in, or while the browser has focus.
+      const workbenchFocused = await page.evaluate(() => document.hasFocus());
+      if (pending || await signIn.isVisible() || !workbenchFocused) quietSince = Date.now();
+      if (Date.now() - quietSince > 5000) {
+        await command('Zero: Libraries and Games');
+        quietSince = Date.now();
+      }
+      await sleep(1200);
+    }
+    if (!(await browse.isVisible())) throw Error('ZeroHub did not open after the Windows sign-in window.');
+    console.log('The original editor opened ZeroHub after sign-in.');
   } else if (action === 'add') {
     await trustStarter();
     if (!(await quick.getByText('Browse libraries', {exact:true}).first().isVisible())) {

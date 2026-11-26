@@ -235,7 +235,7 @@ async function local(directory,devtunnel,rdpClient) {
     const config = await mkdir(join(directory,'rdp-client'),{recursive:true});
     client = spawn(rdpClient,['/v:127.0.0.1:3389','/u:' + rdp.user,'/d:' + rdp.computer,
       '/cert:deny,fingerprint:sha256:' + pin,'/sec:nla','/from-stdin:force','-clipboard','/log-level:ERROR',
-      '/size:1280x850','/admin'],{stdio:['pipe','ignore','pipe'],
+      '/size:1280x850','/admin','/t:Zero Windows Lesson 11'],{stdio:['pipe','ignore','pipe'],
       env:{...process.env,XDG_CONFIG_HOME:config}});
     client.stdin.on('error',() => {});
     const diagnostics = new Set();
@@ -250,7 +250,7 @@ async function local(directory,devtunnel,rdpClient) {
     }
     console.log('Private Windows Desktop is open on the Mac.');
     const result = await invoke('gh',['run','watch',run,'--repo',repo,'--interval','10','--exit-status'],{
-      timeout:22*60*1000,maxBuffer:300000,
+      timeout:46*60*1000,maxBuffer:300000,
     });
     assert.ok(result.stdout);
     console.log('The hosted Windows exercise completed.');
