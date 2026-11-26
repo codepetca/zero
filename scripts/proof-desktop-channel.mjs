@@ -119,6 +119,8 @@ async function host(directory) {
           processInfo.once('spawn',resolve);
           processInfo.once('error',reject);
         });
+        await sleep(3000);
+        assert.equal(processInfo.exitCode,null,'The Windows Dev Tunnels host exited during startup.');
         processInfo.unref();
         await write(directory,'host-process',{pid:processInfo.pid});
         console.log('The authorized private tunnel host was started.');
@@ -233,12 +235,19 @@ async function local(directory,devtunnel,rdpClient) {
     const config = await mkdir(join(directory,'rdp-client'),{recursive:true});
     client = spawn(rdpClient,['/v:127.0.0.1:3389','/u:' + rdp.user,'/d:' + rdp.computer,
       '/cert:deny,fingerprint:sha256:' + pin,'/sec:nla','/from-stdin:force','-clipboard','/log-level:ERROR',
-      '/size:1280x850'],{stdio:['pipe','ignore','ignore'],
+      '/size:1280x850','/admin'],{stdio:['pipe','ignore','pipe'],
       env:{...process.env,XDG_CONFIG_HOME:config}});
     client.stdin.on('error',() => {});
+    const diagnostics = new Set();
+    client.stderr.on('data',data => {
+      for (const entry of data.toString('utf8').matchAll(/\b(?:ERRCONNECT|ERRINFO)_[A-Z_]{3,45}\b/g)) diagnostics.add(entry[0]);
+    });
     client.stdin.end(rdp.password + '\n');
     await sleep(7000);
-    assert.equal(client.exitCode,null,'The private RDP client exited during authentication.');
+    if (client.exitCode !== null) {
+      console.error('The private RDP client exited during startup.' + (diagnostics.size ? ' ' + [...diagnostics].join(', ') : ''));
+      throw Error('Remote Desktop connection did not open.');
+    }
     console.log('Private Windows Desktop is open on the Mac.');
     const result = await invoke('gh',['run','watch',run,'--repo',repo,'--interval','10','--exit-status'],{
       timeout:22*60*1000,maxBuffer:300000,
