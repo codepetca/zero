@@ -23,8 +23,11 @@ namespace ZeroSetup
         private readonly string portableTools;
         private readonly bool usesBundledEditor;
         private string EditorExecutable => usesBundledEditor ? "VSCodium.exe" : "Code.exe";
-        private const string PortableJavaVersion = "1.57.0";
-        private const string PortableJavaHash = "80a6b852577aec37510b1f975e188279181e8c30ab5cae88812d941cd2d11bff";
+        // The universal Java extension shares Portable's Java 21 JDK. Version
+        // 1.57.0 raised the minimum language-server runtime to Java 25.
+        private const string PortableJavaVersion = "1.56.0";
+        private const long PortableJavaSize = 53949678;
+        private const string PortableJavaHash = "3c6a821d7612eb879fa40280b6c585342eec82d6b1b3e8dcfe4d0395e0624343";
         private readonly JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024, RecursionLimit = 32 };
         private readonly Dictionary<string, WindowsRuntimeAsset> assets;
         private readonly string version, minimum;
@@ -575,7 +578,7 @@ namespace ZeroSetup
         {
             var keys = new List<string> { "java.home", "java.jdt.ls.java.home", "java.configuration.runtimes", "java.import.gradle.java.home", "terminal.integrated.env.windows", "terminal.integrated.profiles.windows", "terminal.integrated.defaultProfile.windows" };
             if (values["git.path"] != null) keys.Add("git.path");
-            if (portableTools != null) keys.AddRange(new[] { "update.mode", "extensions.autoUpdate", "extensions.autoCheckUpdates" });
+            if (portableTools != null) keys.AddRange(new[] { "java.jdt.ls.javac.enabled", "update.mode", "extensions.autoUpdate", "extensions.autoCheckUpdates" });
             foreach (string key in keys)
             {
                 int close; var spans = SettingSpans(text, out close); var matching = spans.Where(span => span.Key == key).ToList();
@@ -623,12 +626,14 @@ namespace ZeroSetup
             if (values == null) throw new IOException("Zero's editor settings are incomplete. Reinstall Zero.");
             if (git != null) values["git.path"] = git;
             values["java.configuration.runtimes"] = new JArray(new JObject { ["name"] = "JavaSE-21", ["path"] = java, ["default"] = true });
-            // The Java extension supplies its own tooling JRE; Java 21 is the project runtime.
+            // Installed editions use the Java extension's embedded tooling JRE.
             values.Remove("java.jdt.ls.java.home");
             values.Remove("java.home");
             if (portableTools != null)
             {
                 values["java.jdt.ls.java.home"] = java;
+                // In the pinned universal extension, experimental javac requires Java 25.
+                values["java.jdt.ls.javac.enabled"] = "off";
                 values["update.mode"] = "none";
                 values["extensions.autoUpdate"] = false;
                 values["extensions.autoCheckUpdates"] = false;
@@ -782,7 +787,7 @@ namespace ZeroSetup
                         {
                             string vsix = Path.Combine(portableTools, "java.vsix");
                             WindowsRuntimeFolders.Check(vsix);
-                            if (!File.Exists(vsix) || new FileInfo(vsix).Length != 54395892 ||
+                            if (!File.Exists(vsix) || new FileInfo(vsix).Length != PortableJavaSize ||
                                 WindowsRuntimeArchive.Hash(vsix, cancellation) != PortableJavaHash)
                                 throw new IOException("The staged Java extension is missing or damaged. Ask school IT to restore it.");
                             await Code(new[] { "--install-extension", vsix, "--force" }, 600000, cancellation);
@@ -817,7 +822,8 @@ namespace ZeroSetup
             var profiles = values["terminal.integrated.profiles.windows"] as JObject;
             return values["java.home"] == null &&
                 (portableTools == null ? values["java.jdt.ls.java.home"] == null :
-                    (string)values["java.jdt.ls.java.home"] == java && (string)values["update.mode"] == "none" &&
+                    (string)values["java.jdt.ls.java.home"] == java && (string)values["java.jdt.ls.javac.enabled"] == "off" &&
+                    (string)values["update.mode"] == "none" &&
                     (bool?)values["extensions.autoUpdate"] == false && (bool?)values["extensions.autoCheckUpdates"] == false) &&
                 (string)values["java.import.gradle.java.home"] == java &&
                 (string)values["terminal.integrated.defaultProfile.windows"] == "Zero Java" &&

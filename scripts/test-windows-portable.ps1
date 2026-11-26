@@ -30,6 +30,7 @@ $tools = Join-Path $root 'tools'
 $editor = Join-Path $tools 'vscodium\VSCodium.exe'
 $profile = Join-Path $data 'editor\user-data'
 $extensions = Join-Path $data 'editor\extensions'
+$sharedData = Join-Path $data 'editor\shared-data'
 $profilePattern = '(?i)(?:^|\s)"?--user-data-dir"?(?:=|\s+)(?:"' + [regex]::Escape($profile) + '"|' + [regex]::Escape($profile) + ')(?:\s|$)'
 function Snapshot-Processes {
     $all = @(Get-CimInstance Win32_Process)
@@ -84,6 +85,20 @@ function Quote-Argument([string]$Value) {
     if ($Value -match '["\r\n\x00]') { throw 'Unsupported process argument.' }
     return '"' + ($Value -replace '(\\+)$', '$1$1') + '"'
 }
+function Test-LanguageServer([datetime]$Since) {
+    $file = Join-Path $OutputDirectory 'PortableLanguageServerProbe.java'
+    Set-Content -LiteralPath $file -Encoding Ascii -Value 'class PortableLanguageServerProbe {}'
+    $arguments = @('--user-data-dir', $profile, '--extensions-dir', $extensions, '--shared-data-dir', $sharedData,
+        '--reuse-window', $file) | ForEach-Object { Quote-Argument $_ }
+    Start-Process -FilePath $editor -ArgumentList ($arguments -join ' ')
+    $bundledJava = Join-Path $tools 'jdk\bin\java.exe'
+    Wait-For {
+        @(Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object {
+            $owned[[int]$_.ProcessId] -eq $_.CreationDate -and $_.CreationDate.ToUniversalTime() -ge $Since -and
+            $_.ExecutablePath -eq $bundledJava -and $_.CommandLine -match '-Declipse.application=org\.eclipse\.jdt\.ls\.core\.id1\b'
+        }).Count -gt 0
+    } 90 'the Java language server running on the bundled JDK'
+}
 function Installed-Extensions {
     $cli = Join-Path $tools 'vscodium\resources\app\out\cli.js'
     $info = New-Object Diagnostics.ProcessStartInfo
@@ -131,7 +146,8 @@ try {
     $stage = 'extract-bundle'
     Expand-Archive -LiteralPath $Bundle -DestinationPath (Join-Path $OutputDirectory 'extracted')
     $build = Get-Content -LiteralPath (Join-Path $root 'BUILD.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ($build.toolDistribution -ne 'bundled' -or $build.kitVersion -notmatch '^\d+\.\d+\.\d+$' -or $build.sourceRevision -notmatch '^[a-f0-9]{40}$' -or $build.kitSha256 -notmatch '^[a-f0-9]{64}$' -or $build.launcherSha256 -notmatch '^[a-f0-9]{64}$' -or $build.javaExtension.version -ne '1.57.0') { throw 'Invalid bundled BUILD metadata.' }
+    $javaPin = Get-Content -LiteralPath (Join-Path $PSScriptRoot '../native-installer/windows/portable-java.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($build.toolDistribution -ne 'bundled' -or $build.kitVersion -notmatch '^\d+\.\d+\.\d+$' -or $build.sourceRevision -notmatch '^[a-f0-9]{40}$' -or $build.kitSha256 -notmatch '^[a-f0-9]{64}$' -or $build.launcherSha256 -notmatch '^[a-f0-9]{64}$' -or $build.javaExtension.version -ne $javaPin.version -or $build.javaExtension.sha256 -ne $javaPin.sha256) { throw 'Invalid bundled BUILD metadata.' }
     if ((Get-FileHash -LiteralPath $launcher -Algorithm SHA256).Hash -ne $build.launcherSha256) { throw 'Launcher does not match BUILD metadata.' }
     foreach ($kind in @('jdk', 'git', 'node', 'vscodium')) {
         $pin = $build.runtimes.$kind
@@ -148,24 +164,30 @@ try {
     $report.version = $build.kitVersion; $report.sourceRevision = $build.sourceRevision; $report.kitSha256 = $build.kitSha256
     $beforeTools = @(Tool-Inventory)
     $stage = 'cold-launch'
+    $coldStarted = [DateTime]::UtcNow
     $p = Start-Process -FilePath $launcher -PassThru; $owned[$p.Id] = $p.StartTime; $p.Dispose()
     $marker = Join-Path $data 'editor-opened'
     Wait-For { (Test-Path -LiteralPath $marker) -and @(Editor-Roots).Count -gt 0 } 180 'cold editor handoff'
     $actual = @(Installed-Extensions)
-    if ($actual -notcontains "zero.zero@$($build.kitVersion)" -or $actual -notcontains 'redhat.java@1.57.0') { throw 'Expected exact Zero and Java extension versions were not installed.' }
+    if ($actual -notcontains "zero.zero@$($build.kitVersion)" -or $actual -notcontains "redhat.java@$($javaPin.version)") { throw 'Expected exact Zero and Java extension versions were not installed.' }
     $manifests = @(Manifest-Inventory)
     if ($manifests.Count -lt 2) { throw 'Extension manifests are missing.' }
     $firstMarker = (Get-Item -LiteralPath $marker).LastWriteTimeUtc
+    $stage = 'cold-java-language-server'
+    Test-LanguageServer $coldStarted
     $report.cold = 'passed'
     $stage = 'close-cold-processes'
     Stop-Owned
     Wait-For { @(Editor-Roots).Count -eq 0 } 60 'cold editor exit'
     $stage = 'warm-launch'
+    $warmStarted = [DateTime]::UtcNow
     $p = Start-Process -FilePath $launcher -PassThru; $owned[$p.Id] = $p.StartTime; $p.Dispose()
     Wait-For { (Get-Item -LiteralPath $marker).LastWriteTimeUtc -gt $firstMarker -and @(Editor-Roots).Count -gt 0 } 180 'warm editor handoff'
     $actual = @(Installed-Extensions)
-    if ($actual -notcontains "zero.zero@$($build.kitVersion)" -or $actual -notcontains 'redhat.java@1.57.0') { throw 'Warm launch lost a required extension.' }
+    if ($actual -notcontains "zero.zero@$($build.kitVersion)" -or $actual -notcontains "redhat.java@$($javaPin.version)") { throw 'Warm launch lost a required extension.' }
     if (Compare-Object $manifests @(Manifest-Inventory)) { throw 'Extension manifests changed during warm launch.' }
+    $stage = 'warm-java-language-server'
+    Test-LanguageServer $warmStarted
     if (Compare-Object $beforeTools @(Tool-Inventory)) { throw 'Bundled tool inventory changed during trial.' }
     $report.warm = 'passed'; $report.status = 'passed'; $stage = 'passed'
 } catch {

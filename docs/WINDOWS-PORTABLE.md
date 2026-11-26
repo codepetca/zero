@@ -111,8 +111,9 @@ folder. App and network policy must permit the workflow on the target account.
 Build and verify a new local kit with `npm run package` and `npm run verify:kit`.
 Put the pinned vendor archives from `setup/windows-downloads.json` in a
 download folder as `jdk.zip`, `git.zip`, and `node.zip`. Save the pinned
-[universal Java VSIX](https://github.com/redhat-developer/vscode-java/releases/download/v1.57.0/vscode-java-1.57.0-1110.vsix)
-as `java.vsix` in the same folder. Run
+universal Java VSIX from the [Portable pin](../native-installer/windows/portable-java.json)
+as `java.vsix` in the same folder. This version starts the language server on
+the bundled Java 21 JDK. Run
 `node scripts/build-windows-portable.mjs DOWNLOAD_DIRECTORY NEW_OUTPUT_DIRECTORY`
 with .NET SDK and Python 3.11+ available. The output contains the measured ZIP
 and its checksum. The build uses locked dependencies and includes the exact

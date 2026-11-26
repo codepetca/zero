@@ -196,10 +196,10 @@ internal static class RuntimeHarness
                 Directory.Move(asset.Value.Prefix == null ? expanded : Path.Combine(expanded, asset.Value.Prefix), destination);
                 File.WriteAllText(Path.Combine(destination, ".zero-asset.sha256"), WindowsRuntimeArchive.Hash(archive, CancellationToken.None));
             }
-            string extensions = Path.Combine(f.Data, "editor", "extensions", "redhat.java-1.57.0");
+            string extensions = Path.Combine(f.Data, "editor", "extensions", "redhat.java-1.56.0");
             Directory.CreateDirectory(extensions);
             File.WriteAllText(Path.Combine(extensions, "package.json"), "{}");
-            f.Host.RedhatVersion = "1.57.0";
+            f.Host.RedhatVersion = "1.56.0";
             var pin = bundled ? new WindowsRuntimeAsset {
                 version = editorVersion, format = "zip", size = editorArchive.Length,
                 sha256 = WindowsRuntimeArchive.Hash(Path.Combine(f.Root, editorFolder + ".zip"), CancellationToken.None),
@@ -230,12 +230,19 @@ internal static class RuntimeHarness
             string settingsFile = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json");
             var settings = JObject.Parse(File.ReadAllText(settingsFile));
             Assert((string)settings["java.jdt.ls.java.home"] == Path.Combine(tools, "jdk") &&
+                (string)settings["java.jdt.ls.javac.enabled"] == "off" &&
                 (string)settings["update.mode"] == "none" && (bool?)settings["extensions.autoUpdate"] == false, "portable editor pins Java and disables updates");
             // Model a later class with a fresh launcher process and the same Windows profile.
             int installs = f.Host.Installs;
+            settings["java.jdt.ls.javac.enabled"] = "on";
+            settings["editor.fontSize"] = 17;
+            File.WriteAllText(settingsFile, settings.ToString());
             var reopened = new WindowsRuntime(f.Kit, f.Data, f.Project, f.Host, portableTools: tools, bundledEditor: pin);
             reopened.Prepare(null, CancellationToken.None).GetAwaiter().GetResult();
             reopened.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            settings = JObject.Parse(File.ReadAllText(settingsFile));
+            Assert((string)settings["java.jdt.ls.javac.enabled"] == "off" && (int)settings["editor.fontSize"] == 17,
+                "reopening Portable repairs the Java 21 language server setting and preserves other preferences");
             Assert(f.Host.Downloads == 0 && f.Host.Installs == installs,
                 "reopening Portable checks the existing tools and does not download or reinstall ready extensions");
             Assert(f.Host.Launched.FileName == Path.Combine(tools, editorFolder, editorExecutable) &&
