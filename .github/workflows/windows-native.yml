@@ -59,6 +59,7 @@ jobs:
           path: |
             ${{ runner.temp }}/public-store-proof.json
             ${{ runner.temp }}/zero-collision-exercise/collision-result.json
+            ${{ runner.temp }}/zero-collision-exercise/store-jdk-collision.json
             ${{ runner.temp }}/zero-collision-exercise/public-editor-add.png
             ${{ runner.temp }}/zero-collision-exercise/public-editor-command.png
             ${{ runner.temp }}/zero-collision-exercise/public-browser-preview.png
