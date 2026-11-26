@@ -551,7 +551,7 @@ function activate(context, services = {}) {
     openGameJamProject,globalState:context.globalState,active:()=>!disposed,report,request:services.gameJamRequest,
     onJoined:async({account,repository:joinedRepository,repositoryId,id})=>{
       await gameJam.rememberJoined(account,joinedRepository,id,repositoryId);
-      startPage?.refresh({recent:true});
+      startPage?.refresh({recent:true,jams:true});
       if (auth.accountId===account && repository.toLowerCase()===joinedRepository.toLowerCase()) {
         refreshJamDestination(true);refresh();
       }

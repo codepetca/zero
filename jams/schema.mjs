@@ -43,6 +43,9 @@ export function participantRepositoryData(input,actor) {
   if(parsed.owner.toLowerCase()!==actor.login.toLowerCase())fail(403,'The public project must belong to your GitHub account.');
   return {...input};
 }
+export function registrationRepositories(registration) {
+  return registration?.repositories ?? (registration?.repository ? [registration.repository] : []);
+}
 // A bounded server-observed receipt records association at submission time.
 // It is never client authority or evidence that the mutable site is still bound.
 export function pagesVerificationData(input, repository, pagesUrl) {
@@ -95,6 +98,19 @@ export function validateState(state, id, limit = LIMITS, {enforceReserve=true} =
     for (const [key,value] of Object.entries(state.registrations)) {
       if (!ACCOUNT.test(key) || value.id !== key || !LOGIN.test(value.login) || !['joined','left'].includes(value.status)) throw Error();
       if(value.repository)participantRepositoryData(value.repository,{id:key,login:value.repository.fullName?.split('/')[0]});
+      if (Object.hasOwn(value,'repositories')) {
+        const repos=value.repositories;
+        if (state.accepted?.manifest.type!=='game'||!Array.isArray(repos)||repos.length>counts.ordinary||
+            typeof value.projectRevision!=='string'||! /^[a-f0-9]{64}$/.test(value.projectRevision)||
+            (!repos.length&&Object.hasOwn(value,'repository'))||
+            (repos.length&&canonical(repos[0])!==canonical(value.repository))) throw Error();
+        const seen=new Set();
+        for (const repo of repos) {
+          participantRepositoryData(repo,{id:key,login:repo?.fullName?.split('/')[0]});
+          if (seen.has(repo.id)) throw Error();
+          seen.add(repo.id);
+        }
+      }
     }
     for (const [key,history] of Object.entries(state.entries)) {
       if (!ACCOUNT.test(key) || !state.registrations[key] || !Array.isArray(history) || history.length > limit.entryHistory || history.some(entry => entry.participantId !== key || !['active','withdrawn'].includes(entry.status))) throw Error();

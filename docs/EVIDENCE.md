@@ -1,3 +1,45 @@
+# Game Jam participation review and project management — 2026-11-26
+
+The signed-out live Toast to the Moon walkthrough went from Browse jams to
+the official details and **Review and take part**, then to the browser form.
+The form exposed the accepted revision hash and GitHub Pages instructions
+before a student could join. Public 0.5.89 contains the earlier recovery fix
+for a participant who already left while registration is open. Its editor
+still sends an actively joined participant to the original repository.
+The direct app handoff had only been integrated locally at `0dca49846`.
+
+The local source puts **Open in Zero** and **Download Zero** on the event's
+main page. Editor-first participation links show the app handoff and a link
+to the official page. Joined students add and remove public projects through
+the submission deadline while retaining their account's registration and one
+current entry. Removing the submitted project withdraws its entry. Multiple
+projects and retired repository IDs remain held through reveal, including
+with the older visibility reader for secondary links.
+
+Independent Astra high review followed the website, native handoff, registry,
+editor, publishing and gallery controls. Its fixture reproduced an older
+reader missing a secondary hold and stale publication and project changes
+crossing a remove-and-reattach. The updated route binds project selection and
+publishing to the reviewed project list, and settles unconfirmed changes
+without starting a second write. Astra's targeted recheck found no remaining
+blocker in those changes. Independent Terra medium compatibility review
+covered old and new editor/server combinations and App Jam separation.
+
+Repository configuration and website type checks passed. The Jam suite passed
+711 tests with six opt-in skips. The desktop suite passed 184 with one skip.
+The opt-in PostgreSQL HTTP test passed separately against a disposable local
+database, including adding and removing another project while preserving the
+student's submitted entry. Local browser checks verified the main desktop
+handoff, the compact direct participation page, the custom URI target and
+44 px actions without horizontal overflow at 426 CSS pixels. Live production
+registration, a signed build with the combined changes on Mac/Windows, and
+physical school-device acceptance remain untested.
+
+Remaining review findings include same-name GitHub repository recreation
+opening an older local checkout, the missing verified URL fallback in the
+public-project picker, and ordinary Pages publication being blocked by a
+closed or ambiguous jam destination. The changes are local.
+
 # ZeroJam sign-up integration — 2026-11-26
 
 Integrated the web, Start Page and native handoff changes on top of main

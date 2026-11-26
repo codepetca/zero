@@ -26,10 +26,20 @@ shows the public rules before GitHub sign-in and requires **Continue joining**.
 **Start Page → Project → Join a Game Jam** after sign-in.
 
 The authenticated desktop route checks the student's registration and binds the
-verified GitHub repository ID. **Run → Publish to Jam** uses that registration
-and the verified GitHub Pages build. Keep the operation ID when the outcome is
+verified GitHub repository ID. **Manage jam projects** adds or removes an
+owned repository before submissions close, including after registration closes.
+Removing a submitted project withdraws the entry and retains the repository's
+discovery hold through reveal. **Run → Publish to Jam** uses the chosen linked
+repository and the verified GitHub Pages build. Each account has one current
+entry per jam. Keep the operation ID when the outcome is
 uncertain. Recovery can confirm an earlier accepted submission after the
 deadline without initiating a new deployment.
+
+Deploy the website and its visibility readers before distributing a desktop
+build with project management. Registrations with an explicit empty project
+list are valid, and retired repository IDs continue to enforce the gallery
+hold. A server rollback to a reader that predates these records can make
+pre-reveal discovery unavailable.
 
 Keep browser registration available while students use earlier editors. Verify
 the released editor on Mac and Windows, desktop registration, and a live Pages

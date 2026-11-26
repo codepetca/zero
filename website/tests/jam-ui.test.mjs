@@ -550,11 +550,11 @@ test('JamDetail retains one cancellation receipt across loading, failed refresh 
 });
 
 test('Opted-in Game Jam website directs unregistered students to Zero and keeps submission available after joining',()=>{
-  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participantCount:8,participantLimit:100,participants:[],entries:[]};
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z',submissionsCloseAt:'2030-01-19T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participantCount:8,participantLimit:100,participants:[],entries:[]};
   const detail={event,editorGameJamJoinRequired:true,registration:null,entry:null,canMaintain:false},h=harness({participateData:detail});
   const render=()=>elements(h.render('JamParticipate',{id:'jam-42'})),nodes=render();
-  const count=nodes.find(node=>node.type==='p'&&Array.isArray(node.props.children)&&node.props.children[0]==='Participants: ');
-  assert.deepEqual(Array.from(count.props.children),['Participants: ',8,' · Limit: ',100]);
+  assert.ok(!nodes.some(node=>node.type?.name==='HubAccount'||node.type?.name==='ApprovedVersions'));
+  assert.ok(nodes.some(node=>node.props?.children==='Rules, schedule, and entries'));
   const direction=nodes.find(node=>node.type?.name==='JoinGameJamInZero');
   assert.ok(direction);
   const directionNodes=elements(direction.type(direction.props));
@@ -563,9 +563,14 @@ test('Opted-in Game Jam website directs unregistered students to Zero and keeps 
   assert.ok(directionNodes.some(node=>node.props?.href==='zero-studio://jam/jam-42'&&node.props.children==='Open in Zero'));
   assert.ok(!elements(direction.type({id:'jam-42?open=other'})).some(node=>node.props?.children==='Open in Zero'));
   h.setDetail({...detail,event:{...event,registrationOpen:false}});
+  assert.equal(render().some(node=>node.type?.name==='JoinGameJamInZero'),true,
+    'returning participants can open the desktop app without signing in to the website');
+  h.setDetail({...detail,event:{...event,registrationOpen:false,submissionsOpen:false}});
   assert.equal(render().some(node=>node.type?.name==='JoinGameJamInZero'),false);
-  assert.ok(elements(harness({participateData:detail}).render('JamDetail',{id:'jam-42'}))
-    .some(node=>node.type?.name==='JoinGameJamInZero'));
+  const hero=elements(harness({participateData:detail}).render('JamDetail',{id:'jam-42'})).find(node=>node.type?.name==='JamHero');
+  const heroNodes=elements(hero.type(hero.props));
+  assert.ok(heroNodes.some(node=>node.props?.href==='zero-studio://jam/jam-42'&&node.props.children==='Open in Zero'));
+  assert.ok(!elements(hero.type({...hero.props,event:{...event,moderation:{status:'cancelled'}}})).some(node=>node.props?.href==='zero-studio://jam/jam-42'));
   assert.equal(nodes.some(node=>node.props?.name==='repositoryUrl'||node.props?.children==='Join this jam'||node.props?.type==='checkbox'),false);
   h.setDetail({...detail,registration:{status:'joined',revision:'a',repository:{id:'202',ownerId:'12',fullName:'creator/project'}}});
   const joined=render();
@@ -577,9 +582,21 @@ test('Opted-in Game Jam website directs unregistered students to Zero and keeps 
   assert.ok(elements(fallback).some(node=>node.props?.children==='Submit my work'));
   assert.ok(joined.some(node=>node.props?.children==='Submit my work'));
   assert.ok(joined.some(node=>node.props?.children==='Leave jam and withdraw my entry'));
-  assert.equal(joined.some(node=>node.type?.name==='JoinGameJamInZero'),false);
+  assert.equal(joined.some(node=>node.type?.name==='JoinGameJamInZero'),true);
 });
 
+
+test('Game Jam hero prefers Zero during rollout and keeps the web fallback',()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'Play',schedule:{submissionsCloseAt:'2030-01-19T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:false,participantCount:0,participants:[],entries:[]};
+  const detail={event,registration:null,entry:null,canMaintain:false};
+  const hero=elements(harness({participateData:detail}).render('JamDetail',{id:'jam-42'})).find(node=>node.type?.name==='JamHero');
+  const view=props=>elements(hero.type({...hero.props,...props}));
+  assert.ok(view({}).some(node=>node.props?.href==='zero-studio://jam/jam-42'&&node.props.children==='Open in Zero'));
+  assert.ok(view({}).some(node=>node.props?.children==='Continue on website'));
+  assert.ok(!view({event:{...event,type:'app'}}).some(node=>node.props?.children==='Open in Zero'));
+  assert.ok(!view({event:{...event,registrationOpen:false},joined:false}).some(node=>node.props?.children==='Open in Zero'));
+  assert.ok(view({event:{...event,registrationOpen:false},joined:true}).some(node=>node.props?.children==='Open in Zero'));
+});
 
 test('fresh creation detects the browser zone only after hydration and preserves a saved or early-edited timezone',async t=>{
   const {browserJamTimezone,defaultHostedJamDraft}=await import('../lib/jam-draft.mjs');

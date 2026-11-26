@@ -124,11 +124,12 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
 
   function loadJams(target) {
     if (jamRequest) return;
+    const account = state().accountId;
     const request = new AbortController();
     jamRequest = request;
     jamState = 'loading';
     publish();
-    void Promise.resolve().then(() => listOpenJams(request.signal)).then(items => {
+    void Promise.resolve().then(() => listOpenJams(request.signal,account)).then(items => {
       if (!current(target) || request.signal.aborted) return;
       jams = items;
       jamState = 'ready';
@@ -167,7 +168,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     return operation;
   }
 
-  function refresh({recent: reload = false} = {}) {
+  function refresh({recent: reload = false, jams: reloadJams = false} = {}) {
     if (!panel || disposed) return Promise.resolve();
     const snapshot = state();
     if (snapshot.accountId !== recentAccount) {
@@ -179,6 +180,13 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
       failure = undefined;
       retry = undefined;
       reload = true;
+      reloadJams = true;
+    }
+    if (reloadJams) {
+      jamRequest?.abort();
+      jamRequest = undefined;
+      jams = [];
+      loadJams(panel);
     }
     if (snapshot.accountId && reload && !loading) return loadRecent(panel, snapshot.accountId);
     publish();
@@ -188,7 +196,8 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
   function allowed(action, snapshot) {
     if (snapshot.busy) return false;
     if (action === 'continueGameJam') return snapshot.phase==='ready' && Boolean(snapshot.jamReview);
-    if (action === 'continueLinkedJam') return snapshot.phase==='ready' && Boolean(snapshot.accountId && linkedJam?.details?.registrationOpen);
+    if (action === 'continueLinkedJam') return snapshot.phase==='ready' && Boolean(snapshot.accountId &&
+      (linkedJam?.details?.registrationOpen || linkedJam?.details?.projectsOpen));
     if (CLOUD.has(action) || action === 'selectGameJam') return snapshot.phase === 'ready' && Boolean(snapshot.accountId);
     if (action === 'local' || action === 'tutorials') return Boolean(snapshot.accountId);
     if (action === 'signIn') return snapshot.phase === 'signed-out';
@@ -554,10 +563,12 @@ button.jam-close{flex:none;color:var(--vscode-foreground);font-size:1.5em;line-h
       const action = button.dataset.action;
       button.disabled = state.busy || (['new','clone','joinGameJam'].includes(action) && !ready) || (['local','tutorials'].includes(action) && !signedIn);
       if (action === 'tutorials') button.hidden = state.firstLaunch;
-  if (action === 'continueGameJam') {
+      if (action === 'continueGameJam') {
         const link = state.linkedJam;
-        button.hidden = Boolean(link && !link.details?.registrationOpen);
-        button.disabled = state.busy || !ready || !(link ? link.details?.registrationOpen : state.jamReview);
+        const canContinue = link?.details?.registrationOpen || link?.details?.projectsOpen;
+        button.hidden = Boolean(link && !canContinue);
+        button.disabled = state.busy || !ready || !(link ? canContinue : state.jamReview);
+        button.textContent = link?.details?.projectsOpen && !link.details.registrationOpen ? 'Continue to jam' : 'Continue joining';
       }
       if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
       if (action === 'connect') button.hidden = state.phase !== 'connect';
@@ -591,7 +602,7 @@ button.jam-close{flex:none;color:var(--vscode-foreground);font-size:1.5em;line-h
     byId('jam-eligibility').textContent = link?.details?.eligibility || '';
     byId('jam-eligibility').hidden = !link?.details?.eligibility;
     const linkStatus = !link ? '' : link.phase === 'loading' ? 'Opening Game Jam…' : link.phase === 'error' ? link.error :
-      !jam.registrationOpen ? 'Registration is closed.' : state.phase === 'signed-out' ? 'Sign in to Zero to join this Game Jam.' :
+      !jam.registrationOpen ? (jam.projectsOpen ? (state.phase === 'signed-out' ? 'Sign in to manage your projects if you’ve joined this jam.' : 'Already joined? Continue to manage your projects.') : 'Registration is closed.') : state.phase === 'signed-out' ? 'Sign in to Zero to join this Game Jam.' :
         !ready ? 'Finish GitHub setup to join this Game Jam.' : '';
     byId('jam-link-status').hidden = !linkStatus;
     if (byId('jam-link-status').textContent !== linkStatus) byId('jam-link-status').textContent = linkStatus;
@@ -621,7 +632,7 @@ button.jam-close{flex:none;color:var(--vscode-foreground);font-size:1.5em;line-h
         const title = document.createElement('span'), deadline = document.createElement('span');
         button.className = 'recent';button.dataset.jamId = item.id;
         title.className = 'name';title.textContent = item.title;
-        deadline.className = 'path';deadline.textContent = item.deadline ? 'Register by ' + item.deadline : '';
+        deadline.className = 'path';deadline.textContent = item.joined ? 'Manage projects' : item.deadline ? 'Register by ' + item.deadline : '';
         button.append(title,deadline);li.append(button);jamList.append(li);
         button.addEventListener('click', () => send({type:'jam',id:item.id}));
         if (focused === item.id) button.focus();

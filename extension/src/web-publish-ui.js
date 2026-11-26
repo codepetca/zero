@@ -227,12 +227,14 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
 
   async function approveJam(jam,expected,pagesUrl) {
     const approval={root:expected,account:jam.account,repository:jam.repository,repositoryId:jam.repositoryId,jamId:jam.id,revision:jam.revision,entryRevision:jam.entryRevision};
+    if(jam.projectRevision!==undefined)approval.projectRevision=jam.projectRevision;
     if(pagesUrl)approval.pagesUrl=pagesUrl;
     const saved=workspaceState?.get('zero.webPublish.jamApproval');
     if(saved && Object.keys(approval).every(key=>saved[key]===approval[key]))return true;
     clearProgress();
     const detail=[
       'Your game and assets will be public on GitHub Pages. Zero will submit the verified build to this Game Jam.',
+      jam.replacesProject&&`This replaces your current entry from ${jam.replacesProject}.`,
       pagesUrl || jam.repository,
       jam.rules && `Current rules\n${jam.rules}`,
       jam.eligibility && `Who can take part\n${jam.eligibility}`
@@ -383,6 +385,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     const consent=live.jamConsent;
     return jam.submissionsOpen && !jam.pending && consent &&
       consent.id===jam.id && consent.revision===jam.revision && consent.entryRevision===jam.entryRevision &&
+      (consent.projectRevision??'')===(jam.projectRevision??'') &&
       isPublishTarget(jam,consent) && consent.root===expected &&
       consent.pagesUrl===live.url && consent.sha===live.sha &&
       typeof consent.dispatchTag==='string' && consent.dispatchTag===live.resume?.staging?.tag;
@@ -580,7 +583,9 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
           const dispatchTag=value?.staging?.tag;
           if(jam && dispatchTag) savedRoute={jamConsent:{
             root:expected,account:jam.account,repository:jam.repository,repositoryId:jam.repositoryId,
-            id:jam.id,revision:jam.revision,entryRevision:jam.entryRevision,pagesUrl:review.publicUrl,sha:review.sha,dispatchTag
+            id:jam.id,revision:jam.revision,entryRevision:jam.entryRevision,
+            ...(jam.projectRevision!==undefined?{projectRevision:jam.projectRevision}:{}),
+            pagesUrl:review.publicUrl,sha:review.sha,dispatchTag
           }};
           return savedRoute;
         };

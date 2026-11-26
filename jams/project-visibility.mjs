@@ -1,4 +1,4 @@
-import {ACCOUNT, ID, LIMITS, SHA, fail, validateState} from './schema.mjs';
+import {ACCOUNT, ID, LIMITS, SHA, fail, registrationRepositories, validateState} from './schema.mjs';
 import {gameJamWinningEntry} from './winner.mjs';
 
 /** Build a decision from one complete, trusted atomic store snapshot. The caller
@@ -39,10 +39,10 @@ export async function projectVisibility(snapshot, now) {
         continue;
       }
       for (const registration of Object.values(state.registrations)) {
-        // A showcase Join must bind a repository. Missing authority cannot be
-        // interpreted as evidence that its project is safe to reveal.
-        if (!registration.repository) throw Error();
-        held.add(registration.repository.id);
+        // Only an explicit empty project list records that the player has no
+        // linked projects. A missing legacy binding still fails closed.
+        if (!registration.repository&&!Object.hasOwn(registration,'repositories')) throw Error();
+        for (const repository of registrationRepositories(registration)) held.add(repository.id);
       }
       for (const repositoryId of state.replacedRepositoryIds??[]) held.add(repositoryId);
       for (const history of Object.values(state.entries)) {
