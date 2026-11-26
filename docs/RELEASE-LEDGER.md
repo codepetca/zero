@@ -7,12 +7,36 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.87](https://github.com/codepetca/zero/releases/tag/v0.5.87) is public. The three anonymous downloads match preparation run 45543668597. | Preserve immutable assets. |
-| Website | [Lesson 11](https://zero.codepet.ca/tutorials/11) and the ZeroHub library guides are live. This promotion selects the verified Mac 0.5.89 download and signed build 88 feed. | Check the production Mac link and feed after deployment. |
+| GitHub manual kit | [Zero 0.5.89](https://github.com/codepetca/zero/releases/tag/v0.5.89) is public. Its three anonymous downloads match preparation run 45749824787. | Preserve immutable assets. |
+| Website | [Lesson 11](https://zero.codepet.ca/tutorials/11) and the ZeroHub library guides are live. This promotion selects the verified 0.5.89 kit, Windows Portable, Mac download and signed build 88 feed. | Check the production download links and feed after deployment. |
 | Mac installer | [0.5.89](https://github.com/codepetca/zero/releases/tag/setup-v0.5.89) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 88 feed references the measured public DMG. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.87.0 x64 from submission 22 is live. Partner Center accepted 1.5.89.0 into submission 23 for certification. | Verify the 1.5.89.0 catalog listing after certification and automatic publication. |
-| Windows Portable | [0.5.87 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.87) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.87) both embed the canonical kit from run 45543668597. | The school stages its preferred ZIP under its existing device policy. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.89.0 x64 from submission 23 is public in the Canadian and U.S. catalogs. | Check distribution on physical and school-managed devices separately. |
+| Windows Portable | [0.5.89 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.89) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.89) both embed the canonical kit from run 45749824787. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.89 kit and Portable release — 2026-11-25
+
+[Starter PR #7](https://github.com/codepetca/zero-starter/pull/7) refreshed the
+public project builder once the Store update was available. The public starter
+tree `0711c0c4ace8ba33459037ea675a483327bc7264` matches the generated files
+and modes. [Preparation run 45749824787](https://github.com/codepetca/zero/actions/runs/45749824787)
+verified Project → New with that public tree and the release VSIX. It used
+`d8afc8a61e50784db94d2fa1f35001cddb4f3159`, as did the [Windows checks](https://github.com/codepetca/zero/actions/runs/45741794960).
+The complete Portable bundle's source companion has 68 verified archive entries.
+
+[Public Windows run 45750654270](https://github.com/codepetca/zero/actions/runs/45750654270)
+installed Store-signed package 1.5.89.0 through WinGet and passed first-run
+setup. Collision Helper Pilot 0.2.0 passed the lesson's overlap and gap checks
+with the installed JDK and the refreshed starter's geometry code. The editor
+exercise reached Zero's GitHub sign-in prompt and awaits a signed-in session.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| zero-bootstrap.zip | 5,463,372 | `1e042eb70490f03c5c785c5dc290728fb06010dd7ddebc277af766a53640912e` |
+| zero-0.5.89.vsix | 2,660,204 | `bfcbb453be624a89a0f2eeacc5598d1832f34400eefb87e26c32f4110230d0ac` |
+| zero-starter.zip | 2,779,460 | `d511e795ca2fb9fcaa992421b0e69e30522733ef8a69040fee774fc736f91145` |
+| Zero-0.5.89-windows-portable-pilot-staging-x64.zip | 5,771,797 | `9f401e6e4bd0a45e56dc4544af58ba1d7aefc2ccc732a7a0bbbcb7a50970bba7` |
+| Zero-0.5.89-windows-portable-bundled-x64.zip | 606,326,024 | `d020780aea3e27166ea1ebabf5b05ce692c567f62cf354bfda6b95fde5a18fa8` |
 
 ## Zero 0.5.89 Mac release and Windows certification — 2026-11-25
 
