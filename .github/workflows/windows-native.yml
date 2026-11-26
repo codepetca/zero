@@ -86,7 +86,7 @@ jobs:
         if: inputs.version == '0.5.89'
         run: npm ci
       - name: Run the exact production Lesson 11 in the installed Store editor
-        if: inputs.version == '0.5.89'
+        if: inputs.version == '0.5.89' && inputs.mode != 'desktop'
         shell: pwsh
         env:
           ZERO_PROOF_TEST_MODE: ${{ inputs.mode }}
@@ -111,16 +111,17 @@ jobs:
           path: ${{ runner.temp }}/zero-private-desktop/envelope.json
           if-no-files-found: error
           retention-days: 1
-      - name: Host the private tunnel with its one-tunnel host token
+      - name: Host the private desktop and run the interactive editor exercise
         if: inputs.mode == 'desktop'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node scripts/proof-desktop-channel.mjs host "${env:RUNNER_TEMP}/zero-private-desktop"
-      - name: Resume the editor exercise after the owner signs in
-        if: inputs.mode == 'desktop'
-        shell: pwsh
-        run: .\scripts\test-public-store-collision.ps1 -Phase Finish -OutputDirectory "${env:RUNNER_TEMP}/zero-collision-exercise"
+        run: |
+          $ErrorActionPreference = 'Stop'
+          node scripts/proof-desktop-channel.mjs host "${env:RUNNER_TEMP}/zero-private-desktop"
+          if ($LASTEXITCODE -ne 0) { throw 'The private tunnel host could not start.' }
+          Remove-Item Env:GH_TOKEN
+          & .\scripts\test-public-store-collision.ps1 -Phase Interactive -OutputDirectory "${env:RUNNER_TEMP}/zero-collision-exercise"
       - name: Close the temporary tunnel host
         if: always() && inputs.mode == 'desktop'
         shell: pwsh
