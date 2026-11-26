@@ -89,4 +89,7 @@ Run and test your app first. Check that the tested version is on GitHub **main**
 - **A merge fails?** Open Source Control and share the error with your teacher.
 - **GitHub says “Sudo authentication failed” after you enter the emailed code?** On GitHub’s **Confirm access** page, try another verification method if one is offered. If the email code keeps failing, try [resetting your GitHub password](https://github.com/password_reset). Then return to Zero and reconnect the same GitHub account.
 - **GitHub actions fail?** Check that you are signed in, the repository is accessible, and your connection is working. Zero displays the next action when it can identify the problem. If Git asks for your name or email, follow [GitHub’s guide to setting your commit name](https://docs.github.com/en/get-started/git-basics/setting-your-username-in-git) and [commit email](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address).
-- **Need to update Zero?** On Mac, use **Zero: Check for Updates**. On Windows, follow the update instructions for the installer you used.
+- **Need to update Zero?** Choose the action in the reminder or choose **Later**
+  to wait a week for the same version. On Mac or standalone Windows, you can
+  also use **Zero: Check for Updates**. For Microsoft Store installs, open the
+  Store’s updates page. For a school Portable copy, ask your school IT team.

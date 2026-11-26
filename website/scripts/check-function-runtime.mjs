@@ -16,7 +16,7 @@ async function checkFeed(response,expected,kind){
 await checkFeed(publishedFeedResponse(null),null,'mac');
 await checkFeed(publishedWindowsFeedResponse(null),null,'windows');
 const site=resolve(dirname(fileURLToPath(import.meta.url)),'..');const repo=resolve(site,'..');
-const routes=['download/[asset]','download/windows-portable','updates/macos/appcast.xml','updates/windows/stable.json','api/jams/template','api/jams/template/preview'];
+const routes=['download/[asset]','download/windows-portable','updates/macos/appcast.xml','updates/windows/stable.json','updates/desktop.json','api/jams/template','api/jams/template/preview'];
 const files=new Set();
 for(const route of routes){
  const entry=resolve(site,`.next/server/app/${route}/route.js`);files.add(entry);
@@ -45,6 +45,10 @@ const expected=JSON.parse(fs.readFileSync(0,'utf8'));const load=route=>require('
  const unknown=await download.GET(new Request('https://zero.codepet.ca/download/nope'),{params:Promise.resolve({asset:'nope'})});assert.equal(unknown.status,404);
  await checkFeed(await load('updates/macos/appcast.xml').GET(),expected.updateFeed,'mac');
  await checkFeed(await load('updates/windows/stable.json').GET(),expected.windowsUpdateFeed,'windows');
+ const desktop=await load('updates/desktop.json').GET();
+ assert.equal(desktop.status,200);
+ assert.equal(desktop.headers.get('cache-control'),'public, max-age=300');
+ assert.deepEqual(await desktop.json(),{schema:1,versions:expected.desktopUpdateVersions});
  const template=load('api/jams/template'),preview=load('api/jams/template/preview');
  const templateHandlers=[template.GET,template.POST,preview.GET,preview.POST];
  const checkTemplates=async status=>{for(const handler of templateHandlers){const response=await handler(new Request('https://zero.codepet.ca/api/jams/template'));assert.equal(response.status,status);assert.equal(response.headers.get('cache-control'),'no-store');}};
@@ -63,9 +67,11 @@ const expected=JSON.parse(fs.readFileSync(0,'utf8'));const load=route=>require('
  fs.writeFileSync(path.join(root,'dist/release.json'),JSON.stringify(receipt));
  for(const key of ['kit','starter','extension']){const response=await download.GET(new Request('http://127.0.0.1/download/'+key),{params:Promise.resolve({asset:key})});assert.equal(response.status,200);assert.equal(await response.text(),'receipted local '+key);}
  const missingInstaller=await download.GET(new Request('http://127.0.0.1/download/installer'),{params:Promise.resolve({asset:'installer'})});assert.equal(missingInstaller.status,503);
- console.log(JSON.stringify({tracedHandlers:6,vercelLocalDownloadBlocked:true,vercelPortableDownloadBlocked:true,unknownDownload404:true,feedsByteIdentical:true,unavailableMac404:true,unavailableWindows503:true,productionTemplatesHiddenByDefault:true,pilotTemplatesGone:true,previewTemplatesHidden:true,productionHoldRestored:true,localKitDownloadsVerified:3,unverifiedInstallerRefused:true}));
+ console.log(JSON.stringify({tracedHandlers:7,vercelLocalDownloadBlocked:true,vercelPortableDownloadBlocked:true,unknownDownload404:true,feedsByteIdentical:true,desktopUpdateVersions:true,unavailableMac404:true,unavailableWindows503:true,productionTemplatesHiddenByDefault:true,pilotTemplatesGone:true,previewTemplatesHidden:true,productionHoldRestored:true,localKitDownloadsVerified:3,unverifiedInstallerRefused:true}));
 })().catch(error=>{console.error(error);process.exitCode=1;});`;
- const result=spawnSync(process.execPath,['-e',source],{cwd:website,input:JSON.stringify({...JSON.parse(await readFile(resolve(site,'.generated/release.json'),'utf8'))}),encoding:'utf8',env:{...process.env,NODE_PATH:'',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'0',ZERO_LOCAL_DOWNLOADS:'1'},timeout:60000,maxBuffer:1024*1024});
+ const release=JSON.parse(await readFile(resolve(site,'.generated/release.json'),'utf8'));
+ const desktopUpdateVersions=JSON.parse(await readFile(resolve(site,'.generated/desktop-update-versions.json'),'utf8'));
+ const result=spawnSync(process.execPath,['-e',source],{cwd:website,input:JSON.stringify({...release,desktopUpdateVersions}),encoding:'utf8',env:{...process.env,NODE_PATH:'',NODE_ENV:'production',VERCEL:'1',VERCEL_ENV:'production',ZERO_JAMS_PILOT_ENABLED:'0',ZERO_LOCAL_DOWNLOADS:'1'},timeout:60000,maxBuffer:1024*1024});
  assert.equal(result.status,0,result.stderr||result.stdout||String(result.error));const report=JSON.parse(result.stdout);
  // The source generator (covered separately by template tests) reads only staged template assets here.
  report.sourceTemplateTypes=[];
