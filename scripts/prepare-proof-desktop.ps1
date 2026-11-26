@@ -23,7 +23,7 @@ $rdpRule = @{
     Profile='Any'
     Protocol='TCP'
     LocalPort='3389'
-    RemoteAddress=@('0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::/0')
+    RemoteAddress=@('0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::2-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')
 }
 if (@(Get-NetFirewallProfile | Where-Object { -not $_.Enabled }).Count -ne 0) {
     throw 'The Windows firewall must be active before enabling the private RDP listener.'
