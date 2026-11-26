@@ -181,7 +181,24 @@ async function local(directory,devtunnel,rdpClient) {
   const dt = async (...args) => (await invoke(devtunnel,args,{timeout:20000,maxBuffer:50000})).stdout;
   let tunnel;
   let client;
-  let created = false;
+  let creating;
+  let cleaning;
+  const cleanup = () => cleaning ??= (async () => {
+    client?.kill();
+    tunnel?.kill();
+    if (!creating) return;
+    const created = await creating.then(() => true,() => false);
+    if (!created) return;
+    try {
+      await dt('delete',id,'--force');
+      console.log('The temporary private tunnel was deleted.');
+    } catch {
+      console.error('Tunnel deletion could not be verified. Its one-hour expiration remains in effect.');
+    }
+  })();
+  const interrupt = () => { void cleanup().finally(() => process.exit(130)); };
+  process.once('SIGINT',interrupt);
+  process.once('SIGTERM',interrupt);
   try {
     const authDeadline = Date.now() + 4*60*1000;
     while (Date.now() < authDeadline) {
@@ -189,8 +206,9 @@ async function local(directory,devtunnel,rdpClient) {
       if (login.status && !/not logged in|signed out/i.test(String(login.status))) break;
       await sleep(2500);
     }
-    await dt('create',id,'--expiration','1h','--description','Disposable Zero Windows lesson QA');
-    created = true;
+    creating = dt('create',id,'--expiration','1h','--description','Disposable Zero Windows lesson QA');
+    await creating;
+    await write(directory,'cleanup-tunnel',{id});
     await dt('port','create',id,'--port-number','3389');
     const acl = await dt('access','list',id,'--json');
     assert.doesNotMatch(acl,/anonymous|allowAnonymous["\s]*:[\s]*true/i);
@@ -226,9 +244,9 @@ async function local(directory,devtunnel,rdpClient) {
     assert.ok(result.stdout);
     console.log('The hosted Windows exercise completed.');
   } finally {
-    client?.kill();
-    tunnel?.kill();
-    if (created) await dt('delete',id,'--force').catch(() => {});
+    process.removeListener('SIGINT',interrupt);
+    process.removeListener('SIGTERM',interrupt);
+    await cleanup();
   }
 }
 
