@@ -60,7 +60,7 @@ if (-not $privateJava.StartsWith((Join-Path $data 'runtime\jdk-'), [StringCompar
     -not (Test-Path -LiteralPath (Join-Path $privateJava 'bin\java.exe'))) { throw 'Expected the Store-provisioned JDK.' }
 # This plain Java check uses the private JDK installed by the Store package.
 # The separate editor exercise below still goes through Zero's sign-in and picker.
-node (Join-Path $PSScriptRoot 'verify-store-jdk-collision.mjs') (Join-Path $privateJava 'bin\java.exe') $OutputDirectory
+node (Join-Path $PSScriptRoot 'verify-store-jdk-collision.mjs') (Join-Path $privateJava 'bin') $project $OutputDirectory
 if ($LASTEXITCODE -ne 0) { throw 'Collision Helper failed under the Store-provisioned JDK.' }
 $nodeRuntime = @(Get-ChildItem -LiteralPath (Join-Path $data 'runtime') -Directory -Filter 'node-*' | ForEach-Object {
     Join-Path $_.FullName 'node.exe'

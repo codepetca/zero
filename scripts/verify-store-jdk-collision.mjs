@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
-import {writeFile} from 'node:fs/promises';
-import {join} from 'node:path';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {delimiter,join} from 'node:path';
 
-const [java, directory] = process.argv.slice(2);
+const [javaBin, starter, directory] = process.argv.slice(2);
 const artifactBase = 'https://fdvfhpclefgmg9ks.public.blob.vercel-storage.com/';
 const publishedHash = '80a35352b5a656b35623989e59f8b9689da2fb659479c200bb640c1277a4bc6b';
 const catalogResponse = await fetch('https://zero.codepet.ca/api/sharing/catalog/v3', {signal:AbortSignal.timeout(20000)});
@@ -34,7 +34,14 @@ public class CollisionHelperCheck {
     }
 }
 `);
-const check = spawnSync(java, ['--class-path', jarPath, sourcePath], {encoding:'utf8', timeout:45000});
+const classes = join(directory, 'collision-classes');
+await mkdir(classes);
+const framework = join(starter, 'src/main/java/zero/Collisions.java');
+const compile = spawnSync(join(javaBin, 'javac.exe'), ['-cp', jarPath, '-d', classes, framework, sourcePath],
+  {encoding:'utf8', timeout:45000});
+assert.equal(compile.status, 0, compile.stderr);
+const check = spawnSync(join(javaBin, 'java.exe'), ['--class-path', [jarPath, classes].join(delimiter), 'CollisionHelperCheck'],
+  {encoding:'utf8', timeout:45000});
 assert.equal(check.status, 0, check.stderr);
 assert.equal(check.stdout.trim(), 'Collision Helper Pilot works');
 await writeFile(join(directory, 'store-jdk-collision.json'), JSON.stringify({
