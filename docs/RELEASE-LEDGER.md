@@ -8,11 +8,33 @@ permission to publish from this ledger.
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
 | GitHub manual kit | [Zero 0.5.87](https://github.com/codepetca/zero/releases/tag/v0.5.87) is public. The three anonymous downloads match preparation run 45543668597. | Preserve immutable assets. |
-| Website | [Lesson 11](https://zero.codepet.ca/tutorials/11) and the ZeroHub library guides are live. This promotion selects the verified Mac 0.5.88 download and signed build 87 feed. | Check the production Mac link and feed after deployment. |
-| Mac installer | [0.5.88](https://github.com/codepetca/zero/releases/tag/setup-v0.5.88) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 87 feed references the measured public DMG. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.87.0 x64 from submission 22 is listed in the Canadian Store catalog. | Check distribution on physical and school-managed devices separately. |
+| Website | [Lesson 11](https://zero.codepet.ca/tutorials/11) and the ZeroHub library guides are live. This promotion selects the verified Mac 0.5.89 download and signed build 88 feed. | Check the production Mac link and feed after deployment. |
+| Mac installer | [0.5.89](https://github.com/codepetca/zero/releases/tag/setup-v0.5.89) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 88 feed references the measured public DMG. |
+| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.87.0 x64 from submission 22 is live. Partner Center accepted 1.5.89.0 into submission 23 for certification. | Verify the 1.5.89.0 catalog listing after certification and automatic publication. |
 | Windows Portable | [0.5.87 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.87) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.87) both embed the canonical kit from run 45543668597. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.89 Mac release and Windows certification — 2026-11-25
+
+[PR #428](https://github.com/codepetca/zero/pull/428) passed all 12 source checks
+and merged as `d8afc8a61e50784db94d2fa1f35001cddb4f3159`. The signed Mac DMG
+uses the identical reviewed source tree at `1b734a634`. Apple accepted notarization
+`f314afb8-9e65-41e3-b47c-4ea1820055c6`. Seal `a60ead371` binds the stapled
+installer, both Git source archives and signed build 88 appcast. All three
+public assets matched the seal. The Mac VSIX built and verified a WebFX bundle
+with Finder metadata in two resource folders and excluded both files.
+
+The [Windows preparation run](https://github.com/codepetca/zero/actions/runs/45741794960)
+passed Store package installation and first run with a separately test-signed
+copy, private JavaFX checks and Portable cold and warm opening. Partner Center
+validated and accepted the original unsigned 1.5.89.0 x64 package for submission
+23 with automatic publication after certification. The browser builder refresh
+for the public starter is ready for the Windows upgrade path before kit preparation.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| Zero-0.5.89-macos.dmg | 12,707,096 | `0c3684f5dc447e2dd5a327f1fd3a03cb11f3ca83c05a9638e3d92fcb56ed5b4d` |
+| Zero-0.5.89-msix-store-x64.msix | 5,765,831 | `2f60fb987cce88c81dec6af0ec9b4be5eef1c182dfcf762ad83beb086db1a4cf` |
 
 ## Zero 0.5.89 release preparation
 
