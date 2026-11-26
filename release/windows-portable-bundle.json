@@ -1,16 +1,16 @@
 {
-  "kitVersion": "0.5.87",
-  "sourceRevision": "546746786b225a60c45724774658dc96db105872",
-  "kitSourceRevision": "546746786b225a60c45724774658dc96db105872",
-  "kitSha256": "ba834f9340d07f10a8518703233ac7058e244c894bceea4993d01b6463bd1575",
+  "kitVersion": "0.5.89",
+  "sourceRevision": "d8afc8a61e50784db94d2fa1f35001cddb4f3159",
+  "kitSourceRevision": "d8afc8a61e50784db94d2fa1f35001cddb4f3159",
+  "kitSha256": "1e042eb70490f03c5c785c5dc290728fb06010dd7ddebc277af766a53640912e",
   "publication": {
     "status": "published",
-    "tag": "windows-portable-bundled-v0.5.87"
+    "tag": "windows-portable-bundled-v0.5.89"
   },
   "asset": {
-    "filename": "Zero-0.5.87-windows-portable-bundled-x64.zip",
-    "size": 606012025,
-    "sha256": "7271c97dcac66e34ccf241439c484b5d05b1152540e5b5b95073c694696093ae",
-    "url": "https://github.com/codepetca/zero/releases/download/windows-portable-bundled-v0.5.87/Zero-0.5.87-windows-portable-bundled-x64.zip"
+    "filename": "Zero-0.5.89-windows-portable-bundled-x64.zip",
+    "size": 606326024,
+    "sha256": "d020780aea3e27166ea1ebabf5b05ce692c567f62cf354bfda6b95fde5a18fa8",
+    "url": "https://github.com/codepetca/zero/releases/download/windows-portable-bundled-v0.5.89/Zero-0.5.89-windows-portable-bundled-x64.zip"
   }
 }

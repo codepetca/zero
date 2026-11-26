@@ -27,7 +27,7 @@ actually performed.
 <!-- npm run release:publish rewrites the manual-kit link below; keep exactly one. -->
 - [Download Zero for Mac with Apple Silicon](https://zero.codepet.ca)
 - [Get Zero Studio from Microsoft Store](https://apps.microsoft.com/detail/9mxkd6dqlfgx)
-- [Manual setup — complete kit ZIP 0.5.87](https://github.com/codepetca/zero/releases/download/v0.5.87/zero-bootstrap.zip)
+- [Manual setup — complete kit ZIP 0.5.89](https://github.com/codepetca/zero/releases/download/v0.5.89/zero-bootstrap.zip)
 
 Microsoft Store provides Zero for Windows.
 Each published download retains the license shipped with it.
