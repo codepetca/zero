@@ -403,6 +403,8 @@ internal static class RuntimeHarness
             string node = Directory.GetDirectories(Path.Combine(f.Data,"runtime"),"node-*").Single();
             Assert(f.Host.Launched.EnvironmentVariables["ZERO_NODE_EXECUTABLE"] == Path.Combine(node,"node.exe") && f.Host.Launched.EnvironmentVariables["PATH"].Contains(node + ";"), "editor receives verified private standalone Node hint and child PATH");
             Assert(!f.Host.Launched.UseShellExecute && !f.Host.Launched.RedirectStandardOutput && f.Host.Launched.EnvironmentVariables["ELECTRON_RUN_AS_NODE"] == null, "standalone editor launch is not node or a shell");
+            runtime.Open(true, CancellationToken.None, "vscode://zero.zero/jam/jam-123").GetAwaiter().GetResult();
+            Assert(f.Host.Launched.Arguments.Contains(Processes.QuoteArgument("--open-url") + " " + Processes.QuoteArgument("--") + " " + Processes.QuoteArgument("vscode://zero.zero/jam/jam-123")) && !f.Host.Launched.UseShellExecute, "jam handoff uses isolated editor without shell");
             runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
             Assert(!f.Host.Launched.Arguments.Contains("--new-window") && !f.Host.Launched.Arguments.Contains(f.Project), "resume lets isolated editor restore last session");
             string jsonc = settings.TrimEnd().TrimEnd('}') + ",\n// A normal VS Code settings edit\n\"editor.fontSize\": 17,\n\"java.jdt.ls.java.home\": \"old-tooling-jdk\",\n\"java.home\": \"legacy-tooling-jdk\",\n}\n";

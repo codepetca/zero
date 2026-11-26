@@ -9,6 +9,7 @@ internal static class AutomaticControllerHarness
     private sealed class Fake : IAutomaticSetupBackend
     {
         public int Prepares, Opens;
+        public string LastUri;
         public bool FailPrepare, FailOpen;
         public TaskCompletionSource<bool> Pending;
         public async Task Prepare(Action<string> progress, CancellationToken token)
@@ -18,9 +19,9 @@ internal static class AutomaticControllerHarness
             token.ThrowIfCancellationRequested();
             if (FailPrepare) throw new IOException("fixture network error");
         }
-        public Task Open(CancellationToken token)
+        public Task Open(CancellationToken token, string uri)
         {
-            Opens++; if (FailOpen) throw new IOException("fixture launch error");
+            Opens++; LastUri = uri; if (FailOpen) throw new IOException("fixture launch error");
             return Task.CompletedTask;
         }
         public void Dispose() { }
@@ -54,6 +55,15 @@ internal static class AutomaticControllerHarness
         {
             bool rejected = false; try { InstanceBroker.Parse(args); } catch (ArgumentException) { rejected = true; }
             assert(rejected, "reject arbitrary native arguments");
+        }
+        var jam = InstanceBroker.Parse(new[] { "--protocol", "zero-studio://jam/jam-123" });
+        assert(jam.InternalUri == "vscode://zero.zero/jam/jam-123", "canonical internal jam URI");
+        assert(controller.Open(CancellationToken.None, jam.InternalUri).GetAwaiter().GetResult() && fake.LastUri == jam.InternalUri, "jam survives preparation");
+        assert(InstanceBroker.Parse(new[] { "--protocol", "zero-studio://jam/jam-zero-0123456789abcdef0123456789abcdef" }).Kind == RequestKind.Jam, "zero jam ID accepted");
+        foreach (string uri in new[] { "zero-studio://jam/jam-0", "zero-studio://jam/jam-01", "zero-studio://jam/jam-123/", "zero-studio://jam/jam-123?x=1", "zero-studio://jam/jam-123#x", "zero-studio://jam/jam-%31", "ZERO-studio://jam/jam-1", "zero-studio://jam/jam-123\n", "zero-studio://jam/jam-zero-0123456789ABCDEF0123456789abcdef", "zero-studio://jam/jam-123456789012345678901" })
+        {
+            bool rejected = false; try { InstanceBroker.Parse(new[] { "--protocol", uri }); } catch (ArgumentException) { rejected = true; }
+            assert(rejected, "reject noncanonical jam URI");
         }
         return checks;
     }

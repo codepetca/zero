@@ -7,7 +7,7 @@ namespace ZeroSetup
     internal interface IAutomaticSetupBackend : IDisposable
     {
         Task Prepare(Action<string> progress, CancellationToken cancellation);
-        Task Open(CancellationToken cancellation);
+        Task Open(CancellationToken cancellation, string uri);
     }
 
     // The UI serializes requests. A failed operation stops here until Try again;
@@ -24,7 +24,7 @@ namespace ZeroSetup
 
         public AutomaticSetupController(IAutomaticSetupBackend backend) { this.backend = backend; }
 
-        public async Task<bool> Open(CancellationToken cancellation)
+        public async Task<bool> Open(CancellationToken cancellation, string uri = null)
         {
             if (Busy) return false;
             Busy = true; Failed = false; Status = "Preparing Zero…"; Changed?.Invoke();
@@ -33,7 +33,7 @@ namespace ZeroSetup
                 await backend.Prepare(message => { Status = message; Changed?.Invoke(); }, cancellation);
                 cancellation.ThrowIfCancellationRequested();
                 Status = "Opening Zero…"; Changed?.Invoke();
-                await backend.Open(cancellation);
+                await backend.Open(cancellation, uri);
                 Opened = true; Status = "Zero is open.";
                 return true;
             }
