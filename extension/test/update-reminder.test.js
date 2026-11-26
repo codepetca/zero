@@ -148,7 +148,47 @@ test('leaving a notification unresolved does not repeat it or block later versio
   assert.deepEqual(f.notices.map(([text]) => text), [
     'Zero 0.5.84 is available.', 'Zero 0.5.85 is available.'
   ]);
-  dismiss(undefined);
+  dismiss('Later');
+  await new Promise(setImmediate);
+  assert.equal(f.state.get('zero.updateReminder.mac').shownVersion, '0.5.85');
+});
+
+test('Later starts a fresh seven-day cooldown when a student chooses it days after the reminder', async t => {
+  const f = fixture(t);
+  let respond;
+  f.answer(new Promise(resolve => {respond = resolve;}));
+  await f.tick();
+  f.advance(6 * day);
+  respond('Later');
+  await new Promise(setImmediate);
+  f.advance(day);
+  await f.tick();
+  assert.equal(f.notices.length, 1);
+  f.advance(6 * day);
+  await f.tick();
+  assert.equal(f.notices.length, 2);
+});
+
+test('refocus and settings changes keep the one-hour backoff after a failed request', async t => {
+  const f = fixture(t);
+  const hour = day / 24;
+  f.request(() => new Response('offline', {status:503}));
+  await f.tick();
+  assert.equal(f.requests.length, 1);
+  f.advance(1000);
+  f.focus(false);
+  f.focus(true);
+  await f.tick();
+  assert.equal(f.requests.length, 1);
+  f.enabled(false);
+  f.enabled(true);
+  await f.tick();
+  assert.equal(f.requests.length, 1);
+  f.advance(hour - 1000);
+  f.request(() => Response.json({schema:1, versions:{mac:'0.5.84'}}));
+  await f.tick();
+  assert.equal(f.requests.length, 2);
+  assert.equal(f.notices.length, 1);
 });
 
 test('Store, standalone and school portable select only their published channel', async t => {

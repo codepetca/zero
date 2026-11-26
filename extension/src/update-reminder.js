@@ -90,7 +90,7 @@ function createUpdateReminder(vscode, {
   const pendingNotices = new Set();
   const active = () => !lifetime.signal.aborted && vscode.window.state.focused &&
     vscode.workspace.getConfiguration('zero').get(setting, true);
-  let timer, checking = false;
+  let timer, failedAt, checking = false;
   function schedule(delay) {
     clearTimer(timer);
     if (!active()) return;
@@ -105,8 +105,14 @@ function createUpdateReminder(vscode, {
     try {
       let saved = context.globalState.get(stateKey) ?? {};
       if (!timeUntil(saved.checkedAt, checkInterval, now())) {
+        const retryDelay = timeUntil(failedAt, hour, now());
+        if (retryDelay) {
+          next = retryDelay;
+          return;
+        }
         const version = await fetchVersion(fetchImpl, channel, lifetime.signal);
         if (lifetime.signal.aborted) return;
+        failedAt = undefined;
         saved = {...context.globalState.get(stateKey), version, checkedAt: now()};
         await context.globalState.update(stateKey, saved);
       }
@@ -123,16 +129,27 @@ function createUpdateReminder(vscode, {
       const message = `Zero ${version} is available.${portable ? ' Ask your school IT team to update this copy.' : ''}`;
       const answer = vscode.window.showInformationMessage(message, action, 'Later');
       pendingNotices.add(version);
+      const shown = context.globalState.update(stateKey, {...saved, shownVersion: version, shownAt: now()});
       // A toast can disappear into the notification center without resolving.
       // Keep checking for newer releases while this notification is open.
-      void Promise.resolve(answer).then(choice => {
-        if (choice !== action || lifetime.signal.aborted) return;
+      void Promise.resolve(answer).then(async choice => {
+        if (lifetime.signal.aborted) return;
+        if (choice === 'Later') {
+          await shown;
+          const current = context.globalState.get(stateKey);
+          if (!lifetime.signal.aborted && current?.shownVersion === version) {
+            await context.globalState.update(stateKey, {...current, shownAt: now()});
+          }
+          return;
+        }
+        if (choice !== action) return;
         if (portable) return vscode.env.openExternal(vscode.Uri.parse(portableGuide));
         return vscode.commands.executeCommand('zero.checkForUpdates');
       }).catch(() => {}).finally(() => pendingNotices.delete(version));
-      await context.globalState.update(stateKey, {...saved, shownVersion: version, shownAt: now()});
+      await shown;
     } catch {
       // A blocked/offline check is ordinary on student devices. Try again later.
+      failedAt = now();
       next = hour;
     } finally {
       checking = false;
