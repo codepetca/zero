@@ -23,10 +23,12 @@ const CLOUD = new Set(['new', 'clone', 'joinGameJam']);
 // destination and project checks; recent entries come only from the host's list.
 function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], isGameJamProject = () => false,
   openRecent = async () => {}, executeAction = command => vscode.commands.executeCommand(command), report = () => {}, onDidChangeOpen = () => {},
+  needsFirstRunChoice = () => false, saveFirstRunChoice,
   updateRecovery = nativeUpdateRecovery()} = {}) {
   let panel, disposed = false, ready = false, inFlight = false, revision = 0;
   let token, signature, choiceSignature, recentAccount, recent = [], recentState = 'empty', recentRequest = 0, loading;
   let failure, retry;
+  let savingChoice = false, choiceError = '';
   const choices = new Map();
   const current = target => !disposed && panel === target;
   let reportedOpen = false;
@@ -47,6 +49,9 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
       phase, accountId,
       accountLabel: accountId && typeof value.accountLabel === 'string' ? value.accountLabel : '',
       busy: Boolean(value.busy || inFlight),
+      firstLaunch: savingChoice || needsFirstRunChoice(),
+      savingChoice,
+      choiceError,
       status: typeof value.status === 'string' ? value.status : '',
       jamReview,
       publishProgress:value.publishProgress
@@ -184,6 +189,23 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     if (message.token !== token || typeof token !== 'string') return;
     // Detect drift even when the caller has not refreshed the view yet.
     const snapshot = state();
+    if (snapshot.firstLaunch) {
+      if (message.type === 'finishSetup' && !savingChoice && typeof message.reporting === 'boolean') {
+        savingChoice = true;
+        choiceError = '';
+        publish();
+        try {
+          await saveFirstRunChoice(message.reporting, () => current(target));
+        } catch (error) {
+          if (current(target)) choiceError = 'Zero couldn’t save your reporting choice. Try again.';
+          report('Could not save reporting choice.', error?.message);
+        } finally {
+          savingChoice = false;
+          if (panel) publish();
+        }
+      }
+      return;
+    }
     if (snapshot.accountId !== recentAccount) {void refresh();return;}
     if (message.type === 'action' && Object.hasOwn(COMMANDS, message.action)) {
       return dispatch(target, message.action);
@@ -211,6 +233,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     signature = undefined;
     choiceSignature = undefined;
     lastSent = undefined;
+    choiceError = '';
     target.title = 'Zero Start Page';
     target.webview.options = options;
     const messages = target.webview.onDidReceiveMessage(message => receive(target, message));
@@ -275,6 +298,15 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
 .start-intro{margin-bottom:24px}.start-title-row{display:flex;align-items:center;gap:8px}
 .start-intro h1{display:flex;align-items:center;gap:8px;font-size:2em;font-weight:600;margin:0}.start-intro .zero-mark{width:1em;height:1em;flex:none}
 .start-version{font-size:.9em;margin:0 0 4px}
+#first-launch{margin-top:0}
+#first-launch a{color:var(--vscode-textLink-foreground)}
+#first-launch a:hover{color:var(--vscode-textLink-activeForeground)}
+#first-launch a:focus-visible,#first-launch input:focus-visible{outline:1px solid var(--vscode-focusBorder);outline-offset:3px}
+.reporting-choice{display:grid;grid-template-columns:auto 1fr;align-items:start;column-gap:8px;margin:24px 0}
+.reporting-choice input{margin:4px 0 0;accent-color:var(--vscode-button-background)}
+.reporting-choice label{font-weight:600}
+#reporting-details{grid-column:2;margin:4px 0 0}
+#first-launch-error{color:var(--vscode-errorForeground)}
 button.start-web{width:32px;height:32px;padding:0;background:transparent;color:var(--vscode-textLink-foreground,var(--vscode-foreground))}
 button.start-web svg{width:22px;height:22px}
 button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackground,var(--vscode-list-hoverBackground))}
@@ -303,6 +335,19 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
   <p class="muted start-version">${version}</p>
   <div id="github-profile" class="github-profile" role="group" aria-label="Signed-in GitHub profile" hidden>${icon('CircleUserRound')}<span id="account"></span></div>
 </header>
+<section id="first-launch" aria-label="First-time setup" hidden>
+  <p>By selecting Start building, you agree to the <a href="https://zero.codepet.ca/terms" target="_blank" rel="noopener noreferrer">Zero Terms</a> and save your reporting choice below.<br>
+  Read the <a href="https://zero.codepet.ca/privacy" target="_blank" rel="noopener noreferrer">Privacy Notice</a> to see how Zero handles data.</p>
+  <div class="reporting-choice">
+    <input id="automatic-reports" type="checkbox" checked aria-describedby="reporting-details">
+    <label for="automatic-reports">Send error reports automatically</label>
+    <p id="reporting-details" class="muted">Zero posts technical details to public GitHub issues. Reports exclude your code, logs and file paths.<br>
+      This is optional and respects your editor’s telemetry setting.</p>
+  </div>
+  <button id="start-building" disabled>Start building</button>
+  <p id="first-launch-error" role="alert" hidden></p>
+</section>
+<div id="normal-start" hidden>
 <div class="start-actions">
 <button class="primary" data-action="signIn" hidden>${icon('CircleUserRound')}<span>Sign in to Zero</span></button>
 <button class="primary" data-action="connect" hidden>${icon('CircleUserRound')}<span>Connect to GitHub</span></button>
@@ -327,6 +372,7 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
 <p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
 <button id="check-for-updates" class="secondary" hidden>Check for updates</button>
+</div>
 </main><script nonce="${nonce}">
 (() => {
   const publishProgressDetails = ${publishProgressDetails.toString()};
@@ -382,15 +428,25 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
   byId('retry').addEventListener('click', () => send({type:'retry'}));
   byId('check-for-updates').addEventListener('click', () => send({type:'checkForUpdates'}));
   byId('retry-recent').addEventListener('click', () => send({type:'retryRecent'}));
+  byId('start-building').addEventListener('click', () => send({type:'finishSetup', reporting:byId('automatic-reports').checked}));
   window.addEventListener('message', event => {
     const message = event.data;
     if (!message || message.type !== 'state' || message.revision < revision) return;
     revision = message.revision;token = message.token;
     const state = message.state;
+    const setup = byId('first-launch');
+    const wasInSetup = !setup.hidden;
+    setup.hidden = !state.firstLaunch;
+    byId('normal-start').hidden = Boolean(state.firstLaunch);
+    byId('automatic-reports').disabled = state.savingChoice;
+    byId('start-building').disabled = !state.firstLaunch || state.savingChoice;
+    byId('first-launch-error').textContent = state.choiceError;
+    byId('first-launch-error').hidden = !state.choiceError;
     const signedIn = Boolean(state.accountId), ready = signedIn && state.phase === 'ready';
     for (const button of buttons) {
       const action = button.dataset.action;
       button.disabled = state.busy || (['new','clone','joinGameJam'].includes(action) && !ready) || (['local','tutorials'].includes(action) && !signedIn);
+      if (action === 'tutorials') button.hidden = state.firstLaunch;
       if (action === 'continueGameJam') button.disabled = state.busy || !ready || !state.jamReview;
       if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
       if (action === 'connect') button.hidden = state.phase !== 'connect';
@@ -401,7 +457,8 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
     }
     for (const menu of dropdowns) menu.refresh(state.busy || !signedIn);
     byId('account').textContent = state.accountLabel;
-    byId('github-profile').hidden = !state.accountLabel;
+    byId('github-profile').hidden = state.firstLaunch || !state.accountLabel;
+    if (wasInSetup && !state.firstLaunch) byId('start-title').focus({preventScroll:true});
     const guidance = ready || ['signed-out','connect'].includes(state.phase) ? '' : state.phase === 'install' ? 'Give Zero access to your selected repositories on GitHub, then return here.' : state.phase === 'checking' ? 'Checking GitHub access…' : state.phase === 'verification-unavailable' ? 'GitHub could not be reached. Check again when your connection is available.' : 'GitHub access could not be checked. Try again, or open a local project.';
     byId('github-section').hidden = !guidance;
     byId('guidance').hidden = !guidance;

@@ -72,12 +72,7 @@ test('the sidebar keeps one relevant action and moves focus to the status when t
  h.emit({type:'sidebar.update',status:'Java could not compile.',recoveryAction:{command:'zero.showProblems',label:'Show Problems'}});
  assert.equal(recovery.childElementCount,1);
  assert.equal(recovery.firstElementChild.textContent,'Show Problems');
- h.emit({type:'sidebar.update',status:'Zero could not merge the branch.',recoveryAction:{command:'zero.reportProblem',label:'Report a problem'}});
- assert.equal(recovery.childElementCount,1);
- const report=recovery.firstElementChild;
- assert.equal(report.textContent,'Report a problem');
- report.focus();h.clickCommand(report);
- assert.equal(h.sent.at(-1).command,'zero.reportProblem');
+ recovery.firstElementChild.focus();
  h.emit({type:'sidebar.update',status:'Zero could not merge the branch.'});
  assert.equal(recovery.hidden,true);
  assert.equal(recovery.childElementCount,0);

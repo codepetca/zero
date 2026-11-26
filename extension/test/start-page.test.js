@@ -34,6 +34,40 @@ async function open(f) {
 }
 const payload = panel => panel.messages.at(-1).state;
 
+test('first launch starts checked and saves only the current Start building choice', async t => {
+  for (const reporting of [true, false]) await t.test(String(reporting), async () => {
+    const f = fake({phase:'signed-out'});
+    const saved = [];
+    f.dependencies.needsFirstRunChoice = () => saved.length === 0;
+    f.dependencies.saveFirstRunChoice = async value => {saved.push(value);};
+    const {page, panel} = await open(f);
+    const html = panel.webview.html;
+    assert.match(html, /id="automatic-reports" type="checkbox" checked/);
+    assert.match(html, /technical details to public GitHub issues/);
+    const browser = domHarness(html);
+    browser.update(panel.messages.at(-1));
+    assert.equal(browser.elements.get('first-launch').hidden, false);
+    assert.equal(browser.elements.get('normal-start').hidden, true);
+    await f.message(panel, {type:'action', action:'signIn'});
+    await f.message(panel, {type:'finishSetup', reporting:'true'});
+    await panel.receive({type:'finishSetup', reporting:true, token:'stale'});
+    assert.deepEqual(saved, []);
+    assert.deepEqual(f.commands, []);
+    browser.elements.get('automatic-reports').checked = reporting;
+    browser.elements.get('start-building').click();
+    await panel.receive(browser.sent.at(-1));
+    assert.deepEqual(saved, [reporting]);
+    browser.update(panel.messages.at(-1));
+    assert.equal(browser.elements.get('first-launch').hidden, true);
+    assert.equal(browser.elements.get('normal-start').hidden, false);
+    await f.message(panel, {type:'finishSetup', reporting:!reporting});
+    assert.deepEqual(saved, [reporting]);
+    await f.message(panel, {type:'action', action:'signIn'});
+    assert.deepEqual(f.commands, ['zero.signInToGitHub']);
+    page.dispose();
+  });
+});
+
 test('one reusable native start tab, stable document, explicit focus and lifecycle', async () => {
   const f = fake(), {page, panel} = await open(f);
   assert.deepEqual(f.openChanges,[true]);
@@ -288,7 +322,9 @@ test('strict nonce CSP and text-only rendering keep account, status and path mar
   const {page, panel} = await open(f), html = panel.webview.html;
   assert.match(html, /default-src 'none'/);assert.match(html, /connect-src 'none'/);assert.match(html, /style-src 'nonce-[A-Za-z0-9+/]+=*'/);
   assert.match(html, /script-src 'nonce-[A-Za-z0-9+/]+=*'/);assert.equal(html.includes(attack), false);
-  assert.doesNotMatch(html, /(?:src|href)=["']https?:\/\/|innerHTML|onclick=|eval\(/);
+  assert.deepEqual([...html.matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)].map(([,url]) => url),
+    ['https://zero.codepet.ca/terms','https://zero.codepet.ca/privacy']);
+  assert.doesNotMatch(html, /innerHTML|onclick=|eval\(/);
   assert.equal(payload(panel).accountLabel, attack);
   const browser = domHarness(html);browser.update(panel.messages.at(-1));
   assert.equal(browser.elements.get('account').textContent, attack);

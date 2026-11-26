@@ -40,8 +40,7 @@ export function sidebarSource(state = 'ready', {connected = false, jamLinked = f
       'merge-error':'Zero could not finish merging this branch.',
       'reported-error':'Zero could not finish the browser build.'
     })[state] || '',
-    errorAction: state === 'error' ? 'problems' : ['merge-error','reported-error'].includes(state) ? 'report' : undefined,
-    problemReporter: {latestAutomaticallyAccepted: () => state === 'reported-error'},
+    errorAction: state === 'error' ? 'problems' : undefined,
   }, { timeout: 1000 });
   return webview.html;
 }

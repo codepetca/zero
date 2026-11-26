@@ -89,7 +89,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(error,/Main.java, line 8: add a semicolon/);
   assert.match(error,/zero.showProblems/);
   assert.doesNotMatch(error, /data-command="zero\.(?:reportProblem|showOutput)"/);
-  assert.match(sidebarSource('merge-error'), /data-command="zero.reportProblem"/);
+  assert.doesNotMatch(sidebarSource('merge-error'), /data-command="zero.reportProblem"/);
   assert.doesNotMatch(sidebarSource('merge-error'), /data-command="zero\.(?:showProblems|showOutput)"/);
   assert.doesNotMatch(sidebarSource('reported-error'), /data-command="zero\.(?:reportProblem|showProblems|showOutput)"/);
   const repair = sidebarSource('repair');
@@ -144,10 +144,11 @@ test('Start Page fixture renders the production panel and its actual phase snaps
     assert.match(html, /aria-controls="project-menu"/);
     assert.match(html, /script-src 'nonce-/);
     assert.match(html, /connect-src 'none'/);
-    assert.equal(snapshot.state.phase, ['busy','jam-review'].includes(state) || state.startsWith('publish') ? 'ready' : state);
+    assert.equal(snapshot.state.phase, state === 'first-launch' ? 'signed-out' : ['busy','jam-review'].includes(state) || state.startsWith('publish') ? 'ready' : state);
+    assert.equal(snapshot.state.firstLaunch, state === 'first-launch');
     assert.equal(snapshot.state.jamReview?.title,state==='jam-review'?'Toast to the Moon':undefined);
     assert.equal(snapshot.state.busy, state === 'busy' || Boolean(snapshot.state.publishProgress)||state==='published-busy');
-    const disconnected = ['signed-out','connect'].includes(state);
+    const disconnected = ['first-launch','signed-out','connect'].includes(state);
     assert.equal(snapshot.state.accountId, disconnected ? undefined : '123456');
     assert.equal(snapshot.state.recent.length, disconnected ? 0 : 2);
     const fixture = await startPageView('hc', state);
@@ -157,7 +158,9 @@ test('Start Page fixture renders the production panel and its actual phase snaps
     assert.doesNotMatch(fixture, /script-src[^;]*unsafe-inline/);
     assert.match(fixture, /Fixture only:/);
     assert.match(fixture, /Nothing ran, signed in or changed/);
-    assert.doesNotMatch(fixture, /fetch\(|executeCommand\(|https:\/\//);
+    assert.doesNotMatch(fixture, /fetch\(|executeCommand\(/);
+    assert.deepEqual([...fixture.matchAll(/https:\/\/[^"]+/g)].map(([url]) => url),
+      ['https://zero.codepet.ca/terms','https://zero.codepet.ca/privacy']);
   }
 });
 

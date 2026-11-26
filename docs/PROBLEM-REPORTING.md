@@ -45,12 +45,15 @@ remains separate. See [the completed release record](RELEASE-LEDGER.md).
 
 ## Student flow
 
-Automatic public reporting starts disabled. First-run setup offers one explicit
-choice to publish structured technical problem reports as public GitHub issues.
-This is Zero's own choice, not OS installation permission. Decline or dismissal
-keeps reporting off and does not cause repeated setup notices. An existing
-explicit public preference is respected. The setup-offer marker remains local,
-contains no report/project data and is never uploaded.
+On the first Start Page for a profile without a prior reporting choice or offer,
+Zero shows its Terms and Privacy Notice and a checked **Send error reports
+automatically** checkbox. The notice identifies public GitHub as the destination.
+Students can clear the checkbox before selecting **Start building**. That button
+saves the selected choice locally. Reporting stays off until a choice is saved
+or enabled in Settings. Closing the page saves nothing. Updates preserve the
+existing preference and honor the local marker from the earlier reporting popup,
+including for students who closed it or chose No thanks. The marker contains no
+report or project data and is never uploaded.
 
 After affirmative public consent, eligible unexpected errors send silently. The
 machine-scoped setting `zero.automaticPublicProblemReports` respects VS Code's
@@ -122,12 +125,10 @@ sign-in actions and expected recovery prompts do not automatically open issues.
 Ambiguous student runtime exceptions and broad browser-compiler failures remain
 available through manual reporting.
 
-The sidebar shows the next action for the current error. It offers **Show Problems**
-when diagnostic locations are available, **Repair and continue** for eligible
-browser-tool repair, or **Report a problem** when the student can send a manual
-report. Once the report service acknowledges the automatic report for that
-failure, the duplicate report action disappears. **Show Output** remains available
-from the sidebar menu. The Start Page displays the installed Zero version.
+The sidebar shows the current error and an action when one is available.
+It offers **Show Problems** for diagnostic locations and **Repair and continue**
+for eligible browser-tool repair. The sidebar menu offers **Show Output** and
+**Help → Report a problem**. The Start Page displays the installed Zero version.
 
 Manual merge reports distinguish checking from changes attempted after Merge
 confirmation. The unreadable merge history and unclassified native task exit
