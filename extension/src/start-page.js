@@ -189,8 +189,8 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     if (message.token !== token || typeof token !== 'string') return;
     // Detect drift even when the caller has not refreshed the view yet.
     const snapshot = state();
-    if (snapshot.firstLaunch) {
-      if (message.type === 'finishSetup' && !savingChoice && typeof message.reporting === 'boolean') {
+    if (snapshot.firstLaunch || message.type === 'finishSetup') {
+      if (snapshot.firstLaunch && message.type === 'finishSetup' && !savingChoice && typeof message.reporting === 'boolean') {
         savingChoice = true;
         choiceError = '';
         publish();

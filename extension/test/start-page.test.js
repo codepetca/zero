@@ -68,6 +68,19 @@ test('first launch starts checked and saves only the current Start building choi
   });
 });
 
+test('Start building refreshes a stale notice after another window finishes', async () => {
+  const f = fake({phase:'signed-out'});
+  let firstLaunch = true;
+  f.dependencies.needsFirstRunChoice = () => firstLaunch;
+  f.dependencies.saveFirstRunChoice = () => assert.fail('The other window already saved the choice');
+  const {page, panel} = await open(f);
+  assert.equal(payload(panel).firstLaunch, true);
+  firstLaunch = false;
+  await f.message(panel, {type:'finishSetup', reporting:true});
+  assert.equal(payload(panel).firstLaunch, false);
+  page.dispose();
+});
+
 test('one reusable native start tab, stable document, explicit focus and lifecycle', async () => {
   const f = fake(), {page, panel} = await open(f);
   assert.deepEqual(f.openChanges,[true]);
