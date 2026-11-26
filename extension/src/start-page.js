@@ -342,7 +342,7 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
     <input id="automatic-reports" type="checkbox" checked aria-describedby="reporting-details">
     <label for="automatic-reports">Send error reports automatically</label>
     <p id="reporting-details" class="muted">Zero posts technical details to public GitHub issues. Reports exclude your code, logs and file paths.<br>
-      Automatic reports are optional and follow your editor’s telemetry setting. With this box checked, choosing Report a problem in Help also sends directly.</p>
+      Automatic reports are optional and follow your editor’s telemetry setting. With this box checked, choosing Report a problem from the Zero sidebar menu also sends directly.</p>
   </div>
   <button id="start-building" disabled>Start building</button>
   <p id="first-launch-error" role="alert" hidden></p>

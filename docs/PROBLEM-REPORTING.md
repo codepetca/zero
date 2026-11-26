@@ -67,7 +67,7 @@ Turning public reporting off cancels
 pending automatic delivery and clears queued automatic reports. Failure to send a
 report must never block Run, Git operations or publishing.
 
-Help offers **Report a problem**. With public reporting consent on, that explicit
+The Zero sidebar menu offers **Report a problem**. With public reporting consent on, that explicit
 action submits the prepared context directly, without another confirmation or
 text input. A retained draft retries with its original ID. For a user who has
 opted out, a one-off manual submission still shows a concise issue summary and
@@ -128,8 +128,7 @@ available through manual reporting.
 
 The sidebar shows the current error and an action when one is available.
 It offers **Show Problems** for diagnostic locations and **Repair and continue**
-for eligible browser-tool repair. The sidebar menu offers **Show Output** and
-**Help → Report a problem**. The Start Page displays the installed Zero version.
+for eligible browser-tool repair. The sidebar menu offers **Show Output** and **Report a problem**. The Start Page displays the installed Zero version.
 
 Manual merge reports distinguish checking from changes attempted after Merge
 confirmation. The unreadable merge history and unclassified native task exit
