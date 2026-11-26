@@ -174,6 +174,143 @@ test('opaque recent IDs capture vetted entries and never accept webview destinat
   page.dispose();
 });
 
+test('open Game Jams are visible before sign-in and only listed IDs can start an authenticated review',async()=>{
+  const f=fake({phase:'signed-out'}),opened=[];
+  f.dependencies.listOpenJams=async()=>[{id:'jam-42',title:'Toast to the Moon',deadline:'Nov 30'}];
+  f.dependencies.openGameJam=async (...args)=>opened.push(args);
+  const {page,panel}=await open(f),browser=domHarness(panel.webview.html);
+  const button=()=>browser.elements.get('jams-list').children[0].children[0];
+  browser.update(panel.messages.at(-1));
+  assert.equal(button().children[0].textContent,'Toast to the Moon');
+  assert.equal(button().children[1].textContent,'Register by Nov 30');
+  assert.equal(button().disabled,true);
+  await f.message(panel,{type:'jam',id:'jam-42'});
+  assert.deepEqual(opened,[]);
+  f.setState({phase:'ready',accountId:'42'});await page.refresh();
+  browser.update(panel.messages.at(-1));
+  assert.equal(button().disabled,false);
+  await f.message(panel,{type:'jam',id:'jam-99'});
+  await f.message(panel,{type:'action',action:'selectGameJam',id:'jam-42'});
+  assert.deepEqual(opened,[]);
+  button().click();await f.message(panel,browser.sent.at(-1));
+  assert.deepEqual(opened,[['jam-42','42']]);
+  f.setState({phase:'ready',accountId:'99'});
+  await f.message(panel,{type:'jam',id:'jam-42'});
+  assert.deepEqual(opened,[['jam-42','42']]);
+  page.dispose();
+});
+
+test('the linked jam survives GitHub setup and passes only its current reviewed details on Continue joining',async()=>{
+  const f=fake({phase:'signed-out'}),opened=[];
+  const stale=deferred(), first='jam-42', latest='jam-43';
+  const linked={id:latest,revision:'b'.repeat(64),title:'Jam 43',fullRules:'Build a game.',eligibility:'Everyone',registrationOpen:true};
+  let firstSignal;
+  f.dependencies.readLinkedJam=async(id,signal)=>{
+    if (id===first) {firstSignal=signal; return stale.promise;}
+    assert.equal(id,latest);
+    return linked;
+  };
+  f.dependencies.continueLinkedJam=async (...args)=>opened.push(args);
+  const {page,panel}=await open(f),browser=domHarness(panel.webview.html);
+  const superseded=page.showLinkedJam(first);
+  await page.showLinkedJam(latest);
+  assert.equal(firstSignal.aborted,true);
+  stale.resolve({...linked,id:first,title:'Old Jam'});
+  await superseded;
+  browser.update(panel.messages.at(-1));
+  assert.equal(browser.elements.get('jam-title').textContent,linked.title);
+  assert.equal(browser.elements.get('jam-full-rules-text').textContent,linked.fullRules);
+  assert.equal(browser.elements.get('jam-review').hidden,false);
+  assert.ok(browser.buttons.find(button=>button.dataset.action==='continueGameJam').disabled);
+  await f.message(panel,{type:'action',action:'continueGameJam'});
+  assert.deepEqual(opened,[]);
+  f.setState({phase:'ready',accountId:'42'});await page.refresh();
+  await f.message(panel,{type:'action',action:'continueGameJam',id:first,revision:'untrusted'});
+  assert.deepEqual(opened,[[linked,'42']]);
+  assert.equal(payload(panel).linkedJam,undefined);
+  page.dispose();
+});
+
+test('a browser jam waits behind the first-launch screen before showing its public rules',async()=>{
+  const f=fake({phase:'signed-out'}),choices=[];
+  const linked={id:'jam-42',title:'Toast to the Moon',fullRules:'Build your own game.',registrationOpen:true};
+  f.dependencies.needsFirstRunChoice=()=>choices.length===0;
+  f.dependencies.saveFirstRunChoice=async value=>{choices.push(value);};
+  f.dependencies.readLinkedJam=async id=>{assert.equal(id,linked.id);return linked;};
+  const {page,panel}=await open(f),browser=domHarness(panel.webview.html);
+  await page.showLinkedJam(linked.id);
+  browser.update(panel.messages.at(-1));
+  assert.equal(browser.elements.get('normal-start').hidden,true);
+  assert.deepEqual(choices,[]);
+  await f.message(panel,{type:'action',action:'signIn'});
+  assert.deepEqual(f.commands,[]);
+  await f.message(panel,{type:'finishSetup',reporting:false});
+  browser.update(panel.messages.at(-1));
+  assert.deepEqual(choices,[false]);
+  assert.equal(browser.elements.get('normal-start').hidden,false);
+  assert.equal(browser.elements.get('jam-title').textContent,linked.title);
+  assert.equal(browser.elements.get('jam-full-rules-text').textContent,linked.fullRules);
+  assert.deepEqual(f.commands,[]);
+  page.dispose();
+});
+
+test('Cancel joining dismisses the card and moves keyboard focus back to Open Game Jams',async()=>{
+  const jamReview={title:'Toast to the Moon',rules:'Build your own game.'};
+  const f=fake({phase:'ready',accountId:'42',jamReview}),dismissed=[];
+  f.dependencies.dismissGameJamReview=accountId=>{
+    dismissed.push(accountId);
+    f.setState({phase:'ready',accountId});
+  };
+  const {page,panel}=await open(f),browser=domHarness(panel.webview.html);
+  browser.update(panel.messages.at(-1));
+  const cancel=browser.elements.get('dismiss-jam');
+  assert.match(panel.webview.html,/id="dismiss-jam" aria-label="Cancel joining"/);
+  cancel.focus();cancel.click();
+  await f.message(panel,browser.sent.at(-1));
+  browser.update(panel.messages.at(-1));
+  assert.deepEqual(dismissed,['42']);
+  assert.equal(browser.elements.get('jam-review').hidden,true);
+  assert.equal(browser.document.activeElement,browser.elements.get('jams-heading'));
+  await f.message(panel,{type:'action',action:'continueGameJam'});
+  assert.deepEqual(f.commands,[]);
+  page.dispose();
+});
+
+test('Cancel joining aborts an incoming link lookup without restoring its delayed result',async()=>{
+  const f=fake({phase:'signed-out'}),pending=deferred();
+  let signal;
+  f.dependencies.readLinkedJam=async(_id,requestSignal)=>{signal=requestSignal;return pending.promise;};
+  const {page,panel}=await open(f);
+  const loading=page.showLinkedJam('jam-42');
+  assert.equal(payload(panel).linkedJam.phase,'loading');
+  await f.message(panel,{type:'dismissGameJam'});
+  assert.equal(signal.aborted,true);
+  pending.resolve({id:'jam-42',title:'Toast to the Moon',registrationOpen:true});
+  await loading;
+  assert.equal(payload(panel).linkedJam,undefined);
+  assert.deepEqual(f.commands,[]);
+  page.dispose();
+});
+
+test('students can refresh an empty Game Jam list or retry a failed lookup in place',async()=>{
+  const f=fake(),jam={id:'jam-42',title:'Toast to the Moon',deadline:'Nov 30'};
+  let catalog=[];
+  f.dependencies.listOpenJams=async()=>{
+    if (catalog instanceof Error) throw catalog;
+    return catalog;
+  };
+  const {page,panel}=await open(f);
+  assert.deepEqual(payload(panel).jams,[]);
+  catalog=Error('Offline');
+  await f.message(panel,{type:'refreshJams'});await tick();
+  assert.equal(payload(panel).jamState,'error');
+  catalog=[jam];
+  await f.message(panel,{type:'refreshJams'});await tick();
+  assert.equal(payload(panel).jamState,'ready');
+  assert.deepEqual(payload(panel).jams,[jam]);
+  page.dispose();
+});
+
 test('Recent projects marks a known Game Jam without changing order, selection or focus',async()=>{
   const f=fake(),repositoryUrl='https://github.com/student/moon-game';
   let linked=false;

@@ -18,16 +18,21 @@ const COMMANDS = Object.freeze({
   setup: 'zero.setupGitHub'
 });
 const CLOUD = new Set(['new', 'clone', 'joinGameJam']);
+const JAM_ACTIONS = new Set(['joinGameJam','continueGameJam','selectGameJam','continueLinkedJam']);
 
 // This view owns navigation only. The existing commands retain setup, account,
 // destination and project checks; recent entries come only from the host's list.
 function createStartPage(vscode, {getState = () => ({}), listRecent = async () => [], isGameJamProject = () => false,
+  listOpenJams = async () => [], openGameJam = async () => {}, readLinkedJam, continueLinkedJam, dismissGameJamReview = () => {},
   openRecent = async () => {}, executeAction = command => vscode.commands.executeCommand(command), report = () => {}, onDidChangeOpen = () => {},
   needsFirstRunChoice = () => false, saveFirstRunChoice,
   updateRecovery = nativeUpdateRecovery()} = {}) {
   let panel, disposed = false, ready = false, inFlight = false, revision = 0;
   let token, signature, choiceSignature, recentAccount, recent = [], recentState = 'empty', recentRequest = 0, loading;
   let failure, retry;
+  let jams = [], jamState = 'loading', jamRequest, jamCheckedAt = 0;
+  let linkedJam, linkRequest;
+
   let savingChoice = false, choiceError = '';
   const choices = new Map();
   const current = target => !disposed && panel === target;
@@ -64,6 +69,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     const snapshot = state();
     const items = snapshot.accountId === recentAccount ? recent : [];
     const data = {...snapshot, recentState: snapshot.accountId ? recentState : 'hidden',
+      jams, jamState, linkedJam,
       recent: items.map(item => ({
         label: item.path.split(/[\\/]/).filter(Boolean).at(-1) || item.path, path: item.path,
         ...(item.repositoryUrl && isGameJamProject(snapshot.accountId,item.repositoryUrl) ? {gameJam:true} : {})
@@ -89,6 +95,54 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     }
   }
   let lastSent;
+
+  async function showLinkedJam(id) {
+    const target = show();
+    if (!target || !readLinkedJam) return;
+    linkRequest?.abort();
+    const request = new AbortController();
+    linkRequest = request;
+    linkedJam = {id,phase:'loading'};
+    failure = undefined;
+    retry = undefined;
+    publish();
+    try {
+      const details = await readLinkedJam(id, request.signal);
+      if (!request.signal.aborted) linkedJam = {id,phase:'ready',details};
+    } catch (error) {
+      if (!request.signal.aborted) linkedJam = {id,phase:'error',error:error.message};
+    } finally {
+      if (linkRequest === request) {linkRequest = undefined;publish();}
+    }
+  }
+
+  function clearLinkedJam() {
+    linkRequest?.abort();
+    linkRequest = undefined;
+    linkedJam = undefined;
+  }
+
+  function loadJams(target) {
+    if (jamRequest) return;
+    const request = new AbortController();
+    jamRequest = request;
+    jamState = 'loading';
+    publish();
+    void Promise.resolve().then(() => listOpenJams(request.signal)).then(items => {
+      if (!current(target) || request.signal.aborted) return;
+      jams = items;
+      jamState = 'ready';
+    }).catch(() => {
+      if (!current(target) || request.signal.aborted) return;
+      jams = [];
+      jamState = 'error';
+    }).finally(() => {
+      if (jamRequest !== request) return;
+      jamRequest = undefined;
+      jamCheckedAt = Date.now();
+      publish();
+    });
+  }
 
   function loadRecent(target, accountId) {
     const request = ++recentRequest;
@@ -134,7 +188,8 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
   function allowed(action, snapshot) {
     if (snapshot.busy) return false;
     if (action === 'continueGameJam') return snapshot.phase==='ready' && Boolean(snapshot.jamReview);
-    if (CLOUD.has(action)) return snapshot.phase === 'ready' && Boolean(snapshot.accountId);
+    if (action === 'continueLinkedJam') return snapshot.phase==='ready' && Boolean(snapshot.accountId && linkedJam?.details?.registrationOpen);
+    if (CLOUD.has(action) || action === 'selectGameJam') return snapshot.phase === 'ready' && Boolean(snapshot.accountId);
     if (action === 'local' || action === 'tutorials') return Boolean(snapshot.accountId);
     if (action === 'signIn') return snapshot.phase === 'signed-out';
     if (action === 'connect') return snapshot.phase === 'connect';
@@ -152,29 +207,39 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     retry = {accountId, checkForUpdates:true};
   }
 
-  async function dispatch(target, action, choice) {
+  async function dispatch(target, action, choice, jamId) {
     const before = state();
     const accountId = choice?.accountId ?? before.accountId;
     if (!current(target) || before.busy || (choice ? !accountId || before.accountId !== accountId : !allowed(action, before))) return;
+    const link = linkedJam;
+    if (action === 'joinGameJam' || action === 'selectGameJam') clearLinkedJam();
     failure = undefined;
     retry = undefined;
     inFlight = true;
+
     publish();
     try {
       // There is no await between the current-account check and invocation.
       if (choice) await openRecent({...choice.item}, accountId);
+      else if (action === 'selectGameJam') await openGameJam(jamId, accountId);
+      else if (action === 'continueLinkedJam') {
+        await continueLinkedJam(link.details, accountId);
+        const after = state();
+        if (linkedJam === link && after.accountId === accountId && after.jamReview !== link.details) clearLinkedJam();
+      }
       else await executeAction(action === 'setup' && before.phase === 'verification-unavailable'
         ? 'zero.recheckGitHubConnection' : COMMANDS[action]);
     } catch (error) {
       if (!current(target) || state().accountId !== accountId) return;
-      if (['new','continueGameJam'].includes(action) && error?.code === 'ZERO_STARTER_INCOMPATIBLE') {
+      if (action === 'continueLinkedJam' && linkedJam !== link) return;
+      if (['new','continueGameJam','continueLinkedJam'].includes(action) && error?.code === 'ZERO_STARTER_INCOMPATIBLE') {
         describeStarterMismatch(accountId);
       } else {
-        const joining=action==='joinGameJam'||action==='continueGameJam';
+      const joining=JAM_ACTIONS.has(action);
         const task = choice ? 'open this project' : ({tutorials:'open Zero Web', new:'create a project', clone:'clone a project',
-          joinGameJam:'join the Game Jam',continueGameJam:'join the Game Jam',local:'open a local project', signIn:'sign in to Zero', connect:'connect to GitHub', setup:'check GitHub access'})[action];
-        failure = joining && error?.message ? error.message : `Could not ${task}. Try again.`;
-        retry = {action:action==='continueGameJam'&&!state().jamReview?'joinGameJam':action, choice, accountId};
+          local:'open a local project', signIn:'sign in to Zero', connect:'connect to GitHub', setup:'check GitHub access'})[action];
+        failure = joining && error?.message ? error.message : `Could not ${joining ? 'join the Game Jam' : task}. Try again.`;
+        retry = {action:action==='continueGameJam'&&!state().jamReview?'joinGameJam':action, choice, jamId, accountId};
       }
       try {report(failure, error?.message || String(error));} catch {}
     } finally {
@@ -208,11 +273,22 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
     }
     if (snapshot.accountId !== recentAccount) {void refresh();return;}
     if (message.type === 'action' && Object.hasOwn(COMMANDS, message.action)) {
-      return dispatch(target, message.action);
+      return dispatch(target, message.action === 'continueGameJam' && linkedJam ? 'continueLinkedJam' : message.action);
     }
     if (message.type === 'recent' && typeof message.id === 'string' && choices.has(message.id)) {
       return dispatch(target, undefined, choices.get(message.id));
     }
+    if (message.type === 'jam' && jams.some(jam => jam.id === message.id)) {
+      return dispatch(target, 'selectGameJam', undefined, message.id);
+    }
+    if (message.type === 'dismissGameJam' && !snapshot.busy && (linkedJam || snapshot.jamReview)) {
+      clearLinkedJam();
+      dismissGameJamReview(snapshot.accountId);
+      if (JAM_ACTIONS.has(retry?.action)) {failure = undefined;retry = undefined;}
+      publish();
+      return;
+    }
+    if (message.type === 'retryLinkedJam' && !snapshot.busy && linkedJam?.phase === 'error') return showLinkedJam(linkedJam.id);
     if (message.type === 'checkForUpdates' && !snapshot.busy && updateRecovery === 'native') {
       inFlight = true;
       publish();
@@ -221,9 +297,10 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
       finally {inFlight = false;if (current(target)) publish();}
     }
     if (message.type === 'retry' && retry && !retry.checkForUpdates && retry.accountId === snapshot.accountId) {
-      return dispatch(target, retry.action, retry.choice);
+      return dispatch(target, retry.action, retry.choice, retry.jamId);
     }
     if (message.type === 'retryRecent' && !snapshot.busy && recentState === 'error') return refresh({recent:true});
+    if (message.type === 'refreshJams' && !snapshot.busy) loadJams(target);
   }
 
   const options = {enableScripts:true, enableCommandUris:false, localResourceRoots:[], retainContextWhenHidden:true};
@@ -244,18 +321,28 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
       ready = false;
       recentRequest++;
       loading = undefined;
+      jamRequest?.abort();
+      jamRequest = undefined;
+      jams = [];
+      clearLinkedJam();
       choices.clear();
       reportOpen();
     });
     target.webview.html = documentHtml();
     void refresh({recent:true});
+    loadJams(target);
     reportOpen();
     return target;
   }
 
   function show({preserveFocus = false, viewColumn = vscode.ViewColumn?.Active} = {}) {
     if (disposed) return undefined;
-    if (panel) {panel.reveal(viewColumn ?? panel.viewColumn, preserveFocus);void refresh({recent:true});return panel;}
+    if (panel) {
+      panel.reveal(viewColumn ?? panel.viewColumn, preserveFocus);
+      void refresh({recent:true});
+      if (Date.now()-jamCheckedAt>=60_000) loadJams(panel);
+      return panel;
+    }
     return attach(vscode.window.createWebviewPanel('zero.startPage', 'Zero Start Page', {viewColumn, preserveFocus}, options));
   }
 
@@ -275,7 +362,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
   });
 
   return {
-    show, refresh, showStarterMismatch,
+    show, refresh, showStarterMismatch, showLinkedJam,
     isOpen: () => Boolean(panel) && !disposed,
     owns: tab => Boolean(panel) && (tab === panel || tab?.input?.viewType === 'zero.startPage'),
     dispose() {if (disposed) return;disposed = true;recentRequest++;choices.clear();serializer?.dispose();panel?.dispose();panel = undefined;reportOpen();}
@@ -307,9 +394,9 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
 .reporting-choice label{font-weight:600}
 #reporting-details{grid-column:2;margin:4px 0 0}
 #first-launch-error{color:var(--vscode-errorForeground)}
-button.start-web{width:32px;height:32px;padding:0;background:transparent;color:var(--vscode-textLink-foreground,var(--vscode-foreground))}
+button.start-web,button.jam-close{width:32px;height:32px;padding:0;background:transparent;color:var(--vscode-textLink-foreground,var(--vscode-foreground))}
 button.start-web svg{width:22px;height:22px}
-button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackground,var(--vscode-list-hoverBackground))}
+button.start-web:hover:not(:disabled),button.jam-close:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackground,var(--vscode-list-hoverBackground))}
 .start-actions{display:flex;flex-direction:column;gap:12px;width:180px;max-width:100%}.project-actions{position:relative}.start-actions>button,.project-actions>button{width:100%}h1:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
 .recent-title{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px}
 .recent-jam{color:var(--vscode-badge-foreground);background:var(--vscode-badge-background);outline:1px solid var(--vscode-contrastBorder,transparent);padding:0 5px;border-radius:3px;font-size:.85em;font-weight:600;white-space:nowrap}
@@ -320,6 +407,10 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
   border-radius:6px;
   background:var(--vscode-editorWidget-background,color-mix(in srgb,var(--vscode-editor-background) 95%,var(--vscode-foreground)));
 }
+.jam-review-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+button.jam-close{flex:none;color:var(--vscode-foreground);font-size:1.5em;line-height:1}
+#jams-heading:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
+#jam-full-rules p{white-space:pre-wrap}
 .github-profile{display:flex;align-items:center;gap:7px;margin-top:4px;font-weight:600;line-height:1.4}.github-profile svg{flex:none}
 #github-progress{width:180px;max-width:100%;height:4px;overflow:hidden;background:var(--vscode-editorWidget-background);outline:1px solid var(--vscode-contrastBorder,transparent)}
 #github-progress::before{content:"";display:block;width:35%;height:100%;background:var(--vscode-progressBar-background,var(--vscode-focusBorder));animation:github-check 1.4s ease-in-out infinite alternate}
@@ -362,13 +453,25 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
 </div>
 </div>
 <section id="jam-review" aria-labelledby="jam-title" hidden>
-  <h2 id="jam-title"></h2>
+  <div class="jam-review-heading">
+    <h2 id="jam-title"></h2>
+    <button type="button" class="jam-close" id="dismiss-jam" aria-label="Cancel joining" title="Cancel joining"><span aria-hidden="true">×</span></button>
+  </div>
+  <p id="jam-link-status" class="muted" role="status" hidden></p>
   <p id="jam-deadlines" class="muted" hidden></p>
   <p id="jam-rules" hidden><strong>Rules preview</strong><br><span id="jam-rules-text"></span></p>
-  <p class="muted">Read the full rules in the browser. Your GitHub username and entry links will be public.</p>
+  <details id="jam-full-rules" hidden><summary>Full rules and eligibility</summary><p id="jam-full-rules-text"></p><p id="jam-eligibility"></p></details>
+  <p id="jam-privacy" class="muted"></p>
   <button class="primary" data-action="continueGameJam" disabled>Continue joining</button>
+  <button class="secondary" id="retry-linked-jam" hidden>Try again</button>
 </section>
 <section id="github-section" aria-label="GitHub access" hidden><p id="guidance" role="status" hidden></p><div id="github-progress" aria-hidden="true" hidden></div><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
+<section aria-labelledby="jams-heading">
+  <h2 id="jams-heading" tabindex="-1">Open Game Jams</h2>
+  <p id="jams-status" class="muted" role="status"></p>
+  <ul id="jams-list"></ul>
+  <button id="refresh-jams" class="secondary" disabled>Refresh Game Jams</button>
+</section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
 <p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
 <button id="check-for-updates" class="secondary" hidden>Check for updates</button>
@@ -378,7 +481,7 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
   const publishProgressDetails = ${publishProgressDetails.toString()};
   const updatePublishProgress = ${updatePublishProgress.toString()};
   const vscode = acquireVsCodeApi();
-  let token, revision = -1, recentKey;
+  let token, revision = -1, recentKey, jamsKey, linkedJamId;
   const byId = id => document.getElementById(id);
   const buttons = Array.from(document.querySelectorAll('[data-action]'));
   function dropdown(prefix) {
@@ -428,6 +531,10 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
   byId('retry').addEventListener('click', () => send({type:'retry'}));
   byId('check-for-updates').addEventListener('click', () => send({type:'checkForUpdates'}));
   byId('retry-recent').addEventListener('click', () => send({type:'retryRecent'}));
+  byId('refresh-jams').addEventListener('click', () => send({type:'refreshJams'}));
+  byId('retry-linked-jam').addEventListener('click', () => send({type:'retryLinkedJam'}));
+  const dismissJam = byId('dismiss-jam');
+  dismissJam.addEventListener('click', () => send({type:'dismissGameJam'}));
   byId('start-building').addEventListener('click', () => send({type:'finishSetup', reporting:byId('automatic-reports').checked}));
   window.addEventListener('message', event => {
     const message = event.data;
@@ -447,7 +554,11 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
       const action = button.dataset.action;
       button.disabled = state.busy || (['new','clone','joinGameJam'].includes(action) && !ready) || (['local','tutorials'].includes(action) && !signedIn);
       if (action === 'tutorials') button.hidden = state.firstLaunch;
-      if (action === 'continueGameJam') button.disabled = state.busy || !ready || !state.jamReview;
+  if (action === 'continueGameJam') {
+        const link = state.linkedJam;
+        button.hidden = Boolean(link && !link.details?.registrationOpen);
+        button.disabled = state.busy || !ready || !(link ? link.details?.registrationOpen : state.jamReview);
+      }
       if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
       if (action === 'connect') button.hidden = state.phase !== 'connect';
       if (action === 'setup') {
@@ -464,15 +575,59 @@ button.start-web:hover:not(:disabled){background:var(--vscode-toolbar-hoverBackg
     byId('guidance').hidden = !guidance;
     if (byId('guidance').textContent !== guidance) byId('guidance').textContent = guidance;
     byId('github-progress').hidden = state.phase !== 'checking';
-    const jam = state.jamReview;
+    const link = state.linkedJam;
+    const jam = link ? link.details : state.jamReview;
     const deadlines = [jam?.registrationDeadline && 'Register by ' + jam.registrationDeadline,
       jam?.submissionDeadline && 'Submit by ' + jam.submissionDeadline].filter(Boolean).join(' · ');
-    byId('jam-title').textContent = jam?.title || '';
+    byId('jam-title').textContent = jam?.title || (link ? 'Game Jam' : '');
     byId('jam-deadlines').textContent = deadlines;
     byId('jam-deadlines').hidden = !deadlines;
     byId('jam-rules-text').textContent = jam?.rules || '';
-    byId('jam-rules').hidden = !jam?.rules;
-    byId('jam-review').hidden = !ready || !jam;
+    byId('jam-rules').hidden = !jam?.rules || Boolean(link);
+    const fullRules = byId('jam-full-rules');
+    if (link?.id !== linkedJamId) {fullRules.open = false;linkedJamId = link?.id;}
+    fullRules.hidden = !link?.details;
+    byId('jam-full-rules-text').textContent = link?.details?.fullRules || '';
+    byId('jam-eligibility').textContent = link?.details?.eligibility || '';
+    byId('jam-eligibility').hidden = !link?.details?.eligibility;
+    const linkStatus = !link ? '' : link.phase === 'loading' ? 'Opening Game Jam…' : link.phase === 'error' ? link.error :
+      !jam.registrationOpen ? 'Registration is closed.' : state.phase === 'signed-out' ? 'Sign in to Zero to join this Game Jam.' :
+        !ready ? 'Finish GitHub setup to join this Game Jam.' : '';
+    byId('jam-link-status').hidden = !linkStatus;
+    if (byId('jam-link-status').textContent !== linkStatus) byId('jam-link-status').textContent = linkStatus;
+    byId('jam-privacy').hidden = !jam || Boolean(link && !jam.registrationOpen);
+    byId('jam-privacy').textContent = (link ? '' : 'Read the full rules in the browser. ') + 'Your GitHub username and entry links will be public.';
+    byId('retry-linked-jam').hidden = link?.phase !== 'error';
+    byId('retry-linked-jam').disabled = state.busy;
+    const jamCard = byId('jam-review');
+    const wasDismissing = document.activeElement === dismissJam;
+    jamCard.hidden = !link && (!ready || !jam);
+    dismissJam.disabled = state.busy;
+    if (jamCard.hidden && wasDismissing) byId('jams-heading').focus();
+    const jamsStatus = state.jamState === 'error' ? 'Game Jams could not be loaded.' :
+      state.jamState === 'loading' ? 'Checking for open Game Jams…' : !state.jams.length ? 'No Game Jams are open for registration.' :
+        state.phase === 'signed-out' ? 'Sign in to Zero to join a Game Jam.' :
+          !ready ? 'Finish GitHub setup to join a Game Jam.' : '';
+    if (byId('jams-status').textContent !== jamsStatus) byId('jams-status').textContent = jamsStatus;
+    byId('refresh-jams').disabled = state.busy || state.jamState === 'loading';
+    const nextJamsKey = JSON.stringify(state.jams);
+    const jamList = byId('jams-list');
+    if (nextJamsKey !== jamsKey) {
+      jamsKey = nextJamsKey;
+      const focused = document.activeElement?.dataset?.jamId;
+      jamList.replaceChildren();
+      for (const item of state.jams) {
+        const li = document.createElement('li'), button = document.createElement('button');
+        const title = document.createElement('span'), deadline = document.createElement('span');
+        button.className = 'recent';button.dataset.jamId = item.id;
+        title.className = 'name';title.textContent = item.title;
+        deadline.className = 'path';deadline.textContent = item.deadline ? 'Register by ' + item.deadline : '';
+        button.append(title,deadline);li.append(button);jamList.append(li);
+        button.addEventListener('click', () => send({type:'jam',id:item.id}));
+        if (focused === item.id) button.focus();
+      }
+    }
+    for (const button of jamList.querySelectorAll('button')) button.disabled = state.busy || !ready;
     byId('status').textContent = state.status;
     updatePublishProgress(byId('publishing-progress'),state.publishProgress);
     byId('error-region').hidden = !state.error;

@@ -34,6 +34,7 @@ test('production plist binds strict trust/default settings; development omits ch
       if(process.platform==='darwin') {
         const plist=JSON.parse(run('/usr/bin/plutil',['-convert','json','-o','-',file]).stdout);
         verifyUpdaterPlist(plist,config,signed);
+        if(signed) { assert.deepEqual(plist.CFBundleURLTypes.map(type=>type.CFBundleURLSchemes),[['zero-updates'],['zero-studio']]); verifyUpdaterPlist({...plist,CFBundleURLTypes:plist.CFBundleURLTypes.slice(0,1)},config,true); assert.throws(()=>verifyUpdaterPlist({...plist,CFBundleURLTypes:[...plist.CFBundleURLTypes,{CFBundleURLSchemes:['evil']}]},config,true)); }
         for(const delta of [{CFBundleVersion:'1'},{SUAllowsAutomaticUpdates:false},{SUEnableJavaScript:true},{SURequireSignedFeed:false},{SUVerifyUpdateBeforeExtraction:false},{SUSignedFeedFailureExpirationInterval:10},{SUEnableInstallerLauncherService:true}]) assert.throws(()=>verifyUpdaterPlist({...plist,...delta},config,signed));
         if(!signed) assert.throws(()=>verifyUpdaterPlist({...plist,CFBundleURLTypes:[]},config,false));
       }

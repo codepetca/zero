@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {isDeepStrictEqual} from 'node:util';
 import {createHash} from 'node:crypto';
 import {readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, lstatSync, readdirSync, readlinkSync, cpSync, existsSync} from 'node:fs';
 import path from 'node:path';
@@ -181,7 +182,10 @@ export function verifyUpdaterPlist(plist, config, signed) {
   for (const [key,value] of Object.entries({SUEnableAutomaticChecks:signed,SUAutomaticallyUpdate:signed,SUAllowsAutomaticUpdates:true,SUEnableSystemProfiling:false,SUEnableJavaScript:false,SUVerifyUpdateBeforeExtraction:true,SURequireSignedFeed:true,SUSignedFeedFailureExpirationInterval:0,SUScheduledCheckInterval:86400})) assert.equal(plist[key], value, key);
   if (signed) {
     assert.equal(plist.SUFeedURL,config.feedURL); assert.equal(plist.SUPublicEDKey,config.publicKey);
-    assert.deepEqual(plist.CFBundleURLTypes,[{CFBundleURLName:'ca.codepet.zero.updates',CFBundleURLSchemes:['zero-updates'],CFBundleTypeRole:'Viewer'}]);
+    const updateURL = {CFBundleURLName:'ca.codepet.zero.updates',CFBundleURLSchemes:['zero-updates'],CFBundleTypeRole:'Viewer'};
+    const jamURL = {CFBundleURLName:'ca.codepet.zero.jams',CFBundleURLSchemes:['zero-studio'],CFBundleTypeRole:'Viewer'};
+    // Published older installers predate jam links; both exact layouts are valid.
+    assert.ok([[updateURL], [updateURL, jamURL]].some(types => isDeepStrictEqual(types, plist.CFBundleURLTypes)), 'Unexpected URL registration');
   } else {
     for (const key of ['SUFeedURL','SUPublicEDKey','CFBundleURLTypes']) assert.equal(plist[key],undefined,`Development must omit ${key}`);
   }
@@ -189,7 +193,7 @@ export function verifyUpdaterPlist(plist, config, signed) {
 }
 export function updaterPlistFields(config, signed) {
   validateMacUpdaterConfig(config);
-  return `${signed ? `<key>SUFeedURL</key><string>${config.feedURL}</string>\n  <key>SUPublicEDKey</key><string>${config.publicKey}</string>\n  <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>ca.codepet.zero.updates</string><key>CFBundleURLSchemes</key><array><string>zero-updates</string></array><key>CFBundleTypeRole</key><string>Viewer</string></dict></array>\n  ` : ''}<key>SUEnableAutomaticChecks</key><${signed}/>\n  <key>SUAutomaticallyUpdate</key><${signed}/>\n  <key>SUAllowsAutomaticUpdates</key><true/>\n  <key>SUVerifyUpdateBeforeExtraction</key><true/>\n  <key>SURequireSignedFeed</key><true/>\n  <key>SUSignedFeedFailureExpirationInterval</key><integer>0</integer>\n  <key>SUScheduledCheckInterval</key><integer>86400</integer>\n  <key>SUEnableSystemProfiling</key><false/>\n  <key>SUEnableJavaScript</key><false/>`;
+  return `${signed ? `<key>SUFeedURL</key><string>${config.feedURL}</string>\n  <key>SUPublicEDKey</key><string>${config.publicKey}</string>\n  <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>ca.codepet.zero.updates</string><key>CFBundleURLSchemes</key><array><string>zero-updates</string></array><key>CFBundleTypeRole</key><string>Viewer</string></dict><dict><key>CFBundleURLName</key><string>ca.codepet.zero.jams</string><key>CFBundleURLSchemes</key><array><string>zero-studio</string></array><key>CFBundleTypeRole</key><string>Viewer</string></dict></array>\n  ` : ''}<key>SUEnableAutomaticChecks</key><${signed}/>\n  <key>SUAutomaticallyUpdate</key><${signed}/>\n  <key>SUAllowsAutomaticUpdates</key><true/>\n  <key>SUVerifyUpdateBeforeExtraction</key><true/>\n  <key>SURequireSignedFeed</key><true/>\n  <key>SUSignedFeedFailureExpirationInterval</key><integer>0</integer>\n  <key>SUScheduledCheckInterval</key><integer>86400</integer>\n  <key>SUEnableSystemProfiling</key><false/>\n  <key>SUEnableJavaScript</key><false/>`;
 }
 
 export function verifyUpdaterAppLayout(contents) {

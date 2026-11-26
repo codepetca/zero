@@ -18,16 +18,23 @@ Unaffected pages need not access the authority. Local tests are not live accepta
 
 ## Game Jam registration and publishing
 
-Game Jam registration uses **Start Page → Project → Join a Game Jam** in Zero. The
-authenticated desktop route checks the student's registration and binds the
+From an open Game Jam's official page or embedded panel, **Open in Zero** opens
+that jam in a compatible editor. **Download Zero** is beside it. Students can
+also find open jams under **Open Game Jams** on the Start Page. A browser link
+shows the public rules before GitHub sign-in and requires **Continue joining**.
+**Cancel joining** closes the review. Earlier editors can use
+**Start Page → Project → Join a Game Jam** after sign-in.
+
+The authenticated desktop route checks the student's registration and binds the
 verified GitHub repository ID. **Run → Publish to Jam** uses that registration
-and the verified GitHub Pages build.
-Keep the operation ID on uncertain outcomes. Recovery can confirm an earlier
-accepted submission after the deadline without initiating a new deployment.
-Keep browser registration available while students use earlier editors. After
-the editor with **Join a Game Jam** is available to students, verify desktop
-registration and a live Pages submission before enabling
-`ZERO_JAMS_EDITOR_JOIN_REQUIRED=1` on the website. The flag makes Zero the
+and the verified GitHub Pages build. Keep the operation ID when the outcome is
+uncertain. Recovery can confirm an earlier accepted submission after the
+deadline without initiating a new deployment.
+
+Keep browser registration available while students use earlier editors. Verify
+the released editor on Mac and Windows, desktop registration, and a live Pages
+submission before enabling `ZERO_JAMS_EDITOR_JOIN_REQUIRED=1` on the website.
+The flag makes Zero the
 required entry point for new Game Jam joins. App Jam participation and web
 entry management remain available.
 

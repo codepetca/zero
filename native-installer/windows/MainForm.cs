@@ -108,7 +108,7 @@ namespace ZeroSetup
 #endif
             // Reopening during preparation already has a pending editor handoff.
             if (pumping && controller.Busy && request == LauncherRequest.Open) return;
-            if (!requests.Contains(request)) requests.Enqueue(request);
+            if (request.Kind == RequestKind.Jam || !requests.Contains(request)) requests.Enqueue(request);
             CancelUpdateCheck();
             if (!pumping) { var operation = Pump(); }
         }
@@ -143,7 +143,7 @@ namespace ZeroSetup
                     else
                     {
                         Show(); Activate();
-                        bool opened = await controller.Open(lifetime.Token);
+                        bool opened = await controller.Open(lifetime.Token, active.InternalUri);
                         if (!opened)
                         {
                             if (!lifetime.IsCancellationRequested) Fail(controller.Status, controller.Details);

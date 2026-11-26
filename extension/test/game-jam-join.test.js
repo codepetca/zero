@@ -60,7 +60,7 @@ function fixture({choose='new',events=[JAM],send,registration=null,hasRegistrati
         assert.equal(options.headers,undefined);
         const summaries=events.map(({id,title,type,revision,registrationOpen,participants,submissionsOpen,schedule,timezone})=>
           ({id,title,type,revision,registrationOpen,participants,submissionsOpen,schedule,timezone}));
-        return Response.json({configured:true,events:summaries,checkedAt:'2026-11-26T12:00:00Z'});
+        return Response.json({configured:true,events:summaries,checkedAt:'2026-11-24T12:00:00Z'});
       }
       const id = new URL(url).pathname.split('/').at(-2);
       assert.equal(url,`https://zero.codepet.ca/api/desktop/jams/${id}/join`);

@@ -13,6 +13,7 @@
   ],
   "main": "./src/extension.js",
   "activationEvents": [
+    "onUri",
     "onStartupFinished",
     "onDebugResolve:java",
     "workspaceContains:zero.json",

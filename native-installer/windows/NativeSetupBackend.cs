@@ -73,12 +73,12 @@ namespace ZeroSetup
 #endif
             await runtime.Prepare(progress, cancellation);
         }
-        public async Task Open(CancellationToken cancellation)
+        public async Task Open(CancellationToken cancellation, string uri)
         {
             if (runtime == null) throw new InvalidOperationException("Prepare Zero before opening the editor.");
             string marker = Path.Combine(dataRoot, "editor-opened");
             KitFiles.RejectReparseAncestors(marker);
-            await runtime.Open(File.Exists(marker), cancellation);
+            await runtime.Open(File.Exists(marker), cancellation, uri);
             File.WriteAllText(marker, "1");
         }
         public void Dispose() { bundledKit = null; }

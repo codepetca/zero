@@ -146,6 +146,7 @@ test('Start Page fixture renders the production panel and its actual phase snaps
     assert.match(html, /connect-src 'none'/);
     assert.equal(snapshot.state.phase, state === 'first-launch' ? 'signed-out' : ['busy','jam-review'].includes(state) || state.startsWith('publish') ? 'ready' : state);
     assert.equal(snapshot.state.firstLaunch, state === 'first-launch');
+    assert.equal(snapshot.state.jams[0]?.title,'Toast to the Moon');
     assert.equal(snapshot.state.jamReview?.title,state==='jam-review'?'Toast to the Moon':undefined);
     assert.equal(snapshot.state.busy, state === 'busy' || Boolean(snapshot.state.publishProgress)||state==='published-busy');
     const disconnected = ['first-launch','signed-out','connect'].includes(state);

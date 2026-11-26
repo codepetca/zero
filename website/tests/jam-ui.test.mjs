@@ -196,7 +196,7 @@ test('fetched private data is unavailable immediately after actor changes, while
 });
 function panelModule(reply,seen) {
   const module={exports:{}};
-  const context={module,exports:module.exports,require:name=>name.includes('jams-visibility')?{hiddenJamsResponse:()=>null}:{getJamResponse:async(request,id)=>{seen.push({request,id});return Response.json(reply.body,{status:reply.status||200});}},Request,Response,URL};
+  const context={module,exports:module.exports,require:name=>name.includes('game-jam-app-link')?require('../lib/game-jam-app-link.mjs'):name.includes('jams-visibility')?{hiddenJamsResponse:()=>null}:{getJamResponse:async(request,id)=>{seen.push({request,id});return Response.json(reply.body,{status:reply.status||200});}},Request,Response,URL};
   vm.runInNewContext(compile(panelSource),context);return module.exports;
 }
 test('public panel strips caller credentials, escapes content and allows only approved creator origin',async()=>{
@@ -220,9 +220,21 @@ test('hosted approved panel shows official status and links without an external 
   const response=await panel.GET(new Request('https://zero.codepet.ca'),{params:Promise.resolve({id})});
   const html=await response.text();
   assert.equal(response.status,200);assert.equal(seen[0].id,id);
-  assert.match(html,/Hosted Game Jam/);assert.match(html,/Registration open/);assert.match(html,/Project → Join a Game Jam/);
+  assert.match(html,/Hosted Game Jam/);assert.match(html,/Registration open/);assert.match(html,/Open Game Jams/);
+  assert.ok(html.includes(`href="zero-studio://jam/${id}"`));assert.match(html,/Download Zero/);
   assert.ok(html.includes(`/hub/jams/${id}/participate`));
   assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'self'$/);
+});
+
+test('the embedded panel keeps web participation unless editor-first registration is enabled and open',async()=>{
+  const event={revision:'abc',title:'Hosted Jam',registrationOpen:true,participantCount:1};
+  for(const editorGameJamJoinRequired of [false,true]) {
+    const panel=panelModule({body:{configured:true,editorGameJamJoinRequired,event:{...event,registrationOpen:!editorGameJamJoinRequired}}},[]);
+    const response=await panel.GET(new Request('https://zero.codepet.ca'),{params:Promise.resolve({id:'jam-42'})});
+    const html=await response.text();
+    assert.doesNotMatch(html,/zero-studio:/);
+    assert.match(html,editorGameJamJoinRequired?/Manage your entry/:/Review rules and take part on Zero/);
+  }
 });
 
 for(const type of ['game','app'])test(`Default ${type} website Join sends only the owned repository and does not require publication or a commit`,async()=>{
@@ -545,9 +557,11 @@ test('Opted-in Game Jam website directs unregistered students to Zero and keeps 
   assert.deepEqual(Array.from(count.props.children),['Participants: ',8,' · Limit: ',100]);
   const direction=nodes.find(node=>node.type?.name==='JoinGameJamInZero');
   assert.ok(direction);
-  const directionNodes=elements(direction.type());
+  const directionNodes=elements(direction.type(direction.props));
   assert.ok(directionNodes.some(node=>node.type==='strong'&&node.props.children==='Project → Join a Game Jam'));
-  assert.ok(directionNodes.some(node=>node.props?.href==='/downloads'));
+  assert.ok(directionNodes.some(node=>node.props?.href==='/downloads'&&node.props.children==='Download Zero'));
+  assert.ok(directionNodes.some(node=>node.props?.href==='zero-studio://jam/jam-42'&&node.props.children==='Open in Zero'));
+  assert.ok(!elements(direction.type({id:'jam-42?open=other'})).some(node=>node.props?.children==='Open in Zero'));
   h.setDetail({...detail,event:{...event,registrationOpen:false}});
   assert.equal(render().some(node=>node.type?.name==='JoinGameJamInZero'),false);
   assert.ok(elements(harness({participateData:detail}).render('JamDetail',{id:'jam-42'}))

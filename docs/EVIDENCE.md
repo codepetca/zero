@@ -1,3 +1,58 @@
+# Open in Zero for Game Jams — 2026-11-26
+
+The local website offers **Open in Zero** beside **Download Zero** on open Game
+Jam pages. The signed Mac app and Windows Store package register the same
+jam-only URL scheme. The native handlers forward a validated ID to the isolated
+editor. The editor loads the public rules before sign-in and checks the account,
+registration and current revision when the student chooses **Continue joining**.
+
+65 focused editor and playground tests, 60 website tests, and 13 packaging tests
+passed. One pre-existing packaging test was skipped. Website TypeScript and
+diff checks passed. Local Chrome confirmed both actions at 320 CSS pixels. An
+isolated Mac VS Code host with fixture responses opened two exact jams through the
+internal URI on cold and warm launches. The Mac disposable native harness passed
+376 assertions. Windows fixture suites passed under Mono and the production Store
+launcher compiled. Independent GPT-6.1 Terra source review and targeted re-review
+reported no outstanding findings.
+
+The later browser test clicked **Open in Zero** on a local copy of the **Toast to
+the Moon** jam page populated with its public data. Chrome prompted once to
+open a Developer ID–signed fixture, and VS Code prompted once to open the Zero
+URI. The signed launcher opened the exact jam and its full rules. The fixture
+used a separate bundle identity, a short disposable home and loopback editor
+observation. The installed Mac 0.5.89 app stayed in place.
+
+A disposable Windows Server 2025 x64 VM built and installed the test-signed
+Store MSIX 1.5.89.0 from QA commit `b175077be`. After setup, Chrome clicked
+**Open in Zero** on the local **Toast to the Moon** page. The test accepted the
+Chrome and editor prompts, verified the exact jam and its full public rules in
+the isolated Store editor, and confirmed that **Cancel joining** closed the
+rules card. The VM verified removal of the test package and certificate.
+This run covered an initialized editor and stopped before student sign-in or
+registration. [Windows VM run and receipts](https://github.com/codepetca/zero/actions/runs/45870639429)
+
+The follow-up adds **Cancel joining** in the upper-right corner of the rules
+card. It discards the review and returns keyboard focus to **Open Game Jams**.
+68 focused editor and playground tests passed, including cancellation during a
+public rules lookup and account-scoped review dismissal. Chrome at 320 CSS
+pixels confirmed the upper-right placement and keyboard focus after Enter.
+The independent follow-up review found no actionable issue. These checks ran on the original feature builds.
+
+# Game Jam participation entry points — 2026-11-26
+
+Local changes against `6bdcfa7cc` put **Download Zero** on open Game Jam pages
+and add a refreshable **Open Game Jams** list to the Start Page. Direct selection
+uses the existing authenticated rules and project flow. The Project menu retains
+reopening and retry. Independent GPT-6.1 Terra review at medium reasoning found
+a stale-list risk. The targeted re-review confirmed the refresh action resolved it.
+
+62 focused editor and playground tests and 60 focused website tests passed.
+Website TypeScript checks and `git diff --check` passed. Local Chrome with a
+mock jam confirmed the download link and Mac Silicon/Windows choices, website
+reflow at 320, 390 and 1280 CSS pixels, and light/dark Start Page fixture states.
+Real editor sign-in, live registration, WebKit and installation were outside
+this check. These checks ran on the original feature builds.
+
 # First-launch reporting choice — 2026-11-26
 
 The local Start Page shows the checked reporting choice before sign-in on a

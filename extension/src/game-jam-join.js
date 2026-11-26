@@ -9,6 +9,14 @@ const JAM_ID = /^jam-(?:[1-9][0-9]{0,19}|zero-[a-f0-9]{32})$/;
 const REVISION = /^[a-f0-9]{64}$/;
 const validRepositoryId = id => typeof id==='string' && /^[1-9][0-9]{0,19}$/.test(id);
 
+const validJamId = id => typeof id === 'string' && JAM_ID.test(id) && !/\s/u.test(id);
+
+function gameJamLinkId(uri) {
+  if (uri?.scheme !== 'vscode' || uri.authority !== 'zero.zero' || uri.query || uri.fragment || typeof uri.path !== 'string' || !uri.path.startsWith('/jam/')) return undefined;
+  const id = uri.path.slice('/jam/'.length);
+  return validJamId(id) ? id : undefined;
+}
+
 function describeDeadline(timestamp, timezone) {
   if (!Number.isFinite(Date.parse(timestamp))) return '';
   try {
@@ -43,24 +51,53 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     if (globalState.get(key)?.operationId === operationId) await globalState.update(key,undefined);
   }
 
-  async function listJams(ticket) {
+  async function readCatalog(signal) {
     let data;
     try {
       const response = await request(ORIGIN+'/api/jams?view=summaries',{
-        redirect:'error',cache:'no-store',signal:AbortSignal.timeout(20_000)
+        redirect:'error',cache:'no-store',signal:AbortSignal.any([AbortSignal.timeout(20_000),...(signal ? [signal] : [])])
       });
+      if (response.status === 404) return {checkedAt:NaN,events:[]};
       if (!response.ok) throw Error();
       data = await response.json();
     } catch {throw Error(unavailable);}
     if (data?.configured !== true || !Array.isArray(data.events)) throw Error(unavailable);
-    await authentication.assertCurrent(ticket);
-    const checkedAt=Date.parse(data.checkedAt);
-    return data.events.flatMap(event=>{
-      if(event?.type!=='game'||!JAM_ID.test(event.id)||!REVISION.test(event.revision)||typeof event.title!=='string')return [];
-      const joined=Array.isArray(event.participants)&&event.participants.some(person=>person?.id===ticket.session.accountId);
-      const canOpen=joined&&(event.submissionsOpen===true||Date.parse(event.schedule?.submissionsCloseAt)>checkedAt);
-      return event.registrationOpen===true||canOpen?[{...event,joined}]:[];
-    });
+    return {checkedAt:Date.parse(data.checkedAt),events:data.events.filter(event=>
+      event?.type==='game'&&validJamId(event.id)&&REVISION.test(event.revision)&&typeof event.title==='string')};
+  }
+
+  const registrationOpen = (event, checkedAt) => event.registrationOpen===true &&
+    !(Date.parse(event.schedule?.registrationClosesAt)<=checkedAt);
+
+  async function listOpenJams(signal) {
+    const {events,checkedAt}=await readCatalog(signal);
+    return events.filter(event=>registrationOpen(event,checkedAt))
+      .map(event=>({id:event.id,title:event.title,
+        deadline:describeDeadline(event.schedule?.registrationClosesAt,event.timezone)}));
+  }
+
+  function reviewDetails(event) {
+    return {title:event.title,rules:rulesPreview(event.rules),
+      registrationDeadline:describeDeadline(event.schedule?.registrationClosesAt,event.timezone),
+      submissionDeadline:describeDeadline(event.schedule?.submissionsCloseAt,event.timezone)};
+  }
+
+  async function readLinkedJam(id,signal) {
+    if (!validJamId(id)) throw Error('This Game Jam link is invalid.');
+    let data;
+    try {
+      const response=await request(ORIGIN+`/api/jams/${id}?view=overview`,{
+        redirect:'error',cache:'no-store',signal:AbortSignal.any([signal,AbortSignal.timeout(20_000)])
+      });
+      if (response.ok) data=await response.json();
+    } catch {throw Error(unavailable);}
+    const event=data?.event;
+    if (data?.configured!==true || event?.id!==id || event.type!=='game' ||
+        !REVISION.test(event.revision) || typeof event.title!=='string' || typeof event.rules!=='string') {
+      throw Error('This Game Jam could not be opened. Check its official page or try again.');
+    }
+    return {id,revision:event.revision,...reviewDetails(event),fullRules:event.rules,
+      eligibility:typeof event.eligibility==='string'?event.eligibility:'',registrationOpen:registrationOpen(event,Date.parse(data.checkedAt))};
   }
 
   async function readJoinDetails(ticket,id) {
@@ -121,46 +158,58 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     return true;
   }
 
-  async function chooseJam(ticket) {
-    const prefix = pendingPrefix(ticket.session.accountId);
+  function pendingJoins(account) {
+    const prefix = pendingPrefix(account);
     const pending = new Map();
     for (const key of globalState.keys().filter(key=>key.startsWith(prefix))) {
       const item = globalState.get(key);
-      if (!item || !JAM_ID.test(item.id) || key !== prefix+item.id || !REVISION.test(item.revision) ||
+      if (!item || !validJamId(item.id) || key !== prefix+item.id || !REVISION.test(item.revision) ||
           !/^[a-f0-9-]{36}$/.test(item.operationId) || typeof item.title !== 'string') continue;
       try {
         if (parseRepositoryUrl(item.repositoryUrl).page === item.repositoryUrl) pending.set(item.id,item);
       } catch { /* An invalid local record cannot block other jams. */ }
     }
 
-    let events;
-    try { events = await listJams(ticket); }
-    catch (error) { if (!pending.size) throw error; events=[]; }
+    return pending;
+  }
+
+  async function chooseJam(ticket) {
+    const pending = pendingJoins(ticket.session.accountId);
+    let catalog;
+    try { catalog = await readCatalog(); }
+    catch (error) { if (!pending.size) throw error; catalog={events:[]}; }
     if (!active()) return;
-    authentication.assertCurrentNow(ticket);
+    await authentication.assertCurrent(ticket);
     const choices = [
       ...Array.from(pending.values(),item=>({
         label:`${validRepositoryId(item.repositoryId) ? 'Retry joining' : 'Review registration for'} ${item.title}`,description:item.repositoryUrl,id:item.id
       })),
-      ...events.filter(event=>!pending.has(event.id)).map(event=>({
-        label:event.joined?`Open jam project · ${event.title}`:event.title,
-        description:event.joined?'Already joined':describeDeadline(event.schedule?.registrationClosesAt,event.timezone),
-        id:event.id
-      }))
+      ...catalog.events.flatMap(event=>{
+        if (pending.has(event.id)) return [];
+        const joined=Array.isArray(event.participants)&&event.participants.some(person=>person?.id===ticket.session.accountId);
+        const canOpen=joined&&(event.submissionsOpen===true||Date.parse(event.schedule?.submissionsCloseAt)>catalog.checkedAt);
+        if (!registrationOpen(event,catalog.checkedAt)&&!canOpen) return [];
+        return [{label:joined?`Open jam project · ${event.title}`:event.title,
+          description:joined?'Already joined':describeDeadline(event.schedule?.registrationClosesAt,event.timezone),id:event.id}];
+      })
     ];
     if (!choices.length) {report('No Game Jams are open for registration.');return;}
     const choice = await vscode.window.showQuickPick(choices,{title:'Join a Game Jam',placeHolder:'Choose a Game Jam'});
-    if (!choice || !active()) return;
+    if (choice) await selectJam(ticket,choice.id);
+  }
+
+  async function selectJam(ticket,id) {
+    if (!active() || !validJamId(id)) return;
     authentication.assertCurrentNow(ticket);
     review=undefined;
-    const key = prefix+choice.id;
-    const retry = pending.get(choice.id);
+    const key = pendingPrefix(ticket.session.accountId)+id;
+    const retry = pendingJoins(ticket.session.accountId).get(id);
     if (retry && validRepositoryId(retry.repositoryId)) {
       if (await register(ticket,key,retry)) await openJoinedProject(ticket,retry.title,retry);
       return;
     }
 
-    const details=await readJoinDetails(ticket,choice.id);
+    const details=await readJoinDetails(ticket,id);
     if (!active()) return;
     if (details.registration?.status==='joined') {
       if(retry) await clearPending(key,retry.operationId);
@@ -226,11 +275,15 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     await openRules(event.id);
     if (!active()) return;
     authentication.assertCurrentNow(ticket);
-    review={id:event.id,revision:event.revision,account:ticket.session.accountId,details:{
-      title:event.title,rules:rulesPreview(event.rules),
-      registrationDeadline:describeDeadline(event.schedule?.registrationClosesAt,event.timezone),
-      submissionDeadline:describeDeadline(event.schedule?.submissionsCloseAt,event.timezone)
-    }};
+    review={id:event.id,revision:event.revision,account:ticket.session.accountId,details:reviewDetails(event)};
+  }
+
+  async function continueLinkedJam(ticket,linked) {
+    if (!active() || !validJamId(linked.id) || !REVISION.test(linked.revision)) return;
+    authentication.assertCurrentNow(ticket);
+    if (pendingJoins(ticket.session.accountId).has(linked.id)) return selectJam(ticket,linked.id);
+    review={id:linked.id,revision:linked.revision,account:ticket.session.accountId,details:linked};
+    await continueJoining(ticket);
   }
 
   async function continueJoining(ticket) {
@@ -279,7 +332,10 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
       await joinExisting();
     }
   }
-  return {chooseJam,continueJoining,reviewDetails:account=>currentReview(account)?.details};
+  return {chooseJam,selectJam,listOpenJams,readLinkedJam,continueLinkedJam,continueJoining,
+    reviewDetails:account=>currentReview(account)?.details,
+    dismissReview(account) {if (currentReview(account)) review=undefined;}
+  };
 }
 
-module.exports = {createGameJamJoin};
+module.exports = {createGameJamJoin,gameJamLinkId};
