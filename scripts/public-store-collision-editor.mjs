@@ -46,6 +46,7 @@ if (action === 'lesson') {
   process.exit(0);
 }
 
+const privateSession = process.env.ZERO_PROOF_INTERACTIVE === 'true';
 const port = process.env.ZERO_PROOF_EDITOR_PORT;
 assert.match(port ?? '', /^\d{4,5}$/);
 const browser = await chromium.connectOverCDP('http://127.0.0.1:' + port, {timeout:15000});
@@ -68,8 +69,8 @@ try {
         return;
       } catch (error) {
         if (error.name !== 'TimeoutError' || attempt === 2) {
-          await page.screenshot({path:join(directory,'public-editor-command.png')});
-          console.log(JSON.stringify({command:title,
+          if (!privateSession) await page.screenshot({path:join(directory,'public-editor-command.png')});
+          if (!privateSession) console.log(JSON.stringify({command:title,
             query:await input.isVisible() ? await input.inputValue({timeout:1000}) : null,
             quickInput:(await quick.innerText()).slice(0,1200),
             dialogs:(await page.getByRole('dialog').allTextContents()).join(' ').slice(0,700)}));
@@ -86,16 +87,14 @@ try {
       if (await signIn.isVisible()) throw Error('The installed editor requires an interactive Zero GitHub sign-in to continue this exercise.');
       await item.click();
     } catch (error) {
-      await page.screenshot({path:join(directory,'public-editor-command.png')});
-      console.log(JSON.stringify({choice:title, quickInput:(await quick.innerText()).slice(0,1200),
+      if (!privateSession) await page.screenshot({path:join(directory,'public-editor-command.png')});
+      if (!privateSession) console.log(JSON.stringify({choice:title, quickInput:(await quick.innerText()).slice(0,1200),
         notifications:(await page.locator('.notification-list-item').allTextContents()).join(' ').slice(0,1200),
         dialogs:(await page.getByRole('dialog').allTextContents()).join(' ').slice(0,700)}));
       throw error;
     }
   };
-  if (action === 'inspect') {
-    console.log(JSON.stringify({url:page.url(),title:await page.title(),dialogs:await page.getByRole('dialog').allTextContents(),quick:await quick.locator('.quick-input-title').allTextContents(),notifications:await page.locator('.notification-list-item').allTextContents(),boxes:await page.locator('.monaco-dialog-box').allTextContents()}));
-  } else if (action === 'add') {
+  const trustStarter = async () => {
     // The starter's exact Git tree was verified before opening the folder.
     const trust = page.getByRole('button', {name:/yes, i trust the authors/i}).first();
     const restricted = page.getByText('Restricted Mode is intended for safe code browsing.', {exact:false}).first();
@@ -113,13 +112,28 @@ try {
       }
       await restricted.waitFor({state:'hidden',timeout:15000});
     }
+  };
+  if (action === 'stage-sign-in') {
+    await trustStarter();
     await command('Zero: Libraries and Games');
+    await page.getByRole('dialog').getByRole('button', {name:'Sign in to Zero',exact:true})
+      .waitFor({state:'visible',timeout:20000});
+    console.log('Zero’s sign-in prompt is ready on the Windows desktop.');
+  } else if (action === 'wait-for-sign-in') {
+    await quick.getByText('Browse libraries', {exact:true}).first()
+      .waitFor({state:'visible',timeout:15*60*1000});
+    console.log('The original editor resumed its ZeroHub command after sign-in.');
+  } else if (action === 'add') {
+    await trustStarter();
+    if (!(await quick.getByText('Browse libraries', {exact:true}).first().isVisible())) {
+      await command('Zero: Libraries and Games');
+    }
     await choose('Browse libraries');
     await choose('Collision Helper Pilot', 45000);
     await choose('Add library');
     const apply = page.getByRole('button', {name:'Apply',exact:true}).first();
     await apply.waitFor({state:'visible',timeout:20000});
-    await page.screenshot({path:join(directory,'public-editor-add.png')});
+    if (!privateSession) await page.screenshot({path:join(directory,'public-editor-add.png')});
     await apply.click();
     const storage = join(project,'zero-dependencies',id,version);
     const raw = await publicText('https://zero.codepet.ca/api/sharing/catalog/v3');

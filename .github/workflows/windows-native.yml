@@ -9,6 +9,13 @@ on:
         options:
           - 0.5.87
           - 0.5.89
+      mode:
+        description: Exercise the installed editor or preflight the sign-in handoff
+        default: exercise
+        type: choice
+        options:
+          - exercise
+          - prepare
 permissions:
   contents: read
   actions: read
@@ -50,7 +57,11 @@ jobs:
       - name: Run the exact production Lesson 11 in the installed Store editor
         if: inputs.version == '0.5.89'
         shell: pwsh
-        run: .\scripts\test-public-store-collision.ps1 -OutputDirectory "${env:RUNNER_TEMP}/zero-collision-exercise"
+        env:
+          ZERO_PROOF_TEST_MODE: ${{ inputs.mode }}
+        run: |
+          $phase = if ($env:ZERO_PROOF_TEST_MODE -eq 'prepare') { 'Prepare' } else { 'All' }
+          & .\scripts\test-public-store-collision.ps1 -Phase $phase -OutputDirectory "${env:RUNNER_TEMP}/zero-collision-exercise"
       - name: Retain the public installer receipt
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

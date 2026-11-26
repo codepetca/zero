@@ -39,8 +39,10 @@ for (let count = 0; count < 60; count++) {
     if (result.result.value) {
       const editor = entries.find(entry => entry.type==='page' && entry.title.includes('zero-collision-check'));
       assert.ok(editor);
-      const image = await query(editor,'Page.captureScreenshot',{format:'png'});
-      await writeFile(screenshot, Buffer.from(image.data,'base64'));
+      if (screenshot) {
+        const image = await query(editor,'Page.captureScreenshot',{format:'png'});
+        await writeFile(screenshot, Buffer.from(image.data,'base64'));
+      }
       console.log('Installed editor WebFX preview displayed Collision Helper Pilot works');
       process.exit(0);
     }
