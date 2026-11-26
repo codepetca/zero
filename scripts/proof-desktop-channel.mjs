@@ -184,10 +184,16 @@ function connectable(port) {
   });
 }
 
+function devTunnelJson(output) {
+  const begin = output.match(/(?:^|\r?\n)[ \t]*\{/);
+  assert.ok(begin,'Dev Tunnels did not return the expected JSON response.');
+  return JSON.parse(output.slice(begin.index).trim());
+}
+
 async function local(directory,devtunnel,rdpClient) {
   assert.notEqual(process.env.GITHUB_ACTIONS,'true');
   const dt = async (...args) => (await invoke(devtunnel,args,{timeout:20000,maxBuffer:50000})).stdout;
-  const login = JSON.parse(await dt('user','show','--json'));
+  const login = devTunnelJson(await dt('user','show','--json'));
   assert.ok(login.status && !/not logged in|signed out/i.test(String(login.status)),
     'The Mac is waiting for Microsoft Dev Tunnels activation.');
   assert.equal(await connectable(3389),false,'RDP local port already in use.');
@@ -221,6 +227,7 @@ async function local(directory,devtunnel,rdpClient) {
   assert.match(rdp.fingerprint,/^[a-fA-F0-9]{64}$/);
   assert.match(rdp.password,/^Za1![a-fA-F0-9]{64}$/);
   const id = 'zeroqa-' + randomBytes(5).toString('hex');
+  let reference = id;
   let tunnel;
   let client;
   let creating;
@@ -232,7 +239,7 @@ async function local(directory,devtunnel,rdpClient) {
     const created = await creating.then(() => true,() => false);
     if (!created) return;
     try {
-      await dt('delete',id,'--force');
+      await dt('delete',reference,'--force');
       console.log('The temporary private tunnel was deleted.');
     } catch {
       console.error('Tunnel deletion could not be verified. Its one-hour expiration remains in effect.');
@@ -243,16 +250,18 @@ async function local(directory,devtunnel,rdpClient) {
   process.once('SIGTERM',interrupt);
   try {
     creating = dt('create',id,'--expiration','1h','--description','Disposable Zero Windows lesson QA','--json');
-    const created = JSON.parse(await creating);
-    const cluster = created.clusterId ?? created.tunnel?.clusterId;
-    const reference = /^[a-z0-9]{2,12}$/.test(cluster ?? '') ? id + '.' + cluster : id;
+    const created = devTunnelJson(await creating);
+    const tunnelId = created.tunnel?.tunnelId ?? created.tunnelId;
+    assert.ok(typeof tunnelId === 'string' && tunnelId.startsWith(id + '.') &&
+      /^[a-z0-9]{2,12}$/.test(tunnelId.slice(id.length + 1)),'Dev Tunnels did not return the new region-qualified tunnel ID.');
+    reference = tunnelId;
     await write(directory,'cleanup-tunnel',{id:reference});
     await dt('port','create',reference,'--port-number','3389');
     const acl = await dt('access','list',reference,'--json');
     assert.doesNotMatch(acl,/"allowAnonymous"\s*:\s*true|"anonymous"/i,'The temporary tunnel unexpectedly allows anonymous access.');
     console.log('The private tunnel and its single desktop port are configured.');
     const output = await dt('token',reference,'--scope','host','--json');
-    const tokenData = JSON.parse(output);
+    const tokenData = devTunnelJson(output);
     const token = tokenData.accessToken ?? tokenData.token;
     assert.match(token,/^[A-Za-z0-9_.-]{30,10000}$/);
     const data = seal(privateKey,envelope.key,run,'tunnel',{id:reference,token,nonce});
