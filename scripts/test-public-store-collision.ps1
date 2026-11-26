@@ -1,29 +1,23 @@
 [CmdletBinding()]
-param([Parameter(Mandatory)][string]$OutputDirectory, [switch]$RehearseExactCandidate)
+param([Parameter(Mandatory)][string]$OutputDirectory)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:RUNNER_OS -ne 'Windows') {
     throw 'Use a disposable GitHub-hosted Windows runner.'
 }
 $package = Get-AppxPackage -Name Codepet.zerostudio
-if ($package.PackageFullName -ne 'Codepet.zerostudio_1.5.88.0_x64__g62pw1js6rhjp') {
-    throw 'The exact 0.5.88 package identity is required.'
+if ($package.PackageFullName -ne 'Codepet.zerostudio_1.5.89.0_x64__g62pw1js6rhjp') {
+    throw 'The exact 0.5.89 package identity is required.'
 }
-if ($RehearseExactCandidate) {
-    $exeHash = (Get-FileHash -LiteralPath (Join-Path $package.InstallLocation 'Zero.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
-    if ($package.SignatureKind -eq 'Store' -or $exeHash -ne 'd720649ef5060aeb89aa221398c2d97c21fd48cbff8e51d77db75102f8efe18a') {
-        throw 'Expected the exact hosted candidate, signed with the disposable test certificate.'
-    }
-} elseif ($package.SignatureKind -ne 'Store') {
+if ($package.SignatureKind -ne 'Store') {
     throw 'The public proof requires the Microsoft Store signature.'
 }
 $null = New-Item -ItemType Directory -Path $OutputDirectory
 $project = Join-Path $OutputDirectory 'zero-collision-check'
-$starterBranch = if ($RehearseExactCandidate) { 'codex/zero-088-builder' } else { 'main' }
-git clone --branch $starterBranch --single-branch https://github.com/codepetca/zero-starter.git $project
+git clone --branch main --single-branch https://github.com/codepetca/zero-starter.git $project
 if ($LASTEXITCODE -ne 0) { throw 'Could not clone the public starter.' }
 $tree = (git -C $project rev-parse 'HEAD^{tree}').Trim()
-if ($tree -ne 'fdeedabd7c72e8beda2aa81693362cd80264d497') { throw 'The public starter does not match the reviewed refresh.' }
+if ($tree -ne '0711c0c4ace8ba33459037ea675a483327bc7264') { throw 'The public starter does not match the reviewed refresh.' }
 $driver = Join-Path $PSScriptRoot 'public-store-collision-editor.mjs'
 function Invoke-Exercise([string]$Action) {
     node $driver $Action $project $OutputDirectory
@@ -38,8 +32,8 @@ if (@($roots).Count -ne 1) { throw 'Expected a single Store-provisioned editor r
 $data = @($roots)[0]
 $profile = Join-Path $data 'editor\user-data'
 $extensions = Join-Path $data 'editor\extensions'
-$extensionManifest = Get-Content -LiteralPath (Join-Path $extensions 'zero.zero-0.5.88\package.json') -Raw | ConvertFrom-Json
-if ($extensionManifest.version -ne '0.5.88') { throw 'The installed editor extension has the wrong version.' }
+$extensionManifest = Get-Content -LiteralPath (Join-Path $extensions 'zero.zero-0.5.89\package.json') -Raw | ConvertFrom-Json
+if ($extensionManifest.version -ne '0.5.89') { throw 'The installed editor extension has the wrong version.' }
 
 # Restart only the Store-provisioned isolated editor with its own profile and tools.
 $profilePaths = @($profile, (Join-Path $logical 'editor\user-data')) | Select-Object -Unique
@@ -138,7 +132,7 @@ try {
     [pscustomobject]@{
         packageFullName = $package.PackageFullName
         signature = $package.SignatureKind.ToString()
-        acquisition = if ($RehearseExactCandidate) { 'test-signed hosted candidate' } else { 'public Microsoft Store' }
+        acquisition = 'public Microsoft Store'
         starterTree = $tree
         library = 'Collision Helper Pilot 0.2.0'
         native = 'Collision Helper Pilot works'

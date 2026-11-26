@@ -81,7 +81,9 @@ try {
   const choose = async (title, timeout = 20000) => {
     const item = quick.getByText(title, {exact:true}).first();
     try {
-      await item.waitFor({state:'visible',timeout});
+      const signIn = page.getByRole('dialog').getByRole('button', {name:'Sign in to Zero',exact:true});
+      await item.or(signIn).first().waitFor({state:'visible',timeout});
+      if (await signIn.isVisible()) throw Error('The installed editor requires an interactive Zero GitHub sign-in to continue this exercise.');
       await item.click();
     } catch (error) {
       await page.screenshot({path:join(directory,'public-editor-command.png')});
