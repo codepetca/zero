@@ -7,8 +7,11 @@ const contracts = require('../sharing/contracts');
 const {constants} = require('node:fs');
 const builderFormat = require('../project-builder-format');
 const {discoverBrowserLibraries,resolveLibrarySources}=require('./libraries');
-const {isFinderMetadataResource}=require('./finder-metadata');
 const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+function isFinderMetadataResource(name) {
+  return /^(?:libraries\/[^/]+\/)?src\/main\/resources\//.test(name) &&
+    name.split('/').at(-1) === '.DS_Store';
+}
 const abort = signal => {if(signal?.aborted){const error=new Error('Browser build cancelled.');error.name='AbortError';throw error;}};
 async function safePath(file,signal) {
   let current=path.parse(path.resolve(file)).root;
@@ -349,4 +352,4 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git}={}) 
   if((await captureBuildInputs(projectRoot)).sourceHash!==inputs.sourceHash)throw new Error('The project changed while checking its uploaded source. Choose Export for web or Publish app again.');
   return {sourceSha,sourceHash:result.sourceHash,inputCount:inputs.files.length,normalizedSourceLineEndings:normalized};
 }
-module.exports={commitInputMetadata,assertSelectedBuilder,readSavedBuilder,browserExternalFiles,captureOwnedFiles,captureBuildInputs,buildProfileHash,boundSourceHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};
+module.exports={commitInputMetadata,assertSelectedBuilder,readSavedBuilder,browserExternalFiles,captureOwnedFiles,captureBuildInputs,buildProfileHash,boundSourceHash,isFinderMetadataResource,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};

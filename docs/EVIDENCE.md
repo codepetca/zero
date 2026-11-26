@@ -18,6 +18,10 @@ bundle contained neither file. All 106 focused tests and `npm run check`
 passed. Windows and a live GitHub Pages deployment were outside this local
 verification.
 
+The published tutorial scaffolds preserve the snapshot source from
+`013236308`. The package check matches all four recorded template digests while
+the bundled current browser tools and standalone starter carry the fix.
+
 # Game Jam rejoin after repository deletion — 2026-11-25
 
 Local change on `codex/game-jam-rejoin` from `7b0e53544`. An authenticated

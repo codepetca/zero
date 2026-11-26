@@ -1,6 +1,6 @@
 import {coreSources} from './prepare-starter.mjs';
 import core from '../extension/src/core-contract.js';
-import {projectBuilderFilesSync} from './prepare-project-builder.mjs';
+import {projectBuilderFilesSync, readBuilderTreeSync} from './prepare-project-builder.mjs';
 import builderFormat from '../extension/src/project-builder-format.js';
 import {readFileSync, writeFileSync, mkdirSync, readdirSync, lstatSync, existsSync, unlinkSync} from 'node:fs';
 import path from 'node:path';
@@ -8,15 +8,6 @@ import {fileURLToPath} from 'node:url';
 import {deflateRawSync} from 'node:zlib';
 
 const repository = fileURLToPath(new URL('../', import.meta.url));
-// Published tutorial repositories own these exact builder inputs. The standalone
-// starter can advance independently. These copies come from Zero 3ad16270e.
-const publishedBuilderFiles = new Set([
-  'src/sharing/authoring.js',
-  'src/sharing/contracts.js',
-  'src/sharing/jar.js',
-  'src/sharing/tutorial-practice.js',
-  'src/web-export/libraries.js'
-]);
 import {practiceProjects, sampleGameAssets, petAssets, publishedTutorialTemplate} from '../teaching/projects.mjs';
 function read(root, relative) {
   const parts = relative.split('/');
@@ -44,8 +35,13 @@ export function lessonProjects(root = repository, {usePublishedBuilderOverlay = 
   for (const name of coreSources) add(common, `src/main/java/zero/${name}`, read(root, `framework/src/main/java/zero/${name}`));
   let builder = projectBuilderFilesSync({sourceRoot:root});
   if (usePublishedBuilderOverlay) {
-    builder = builder.filter(file => file.path !== 'builder.json').map(file => publishedBuilderFiles.has(file.path)
-      ? {...file,bytes:read(root,'teaching/published-builder/'+file.path)} : file);
+    // Published tutorials retain their verified bytes while the standalone
+    // starter advances. Use the selected source revision's own overlay when
+    // verifying an archived kit.
+    const overrides = new Map(readBuilderTreeSync(path.join(root, 'teaching/published-builder'))
+      .map(file => [file.path, file.bytes]));
+    builder = builder.filter(file => file.path !== 'builder.json')
+      .map(file => ({...file, bytes:overrides.get(file.path) ?? file.bytes}));
     const manifest = builderFormat.createBuilderManifest(builder);
     builder.push({path:'builder.json',bytes:Buffer.from(JSON.stringify(manifest,null,2)+'\n')});
   }

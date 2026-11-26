@@ -7,7 +7,6 @@ const {spawn:spawnChild,execFile:execFileCallback}=require('node:child_process')
 const {promisify}=require('node:util');
 const format=require('./project-builder-format');
 const {ordinary,readTree,inventoryMatches,relative,validateRetainedExport}=require('./retained-web-export');
-const {isFinderMetadataResource}=require('./web-export/finder-metadata');
 const {managedJavaHome}=require('./managed-java');
 const execFile=promisify(execFileCallback);
 const newProjectGuidance='Back up this project, then go to Start Page → Project → New and copy your Java files and assets into the new project.';
@@ -157,6 +156,7 @@ async function currentInputs(projectRoot,manifest){
  if(digest(files)!==(manifest.localSourceHash||manifest.sourceHash))throw unavailable('the source digest differs from its exact input receipt.');return files;
 }
 function readSourceTree(projectRoot,folder){
+ const {isFinderMetadataResource}=require('./web-export/snapshot');
  return readTree(path.join(projectRoot,...folder.split('/')),{
   ignoreFile:name=>isFinderMetadataResource(folder+'/'+name)
  });
@@ -226,6 +226,7 @@ function createProjectBuilder({isTrusted=()=>false,environment=process.env,platf
  const ensureValidatedExport=options=>operation(options,'export'),validateExport=options=>operation(options,'validate');
  const prepareBrowserChecks=options=>operation({...options,explicitAction:options.explicitAction===true},'compatibility'),checkSavedSources=options=>operation({...options,explicitAction:false},'compatibilityCached');
  async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git}={}){
+  const {isFinderMetadataResource}=require('./web-export/snapshot');
   if(typeof git!=='function'||! /^[a-f0-9]{40}$/.test(sourceSha||''))throw Error('Commit verification requires the host Git operation and exact uploaded commit.');
   const saved=await readSavedBuilder(projectRoot);
   const validated=result?await validateRetainedExport({projectRoot,result}):{profileHash:saved.profileHash,manifest:await currentInputManifest(projectRoot,saved)};
