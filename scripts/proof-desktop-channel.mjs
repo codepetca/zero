@@ -171,9 +171,15 @@ async function local(directory,devtunnel,rdpClient) {
   while (!envelope && Date.now() < deadline) {
     envelope = await download(run,'zero-qa-desktop-' + run,directory).catch(() => null);
     if (!envelope) {
-      const remote = JSON.parse(await gh(['run','view',run,'--repo',repo,'--json','headSha,status']));
-      assert.equal(remote.headSha,remoteSha);
-      if (remote.status === 'completed') throw Error('The Windows desktop preflight ended early.');
+      const remote = await gh(['run','view',run,'--repo',repo,'--json','headSha,status'])
+        .then(JSON.parse).catch(() => null);
+      if (remote?.headSha) assert.equal(remote.headSha,remoteSha,'The Windows workflow source changed.');
+      if (remote?.status === 'completed') {
+        // Retention metadata can reach the run view before the download API.
+        await sleep(2000);
+        envelope = await download(run,'zero-qa-desktop-' + run,directory).catch(() => null);
+        assert.ok(envelope,'The Windows desktop preflight ended before publishing its encrypted handoff.');
+      }
       await sleep(4000);
     }
   }
