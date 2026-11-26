@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createCipheriv,createDecipheriv,createPublicKey,diffieHellman,generateKeyPairSync,hkdfSync,randomBytes} from 'node:crypto';
+import {createCipheriv,createDecipheriv,createPrivateKey,createPublicKey,diffieHellman,generateKeyPairSync,hkdfSync,randomBytes} from 'node:crypto';
 import {execFile,spawn} from 'node:child_process';
 import {promisify} from 'node:util';
 import {mkdir,readFile,rm,writeFile} from 'node:fs/promises';
@@ -48,6 +48,7 @@ function runner() {
   assert.equal(process.env.RUNNER_ENVIRONMENT,'github-hosted');
   assert.equal(process.env.GITHUB_REPOSITORY,repo);
   assert.equal(process.env.GITHUB_ACTOR,'armorup');
+  assert.equal(process.env.GITHUB_TRIGGERING_ACTOR,'armorup');
   assert.equal(process.env.GITHUB_REF,'refs/heads/' + branch);
   assert.match(process.env.GITHUB_RUN_ID,runPattern);
 }
@@ -89,6 +90,7 @@ async function host(directory) {
   const parent = process.env.GITHUB_RUN_ID;
   const name = 'zero-qa-desktop-reply-' + parent;
   const state = await read(directory,'private-channel');
+  const privateKey = createPrivateKey(state.key);
   const received = join(directory,'received');
   try {
     const deadline = Date.now() + 7*60*1000;
@@ -101,7 +103,7 @@ async function host(directory) {
         try {
           await rm(received,{recursive:true,force:true});
           const packet = await download(String(artifact.workflow_run.id),name,received);
-          response = unseal(state.key,state.recipient,parent,'tunnel',packet.data);
+          response = unseal(privateKey,state.recipient,parent,'tunnel',packet.data);
         } catch { continue; }
         if (response.nonce !== state.nonce) continue;
         assert.match(response.id,/^zeroqa-[a-f0-9]{10}$/);
@@ -208,9 +210,11 @@ async function local(directory,devtunnel,rdpClient) {
     } while (Date.now()<connectDeadline);
     assert.ok(await connectable(3389),'The private RDP forwarding was not ready.');
     const pin = rdp.fingerprint.match(/.{2}/g).join(':');
+    const config = await mkdir(join(directory,'rdp-client'),{recursive:true});
     client = spawn(rdpClient,['/v:127.0.0.1:3389','/u:' + rdp.user,'/d:' + rdp.computer,
-      '/cert:fingerprint:sha256:' + pin,'/sec:nla','/from-stdin:force','-clipboard','/log-level:ERROR',
-      '/size:1280x850'],{stdio:['pipe','ignore','ignore']});
+      '/cert:deny,fingerprint:sha256:' + pin,'/sec:nla','/from-stdin:force','-clipboard','/log-level:ERROR',
+      '/size:1280x850'],{stdio:['pipe','ignore','ignore'],
+      env:{...process.env,XDG_CONFIG_HOME:config}});
     client.stdin.on('error',() => {});
     client.stdin.end(rdp.password + '\n');
     await sleep(7000);

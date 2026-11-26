@@ -4,7 +4,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or
     $env:RUNNER_OS -ne 'Windows' -or $env:GITHUB_REPOSITORY -ne 'codepetca/zero' -or
-    $env:GITHUB_ACTOR -ne 'armorup' -or $env:GITHUB_REF -ne 'refs/heads/codex/zero-089-windows-interactive-proof') {
+    $env:GITHUB_ACTOR -ne 'armorup' -or $env:GITHUB_TRIGGERING_ACTOR -ne 'armorup' -or $env:GITHUB_REF -ne 'refs/heads/codex/zero-089-windows-interactive-proof') {
     throw 'This step is only for the authorized disposable Windows QA run.'
 }
 
@@ -24,6 +24,9 @@ $rdpRule = @{
     Protocol='TCP'
     LocalPort='3389'
     RemoteAddress=@('0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::/0')
+}
+if (@(Get-NetFirewallProfile | Where-Object { -not $_.Enabled }).Count -ne 0) {
+    throw 'The Windows firewall must be active before enabling the private RDP listener.'
 }
 New-NetFirewallRule @rdpRule | Out-Null
 $rdp = 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server'
