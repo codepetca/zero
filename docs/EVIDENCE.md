@@ -1,3 +1,27 @@
+# Finder metadata during web publishing — 2026-11-25
+
+Zero 0.5.87 rejected an ordinary `.DS_Store` inside application resources in
+a synthetic project. The two public Mac publish reports had a generic builder
+error and cannot establish whether either project contained the file.
+
+The browser builder and host omit regular, single-link `.DS_Store` files from
+application and local library resource inputs. Export reuse and commit
+verification use the same exclusion. Other hidden files and credentials retain
+their existing checks. GPT-6.2 Astra at high effort identified a hard-link
+edge case and found no remaining blocker after the guard and regression checks
+were added.
+
+The Mac arm64 smoke compiled a real WebFX project with one tracked and one
+Git-ignored `.DS_Store`. The completed export remained valid after the ignored
+file changed. Exact source-commit verification passed and the staged browser
+bundle contained neither file. All 106 focused tests and `npm run check`
+passed. Windows and a live GitHub Pages deployment were outside this local
+verification.
+
+The published tutorial scaffolds preserve the snapshot source from
+`013236308`. The package check matches all four recorded template digests while
+the bundled current browser tools and standalone starter carry the fix.
+
 # Game Jam rejoin after repository deletion — 2026-11-25
 
 Local change on `codex/game-jam-rejoin` from `7b0e53544`. An authenticated

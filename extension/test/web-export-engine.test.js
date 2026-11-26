@@ -263,11 +263,22 @@ test('reserved resource rejection preserves the previous exported site', async t
   await fs.mkdir(path.join(project, '.mvn/wrapper'), {recursive:true});
   await fs.mkdir(path.join(project, '.zero/web-export/site'), {recursive:true});
   await fs.writeFile(path.join(project, 'src/main/java/Main.java'), 'public class Main {}');
-  await fs.writeFile(path.join(project, 'src/main/resources/INDEX.HTML'), 'student');
+  const resources=path.join(project,'src/main/resources');
+  await fs.writeFile(path.join(resources, '.DS_Store'), 'Finder view');
+  await fs.writeFile(path.join(resources, 'INDEX.HTML'), 'student');
   await fs.writeFile(path.join(project, 'pom.xml'), '<project/>');
   const site=path.join(project, '.zero/web-export/site/index.html');
   await fs.writeFile(site, 'previous success');
   await assert.rejects(exportForWeb({projectRoot:project,cacheRoot:path.join(root,'cache')}), /reserved.*INDEX.HTML/);
+  for(const name of ['.DS_Store.backup','.env','credentials.key']){
+    await fs.writeFile(path.join(resources,name),'private');
+    await assert.rejects(
+      exportForWeb({projectRoot:project,cacheRoot:path.join(root,'cache')}),
+      error=>error.message===`Private or hidden resources cannot be exported: ${name}`
+    );
+    await fs.rm(path.join(resources,name));
+  }
+  assert.equal(await fs.readFile(path.join(resources,'.DS_Store'),'utf8'),'Finder view');
   assert.equal(await fs.readFile(site,'utf8'), 'previous success');
   assert.equal(await fs.readFile(path.join(project,'src/main/resources/INDEX.HTML'),'utf8'), 'student');
 });

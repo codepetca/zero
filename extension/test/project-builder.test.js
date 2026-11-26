@@ -161,9 +161,20 @@ test('Mac browser builds fall back from native JAVA_HOME to a compatible private
 
 test('current-source commit proof works without a build invocation and detects ignored additions',async t=>{
  const h=await currentOutput(t),blob=bytes=>require('node:crypto').createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
- const git=async()=>h.inputs.map(file=>'100644 blob '+blob(file.bytes)+'\t'+file.path).join('\0')+'\0';
+ const metadata='src/main/resources/images/.DS_Store',bytes=Buffer.from('old Finder view');
+ await fs.mkdir(path.join(h.dir,'src/main/resources/images'));
+ await fs.writeFile(path.join(h.dir,metadata),'current Finder view');
+ const git=async()=>[...h.inputs,{path:metadata,bytes}].map(file=>'100644 blob '+blob(file.bytes)+'\t'+file.path).join('\0')+'\0';
  const adapter=createProjectBuilder({spawn:()=>assert.fail('Freshness must not execute a builder')});
  const result=await adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git});assert.equal(result.inputCount,h.inputs.length);
+ const withBuild=await adapter.assertBuildInputsAtCommit({projectRoot:h.dir,result:{buildId:h.manifest.buildId},sourceSha:'a'.repeat(40),git});
+ assert.equal(withBuild.inputCount,h.inputs.length);
+ await fs.unlink(path.join(h.dir,metadata));
+ const linkTarget=path.join(h.dir,'metadata-link-target');
+ await fs.writeFile(linkTarget,'outside the build inputs');
+ await fs.link(linkTarget,path.join(h.dir,metadata));
+ await assert.rejects(adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git}),/bounded ordinary files/);
+ await fs.unlink(path.join(h.dir,metadata));
  await fs.writeFile(path.join(h.dir,'src/main/resources/ignored.png'),'unpublished');
  await assert.rejects(adapter.assertBuildInputsAtCommit({projectRoot:h.dir,sourceSha:'a'.repeat(40),git}),/Upload all exact/);
 });
