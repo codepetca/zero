@@ -154,6 +154,10 @@ function connectable(port) {
 
 async function local(directory,devtunnel,rdpClient) {
   assert.notEqual(process.env.GITHUB_ACTIONS,'true');
+  const dt = async (...args) => (await invoke(devtunnel,args,{timeout:20000,maxBuffer:50000})).stdout;
+  const login = JSON.parse(await dt('user','show','--json'));
+  assert.ok(login.status && !/not logged in|signed out/i.test(String(login.status)),
+    'The Mac is waiting for Microsoft Dev Tunnels activation.');
   assert.equal(await connectable(3389),false,'RDP local port already in use.');
   const {publicKey,privateKey} = keyPair();
   const remoteSha = (await gh(['api','repos/' + repo + '/branches/' + encodeURIComponent(branch),'--jq','.commit.sha'])).trim();
@@ -178,7 +182,6 @@ async function local(directory,devtunnel,rdpClient) {
   assert.match(rdp.fingerprint,/^[a-fA-F0-9]{64}$/);
   assert.match(rdp.password,/^Za1![a-fA-F0-9]{64}$/);
   const id = 'zeroqa-' + randomBytes(5).toString('hex');
-  const dt = async (...args) => (await invoke(devtunnel,args,{timeout:20000,maxBuffer:50000})).stdout;
   let tunnel;
   let client;
   let creating;
@@ -200,12 +203,6 @@ async function local(directory,devtunnel,rdpClient) {
   process.once('SIGINT',interrupt);
   process.once('SIGTERM',interrupt);
   try {
-    const authDeadline = Date.now() + 4*60*1000;
-    while (Date.now() < authDeadline) {
-      const login = JSON.parse(await dt('user','show','--json'));
-      if (login.status && !/not logged in|signed out/i.test(String(login.status))) break;
-      await sleep(2500);
-    }
     creating = dt('create',id,'--expiration','1h','--description','Disposable Zero Windows lesson QA');
     await creating;
     await write(directory,'cleanup-tunnel',{id});
