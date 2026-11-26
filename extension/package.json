@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "Build Java apps and games, practice GitHub workflows, learn to read documentation, and publish your work to the web.",
-  "version": "0.5.88",
+  "version": "0.5.89",
   "publisher": "zero",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
@@ -975,7 +975,7 @@
       "activitybar": [
         {
           "id": "zero-student-explorer",
-          "title": "Zero 0.5.88",
+          "title": "Zero 0.5.89",
           "icon": "media/zero.svg"
         }
       ]
