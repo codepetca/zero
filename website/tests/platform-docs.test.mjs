@@ -14,6 +14,9 @@ test('setup and style use the correct wrappers and retain ordinary content', () 
   for (const id of ['setup', 'starter']) {
     const text = platformMarkdown(id, source('docs/GETTING-STARTED.md'));
     for (const part of ['**Zero: Check for Updates**', '[Cmd+Shift+P](#zero-platform-mac)', '[Ctrl+Shift+P](#zero-platform-windows)', 'open the downloaded DMG', 'open the installer', 'your GitHub repository']) assert.ok(text.toLowerCase().includes(part.toLowerCase()), part);
+    assert.match(text, /\[On Mac, you can also use \*\*Zero: Check for Updates\*\*\.\]\(#zero-platform-mac\)/);
+    assert.match(text, /\[On Windows,[^\n]*Microsoft Store’s updates page[^\n]*Portable copy\.\]\(#zero-platform-windows\)/);
+    assert.ok(text.includes('or choose **Later**'));
   }
   assert.match(platformMarkdown('style', source('student-template/STYLE.md')), /mvnw\.cmd clean compile javafx:run/);
 });
