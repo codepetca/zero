@@ -41,12 +41,12 @@ list are valid, and retired repository IDs continue to enforce the gallery
 hold. A server rollback to a reader that predates these records can make
 pre-reveal discovery unavailable.
 
-Keep browser registration available while students use earlier editors. Verify
-the released editor on Mac and Windows, desktop registration, and a live Pages
-submission before enabling `ZERO_JAMS_EDITOR_JOIN_REQUIRED=1` on the website.
-The flag makes Zero the
-required entry point for new Game Jam joins. App Jam participation and web
-entry management remain available.
+Game Jam student pages and embedded panels direct participants to Zero. Older
+editors and Portable can use the Start Page fallback. Verify Mac and Windows
+launch, desktop registration, and a live Pages submission before rolling out
+the updated website. The existing `ZERO_JAMS_EDITOR_JOIN_REQUIRED` flag
+governs the legacy browser join endpoint independently of what the page shows.
+App Jam registration and submission remain on the website.
 
 ## Manual Free and Pro licenses
 

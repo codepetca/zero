@@ -224,7 +224,8 @@ jams. The official Zero page presents the accepted details and
 participation link. The earlier creator-hosted website preparation and submission
 path is retained in source but temporarily unavailable for new proposals; existing
 records remain readable. An open Game Jam's website offers **Open in Zero**
-and **Download Zero** first. If the app link does not open Zero, use **Open
+and **Download Zero**. Students join, manage projects, and submit in Zero.
+If the app link does not open Zero, use **Open
 Game Jams** on the Start Page. The app link opens the selected jam's rules
 and deadlines. Students sign in to Zero, choose **Continue joining**, and
 create a public GitHub project or choose an existing standalone public Zero

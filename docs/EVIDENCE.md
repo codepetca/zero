@@ -1,3 +1,18 @@
+# Game Jam website participation — 2026-11-26
+
+The owner clarified that Game Jam student pages should have no browser
+participation forms. The official page and embedded panel offer **Open in Zero**
+while the jam accepts registrations or submissions. Older participation links
+show a short app handoff even for signed-in members. App Jams keep the browser
+join and submission flow. Game Jam organizers keep their schedule and
+moderation controls. Focused UI tests cover both flag states, App Jam
+submission, and the participant's private removal notice.
+
+The live **Toast to the Moon** schedule was updated separately using the
+organizer's **Edit schedule** action. Public read-back confirmed registration
+and submissions close Monday, November 30, 2026 at 3:00 p.m., and the gallery
+opens Tuesday, December 1 at 7:00 a.m., all America/Toronto.
+
 # Game Jam participation review and project management — 2026-11-26
 
 The signed-out live Toast to the Moon walkthrough went from Browse jams to
