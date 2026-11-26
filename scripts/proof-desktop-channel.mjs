@@ -106,7 +106,7 @@ async function host(directory) {
           response = unseal(privateKey,state.recipient,parent,'tunnel',packet.data);
         } catch { continue; }
         if (response.nonce !== state.nonce) continue;
-        assert.match(response.id,/^zeroqa-[a-f0-9]{10}$/);
+        assert.match(response.id,/^zeroqa-[a-f0-9]{10}(?:\.[a-z0-9]{2,12})?$/);
         assert.match(response.token,/^[A-Za-z0-9_.-]{30,10000}$/);
         const executable = join(directory,'devtunnel.exe');
         const processInfo = spawn(executable,['host',response.id,'--access-token','-'],{
@@ -177,6 +177,7 @@ async function local(directory,devtunnel,rdpClient) {
   }
   assert.ok(envelope,'The encrypted desktop bootstrap did not become available.');
   const {rdp,nonce} = unseal(privateKey,envelope.key,run,'bootstrap',envelope.data);
+  console.log('The Windows runner prepared the scoped Remote Desktop session.');
   assert.equal(rdp.user,'runneradmin');
   assert.match(rdp.computer,/^[A-Za-z0-9-]{1,32}$/);
   assert.match(rdp.fingerprint,/^[a-fA-F0-9]{64}$/);
@@ -203,22 +204,26 @@ async function local(directory,devtunnel,rdpClient) {
   process.once('SIGINT',interrupt);
   process.once('SIGTERM',interrupt);
   try {
-    creating = dt('create',id,'--expiration','1h','--description','Disposable Zero Windows lesson QA');
-    await creating;
-    await write(directory,'cleanup-tunnel',{id});
-    await dt('port','create',id,'--port-number','3389');
-    const acl = await dt('access','list',id,'--json');
-    assert.doesNotMatch(acl,/anonymous|allowAnonymous["\s]*:[\s]*true/i);
-    const output = await dt('token',id,'--scope','host','--json');
+    creating = dt('create',id,'--expiration','1h','--description','Disposable Zero Windows lesson QA','--json');
+    const created = JSON.parse(await creating);
+    const cluster = created.clusterId ?? created.tunnel?.clusterId;
+    const reference = /^[a-z0-9]{2,12}$/.test(cluster ?? '') ? id + '.' + cluster : id;
+    await write(directory,'cleanup-tunnel',{id:reference});
+    await dt('port','create',reference,'--port-number','3389');
+    const acl = await dt('access','list',reference,'--json');
+    assert.doesNotMatch(acl,/"allowAnonymous"\s*:\s*true|"anonymous"/i,'The temporary tunnel unexpectedly allows anonymous access.');
+    console.log('The private tunnel and its single desktop port are configured.');
+    const output = await dt('token',reference,'--scope','host','--json');
     const tokenData = JSON.parse(output);
     const token = tokenData.accessToken ?? tokenData.token;
     assert.match(token,/^[A-Za-z0-9_.-]{30,10000}$/);
-    const data = seal(privateKey,envelope.key,run,'tunnel',{id,token,nonce});
+    const data = seal(privateKey,envelope.key,run,'tunnel',{id:reference,token,nonce});
     await dispatch('relay',{parent:run,packet:data});
+    console.log('The one-tunnel host configuration was sent to the Windows VM.');
     const connectDeadline = Date.now()+150000;
     do {
       if (!tunnel || tunnel.exitCode !== null) {
-        tunnel = spawn(devtunnel,['connect',id],{stdio:'ignore'});
+        tunnel = spawn(devtunnel,['connect',reference],{stdio:'ignore'});
       }
       if (await connectable(3389)) break;
       await sleep(3500);
