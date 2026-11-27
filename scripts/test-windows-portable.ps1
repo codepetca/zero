@@ -92,6 +92,8 @@ function Test-LanguageServer([datetime]$Since) {
     $arguments = @('--user-data-dir', $profile, '--extensions-dir', $extensions, '--shared-data-dir', $sharedData,
         '--reuse-window', $file) | ForEach-Object { Quote-Argument $_ }
     Start-Process -FilePath $editor -ArgumentList ($arguments -join ' ')
+    Start-Sleep -Seconds 15
+    Capture-Screen java-open
     $bundledJava = Join-Path $tools 'jdk\bin\java.exe'
     try { Wait-For {
         @(Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object {
@@ -102,6 +104,9 @@ function Test-LanguageServer([datetime]$Since) {
         Capture-Screen java-failure
         $javaProcesses = @(Get-CimInstance Win32_Process -Filter "Name='java.exe'" | ForEach-Object { [ordered]@{ owned = ($owned[[int]$_.ProcessId] -eq $_.CreationDate); bundled = ($_.ExecutablePath -eq $bundledJava); jdt = ($_.CommandLine -match '-Declipse.application=org\.eclipse\.jdt\.ls\.core\.id1\b') } })
         $report['javaDiagnostics'] = $javaProcesses
+        $logs = @(Get-ChildItem -LiteralPath (Join-Path $profile 'logs') -File -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match 'redhat.java|exthost' } | Select-Object -First 30)
+        $lines = foreach ($log in $logs) { Get-Content -LiteralPath $log.FullName -ErrorAction SilentlyContinue | Where-Object { $_ -match '(?i)redhat.java|language server|jdk|java runtime|java home|java 25|error|exception' } | Select-Object -Last 30 }
+        $report['logLines'] = @($lines | ForEach-Object { $line = $_; foreach ($private in @($env:USERPROFILE, $OutputDirectory, $Bundle, $env:GITHUB_WORKSPACE)) { if ($private) { $line = $line.Replace($private, '<trial-path>') } }; $line } | Select-Object -Last 80)
         throw
     }
 }
