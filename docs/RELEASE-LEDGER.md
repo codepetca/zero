@@ -40,7 +40,9 @@ The signed feed uses build 89.
 The public Complete ZIP, staging ZIP, checksums and the Complete ZIP's
 source companions matched their sealed bytes on anonymous download. The
 Complete source archive contains 68 measured source archives and a Java
-inventory built from the actual 1.56 VSIX.
+inventory built from the actual 1.56 VSIX. The
+[Windows run against the public Complete ZIP](https://github.com/codepetca/zero/actions/runs/45925391165/job/140265393025)
+verified the bundled Java 21 language server on cold and warm launch.
 
 The [Windows package job](https://github.com/codepetca/zero/actions/runs/45923243051/job/140258716954)
 produced the original unsigned Store package 1.5.90.0 x64 and verified first
