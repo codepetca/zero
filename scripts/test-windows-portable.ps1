@@ -163,15 +163,6 @@ try {
     }
     $report.version = $build.kitVersion; $report.sourceRevision = $build.sourceRevision; $report.kitSha256 = $build.kitSha256
     $beforeTools = @(Tool-Inventory)
-    # The probe opens our generated Java file outside any workspace. Configure
-    # only this fresh disposable user's profile so the external-file trust
-    # confirmation does not prevent the Java extension from seeing the file.
-    $settingsDirectory = Join-Path $profile 'User'
-    $null = New-Item -ItemType Directory -Path $settingsDirectory -Force
-    $settingsPath = Join-Path $settingsDirectory 'settings.json'
-    if (Test-Path -LiteralPath $settingsPath) { throw 'The disposable editor profile must start without settings.' }
-    @{ 'security.workspace.trust.untrustedFiles' = 'open' } |
-        ConvertTo-Json | Set-Content -LiteralPath $settingsPath -Encoding Ascii
     $stage = 'cold-launch'
     $coldStarted = [DateTime]::UtcNow
     $p = Start-Process -FilePath $launcher -PassThru; $owned[$p.Id] = $p.StartTime; $p.Dispose()
@@ -182,6 +173,13 @@ try {
     $manifests = @(Manifest-Inventory)
     if ($manifests.Count -lt 2) { throw 'Extension manifests are missing.' }
     $firstMarker = (Get-Item -LiteralPath $marker).LastWriteTimeUtc
+    # Preserve the launcher-created settings and allow our generated Java file
+    # in this disposable profile. The external-file trust prompt would
+    # otherwise prevent the Java extension from seeing the probe.
+    $settingsPath = Join-Path $profile 'User\settings.json'
+    $settings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
+    $settings | Add-Member -NotePropertyName 'security.workspace.trust.untrustedFiles' -NotePropertyValue 'open' -Force
+    $settings | ConvertTo-Json -Depth 40 | Set-Content -LiteralPath $settingsPath -Encoding UTF8
     $stage = 'cold-java-language-server'
     Test-LanguageServer $coldStarted
     $report.cold = 'passed'
