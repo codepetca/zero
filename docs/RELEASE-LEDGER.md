@@ -8,11 +8,36 @@ permission to publish from this ledger.
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
 | GitHub manual kit | [Zero 0.5.91](https://github.com/codepetca/zero/releases/tag/v0.5.91) is public. Its three anonymous downloads match preparation run 46031790255. | Preserve the published kit, starter and VSIX. |
-| Website | Production advertises 0.5.91 for Mac, Microsoft Store and Windows Portable. The live Jam details show **Open in Zero**. [Downloads](https://zero.codepet.ca/downloads) · [Download promotion PR](https://github.com/codepetca/zero/pull/442) | Recheck live links and feeds when reconciling the next release. |
-| Mac installer | [0.5.91](https://github.com/codepetca/zero/releases/tag/setup-v0.5.91) includes the signed, stapled DMG and both corresponding Git source archives. The [production build 90 feed](https://zero.codepet.ca/updates/macos/appcast.xml) matched the sealed feed. | Preserve the published DMG and source companions. |
-| Windows Store | Zero Studio 1.5.91.0 x64 is available. A clean Windows runner installed the exact Store-signed package and passed first run. [Public installation run](https://github.com/codepetca/zero/actions/runs/46035619620) | Physical and school-managed Windows devices remain untested. |
+| Website | Download and updater metadata select the verified 0.5.92 Mac installer and sealed build 91 feed. [Downloads](https://zero.codepet.ca/downloads) | Verify the live download link and feed after deployment. |
+| Mac installer | [0.5.92](https://github.com/codepetca/zero/releases/tag/setup-v0.5.92) is public. Its signed, stapled DMG and both Git source archives match the sealed files. | Preserve the published DMG and source companions. |
+| Windows Store | Partner Center accepted Zero Studio 1.5.92.0 x64 for certification with automatic publishing. The last verified public package is 1.5.91.0. [Candidate Windows run](https://github.com/codepetca/zero/actions/runs/46046954607) | Verify the new version in the public catalog and on a clean Windows runner before advancing the website version. |
 | Windows Portable | The [0.5.91 Complete ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.91) and [0.5.91 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.91) both embed the exact kit from run 46031790255. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.92 sidebar fix — 2026-11-27
+
+[PR #444](https://github.com/codepetca/zero/pull/444) passed all 12 checks and
+merged as `a89b1721c55f245e4e09cb1737f1f63457dfa14e`. The
+[Windows run](https://github.com/codepetca/zero/actions/runs/46046954607)
+exercised the candidate sidebar before sign-in, while the browser was
+pending, and after cancellation. The reviewed merge has the same source
+tree as the Windows candidate build.
+
+The [Mac release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.92)
+targets seal `28616bbb0100726a9a68f6f455166f861d9a9594`, with the installer
+built from equivalent runtime source `1ee4e2e4878b15a360aaa5e9d7313bf2af2e53f4`.
+Apple accepted notarization `eab3be9e-d862-4ef6-95f4-bc10739f88ca`. All
+three public assets match the sealed size and hashes. The stapled DMG is
+12,722,657 bytes with SHA-256
+`16398623c3d849c982555414153327db63725738b7721dd8cabd25fe020a3c1e`.
+The signed build 91 feed SHA-256 is
+`c763533609a6e3d7a138a90b50ee7a83e5407a4fe79b9555239a7f547a6da4bb`.
+
+The original Store MSIX is 5,778,239 bytes with SHA-256
+`b17c57cb1a30e6732b86b49de10f7e48aa7d8e2b44397114fe4da0de17962b23`.
+Partner Center validated it and accepted submission 26
+(`1152921505702527558`) for certification. Publishing is set to start as
+soon as it passes and the release schedule is as soon as possible.
 
 ## Zero 0.5.91 kit and Windows Portable release — 2026-11-27
 

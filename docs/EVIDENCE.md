@@ -6,12 +6,13 @@ sign-in was pending. The editor extension had activated. The startup
 sequence waited for the account before revealing the sidebar, and the
 palette's **Zero: Show Sidebar** command used the same account gate.
 
-The local change on `bac75507d` reveals the project sidebar before waiting
+The change in [PR #444](https://github.com/codepetca/zero/pull/444) reveals the project sidebar before waiting
 for the account and keeps its navigation command available. Project
 introduction and operation checks still wait for first-use sign-in.
-GPT-6.1 Terra at medium reasoning independently reviewed the source diff
-and found no actionable issues. [Verification](VERIFICATION.md#sidebar-during-sign-in--2026-11-27)
-covers the editor exercise and its limits.
+GPT-6.1 Terra at medium reasoning independently reviewed the source, Windows
+probe and CI correction. All 12 checks passed before merge as
+`a89b1721c55f245e4e09cb1737f1f63457dfa14e`. The [editor verification](VERIFICATION.md#sidebar-during-sign-in--2026-11-27)
+and [release ledger](RELEASE-LEDGER.md#zero-0592-sidebar-fix--2026-11-27) record the platform results.
 
 # Game Jam student flow follow-up — 2026-11-27
 
