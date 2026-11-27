@@ -1,6 +1,6 @@
 {
-  "version": "1.57.0",
-  "url": "https://github.com/redhat-developer/vscode-java/releases/download/v1.57.0/vscode-java-1.57.0-1110.vsix",
-  "size": 54395892,
-  "sha256": "80a6b852577aec37510b1f975e188279181e8c30ab5cae88812d941cd2d11bff"
+  "version": "1.56.0",
+  "url": "https://github.com/redhat-developer/vscode-java/releases/download/v1.56.0/vscode-java-1.56.0-1066.vsix",
+  "size": 53949678,
+  "sha256": "3c6a821d7612eb879fa40280b6c585342eec82d6b1b3e8dcfe4d0395e0624343"
 }

@@ -82,7 +82,7 @@ const javaExtension = JSON.parse(readFileSync(path.join(root, 'native-installer/
 const source = readFileSync(path.join(root, 'native-installer/windows/WindowsRuntime.cs'), 'utf8');
 assert.ok(source.includes(`PortableJavaVersion = "${javaExtension.version}"`) &&
   source.includes(`PortableJavaHash = "${javaExtension.sha256}"`) &&
-  source.includes(`Length != ${javaExtension.size}`), 'Portable Java extension pins must match the launcher');
+  source.includes(`PortableJavaSize = ${javaExtension.size};`), 'Portable Java extension pins must match the launcher');
 
 copyFileSync(path.join(root, 'LICENSE'), path.join(stage, 'LICENSE.txt'));
 const metadata = {

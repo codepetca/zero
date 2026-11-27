@@ -18,7 +18,7 @@ Exception and the notices included in tools/jdk/legal.
 Node.js is version 22.23.4, under its MIT license and bundled third-party terms.
 MinGit 2.56.1.windows.1 includes Git and additional components under their own
 licenses. tools/git/etc/package-versions.txt records their exact versions.
-Red Hat Java 1.57.0 is the universal extension under EPL-2.0 with bundled
+Red Hat Java 1.56.0 is the universal extension under EPL-2.0 with bundled
 Eclipse/JDT language-server components. Their notices remain in tools/java.vsix.
 Newtonsoft.Json 13.0.4 is under MIT, with its license beside the launcher.
 

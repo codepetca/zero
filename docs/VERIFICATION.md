@@ -6399,3 +6399,26 @@ the published ZIP. Focused update/diagnostic tests passed 25; publish/export tes
 passed 105 with one skip. `npm run check` passed. Physical Windows acceptance and
 authenticated student publication remain untested. No release of this fix was
 performed.
+
+## Windows Portable Java prompt — 2026-11-26
+
+The public 0.5.89 Complete ZIP pairs Java 21 with Red Hat's universal Java
+extension 1.57.0, which requires Java 25 to start its language server.
+Portable now pins universal extension 1.56.0 and sets its experimental
+Java 25 compiler option to off in the isolated editor profile.
+
+The .NET Framework harnesses passed under Mono, including fresh and returning
+Portable profiles and preservation of an unrelated editor preference. Nine
+Portable release and download tests passed. The downloaded universal VSIX
+matched its pinned size and SHA-256. An isolated VS Code 1.148.0 profile on
+macOS replaced the real 1.57.0 VSIX with 1.56.0 using the launcher's CLI
+arguments. The actual 1.56.0 language server returned LSP initialization
+capabilities on Java 21 on macOS. The local Complete ZIP candidate was built
+from the verified public kit with the corrected launcher and VSIX. Its
+archive integrity and SHA-256 checks passed.
+
+Independent GPT-6.1 Terra review found no definite launcher issue and noted
+that the added Windows cold/warm probe observes the bundled JDK starting the
+language server. PowerShell parsed the probe locally. The actual Windows
+editor prompt and existing Windows profile migration still need Windows
+verification before publication.

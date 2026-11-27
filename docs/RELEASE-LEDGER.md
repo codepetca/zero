@@ -14,6 +14,19 @@ permission to publish from this ledger.
 | Windows Portable | [0.5.89 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.89) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.89) both embed the canonical kit from run 45749824787. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
+## Zero 0.5.90 release preparation — 2026-11-26
+
+The local candidate includes the Windows Portable Java fix. Both Portable ZIPs
+pin Red Hat Java 1.56.0 so editor diagnostics and completion can start on the
+bundled Java 21. The candidate also includes the reporting and update reminder
+changes already on main. Mac update build 89 is reserved for 0.5.90. The
+public downloads remain on 0.5.89 during preparation.
+
+Before promoting the Complete ZIP, run the Windows cold and warm launch
+checks with a Java file open and confirm the language server uses the bundled
+JDK. Check a returning Portable profile with Java extension 1.57.0 before
+publication. See [verification](VERIFICATION.md#windows-portable-java-prompt--2026-11-26).
+
 ## Zero 0.5.89 kit and Portable release — 2026-11-25
 
 [Starter PR #7](https://github.com/codepetca/zero-starter/pull/7) refreshed the
