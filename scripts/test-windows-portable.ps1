@@ -238,7 +238,8 @@ try {
     Test-LanguageServer $warmStarted
     Start-Sleep -Seconds 10
     Capture-Screen warm
-    if (Compare-Object $beforeTools @(Tool-Inventory)) { throw 'Bundled tool inventory changed during trial.' }
+    $toolChanges = @(Compare-Object $beforeTools @(Tool-Inventory))
+    if ($toolChanges.Count) { $report['toolChanges'] = @($toolChanges | ForEach-Object { $_.SideIndicator + ' ' + $_.InputObject }); throw 'Bundled tool inventory changed during trial.' }
     $report.warm = 'passed'; $report.status = 'passed'; $stage = 'passed'
 } catch {
     $message = $_.Exception.Message
