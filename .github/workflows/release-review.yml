@@ -88,7 +88,12 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           ZERO_CORE_BASE: ${{ github.event.pull_request.base.sha }}
-        run: node scripts/check-core-version.mjs --base "$ZERO_CORE_BASE"
+        run: |
+          # The event's base can precede the current merge ref's first parent.
+          if ! git cat-file -e "$ZERO_CORE_BASE^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$ZERO_CORE_BASE"
+          fi
+          node scripts/check-core-version.mjs --base "$ZERO_CORE_BASE"
       - name: Check version and immutable release boundary
         id: release
         run: node scripts/release-review.mjs plan
