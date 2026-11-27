@@ -39,23 +39,29 @@ export function Downloads()`);
   const {Downloads, DownloadRequirements} = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
   return renderToStaticMarkup(createElement(requirements ? DownloadRequirements : Downloads));
 }
-test('fallback preserves exact published versions, filenames, digests and explicit URLs', () => {
+test('fallback accepts verified assets with exact versioned URLs', () => {
   validateManifest(current);
   assert.equal(validatePublishedKit(fallback, current), fallback);
-  assert.equal(fallback.kitVersion, '0.5.89');
-  for (const [key, size, sha256, filename] of [
-    ['kit',5463372,'1e042eb70490f03c5c785c5dc290728fb06010dd7ddebc277af766a53640912e','zero-bootstrap.zip'],
-    ['starter',2779460,'d511e795ca2fb9fcaa992421b0e69e30522733ef8a69040fee774fc736f91145','zero-starter.zip'],
-    ['extension',2660204,'bfcbb453be624a89a0f2eeacc5598d1832f34400eefb87e26c32f4110230d0ac','zero-0.5.89.vsix']]) {
-    assert.equal(fallback.assets[key].filename,filename);
-    assert.equal(fallback.assets[key].size,size);
-    assert.equal(fallback.assets[key].sha256,sha256);
-    assert.equal(releaseAssetHref(fallback,key),`https://github.com/codepetca/zero/releases/download/v0.5.89/${filename}`);
+  for (const [key, filename] of [
+    ['kit', 'zero-bootstrap.zip'],
+    ['starter', 'zero-starter.zip'],
+    ['extension', `zero-${fallback.kitVersion}.vsix`],
+  ]) {
+    assert.equal(fallback.assets[key].filename, filename);
+    assert.equal(
+      releaseAssetHref(fallback, key),
+      `https://github.com/codepetca/zero/releases/download/v${fallback.kitVersion}/${filename}`,
+    );
   }
-  assert.equal(validatePublishedKit(null,current),null);
-  assert.throws(() => validatePublishedKit(current,current), /must be published/);
-  assert.throws(() => validatePublishedKit(fallback,{...current,kitVersion:'0.5.2'}), /newer/);
-  assert.throws(() => validatePublishedKit({...fallback,assets:{...fallback.assets,kit:{...fallback.assets.kit,sha256:undefined}}},current), /digest/);
+  assert.equal(validatePublishedKit(null, current), null);
+  assert.throws(() => validatePublishedKit(current, current), /must be published/);
+  assert.throws(() => validatePublishedKit(fallback, {...current, kitVersion: '0.0.0'}), /newer/);
+
+  for (const invalid of [{sha256: undefined}, {size: 0}, {url: undefined}, {url: '/download/kit'}]) {
+    const manifest = structuredClone(fallback);
+    Object.assign(manifest.assets.kit, invalid);
+    assert.throws(() => validatePublishedKit(manifest, current), /explicit versioned URL and verified digest\/size/);
+  }
 });
 test('current publication and explicit local preview take precedence, hosted flags use public fallback', () => {
   assert.equal(availableKitRelease(current,fallback),fallback);
