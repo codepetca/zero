@@ -819,7 +819,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
           // New Join requests can acknowledge current rules. Only project
           // management can change the linked list of an existing member.
           if(joinedRepository&&!registrationRepositories(registration).some(repo=>repo.id===joinedRepository.id))
-            fail(409,'Open Manage jam projects in Zero to change your linked projects.');
+            fail(409,'To use a different repository, open Manage jam projects in Zero.');
           Object.assign(registration,{login:actor.login,revision:accepted.revision,updatedAt:stamp});
           return {status:'joined',revision:accepted.revision};
         }
