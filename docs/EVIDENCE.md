@@ -1,3 +1,28 @@
+# Game Jam merge checks — 2026-11-26
+
+Existing checkout selection compares local Git history with the verified
+repository's default branch. The public-project picker independently verifies a
+pasted URL, ownership, Zero access and the standalone project marker. If the Jam
+destination is closed or ambiguous, students can explicitly publish to Pages
+without submitting an entry. An interrupted Pages-only deployment can resume
+from its saved account and repository without dispatching another deployment.
+
+A delayed Join cannot restore a removed project. Fresh submissions after project
+management require consent for the current project revision. An already accepted
+operation can recover its receipt without changing registration or the entry.
+
+GPT-6.2 Astra at high reasoning and GPT-6.1 Sol at high reasoning independently
+reviewed `6af342bf2` against `36547128b`. The compatibility reviewer had no
+findings and passed 65 targeted tests. The security reviewer reproduced three
+race and recovery defects. The targeted re-review of `38b7353fb` confirmed all
+three fixes, including receipt recovery from an older editor after the deadline.
+
+The combined extension checks passed 461 tests with one skip before the race
+fixes. Follow-up checks passed 141 tests with one skip. The opted-in PostgreSQL
+HTTP fixture passed on a disposable local database. Real student registration
+and the packaged Mac and Windows handoff on the final revision remain release
+checks. The earlier isolated OS handoff tests are recorded below.
+
 # Game Jam website participation — 2026-11-26
 
 The owner clarified that Game Jam student pages should have no browser
@@ -50,10 +75,8 @@ handoff, the compact direct participation page, the custom URI target and
 registration, a signed build with the combined changes on Mac/Windows, and
 physical school-device acceptance remain untested.
 
-Remaining review findings include same-name GitHub repository recreation
-opening an older local checkout, the missing verified URL fallback in the
-public-project picker, and ordinary Pages publication being blocked by a
-closed or ambiguous jam destination. The changes are local.
+The merge checks above cover the follow-up fixes for checkout identity, the
+public-project picker and Pages publication.
 
 # ZeroJam sign-up integration — 2026-11-26
 

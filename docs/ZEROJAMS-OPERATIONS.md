@@ -24,6 +24,8 @@ also find open jams under **Open Game Jams** on the Start Page. A browser link
 shows the public rules before GitHub sign-in and requires **Continue joining**.
 **Cancel joining** closes the review. Earlier editors can use
 **Start Page → Project → Join a Game Jam** after sign-in.
+After managing projects, use an up-to-date Zero editor to submit a build.
+Earlier editors can still recover receipts for submissions they already made.
 
 The authenticated desktop route checks the student's registration and binds the
 verified GitHub repository ID. **Manage jam projects** adds or removes an
