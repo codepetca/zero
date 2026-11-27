@@ -14,6 +14,19 @@ permission to publish from this ledger.
 | Windows Portable | The [0.5.90 Complete ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.90) and [staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.90) both embed the canonical kit from run 45923064395. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
+## Zero 0.5.91 Mac release — 2026-11-27
+
+[PR #438](https://github.com/codepetca/zero/pull/438) passed all 12 source
+checks and merged as `a08c0b47fab0011f7b0711ac413bec0b8e7b2308`. The Mac
+installer was built from the identical reviewed source tree at `d1b921260`.
+Apple accepted notarization `253e8c31-171e-4f93-96e7-bab2eec27e3a`.
+Seal `1968d666da0e8e7bf3a2721369ec1edb93c5b742` records the stapled DMG,
+both Git source archives and signed build 90 appcast. All three public assets
+matched their sealed sizes and SHA-256 hashes on anonymous download. The
+[public DMG](https://github.com/codepetca/zero/releases/tag/setup-v0.5.91)
+measures 12,718,557 bytes with SHA-256
+`1c1a7333ea10aa8d581875d6b65fe9c24eec67ec87c1710613de462c82727c3d`.
+
 ## Zero 0.5.90 release — 2026-11-26
 
 [PR #433](https://github.com/codepetca/zero/pull/433) merged the editor-first
