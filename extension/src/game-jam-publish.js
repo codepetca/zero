@@ -99,7 +99,8 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
     if (data?.ambiguous===true) {
       await remember(account,repository,'ambiguous');
       await remember(account,repositoryId,'ambiguous');
-      throw Error('This repository is linked to more than one Game Jam. Check your registrations before publishing.');
+      throw Object.assign(Error('This repository is linked to more than one Game Jam. Check your registrations before submitting.'),
+        {code:'ZERO_JAM_DESTINATION_AMBIGUOUS',publishTarget:context});
     }
     const wasKnown=known();
     if (!wasKnown && (response.status===404 && data?.configured!==true || data?.configured===false)) return context;

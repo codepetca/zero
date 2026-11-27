@@ -296,12 +296,16 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
           if(target.id)jam=target;
         }
         catch(error) {
-          if(error.code!=='ZERO_JAM_STATUS_UNKNOWN' || !error.publishTarget)throw error;
+          if(!['ZERO_JAM_STATUS_UNKNOWN','ZERO_JAM_DESTINATION_AMBIGUOUS'].includes(error.code) || !error.publishTarget)throw error;
+          // A saved Jam dispatch must retain its original recovery/consent path.
+          if(recovering && error.code==='ZERO_JAM_DESTINATION_AMBIGUOUS')throw error;
           target=error.publishTarget;
           await stillPublishable(expected);
           clearProgress();
-          const choice=await vscode.window.showInformationMessage('ZeroJams is unavailable.',{modal:true,
-            detail:'You can publish to GitHub Pages now. If this is a jam project, use Publish to Jam when ZeroJams is available.'},'Publish to web only');
+          const ambiguous=error.code==='ZERO_JAM_DESTINATION_AMBIGUOUS';
+          const choice=await vscode.window.showInformationMessage(ambiguous?'Choose a Game Jam before submitting.':'ZeroJams is unavailable.',{modal:true,
+            detail:ambiguous ? 'This repository is linked to more than one Game Jam. You can publish to GitHub Pages without submitting to a jam. Review your jam projects before choosing Publish to Jam again.' :
+              'You can publish to GitHub Pages now. If this is a jam project, use Publish to Jam when ZeroJams is available.'},'Publish to web only');
           if(choice!=='Publish to web only')return;
           webOnly=true;
         }
@@ -317,8 +321,14 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
         if(!jam.submissionsOpen) {
           const closed=Date.parse(jam.submissionsCloseAt)<=Date.now();
           const message=closed ? `Submissions closed for ${jam.title}.` : `Submissions are not open for ${jam.title}.`;
+          clearProgress();
           progress(message);
-          return {status:'action-required',message};
+          const choice=await vscode.window.showInformationMessage(message,{modal:true,
+            detail:'You can publish to GitHub Pages without submitting to this Game Jam. This does not change your jam entry.'},'Publish to web only');
+          if(choice!=='Publish to web only')return {status:'action-required',message};
+          await stillPublishable(expected);
+          jam=undefined;
+          webOnly=true;
         }
       }
       const reuse=open || Boolean(jam);

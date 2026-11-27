@@ -102,6 +102,21 @@ test('account, project and live receipt mismatches do not send submissions',asyn
   assert.equal(f.requests.filter(item=>item.method==='POST').length,0);
 });
 
+test('ambiguous destinations expose only the verified repository identity for a Pages-only choice',async()=>{
+  const f=fixture(),jam=f.make();
+  f.state.lookup=()=>response({configured:true,destination:null,ambiguous:true});
+  await assert.rejects(jam.resolve(root),error=>{
+    assert.equal(error.code,'ZERO_JAM_DESTINATION_AMBIGUOUS');
+    assert.deepEqual(error.publishTarget,{root,account:'123',repository,repositoryId:'321'});
+    assert.equal(Object.isFrozen(error.publishTarget),true);
+    return true;
+  });
+  assert.equal(jam.hasKnownLink('123',repository),true);
+  assert.equal(f.requests.filter(item=>item.method==='POST').length,0);
+  f.state.lookup=()=>{throw Error('offline');};
+  await assert.rejects(jam.resolve(root),error=>!error.code);
+});
+
 test('pending receipts are scoped to owning account and immutable repository ID',async()=>{
   const f=fixture(),jam=f.make(),route=await jam.resolve(root);
   f.state.post=()=>response({configured:true,error:'Retry'},503);

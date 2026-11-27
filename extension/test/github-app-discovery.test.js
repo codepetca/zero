@@ -92,6 +92,17 @@ test('ordinary and legacy Zero markers are identified without reading arbitrary 
   assert.deepEqual((await standalone.api.listZero({standaloneOnly:true})).repositories.map(item=>item.id),[1]);
 });
 
+test('direct Game Jam lookup verifies ownership, installation membership, public visibility and a root marker',async()=>{
+  const project=repo(55,'game',{private:false});
+  const make=(selected=project,marker=contents())=>fixture({pages:[[selected]],markers:new Map([[markerPath(project),marker]]),handler:async url=>url.pathname==='/repos/student/game'?response(project):undefined});
+  const f=make();assert.equal((await f.api.readPublicStandaloneZero(project.html_url,{ticket:f.ticket})).id,55);
+  const absent=make(repo(56));await assert.rejects(absent.api.readPublicStandaloneZero(project.html_url,{ticket:absent.ticket}),error=>error.code==='repository-not-selected');
+  const invalid=make(project,contents({name:'not a project'}));await assert.rejects(invalid.api.readPublicStandaloneZero(project.html_url,{ticket:invalid.ticket}),error=>error.code==='not-standalone-zero');
+  const privateProject=repo(55,'game',{private:true});
+  const privateRepo=fixture({pages:[[privateProject]],handler:async url=>url.pathname==='/repos/student/game'?response(privateProject):undefined});
+  await assert.rejects(privateRepo.api.readPublicStandaloneZero(project.html_url,{ticket:privateRepo.ticket}),error=>error.code==='repository-private');
+});
+
 test('missing, malformed, non-file, foreign-path and oversized markers are skipped safely',async()=>{
   const invalid=[contents('not JSON'),contents([]),contents({name:'x',mainClass:'Main'}),contents({...ordinaryMarker,mainClass:'../Main'}),contents({...ordinaryMarker,name:''}),contents({...ordinaryMarker,templateVersion:{}}),{...contents(),path:'../../zero.json'},{...contents(),type:'symlink'},{...contents(),encoding:'none'},{...contents(),size:65537},{...contents(),size:1},{...contents(),content:'%%%='},{...contents(),content:'A'.repeat(100000)}];
   const values=invalid.map((_,index)=>repo(index+1));
