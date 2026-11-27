@@ -24,7 +24,8 @@ test('default local authority shares a real PostgreSQL registry across authentic
   assert.equal(await readFile(`${socket}/.zero-jams-disposable`,'utf8'),'zero-jams-test-only\n');
   const {Pool}=createRequire(import.meta.url)('pg');
   const admin=new Pool({host:socket,port:Number(port),user:userInfo().username,database:'postgres',password:()=>'',ssl:false,options:'-c search_path=public',max:2,connectionTimeoutMillis:2000,statement_timeout:3000,lock_timeout:2000,query_timeout:4000});
-  const previousFetch=globalThis.fetch,previousNow=Date.now;let ownsTable=false,ownsListings=false,time=previousNow(),blocked=0,pagesCalls=0;
+  const previousFetch=globalThis.fetch,previousNow=Date.now;
+  let ownsTable=false,ownsListings=false,originalDeleted=false,time=previousNow(),blocked=0,pagesCalls=0;
   t.after(async()=>{Date.now=previousNow;globalThis.fetch=previousFetch;try{if(ownsTable){await admin.query('DROP TABLE IF EXISTS zero_jams_registry_poc');await admin.query('DROP TABLE IF EXISTS zero_jams_registry_poc_outage');}if(ownsListings)await admin.query('DROP SCHEMA zero_hub_listings CASCADE');}finally{await admin.end();}});
   const address=await admin.query('SELECT inet_server_addr() AS address, current_database() AS name');
   assert.equal(address.rows[0].address,null);assert.equal(address.rows[0].name,'postgres');
@@ -43,6 +44,9 @@ test('default local authority shares a real PostgreSQL registry across authentic
   const sessions=Object.fromEntries(Object.entries(actors).map(([name,actor],i)=>{const token=`ghu_${String.fromCharCode(97+i).repeat(24)}`;tokens.set(token,actor);return [name,newSession(token,actor,28800,config,time)];}));
   const studentToken=[...tokens].find(([,actor])=>actor.id===33)[0];
   const repo={id:202,name:'project',full_name:'student/project',private:false,visibility:'public',owner:{id:33,login:'student',type:'User'}};
+  const otherRepo={...repo,id:203,name:'other-project',full_name:'student/other-project'};
+  const originalRepo={...repo,id:204,name:'original',full_name:'student/original'};
+  const commit='b'.repeat(40),runId='30',pagesUrl='https://student.github.io/project/';
   const transport=async(input,init={})=>{
     const url=String(input),method=init.method||'GET',auth=init.headers?.Authorization;
     if(url===`https://api.github.com/applications/${zeroApp.clientId}/token`&&method==='POST'){
@@ -53,14 +57,30 @@ test('default local authority shares a real PostgreSQL registry across authentic
     if(url==='https://api.github.com/repos/student/project/installation'&&method==='GET')return Response.json({id:606,app_id:5367740,suspended_at:null,account:{id:33,login:'student',type:'User'},target_id:33,target_type:'User',permissions:{metadata:'read',pages:'read'}});
     if(url==='https://api.github.com/app/installations/606/access_tokens'&&method==='POST'){assert.deepEqual(JSON.parse(init.body),{repository_ids:[202],permissions:{pages:'read',metadata:'read'}});return Response.json({token:'synthetic-installation-token',expires_at:new Date(time+3600000).toISOString(),repository_selection:'selected',repositories:[repo],permissions:{pages:'read',metadata:'read'}},{status:201});}
     if(url==='https://api.github.com/repositories/202'&&method==='GET'){assert.equal(auth,`Bearer ${studentToken}`);return Response.json(repo);}
+    if(['https://api.github.com/repos/student/original','https://api.github.com/repositories/204'].includes(url)&&method==='GET'){
+      assert.equal(auth,`Bearer ${studentToken}`);
+      return originalDeleted ? Response.json({message:'Not Found'},{status:404}) : Response.json(originalRepo);
+    }
+    if(url==='https://api.github.com/repos/student/project/actions/runs/'+runId&&method==='GET'){
+      assert.equal(auth,`Bearer ${studentToken}`);
+      return Response.json({id:Number(runId),repository:{id:202},head_sha:commit,head_branch:'main',
+        path:'.github/workflows/zero-web.yml@main',event:'workflow_dispatch',status:'completed',
+        conclusion:'success',created_at:new Date(time).toISOString()});
+    }
     if(url==='https://api.github.com/repos/student/project'&&method==='GET'){assert.ok([`Bearer ${studentToken}`,'Bearer synthetic-installation-token'].includes(auth));return Response.json(repo);}
-    if(url==='https://api.github.com/repos/student/project/pages'&&method==='GET'){pagesCalls++;assert.equal(auth,'Bearer synthetic-installation-token');return Response.json({html_url:'https://student.github.io/project/',public:true,status:'built'});}
+    if(url==='https://api.github.com/repos/student/other-project'&&method==='GET'){assert.equal(auth,`Bearer ${studentToken}`);return Response.json(otherRepo);}
+    if(url==='https://api.github.com/repos/student/project/pages'&&method==='GET'){
+      pagesCalls++;
+      assert.ok([`Bearer ${studentToken}`,'Bearer synthetic-installation-token'].includes(auth));
+      return Response.json({html_url:pagesUrl,public:true,status:'built',build_type:'workflow'});
+    }
     blocked++;throw new Error('Blocked unexpected synthetic transport request.');
   };
   globalThis.fetch=transport;Date.now=()=>time;
   // Import only after installing the deny-by-default transport: the real shared
   // default manager captures fetch once, without a selector/test manager mock.
-  const {getJamResponse,postJamProposalResponse,postJamActionResponse,postDesktopJamJoinResponse}=await import('../lib/jams-http.mjs');
+  const {getJamResponse,postJamProposalResponse,postJamActionResponse,postDesktopJamJoinResponse,
+    desktopJamProjectChangeResponse,getDesktopJamJoinResponse,postDesktopJamSubmitResponse}=await import('../lib/jams-http.mjs');
   const {catalogResponse}=await import('../lib/sharing-catalog.mjs');
   const {hubPublicListingsResponse}=await import('../lib/hub-listings-http.mjs');
   const {createHubListingsStore}=await import('../lib/hub-listings-store.mjs');
@@ -72,14 +92,57 @@ test('default local authority shares a real PostgreSQL registry across authentic
   const proposal=await response.json(),id=proposal.eventId,action=`/api/jams/${id}/actions`,approval={operationId:'pg-http-approve-0001',action:'approve',revision:proposal.revision};
   response=await postJamActionResponse(post('student',action,approval),id,options);assert.equal(response.status,403);
   assert.equal(proposal.status,'approved');
-  const desktop=new Request(config.origin+`/api/desktop/jams/${id}/join`,{method:'POST',headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+studentToken,'Content-Type':'application/json'},
-    body:JSON.stringify({operationId:'pg-http-join-0001',repositoryId:'202',revision:proposal.revision,repositoryUrl:'https://github.com/student/project'})});
-  response=await postDesktopJamJoinResponse(desktop,id,options);assert.equal(response.status,200,await response.clone().text());
-  response=await postJamActionResponse(post('student',action,{operationId:'pg-http-submit-0001',action:'submit',revision:proposal.revision,title:'Project',description:'Synthetic',demoUrl:'https://student.github.io/project/'}),id,options);assert.equal(response.status,200,await response.clone().text());
+  const desktopRequest=(method,path,body)=>new Request(config.origin+`/api/desktop/jams/${id}/${path}`,{
+    method,headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+studentToken,...(body?{'Content-Type':'application/json'}:{})},
+    ...(body?{body:JSON.stringify(body)}:{})
+  });
+  const change=(method,body)=>desktopJamProjectChangeResponse(desktopRequest(method,'projects',body),id,options);
+  const readProjects=async()=>getDesktopJamJoinResponse(desktopRequest('GET','join'),id,options).then(response=>response.json());
+  const persisted=async()=>(await admin.query('SELECT document FROM zero_jams_registry_poc WHERE singleton=1')).rows[0].document.events[id];
+  response=await postDesktopJamJoinResponse(desktopRequest('POST','join',{operationId:'pg-http-join-0001',
+    repositoryId:'204',revision:proposal.revision,repositoryUrl:'https://github.com/student/original'}),id,options);
+  assert.equal(response.status,200,await response.clone().text());
+  const initial=await readProjects();
+  assert.equal(initial.registration.repository.id,'204');
+  const {joinedAt}=(await persisted()).registrations['33'];
+  originalDeleted=true;
+  time+=121000;
+  response=await change('DELETE',{operationId:'pg-remove-deleted-project',repositoryId:'204',projectRevision:initial.projectRevision});
+  assert.equal(response.status,200,await response.clone().text());
+  const empty=await readProjects();
+  assert.equal(empty.event.registrationOpen,false);
+  assert.equal(empty.registration.status,'joined');
+  assert.deepEqual(empty.registration.repositories,[]);
+  response=await change('POST',{operationId:'pg-add-replacement-project',repositoryId:'202',
+    repositoryUrl:'https://github.com/student/project',projectRevision:empty.projectRevision});
+  assert.equal(response.status,200,await response.clone().text());
+  const replacement=await readProjects();
+  response=await postDesktopJamSubmitResponse(desktopRequest('POST','submit',{operationId:'pg-http-submit-0001',
+    revision:proposal.revision,repositoryId:'202',pagesUrl,commit,runId,entryRevision:'',projectRevision:replacement.projectRevision}),id,{
+    ...options,readPublishedMarker:async url=>{
+      assert.equal(url,new URL('zero-source-sha.txt',pagesUrl).href);
+      return new Response(`${commit}\n${runId}`);
+    }
+  });
+  assert.equal(response.status,200,await response.clone().text());
   const entryRevision=(await response.json()).revision;
-  assert.ok(pagesCalls>0,'The actual Pages runtime path used the synthetic transport');
-  const document=(await admin.query('SELECT document FROM zero_jams_registry_poc WHERE singleton=1')).rows[0].document,state=document.events[id];
-  assert.equal(state.accepted.reviewedBy,null);assert.equal(state.registrations['33'].status,'joined');assert.equal(state.entries['33'].length,1);assert.equal(Object.keys(state.operations).length,3);
+  assert.ok(pagesCalls>0,'The actual Pages verification used the synthetic transport');
+  const state=await persisted();
+  assert.equal(state.accepted.reviewedBy,null);
+  assert.equal(state.registrations['33'].status,'joined');
+  assert.equal(state.registrations['33'].joinedAt,joinedAt);
+  assert.equal(state.entries['33'].length,1);
+  assert.equal(state.entries['33'][0].repository.id,'202');
+  assert.equal(Object.keys(state.operations).length,5);
+  response=await change('POST',{operationId:'pg-add-other-project',repositoryId:'203',repositoryUrl:'https://github.com/student/other-project',projectRevision:replacement.projectRevision});
+  assert.equal(response.status,200,await response.clone().text());
+  const linked=await readProjects();
+  assert.deepEqual(linked.registration.repositories.map(repo=>repo.id),['202','203']);
+  response=await change('DELETE',{operationId:'pg-remove-other-project',repositoryId:'203',projectRevision:linked.projectRevision});
+  assert.equal(response.status,200,await response.clone().text());
+  const returned=await readProjects();
+  assert.deepEqual(returned.registration.repositories.map(repo=>repo.id),['202']);
+  assert.equal(returned.submittedRepositoryId,'202');
   const jam=()=>getJamResponse(new Request(config.origin+`/api/jams/${id}`),id,{...options,destinationReader});
   const hub=()=>catalogResponse(new Request(config.origin+'/api/sharing/catalog'),{env,decisionNow:()=>time,reader:async()=>catalog(),destinationReader});
   const store=createHubListingsStore(admin);
@@ -96,13 +159,13 @@ test('default local authority shares a real PostgreSQL registry across authentic
   assert.equal((await choices('creator')).status,409);
   response=await jam();assert.equal(response.status,200);assert.deepEqual((await response.json()).event.entries,[]);
   response=await hub();assert.equal(response.status,200);assert.deepEqual((await response.json()).releases,[]);
-  time+=180000;
+  time+=59000;
   assert.equal((await choices('student')).status,403);
   assert.equal((await pick('student')).status,403);
   assert.equal((await pick('owner')).status,403);
   response=await choices('creator');assert.equal(response.status,200);
   assert.deepEqual((await response.json()).winnerSelection,{currentRevision:null,entries:[
-    {participantId:'33',revision:entryRevision,title:'Project',login:'student',demoUrl:'https://student.github.io/project/'}]});
+    {participantId:'33',revision:entryRevision,title:'project',login:'student',demoUrl:'https://student.github.io/project/'}]});
   const beforePick=(await (await jam()).json()).event;
   response=await pick('creator');assert.equal(response.status,200,await response.clone().text());
   const picked=await response.json();assert.equal(picked.status,'winner-selected');

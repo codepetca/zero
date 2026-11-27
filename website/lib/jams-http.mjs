@@ -286,11 +286,12 @@ const desktopError = (error,status) => json({configured:true,error},status);
 function desktopEventId(id) {
   if (!validId(id)) throw new JamError(404,'Unknown jam.');
 }
-async function desktopBody(request,keys,error) {
+async function desktopBody(request,keys,error,optional=[]) {
   if (!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(request.headers.get('content-type') || ''))
     throw new JamError(415,'Expected JSON request details.');
   const body = await bodyJson(request,4096);
-  if (Object.keys(body).length!==keys.length || keys.some(key=>typeof body[key]!=='string'))
+  if (keys.some(key=>typeof body[key]!=='string') ||
+      Object.keys(body).some(key=>!(keys.includes(key)||optional.includes(key))||typeof body[key]!=='string'))
     throw new JamError(400,error);
   return body;
 }
@@ -331,14 +332,16 @@ async function desktopJamResponse(request,inputOptions,readInput,perform) {
 
 export function getDesktopJamJoinResponse(request,id,options={}) {
   return desktopJamResponse(request,options,()=>desktopEventId(id),async(_,{service,actor,deadline})=>{
-    const {event,registration,hasRegistrationSpace} = await deadline.run(signal=>service.readEditorJoin(id,actor,{signal}));
+    const {event,registration,hasRegistrationSpace,canManageProjects,entry} = await deadline.run(signal=>service.readEditorJoin(id,actor,{signal}));
     if (event.type!=='game' || !event.revision) return desktopError('Choose an approved Game Jam in Zero.',409);
     const {type,title,revision,rules,eligibility,timezone,schedule,registrationOpen} = event;
     const repository = registration?.repository;
     return json({configured:true,event:{id,type,title,revision,rules,eligibility,timezone,schedule,registrationOpen},hasRegistrationSpace,
+      ...(registration?.status==='joined'&&typeof canManageProjects==='boolean'?{canManageProjects,projectRevision:registration.projectRevision??''}:{}),
+      ...(entry?.status==='active'&&entry.repository?{submittedRepositoryId:entry.repository.id}:{}),
       registration:registration ? {status:registration.status,...(repository?{
         repository:{id:repository.id,ownerId:repository.ownerId,fullName:repository.fullName}
-      }:{})} : null});
+      }:{}),...(Array.isArray(registration.repositories)?{repositories:registration.repositories}:{})} : null});
   });
 }
 
@@ -351,6 +354,27 @@ export function postDesktopJamJoinResponse(request,id,options={}) {
     return body;
   },async(body,{service,actor,deadline})=>{
     const result=await deadline.run(signal=>service.mutate({...body,id,actor,action:'join'},{signal,joinChannel:'editor'}));
+    return desktopMutationResult(result);
+  });
+}
+
+export function desktopJamProjectChangeResponse(request,id,options={}) {
+  const message='Choose a project to add to or remove from this Game Jam in Zero.';
+  const add=request.method==='POST';
+  const check=request.headers.get('x-zero-check-project-change')==='1';
+  return desktopJamResponse(request,options,async()=>{
+    desktopEventId(id);
+    if(!add&&request.method!=='DELETE')throw new JamError(405,message);
+    const body=await desktopBody(request,['operationId','repositoryId','projectRevision',...(add?['repositoryUrl']:[])],message);
+    if(!numericId(body.repositoryId)||add&&!repositoryParts(body.repositoryUrl)||
+        body.projectRevision!==''&&!/^[a-f0-9]{64}$/.test(body.projectRevision))
+      throw new JamError(400,message);
+    return body;
+  },async({operationId,...body},{service,actor,deadline})=>{
+    const payload={...body,action:add?'add-project':'remove-project'};
+    const result=await deadline.run(signal=>check?service.settle({actor,scope:id,operationId,payload}):
+      service.mutate({...payload,id,actor,operationId},{signal,joinChannel:'editor'}));
+    if(check)return json({configured:true,...result});
     return desktopMutationResult(result);
   });
 }
@@ -369,7 +393,7 @@ export function getDesktopJamProjectResponse(request,options={}) {
 export function postDesktopJamSubmitResponse(request,id,options={}) {
   return desktopJamResponse(request,options,async()=>{
     desktopEventId(id);
-    return desktopBody(request,desktopSubmitKeys,'Publish the linked project in Zero to submit its verified build.');
+    return desktopBody(request,desktopSubmitKeys,'Publish the linked project in Zero to submit its verified build.',['projectRevision']);
   },async({operationId,revision,...publication},{service,actor,deadline,token,fetchImpl,readPublishedMarker})=>{
     const verifyPublication=(receipt,repository,{signal})=>verifyLinkedProjectPublication(receipt,repository,
       {token,signal,fetchImpl,readPublic:readPublishedMarker});

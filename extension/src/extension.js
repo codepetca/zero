@@ -49,7 +49,7 @@ const {createProjectFolders} = require('./project-folders');
 const {createProjectWindow} = require('./project-window');
 const {createRecentProjects} = require('./recent-projects');
 const {createProjectPicker} = require('./project-picker');
-const {createGameJamJoin} = require('./game-jam-join');
+const {createGameJamJoin,gameJamLinkId} = require('./game-jam-join');
 const {createGameJamProjectOpener} = require('./game-jam-project');
 const {createGameJamPublish} = require('./game-jam-publish');
 const {createGitHubReadiness} = require('./github-app/readiness');
@@ -551,7 +551,7 @@ function activate(context, services = {}) {
     openGameJamProject,globalState:context.globalState,active:()=>!disposed,report,request:services.gameJamRequest,
     onJoined:async({account,repository:joinedRepository,repositoryId,id})=>{
       await gameJam.rememberJoined(account,joinedRepository,id,repositoryId);
-      startPage?.refresh({recent:true});
+      startPage?.refresh({recent:true,jams:true});
       if (auth.accountId===account && repository.toLowerCase()===joinedRepository.toLowerCase()) {
         refreshJamDestination(true);refresh();
       }
@@ -567,6 +567,11 @@ function activate(context, services = {}) {
     executeAction:command=>vscode.commands.executeCommand(command,startPageInvocation),
     getState:()=>({phase:auth.signedIn ? githubReadiness.phase : auth.verificationUnavailable ? 'verification-unavailable' : hasLocalZeroAccount ? 'connect' : 'signed-out',accountId:auth.accountId,accountLabel:auth.accountLabel,busy:disposed||isBusy(),status:state,jamReview:joinGameJam.reviewDetails(auth.accountId),publishProgress:publishProgress?.root===projectRoot?publishProgress:undefined}),
     listRecent:accountId=>recentProjects.list(accountId),
+    listOpenJams:joinGameJam.listOpenJams,
+    readLinkedJam:joinGameJam.readLinkedJam,
+    dismissGameJamReview:joinGameJam.dismissReview,
+    openGameJam:(id,accountId)=>vscode.commands.executeCommand('zero.joinGameJam',startPageInvocation,{source:startPageInvocation,id,accountId}),
+    continueLinkedJam:(linked,accountId)=>vscode.commands.executeCommand('zero.continueGameJamJoin',startPageInvocation,{source:startPageInvocation,linked,accountId}),
     isGameJamProject,
     openRecent:async(item,accountId)=>{
       const generation=runGeneration;
@@ -581,6 +586,12 @@ function activate(context, services = {}) {
     },report:(message,detail)=>output.appendLine(detail || message)
   });
   context.subscriptions.push(startPage);
+  if (vscode.window.registerUriHandler) context.subscriptions.push(vscode.window.registerUriHandler({
+    handleUri(uri) {
+      const id=gameJamLinkId(uri);
+      if (id && !disposed) return startPage.showLinkedJam(id);
+    }
+  }));
   const githubSetup = createGitHubSetup({vscode, authentication:auth, repositories,
     installationUrl:appConfiguration && `https://github.com/apps/${appConfiguration.slug}/installations/new`,
     active:() => !disposed, report});
@@ -599,13 +610,13 @@ function activate(context, services = {}) {
     if (!disposed && !ready) {report('GitHub setup paused');void githubReadiness.refresh();}
     return !disposed && ready ? ticket : false;
   }
-  async function runGameJamJoin(action) {
-    if (disposed || isBusy()) return;
+  async function runGameJamJoin(action,accountId) {
+    if (disposed || isBusy() || (accountId && auth.accountId!==accountId)) return;
     startingTutorial=true;refresh();
     try {
       if (uploadMode()!=='live') return simulation('Join a Game Jam');
       const ticket=await prepareGitHub();
-      if (ticket) await action(ticket);
+      if (ticket && (!accountId || ticket.session.accountId===accountId)) await action(ticket);
     } finally {startingTutorial=false;if(!disposed)refresh();}
   }
   async function signIn(changeAccount = false) {
@@ -2132,8 +2143,12 @@ function activate(context, services = {}) {
       try {if(uploadMode()!=='live')return simulation('New project');return await githubProjects.newProject();}
       finally {startingTutorial=false;if(!disposed)refresh();}
     },
-    'zero.joinGameJam': () => runGameJamJoin(joinGameJam.chooseJam),
-    'zero.continueGameJamJoin': () => runGameJamJoin(joinGameJam.continueJoining),
+    'zero.joinGameJam': selection => selection?.source===startPageInvocation
+      ? runGameJamJoin(ticket=>joinGameJam.selectJam(ticket,selection.id),selection.accountId)
+      : runGameJamJoin(joinGameJam.chooseJam),
+    'zero.continueGameJamJoin': selection => selection?.source===startPageInvocation
+      ? runGameJamJoin(ticket=>joinGameJam.continueLinkedJam(ticket,selection.linked),selection.accountId)
+      : runGameJamJoin(joinGameJam.continueJoining),
     'zero.chooseBranch': async () => {
       if (isBusy()) return;
       await repositoryStatus();

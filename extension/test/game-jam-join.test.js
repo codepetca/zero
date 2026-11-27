@@ -12,9 +12,9 @@ const JAM = {
   schedule:{registrationClosesAt:'2026-11-25T12:00:00Z',submissionsCloseAt:'2026-11-30T12:00:00Z'}
 };
 
-function fixture({choose='new',events=[JAM],send,registration=null,hasRegistrationSpace=true,openError,lookup}={}) {
+function fixture({choose='new',choices=[],events=[JAM],send,change,registration=null,hasRegistrationSpace=true,canManageProjects,submittedRepositoryId,openError,lookup}={}) {
   const ticket = {session:{accountId:'123',accessToken:'ghu_test'}};
-  const calls = {picks:[],prompts:[],rules:[],writes:[],urls:[],status:[],open:[],newProject:0,existing:0,lookups:[]};
+  const calls = {picks:[],prompts:[],rules:[],writes:[],projectChanges:[],urls:[],status:[],open:[],newProject:0,existing:0,lookups:[]};
   const saved = new Map();
   let chooseJam;
   const authentication = {
@@ -25,9 +25,11 @@ function fixture({choose='new',events=[JAM],send,registration=null,hasRegistrati
     vscode:{window:{
       async showQuickPick(items) {
         calls.picks.push(items);
-        return items.find(item=>chooseJam && item.id===chooseJam || item.action===choose) || items[0];
+        const action=choices.shift()??choose;
+        return items.find(item=>chooseJam && item.id===chooseJam || item.action===action) || items[0];
       },
-      async showInformationMessage(message,options,accept) {calls.prompts.push({message,options});return accept;}
+      async showInformationMessage(message,options,accept) {calls.prompts.push({message,options});return accept;},
+      async showWarningMessage(message,options,accept) {calls.prompts.push({message,options});return accept;}
     }},
     authentication,
     openRules:async id=>calls.rules.push(id),
@@ -60,12 +62,20 @@ function fixture({choose='new',events=[JAM],send,registration=null,hasRegistrati
         assert.equal(options.headers,undefined);
         const summaries=events.map(({id,title,type,revision,registrationOpen,participants,submissionsOpen,schedule,timezone})=>
           ({id,title,type,revision,registrationOpen,participants,submissionsOpen,schedule,timezone}));
-        return Response.json({configured:true,events:summaries,checkedAt:'2026-11-26T12:00:00Z'});
+        return Response.json({configured:true,events:summaries,checkedAt:'2026-11-24T12:00:00Z'});
       }
       const id = new URL(url).pathname.split('/').at(-2);
-      assert.equal(url,`https://zero.codepet.ca/api/desktop/jams/${id}/join`);
       assert.equal(options.headers.Authorization,'Bearer ghu_test');
-      if (options.method==='GET') return Response.json({configured:true,event:events.find(event=>event.id===id),registration,hasRegistrationSpace});
+      if(url.endsWith('/projects')) {
+        const body=JSON.parse(options.body);
+        calls.projectChanges.push({method:options.method,...body});
+        if(change)await change(calls.projectChanges.length);
+        return Response.json({configured:true,eventId:id,operationId:body.operationId,status:options.method==='POST'?'project-added':'project-removed',
+          ...(options.headers['X-Zero-Check-Project-Change']==='1'?{settlement:'applied'}:{})});
+      }
+      assert.equal(url,`https://zero.codepet.ca/api/desktop/jams/${id}/join`);
+      if (options.method==='GET') return Response.json({configured:true,event:events.find(event=>event.id===id),registration,
+        hasRegistrationSpace,canManageProjects,projectRevision:'',submittedRepositoryId});
       calls.urls.push(url);
       calls.writes.push(JSON.parse(options.body));
       return send ? send(calls.writes.length) : Response.json({configured:true,status:'joined',revision:calls.writes.at(-1).revision});
@@ -129,12 +139,44 @@ test('a registered student can open the linked repository after registration clo
   const f = fixture({events:[{...JAM,registrationOpen:false,submissionsOpen:true,participants:[{id:'123'}]}],
     registration:{status:'joined',repository:{id:'456',fullName:'student/old-moon-game'}}});
   await f.run();
-  assert.deepEqual(f.calls.picks[0].map(item=>item.label),[`Open jam project · ${JAM.title}`]);
+  assert.deepEqual(f.calls.picks[0].map(item=>item.label),[`Manage jam projects · ${JAM.title}`]);
   assert.equal(f.calls.newProject,0);
   assert.equal(f.calls.writes.length,0);
   assert.deepEqual(f.calls.rules,[]);
   assert.deepEqual(f.calls.open,[{repositoryUrl:REPO,preferredPath:undefined}]);
   assert.match(f.calls.status[0],/already joined/);
+});
+
+test('a joined student removes a deleted submitted repository without asking GitHub to resolve it',async()=>{
+  const f=fixture({choices:['jam','remove'],events:[{...JAM,registrationOpen:false,submissionsOpen:true,participants:[{id:'123'}]}],
+    canManageProjects:true,submittedRepositoryId:'456',registration:{status:'joined',repositories:[{id:'456',fullName:'student/deleted'}]}});
+  await f.run();
+  assert.match(f.calls.prompts[0].options.detail,/withdraws its entry/);
+  assert.deepEqual(f.calls.projectChanges.map(({method,repositoryId})=>({method,repositoryId})),[{method:'DELETE',repositoryId:'456'}]);
+  assert.deepEqual(f.calls.lookups,[]);
+  assert.equal(f.calls.writes.length,0);
+});
+
+test('a projectless member can add a public project after the registration deadline',async()=>{
+  const f=fixture({choices:['jam','add','existing'],events:[{...JAM,registrationOpen:false,submissionsOpen:true,participants:[{id:'123'}]}],
+    canManageProjects:true,registration:{status:'joined',repositories:[]}});
+  await f.run();
+  assert.deepEqual(f.calls.projectChanges.map(({method,repositoryId,repositoryUrl})=>({method,repositoryId,repositoryUrl})),
+    [{method:'POST',repositoryId:'456',repositoryUrl:REPO}]);
+  assert.equal(f.calls.writes.length,0);
+  assert.match(f.calls.status.at(-1),/Added project/);
+});
+
+test('an uncertain project change is recovered with the same operation before another project change',async()=>{
+  const f=fixture({choices:['jam','add','existing'],events:[{...JAM,participants:[{id:'123'}]}],
+    canManageProjects:true,registration:{status:'joined',repositories:[]},
+    change(count){if(count===1)throw Error('Connection lost');}});
+  await assert.rejects(f.run(),/Check project change/);
+  assert.equal([...f.saved.values()].filter(Boolean).length,1);
+  await f.run();
+  assert.equal(f.calls.picks.at(-1)[0].label,`Check project change · ${JAM.title}`);
+  assert.deepEqual(f.calls.projectChanges,[f.calls.projectChanges[0],f.calls.projectChanges[0]]);
+  assert.equal([...f.saved.values()].filter(Boolean).length,0);
 });
 
 test('a project open failure preserves the confirmed registration',async()=>{

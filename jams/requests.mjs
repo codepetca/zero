@@ -1,10 +1,11 @@
 import {JamError,ID,SHA,ACCOUNT,digest,fail,keys,repositoryUrl,text,httpsUrl,hostedManifestData} from './schema.mjs';
 import {scheduleChangesData} from './manifest.mjs';
-export const ACTIONS=['approve','request-changes','reject','suspend','resume','cancel','withdraw-entry','join','leave','submit','withdraw','pick-winner','edit-schedule'];
+export const ACTIONS=['approve','request-changes','reject','suspend','resume','cancel','withdraw-entry','join','leave','submit','withdraw','pick-winner','edit-schedule','add-project','remove-project'];
 export const REVIEW=new Set(['approve','request-changes','reject']);
 export const MODERATION=new Set(['suspend','resume','cancel']);
 export const SAFETY=new Set(['suspend','cancel','withdraw-entry']);
 export const PARTICIPATION=new Set(['join','submit','leave','withdraw']);
+export const GAME_PROJECT_ACTIONS=new Set(['add-project','remove-project']);
 export function requestPayload(scope,input) {
   if(scope==='proposals') {
     if(Object.hasOwn(input||{},'manifest')) {
@@ -18,9 +19,19 @@ export function requestPayload(scope,input) {
     return {action:'propose',repositoryUrl:url,commit:input.commit};
   }
   if(typeof scope!=='string'||!ID.test(scope))fail(400,'Invalid request scope.');
-  keys(input,['action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl','repositoryId','participationRevision','publication','schedule'],['action']);
+  keys(input,['action','revision','reason','participantId','source','title','description','demoUrl','instructions','repositoryUrl','repositoryId','projectRevision','participationRevision','publication','schedule'],['action']);
   const {action}=input;
   if(!ACTIONS.includes(action))fail(400,'Unknown jam action.');
+  if(GAME_PROJECT_ACTIONS.has(action)) {
+    const add=action==='add-project';
+    const required=['action','repositoryId',...(add?['repositoryUrl']:[])];
+    keys(input,[...required,'projectRevision'],required);
+    if(typeof input.repositoryId!=='string'||!ACCOUNT.test(input.repositoryId))fail(400,'Choose a Game Jam project in Zero.');
+    if(Object.hasOwn(input,'projectRevision')&&(typeof input.projectRevision!=='string'||
+        input.projectRevision!==''&&!/^[a-f0-9]{64}$/.test(input.projectRevision)))fail(400,'Reload your Game Jam projects in Zero.');
+    return {action,repositoryId:input.repositoryId,...(add?{repositoryUrl:repositoryUrl(input.repositoryUrl).url}:{}),
+      ...(Object.hasOwn(input,'projectRevision')?{projectRevision:input.projectRevision}:{})};
+  }
   if(action==='edit-schedule') {
     keys(input,['action','revision','schedule']);
     if(typeof input.revision!=='string'||!/^[a-f0-9]{64}$/.test(input.revision))fail(400,'Open the current jam schedule before editing.');
@@ -54,14 +65,17 @@ export function requestPayload(scope,input) {
   if(action==='submit') {
     if(Object.hasOwn(input,'publication')) {
       const {publication}=input;
-      keys(publication,['repositoryId','pagesUrl','commit','runId','entryRevision']);
+      const required=['repositoryId','pagesUrl','commit','runId','entryRevision'];
+      keys(publication,[...required,'projectRevision'],required);
       if(typeof publication.repositoryId!=='string'||!ACCOUNT.test(publication.repositoryId)||
           typeof publication.commit!=='string'||!SHA.test(publication.commit)||
           typeof publication.runId!=='string'||!ACCOUNT.test(publication.runId)||!Number.isSafeInteger(Number(publication.runId))||
-          typeof publication.entryRevision!=='string'||publication.entryRevision!==''&&!/^[a-f0-9]{64}$/.test(publication.entryRevision))
+          typeof publication.entryRevision!=='string'||publication.entryRevision!==''&&!/^[a-f0-9]{64}$/.test(publication.entryRevision)||
+          Object.hasOwn(publication,'projectRevision')&&(typeof publication.projectRevision!=='string'||publication.projectRevision!==''&&!/^[a-f0-9]{64}$/.test(publication.projectRevision)))
         fail(400,'Publish the linked project in Zero to submit its verified build.');
       payload.publication={repositoryId:publication.repositoryId,pagesUrl:httpsUrl(publication.pagesUrl),commit:publication.commit,
-        runId:publication.runId,entryRevision:publication.entryRevision};
+        runId:publication.runId,entryRevision:publication.entryRevision,
+        ...(Object.hasOwn(publication,'projectRevision')?{projectRevision:publication.projectRevision}:{})};
       return payload;
     }
     // Legacy submissions preserve their normalized payload and digest. A live

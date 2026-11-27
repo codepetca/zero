@@ -828,7 +828,7 @@ namespace ZeroSetup
                 (bool)runtime["default"] && runtime["path"]?.Type == JTokenType.String &&
                 string.Equals((string)runtime["path"], java, StringComparison.OrdinalIgnoreCase));
         }
-        public async Task Open(bool resume, CancellationToken cancellation)
+        public async Task Open(bool resume, CancellationToken cancellation, string uri = null)
         {
             cancellation.ThrowIfCancellationRequested();
             using (var folders = new WindowsRuntimeFolders())
@@ -853,7 +853,8 @@ namespace ZeroSetup
                 cancellation.ThrowIfCancellationRequested();
                 try { PublishGitSelection(folders); }
                 catch (Exception error) when (error is IOException || error is UnauthorizedAccessException || error is JsonException || error is FormatException || error is ArgumentException) { }
-                host.Launch(Info(Path.Combine(editor, EditorExecutable), Isolated.Concat(resume ? new string[0] : new[] { "--new-window" }), false));
+                var arguments = Isolated.Concat(uri != null ? new[] { "--open-url", "--", uri } : resume ? new string[0] : new[] { "--new-window" });
+                host.Launch(Info(Path.Combine(editor, EditorExecutable), arguments, false));
             }
         }
     }

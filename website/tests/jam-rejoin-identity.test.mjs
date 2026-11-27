@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture,hostedManifest,creator,participant,verifiedPages} from '../../jams/test/fixtures.mjs';
+import {projectVisibility} from '../../jams/project-visibility.mjs';
 
 test('renamed repository can rejoin only when GitHub returns the same numeric ID',async()=>{
   let currentId='202';
@@ -79,4 +80,154 @@ test('publishing a replacement keeps the withdrawn entry in history and uses the
   assert.deepEqual(history.map(entry=>[entry.status,entry.repository.id]),[['active','202'],['withdrawn','202'],['active','203']]);
   assert.equal(history.at(-1).title,'replacement');
   assert.equal(history.at(-1).description,'');
+});
+
+test('a joined student can replace a deleted repository after registration closes and keep one official entry',async()=>{
+  const repositories=new Map([['202','student/game'],['203','student/another-game']]);
+  const lookups=[];
+  const f=fixture({pagesBindingReader:verifiedPages,verifyRepository:async({repositoryId,repositoryUrl,actor})=>{
+    lookups.push(repositoryId??repositoryUrl);
+    const id=repositoryId??[...repositories].find(([,name])=>name===new URL(repositoryUrl).pathname.slice(1))?.[0];
+    const fullName=repositories.get(id);
+    if(!fullName)throw Error('Repository was deleted');
+    return {repository:{id,ownerId:actor.id,fullName}};
+  }});
+  const manifest=hostedManifest();
+  const schedule={...manifest.schedule,registrationClosesAt:'2030-01-02T13:00:00Z'};
+  const {eventId:id,revision}=await f.service.propose({actor:creator,operationId:'replace-active-propose',manifest:{...manifest,schedule}});
+  const base={id,actor:participant},editor={joinChannel:'editor'};
+  await f.service.mutate({...base,action:'join',operationId:'replace-active-join',revision,
+    repositoryId:'202',repositoryUrl:'https://github.com/student/game'},editor);
+  await f.service.mutate({...base,action:'submit',operationId:'submit-old-project',revision,
+    title:'First game',description:'First entry',demoUrl:'https://student.github.io/game/'});
+
+  f.setTime('2030-01-03T10:00:00Z');
+  assert.equal((await f.service.readEditorJoin(id,participant)).canManageProjects,true);
+  repositories.delete('202');
+  const remove={...base,action:'remove-project',operationId:'remove-old-project',repositoryId:'202'};
+  const before=lookups.length;
+  await assert.rejects(f.service.mutate(remove,{joinChannel:'browser'}),{status:403});
+  const removed=await f.service.mutate(remove,editor);
+  assert.deepEqual(await f.service.mutate(remove,editor),removed);
+  assert.equal(lookups.length,before);
+  const detached=await f.service.readEditorJoin(id,participant);
+  assert.equal(detached.registration.status,'joined');
+  assert.deepEqual(detached.registration.repositories,[]);
+  assert.equal(detached.registration.repository,undefined);
+  assert.equal(detached.entry.status,'withdrawn');
+  assert.equal((await f.service.projectDestination('202',participant)).destination,null);
+  assert.ok((await projectVisibility(await f.store.snapshot(),Date.parse('2030-01-03T10:00:00Z'))).isHeld('202'));
+
+  repositories.set('204','student/game');
+  const add={...base,action:'add-project',repositoryId:'204',repositoryUrl:'https://github.com/student/game'};
+  await assert.rejects(f.service.mutate({...add,operationId:'add-someone-else',actor:{id:'505',login:'classmate'}},editor),{status:409});
+  await assert.rejects(f.service.mutate({...add,operationId:'add-wrong-identity',repositoryId:'202'},editor),{status:409});
+  await f.service.mutate({...add,operationId:'add-recreated-project'},editor);
+  await f.service.mutate({...add,operationId:'add-another-project',repositoryId:'203',repositoryUrl:'https://github.com/student/another-game'},editor);
+  const {registration:linked}=await f.service.readEditorJoin(id,participant);
+  assert.deepEqual(linked.repositories.map(repo=>repo.id),['204','203']);
+  assert.equal((await f.service.projectDestination('203',participant)).destination.id,id);
+  // Older Hub readers only consult the singular registration and this set.
+  assert.ok((await f.store.read(id)).state.replacedRepositoryIds.includes('203'));
+
+  const pagesUrl='https://student.github.io/another-game/';
+  const submit={...base,action:'submit',operationId:'submit-new-project',revision,
+    publication:{repositoryId:'203',pagesUrl,commit:'a'.repeat(40),runId:'30',entryRevision:detached.entry.revision,projectRevision:linked.projectRevision}};
+  await f.service.mutate(submit,{verifyPublication:async()=>({pagesUrl})});
+  const after=await f.service.readEditorJoin(id,participant);
+  assert.equal(after.event.participantCount,1);
+  assert.equal(after.entry.repository.id,'203');
+  assert.equal(after.entry.status,'active');
+  const history=(await f.store.read(id)).state.entries[participant.id];
+  assert.deepEqual(history.map(entry=>[entry.status,entry.repository.id]),[['active','202'],['withdrawn','202'],['active','203']]);
+
+  f.setTime(manifest.schedule.submissionsCloseAt);
+  await assert.rejects(f.service.mutate({...remove,repositoryId:'203',operationId:'too-late-to-remove'},editor),{status:409});
+  assert.equal((await f.service.readEditorJoin(id,participant)).entry.status,'active');
+  f.setTime(manifest.schedule.galleryRevealAt);
+  assert.equal((await projectVisibility(await f.store.snapshot(),Date.parse(manifest.schedule.galleryRevealAt))).isHeld('202'),false);
+});
+
+test('a publish verified during project removal cannot apply after reattaching the same repository',async()=>{
+  const f=fixture();
+  const {eventId:id,revision}=await f.service.propose({actor:creator,operationId:'publish-remove-race',manifest:hostedManifest()});
+  const base={id,actor:participant},editor={joinChannel:'editor'};
+  await f.service.mutate({...base,action:'join',operationId:'join-remove-race',revision,
+    repositoryId:'202',repositoryUrl:'https://github.com/student/project'},editor);
+  const verificationStarted=Promise.withResolvers(),allowVerification=Promise.withResolvers();
+  const pagesUrl='https://student.github.io/project/';
+  const publishing=f.service.mutate({...base,action:'submit',operationId:'publish-during-remove',revision,
+    publication:{repositoryId:'202',pagesUrl,commit:'a'.repeat(40),runId:'30',entryRevision:''}
+  },{verifyPublication:async()=>{
+    verificationStarted.resolve();
+    await allowVerification.promise;
+    return {pagesUrl};
+  }});
+  await verificationStarted.promise;
+  await f.service.mutate({...base,action:'remove-project',operationId:'race-remove-project',repositoryId:'202'},editor);
+  await f.service.mutate({...base,action:'add-project',operationId:'race-reattach-project',repositoryId:'202',
+    repositoryUrl:'https://github.com/student/project'},editor);
+  allowVerification.resolve();
+  await assert.rejects(publishing,{status:409});
+  const state=await f.service.readEditorJoin(id,participant);
+  assert.equal(state.entry,null);
+  assert.equal(state.registration.repositories[0].id,'202');
+  await assert.rejects(f.service.mutate({...base,action:'submit',operationId:'stale-reviewed-project',revision,
+    publication:{repositoryId:'202',pagesUrl,commit:'a'.repeat(40),runId:'30',entryRevision:'',projectRevision:''}
+  },{verifyPublication:()=>assert.fail('Reject stale consent before provider verification')}),{status:409});
+  const publication={repositoryId:'202',pagesUrl,commit:'a'.repeat(40),runId:'30',entryRevision:''};
+  await assert.rejects(f.service.mutate({...base,action:'submit',operationId:'late-legacy-submission',revision,publication},
+    {verifyPublication:()=>assert.fail('Reject unbound consent before provider verification')}),{status:409,message:/Update Zero/});
+  const current={...base,action:'submit',operationId:'current-reviewed-project',revision,
+    publication:{...publication,projectRevision:state.registration.projectRevision}};
+  assert.equal((await f.service.mutate(current,{verifyPublication:async()=>({pagesUrl})})).status,'submitted');
+});
+
+test('a delayed join cannot restore a removed Game Jam project and accepted retries remain read-only',async()=>{
+  const started=Promise.withResolvers(),finish=Promise.withResolvers();
+  let delay=false;
+  const f=fixture({verifyRepository:async({actor})=>{
+    if(delay) {delay=false;started.resolve();await finish.promise;}
+    return {repository:{id:'202',ownerId:actor.id,fullName:'student/project'}};
+  }});
+  const {eventId:id,revision}=await f.service.propose({actor:creator,operationId:'join-and-remove-propose',manifest:hostedManifest()});
+  const base={id,actor:participant},editor={joinChannel:'editor'};
+  const join={...base,action:'join',operationId:'join-and-remove-original',revision,
+    repositoryId:'202',repositoryUrl:'https://github.com/student/project'};
+  const accepted=await f.service.mutate(join,editor);
+  delay=true;
+  const late=f.service.mutate({...join,operationId:'join-and-remove-late'},editor);
+  await started.promise;
+  await f.service.mutate({...base,action:'remove-project',operationId:'join-and-remove-project',repositoryId:'202',projectRevision:''},editor);
+  const {registration}=await f.service.readEditorJoin(id,participant);
+  finish.resolve();
+  await assert.rejects(late,{status:409,message:/Manage jam projects/});
+  assert.deepEqual(await f.service.mutate(join,editor),accepted);
+  assert.deepEqual(registration.repositories,[]);
+  assert.deepEqual((await f.service.readEditorJoin(id,participant)).registration,registration);
+});
+
+test('a delayed add cannot undo a later remove from another editor',async()=>{
+  const started=Promise.withResolvers(),finish=Promise.withResolvers();
+  let delay=false;
+  const f=fixture({verifyRepository:async({repositoryUrl,actor})=>{
+    const name=new URL(repositoryUrl).pathname.slice(1),id=name.endsWith('/first')?'202':'203';
+    if(delay) {delay=false;started.resolve();await finish.promise;}
+    return {repository:{id,ownerId:actor.id,fullName:name}};
+  }});
+  const {eventId:id,revision}=await f.service.propose({actor:creator,operationId:'two-editors-propose',manifest:hostedManifest()});
+  const base={id,actor:participant},editor={joinChannel:'editor'};
+  await f.service.mutate({...base,action:'join',operationId:'two-editors-join',revision,
+    repositoryId:'202',repositoryUrl:'https://github.com/student/first'},editor);
+  const add={...base,action:'add-project',repositoryId:'203',repositoryUrl:'https://github.com/student/second',projectRevision:''};
+  delay=true;
+  const earlier=f.service.mutate({...add,operationId:'two-editors-earlier'},editor);
+  await started.promise;
+  await f.service.mutate({...add,operationId:'two-editors-add'},editor);
+  const {registration}=await f.service.readEditorJoin(id,participant);
+  await f.service.mutate({...base,action:'remove-project',operationId:'two-editors-remove',repositoryId:'203',
+    projectRevision:registration.projectRevision},editor);
+  finish.resolve();
+  await assert.rejects(earlier,{status:409});
+  assert.deepEqual((await f.service.readEditorJoin(id,participant)).registration.repositories.map(repo=>repo.id),['202']);
 });

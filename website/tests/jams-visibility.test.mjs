@@ -38,6 +38,7 @@ test('every jam API/panel route returns 404 before calling services, reading tem
     const route=load(source,{
       '@/lib/jams-visibility.mjs':{hiddenJamsResponse:()=>hiddenJamsResponse({NODE_ENV:'production'})},
       '@/lib/jams-http.mjs':{getJamsResponse:blocked,getJamResponse:blocked,postJamActionResponse:blocked,getDesktopJamJoinResponse:blocked,postDesktopJamJoinResponse:blocked,getDesktopJamProjectResponse:blocked,postDesktopJamSubmitResponse:blocked,postJamProposalResponse:blocked},
+      '@/lib/game-jam-app-link.mjs':{gameJamAppLink:blocked},
       '@/lib/jam-template.mjs':{createJamTemplateZip:blocked},
       '@/lib/jam-template-http.mjs':{preparedJamResponse:blocked}
     });

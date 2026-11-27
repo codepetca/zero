@@ -1,5 +1,20 @@
 import AppKit
 
+struct NativeJamRequest {
+    let id: String
+    init?(id: String) {
+        guard id.range(of: #"^jam-(?:[1-9][0-9]{0,19}|zero-[a-f0-9]{32})\z"#, options: .regularExpression) != nil else { return nil }
+        self.id = id
+    }
+    init?(url: URL) {
+        let prefix = "zero-studio://jam/"
+        let value = url.absoluteString
+        guard value.hasPrefix(prefix), let request = NativeJamRequest(id: String(value.dropFirst(prefix.count))) else { return nil }
+        self = request
+    }
+    var editorURI: String { "vscode://zero.zero/jam/" + id }
+}
+
 final class SetupApplication: NSObject, NSApplicationDelegate {
     var setupWindow: SetupWindow?
     // Test harnesses can observe a successful editor handoff without an updater.
@@ -9,6 +24,8 @@ final class SetupApplication: NSObject, NSApplicationDelegate {
     private var finishedLaunching = false
     private var pendingRequest: NativeUpdateRequest?
     private var handedOff = false
+    private var pendingJams: [NativeJamRequest] = []
+    private var deliveringJam = false
     private let updateOnlyLaunch: Bool
     #if ZERO_SETUP_TESTS
     var launchForTesting: (() -> Void)?
@@ -25,6 +42,10 @@ final class SetupApplication: NSObject, NSApplicationDelegate {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             if let request = self.pendingRequest { self.pendingRequest = nil; self.handle(request); return }
+            if !self.pendingJams.isEmpty {
+                if self.setupWindow == nil { self.startOrdinaryLaunch() } else { self.deliverJams() }
+                return
+            }
             guard !self.explicitRequestReceived else { return }
             if self.updateOnlyLaunch {
                 // No URL was delivered yet. Never fall through into kit preparation.
@@ -70,10 +91,31 @@ final class SetupApplication: NSObject, NSApplicationDelegate {
         controller.mayBeginWork = { [weak self] in self?.updateCoordinator?.mayContinueSetup ?? true }
         setupWindow = SetupWindow(controller: controller)
         setupWindow?.closed = { [weak self] in self?.updateCoordinator?.setupClosed() }
-        controller.opened = { [weak self] in self?.completeHandoff() }
+        controller.opened = { [weak self] in self?.finishOpening() }
         setupWindow?.showWindow(nil)
         controller.launch()
         NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true)
+    }
+    private func finishOpening() {
+        if !pendingJams.isEmpty { deliverJams(); return }
+        completeHandoff()
+    }
+    private func deliverJams() {
+        guard !deliveringJam, let controller = setupWindow?.controller, !controller.busy,
+              controller.stage == .opened, !pendingJams.isEmpty else { return }
+        deliveringJam = true
+        let request = pendingJams.removeFirst()
+        controller.openJam(request) { [weak self] success in
+            guard let self else { return }
+            self.deliveringJam = false
+            if success {
+                if self.pendingJams.isEmpty { self.completeHandoff() } else { self.deliverJams() }
+            } else {
+                self.pendingJams.insert(request, at: 0)
+                self.setupWindow?.showWindow(nil)
+                NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true)
+            }
+        }
     }
     private func completeHandoff() {
         handedOff = true
@@ -90,10 +132,17 @@ final class SetupApplication: NSObject, NSApplicationDelegate {
     }
     func application(_ application: NSApplication, open urls: [URL]) {
         // Reject a mixed or multi-command event in its entirety.
-        guard urls.count == 1, let request = NativeUpdateRequest(url: urls[0]) else { return }
-        explicitRequestReceived = true
-        if !finishedLaunching { pendingRequest = request }
-        else { handle(request) }
+        guard urls.count == 1 else { return }
+        if let jam = NativeJamRequest(url: urls[0]) {
+            explicitRequestReceived = true
+            pendingJams.append(jam)
+            if finishedLaunching {
+                if setupWindow == nil { startOrdinaryLaunch() } else { deliverJams() }
+            }
+        } else if let request = NativeUpdateRequest(url: urls[0]) {
+            explicitRequestReceived = true
+            if !finishedLaunching { pendingRequest = request } else { handle(request) }
+        }
     }
     private func handle(_ request: NativeUpdateRequest) {
         #if ZERO_SETUP_TESTS

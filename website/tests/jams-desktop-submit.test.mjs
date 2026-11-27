@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {approved,fixture,legacyProposal,manifest,maintainer,NEXT_COMMIT,hostedManifest,participant,creator,verifiedPages} from '../../jams/test/fixtures.mjs';
 import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
-import {getDesktopJamProjectResponse,postDesktopJamSubmitResponse} from '../lib/jams-http.mjs';
+import {desktopJamProjectChangeResponse,getDesktopJamProjectResponse,postDesktopJamSubmitResponse} from '../lib/jams-http.mjs';
 
 const origin='http://127.0.0.1:3000',token='ghu_'+'d'.repeat(24);
 const env={NODE_ENV:'test',ZERO_JAMS_ENABLED:'1',ZERO_HUB_ORIGIN:origin,
@@ -13,10 +13,41 @@ const proofUrl=new URL('zero-source-sha.txt',pagesUrl).href;
 const workflowRun={id:Number(runId),repository:{id:Number(repositoryId)},head_sha:commit,head_branch:'main',
   path:'.github/workflows/zero-web.yml@main',event:'workflow_dispatch',status:'completed',conclusion:'success',created_at:'2030-01-02T12:00:00.000Z'};
 
-function desktopRequest(path,{body,headers}={}) {
-  return new Request(origin+path,{method:body?'POST':'GET',headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+token,
+function desktopRequest(path,{body,headers,method=body?'POST':'GET'}={}) {
+  return new Request(origin+path,{method,headers:{'X-Zero-Desktop':'1',Authorization:'Bearer '+token,
     ...(body?{'Content-Type':'application/json'}:{}),...headers},...(body?{body:JSON.stringify(body)}:{})});
 }
+
+test('only the authenticated desktop member can add and remove a Game Jam project',async()=>{
+  const {service}=fixture();
+  const {eventId:id}=await register(service,creator,'manage-desktop-projects');
+  const path='/api/desktop/jams/'+id+'/projects';
+  const options=account=>({env,service,fetchImpl:transport(account,()=>assert.fail('Unexpected GitHub call'))});
+  const remove={operationId:'remove-desktop-project',repositoryId,projectRevision:''};
+  const request=(method,body,headers)=>desktopRequest(path,{method,body,headers});
+  assert.equal((await desktopJamProjectChangeResponse(request('DELETE',remove,{Cookie:'browser=1'}),id,options(participant))).status,403);
+  assert.equal((await desktopJamProjectChangeResponse(request('DELETE',remove),id,options(creator))).status,409);
+  assert.equal((await desktopJamProjectChangeResponse(request('POST',remove),id,options(participant))).status,400);
+  const removed=await desktopJamProjectChangeResponse(request('DELETE',remove),id,options(participant));
+  assert.equal(removed.status,200);
+  assert.equal(removed.headers.get('cache-control'),'no-store');
+  assert.equal((await removed.json()).status,'project-removed');
+  assert.deepEqual((await service.readEditorJoin(id,participant)).registration.repositories,[]);
+  const {registration}=await service.readEditorJoin(id,participant);
+  const added=await desktopJamProjectChangeResponse(request('POST',{operationId:'add-desktop-project',repositoryId,repositoryUrl,
+    projectRevision:registration.projectRevision}),id,options(participant));
+  assert.equal((await added.json()).status,'project-added');
+  assert.equal((await service.readEditorJoin(id,participant)).registration.repositories[0].id,repositoryId);
+  const check={'X-Zero-Check-Project-Change':'1'};
+  const existing=await desktopJamProjectChangeResponse(request('DELETE',remove,check),id,options(participant));
+  assert.equal((await existing.json()).settlement,'applied');
+  const neverSent={...remove,operationId:'never-dispatched-change'};
+  const fenced=await desktopJamProjectChangeResponse(request('DELETE',neverSent,check),id,options(participant));
+  assert.equal((await fenced.json()).settlement,'not-applied');
+  const tooLate=await desktopJamProjectChangeResponse(request('DELETE',neverSent),id,options(participant));
+  assert.equal(tooLate.status,409);
+  assert.equal((await service.readEditorJoin(id,participant)).registration.repositories[0].id,repositoryId);
+});
 async function register(service,actor,operationId,manifest=hostedManifest()) {
   const event=await service.propose({actor,operationId,manifest});
   await service.mutate({id:event.eventId,actor:participant,operationId:'join-'+operationId,
@@ -53,7 +84,7 @@ test('destination selects only the account’s linked active Game Jams and never
   await service.mutate({actor:participant,id:first.eventId,operationId:'destination-leave',action:'leave'});
   const available=await lookup(participant);
   assert.deepEqual(available.destination,{id:other.eventId,title:'Second game jam',revision:other.revision,
-    entryRevision:'',submissionsOpen:true,submissionsCloseAt:'2030-01-04T12:00:00.000Z'});
+    entryRevision:'',projectRevision:'',submissionsOpen:true,submissionsCloseAt:'2030-01-04T12:00:00.000Z'});
   setTime('2030-01-04T12:00:00Z');
   assert.equal((await lookup(participant)).destination.submissionsOpen,false);
   await service.mutate({actor:{id:'12',login:'creator2'},id:other.eventId,operationId:'destination-cancel',action:'cancel',reason:'Date changed'});

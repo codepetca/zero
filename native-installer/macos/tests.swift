@@ -85,6 +85,13 @@ struct SetupTests {
     }
 
     static func updaterTests(app: NSApplication, kit: SetupKit, home: URL) throws {
+        for id in ["jam-1", "jam-12345678901234567890", "jam-zero-" + String(repeating: "a", count: 32)] {
+            let jam = NativeJamRequest(url: URL(string: "zero-studio://jam/" + id)!)
+            try expect(jam?.id == id && jam?.editorURI == "vscode://zero.zero/jam/" + id, "valid jam maps to canonical editor URI")
+        }
+        for value in ["zero-studio://jam/jam-0", "zero-studio://jam/jam-01", "zero-studio://jam/jam-123456789012345678901", "zero-studio://jam/jam-1?x=1", "zero-studio://jam/jam-1#x", "zero-studio://jam/jam-1/", "zero-studio://jam/jam-%31", "zero-studio://JAM/jam-1", "zero-studio://user@jam/jam-1", "zero-studio://jam:1/jam-1", "zero-studio://jam/jam-zero-" + String(repeating: "A", count: 32)] {
+            try expect(NativeJamRequest(url: URL(string: value)!) == nil, "reject malformed jam: \(value)")
+        }
         for request in [NativeUpdateRequest.check, .settings] {
             try expect(NativeUpdateRequest(url: URL(string: request.rawValue)!) == request, "fixed update request accepted")
         }
@@ -729,6 +736,7 @@ struct SetupTests {
         try originalMetadata.write(to:metadataPath,atomically:false,encoding:.utf8)
         try expect(argumentRuntime.editorArguments(resuming: false) == argumentRuntime.isolated + ["--new-window"], "first runtime opening selects empty window and separate Zero environment")
         try expect(argumentRuntime.editorArguments(resuming: true) == argumentRuntime.isolated, "resume uses separate Zero environment and lets VS Code restore session")
+        try expect(argumentRuntime.jamArguments(NativeJamRequest(id: "jam-1")!) == argumentRuntime.isolated + ["--open-url", "--", "vscode://zero.zero/jam/jam-1"], "jam CLI remains isolated and carries only canonical URI")
         let updateMarker = argumentRuntime.root.appendingPathComponent("editor/update-ready.json")
         try MacRuntime.mkdir(updateMarker.deletingLastPathComponent())
         try expect(!manager.fileExists(atPath: updateMarker.path), "constructing runtime does not publish update readiness")
@@ -1041,6 +1049,23 @@ struct SetupTests {
         try expect(handoffCount == 1 && handoffController.stage == .opened, "real application delegate wires successful launch to a single handoff")
         try expect(handoffDelegate.applicationShouldTerminate(app) == .terminateNow, "completed handoff allows preparation app to exit")
         handoffDelegate.setupWindow?.close()
+        let jamHome = temporary.appendingPathComponent("jam delegate home")
+        try manager.createDirectory(at: jamHome, withIntermediateDirectories: false)
+        let jamRunner = FakeRunner(); jamRunner.delay = 0.03
+        let jamController = SetupController(kit: kit, runner: jamRunner, home: jamHome)
+        let jamDelegate = SetupApplication(); var jamHandoffs = 0
+        jamDelegate.handOff = { jamHandoffs += 1 }
+        let jamURL = URL(string: "zero-studio://jam/jam-42")!
+        jamDelegate.application(app, open: [jamURL, jamURL])
+        jamDelegate.application(app, open: [jamURL])
+        jamDelegate.start(jamController)
+        jamDelegate.applicationDidFinishLaunching(Notification(name: NSApplication.didFinishLaunchingNotification))
+        try pump(until: { jamHandoffs == 1 })
+        try expect(jamRunner.commands.filter { $0.arguments.contains("--native-jam") }.count == 1, "cold jam waits for setup; multiple URL event rejected")
+        jamDelegate.application(app, open: [URL(string: "zero-studio://jam/jam-43")!])
+        try pump(until: { jamHandoffs == 2 })
+        try expect(jamRunner.commands.last?.arguments.suffix(2) == ["--native-jam", "jam-43"], "warm jam dispatched through same isolated runtime")
+        jamDelegate.setupWindow?.close()
         let progressHome = temporary.appendingPathComponent("progress home")
         try manager.createDirectory(at: progressHome, withIntermediateDirectories: false)
         let progressRunner = FakeRunner(); progressRunner.paused = true

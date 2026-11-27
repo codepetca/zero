@@ -150,18 +150,21 @@ test('the gallery offers host entry removal only to a signed-in account with per
   assert.equal(control(),undefined);
 });
 test('a participant can see why a moderated entry was removed',()=>{
-  const event={id:'jam-42',title:'Jam',type:'game',schedule:{},moderation:{status:'active'},revision:'A'};
+  const event={id:'jam-42',title:'Jam',type:'game',schedule:{},moderation:{status:'active'},revision:'A',
+    participants:[],entries:[],participantCount:1};
   const data={event,entry:{status:'withdrawn',moderatedBy:'11',reason:'Entrant requested removal.'},
     registration:{status:'joined',revision:'A'},canMaintain:false};
-  const h=harness({participateData:data});
-  const reason=()=>elements(h.render('JamParticipate',{id:'jam-42',pagesInstallLink:null}))
-    .find(node=>node.type==='p'&&node.props.children==='Entrant requested removal.');
-  assert.ok(reason());
-  h.setActor(null);
-  assert.equal(reason(),undefined);
+  for(const component of ['JamParticipate','JamDetail']){
+    const h=harness({participateData:data});
+    const reason=()=>elements(h.render(component,{id:'jam-42',pagesInstallLink:null}))
+      .find(node=>node.type==='p'&&node.props.children==='Entrant requested removal.');
+    assert.ok(reason());
+    h.setActor(null);
+    assert.equal(reason(),undefined);
+  }
 });
-test('a participant joined under A sees approved B changes and old rules, but cannot submit without reviewing B',async()=>{
-  const original={type:'game',title:'Jam A',summary:'Original jam',theme:'Water',rules:'Original rule A: work alone.',eligibility:'Students',websiteUrl:'https://creator.example/',timezone:'UTC',schedule:{registrationOpensAt:'2030-01-01T00:00:00Z',registrationClosesAt:'2030-01-10T00:00:00Z',startsAt:'2030-01-11T00:00:00Z',submissionsOpenAt:'2030-01-11T00:00:00Z',submissionsCloseAt:'2030-01-12T00:00:00Z'}};
+test('an App Jam participant sees approved rule changes and must review them before submitting',async()=>{
+  const original={type:'app',title:'Jam A',summary:'Original jam',theme:'Water',rules:'Original rule A: work alone.',eligibility:'Students',websiteUrl:'https://creator.example/',timezone:'UTC',schedule:{registrationOpensAt:'2030-01-01T00:00:00Z',registrationClosesAt:'2030-01-10T00:00:00Z',startsAt:'2030-01-11T00:00:00Z',submissionsOpenAt:'2030-01-11T00:00:00Z',submissionsCloseAt:'2030-01-12T00:00:00Z'}};
   const revised={...original,title:'Jam B',rules:'Revised rule B: pairs allowed.',schedule:{...original.schedule,submissionsCloseAt:'2030-01-14T00:00:00Z'}};
   const acceptedA={revision:'A',approvedAt:'2029-12-01T12:00:00Z',manifest:original},acceptedB={revision:'B',approvedAt:'2029-12-02T12:00:00Z',manifest:revised};
   const detail={configured:true,event:{...original,id:'jam-42',revision:'A',approvalHistory:[acceptedA],moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],participantCount:1,entries:[]},registration:{status:'joined',revision:'A'},entry:null,canMaintain:false,proposal:{manifest:{...revised,rules:'Private pending rule C'}}};
@@ -196,7 +199,7 @@ test('fetched private data is unavailable immediately after actor changes, while
 });
 function panelModule(reply,seen) {
   const module={exports:{}};
-  const context={module,exports:module.exports,require:name=>name.includes('jams-visibility')?{hiddenJamsResponse:()=>null}:{getJamResponse:async(request,id)=>{seen.push({request,id});return Response.json(reply.body,{status:reply.status||200});}},Request,Response,URL};
+  const context={module,exports:module.exports,require:name=>name.includes('game-jam-app-link')?require('../lib/game-jam-app-link.mjs'):name.includes('jams-visibility')?{hiddenJamsResponse:()=>null}:{getJamResponse:async(request,id)=>{seen.push({request,id});return Response.json(reply.body,{status:reply.status||200});}},Request,Response,URL};
   vm.runInNewContext(compile(panelSource),context);return module.exports;
 }
 test('public panel strips caller credentials, escapes content and allows only approved creator origin',async()=>{
@@ -220,13 +223,25 @@ test('hosted approved panel shows official status and links without an external 
   const response=await panel.GET(new Request('https://zero.codepet.ca'),{params:Promise.resolve({id})});
   const html=await response.text();
   assert.equal(response.status,200);assert.equal(seen[0].id,id);
-  assert.match(html,/Hosted Game Jam/);assert.match(html,/Registration open/);assert.match(html,/Project → Join a Game Jam/);
-  assert.ok(html.includes(`/hub/jams/${id}/participate`));
+  assert.match(html,/Hosted Game Jam/);assert.match(html,/Registration open/);assert.match(html,/Open Game Jams/);
+  assert.ok(html.includes(`href="zero-studio://jam/${id}"`));assert.match(html,/Download Zero/);
+  assert.ok(!html.includes(`/hub/jams/${id}/participate`));
   assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'self'$/);
 });
 
-for(const type of ['game','app'])test(`Default ${type} website Join sends only the owned repository and does not require publication or a commit`,async()=>{
-  const detail={configured:true,event:{id:'jam-zero-'+'a'.repeat(32),title:'Hosted jam',type,revision:'A',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],entries:[]},registration:null,entry:null,canMaintain:false};
+test('the embedded panel sends Game Jams to Zero and App Jams to web participation',async()=>{
+  const event={revision:'abc',title:'Hosted Jam',moderation:{status:'active'},registrationOpen:false,submissionsOpen:true,participantCount:1};
+  for(const type of ['game','app']) {
+    const panel=panelModule({body:{configured:true,event:{...event,type}}},[]);
+    const response=await panel.GET(new Request('https://zero.codepet.ca'),{params:Promise.resolve({id:'jam-42'})});
+    const html=await response.text();
+    assert.equal(html.includes('zero-studio://jam/jam-42'),type==='game');
+    assert.equal(html.includes('/hub/jams/jam-42/participate'),type==='app');
+  }
+});
+
+test('App Jam website Join sends only the owned repository and does not require publication or a commit',async()=>{
+  const detail={configured:true,event:{id:'jam-zero-'+'a'.repeat(32),title:'Hosted jam',type:'app',revision:'A',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],entries:[]},registration:null,entry:null,canMaintain:false};
   const calls=[],h=harness({participateData:detail,fetcher:async(url,init)=>{calls.push(JSON.parse(init.body));return confirmed(init);}});
   const render=()=>h.render('JamParticipate',{id:detail.event.id});
   let tree=render();assert.equal(elements(tree).some(node=>node.props?.name==='commit'),false);
@@ -313,7 +328,8 @@ test('Jam pages link to the rules without placing plan details in the main flow'
   const h=harness(),link=h.render('JamHelpLink');
   assert.ok(elements(link).some(node=>node.props?.href==='/hub/jams/rules'));
   assert.ok(elements(h.render('JamCreate')).some(node=>node.type?.name==='JamHelpLink'));
-  assert.match(clientSource,/<JamHelpLink\/>(?=<div className="jam-actions">\{!joined\?)/);
+  const app={event:{type:'app',revision:'A',schedule:{}},registration:null,entry:null,canMaintain:false};
+  assert.ok(elements(harness({participateData:app}).render('JamParticipate',{id:'jam-42'})).some(node=>node.type?.name==='JamHelpLink'));
   assert.match(clientSource,/Participants: \{data\.event\.participantCount\} · Limit: \{data\.event\.participantLimit\}/);
   assert.doesNotMatch(clientSource,/JamPlanNotice|room for up to \{data\.event\.participantLimit\} participants/);
 });
@@ -371,20 +387,15 @@ test('jam timing switches from the submission deadline to reveal and ends after 
 test('Jam rules page explains plans, access and timing',async()=>{
   const source=await readFile(new URL('../app/hub/jams/rules/page.tsx',import.meta.url),'utf8');
   const module={exports:{}},React=require('react');
-  let requireEditor=false;
   vm.runInNewContext(compile(source),{module,exports:module.exports,require(name){
-    if(name==='@/lib/jams-visibility.mjs')return {editorGameJamJoinRequired:()=>requireEditor};
     if(name==='next/link')return {default:({href,children})=>React.createElement('a',{href},children)};
     if(name==='@/components/JamShell')return {JamShell:({children})=>React.createElement(React.Fragment,null,children)};
     return require(name);
   }});
   const markup=renderToStaticMarkup(React.createElement(module.exports.default));
-  for(const phrase of ['Joining is free','Project → Join a Game Jam','Run → Publish to Jam','Pro license','100 distinct GitHub accounts','enabled manually','automatically approved','one active jam','gallery opens','no online checkout','Accounts still count after leaving','Older jams may require an exact source commit'])assert.ok(markup.includes(phrase),phrase);
-  assert.match(markup,/Join and submit from the jam page/);
-  requireEditor=true;
-  const requiredMarkup=renderToStaticMarkup(React.createElement(module.exports.default));
-  assert.match(requiredMarkup,/Join an App Jam from its jam page/);
-  assert.doesNotMatch(requiredMarkup,/Join and submit from the jam page/);
+  for(const phrase of ['Joining is free','Open in Zero','Project → Join a Game Jam','Run → Publish to Jam','Pro license','100 distinct GitHub accounts','enabled manually','automatically approved','one active jam','gallery opens','no online checkout','Accounts still count after leaving'])assert.ok(markup.includes(phrase),phrase);
+  assert.match(markup,/Join an App Jam from its jam page/);
+  assert.doesNotMatch(markup,/Join and submit from the jam page/);
   assert.match(markup,/href="mailto:info@codepet.ca"/);assert.match(markup,/href="\/hub\/jams"/);
   // Exercise the actual Jam layout with the actual rules component; all Jam
   // pages, including this route, share the same production/preview gate.
@@ -537,35 +548,52 @@ test('JamDetail retains one cancellation receipt across loading, failed refresh 
   parent.setDetail(initial);parent.setActor({id:'99',login:'other',csrfToken:'csrf'});assert.equal(render().some(n=>n.props?.children==='Cancellation confirmed by Zero.'),false);
 });
 
-test('Opted-in Game Jam website directs unregistered students to Zero and keeps submission available after joining',()=>{
-  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participantCount:8,participantLimit:100,participants:[],entries:[]};
-  const detail={event,editorGameJamJoinRequired:true,registration:null,entry:null,canMaintain:false},h=harness({participateData:detail});
+test('Game Jam participation links show no browser forms for visitors or joined students',()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'A jam',theme:'Play',rules:'Be kind',eligibility:'Everyone',timezone:'UTC',schedule:{galleryRevealAt:'2030-01-20T00:00:00Z',submissionsCloseAt:'2030-01-19T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participantCount:8,participantLimit:100,participants:[],entries:[]};
+  const detail={event,registration:null,entry:null,canMaintain:false},h=harness({participateData:detail});
   const render=()=>elements(h.render('JamParticipate',{id:'jam-42'})),nodes=render();
-  const count=nodes.find(node=>node.type==='p'&&Array.isArray(node.props.children)&&node.props.children[0]==='Participants: ');
-  assert.deepEqual(Array.from(count.props.children),['Participants: ',8,' · Limit: ',100]);
+  assert.ok(!nodes.some(node=>node.type?.name==='HubAccount'||node.type?.name==='ApprovedVersions'));
+  assert.ok(nodes.some(node=>node.props?.children==='Rules, schedule, and entries'));
   const direction=nodes.find(node=>node.type?.name==='JoinGameJamInZero');
   assert.ok(direction);
-  const directionNodes=elements(direction.type());
+  const directionNodes=elements(direction.type(direction.props));
   assert.ok(directionNodes.some(node=>node.type==='strong'&&node.props.children==='Project → Join a Game Jam'));
-  assert.ok(directionNodes.some(node=>node.props?.href==='/downloads'));
+  assert.ok(directionNodes.some(node=>node.props?.href==='/downloads'&&node.props.children==='Download Zero'));
+  assert.ok(directionNodes.some(node=>node.props?.href==='zero-studio://jam/jam-42'&&node.props.children==='Open in Zero'));
+  assert.ok(!elements(direction.type({id:'jam-42?open=other'})).some(node=>node.props?.children==='Open in Zero'));
   h.setDetail({...detail,event:{...event,registrationOpen:false}});
+  assert.equal(render().some(node=>node.type?.name==='JoinGameJamInZero'),true,
+    'returning participants can open the desktop app without signing in to the website');
+  h.setDetail({...detail,event:{...event,registrationOpen:false,submissionsOpen:false}});
   assert.equal(render().some(node=>node.type?.name==='JoinGameJamInZero'),false);
-  assert.ok(elements(harness({participateData:detail}).render('JamDetail',{id:'jam-42'}))
-    .some(node=>node.type?.name==='JoinGameJamInZero'));
+  const hero=elements(harness({participateData:detail}).render('JamDetail',{id:'jam-42'})).find(node=>node.type?.name==='JamHero');
+  const heroNodes=elements(hero.type(hero.props));
+  assert.ok(heroNodes.some(node=>node.props?.href==='zero-studio://jam/jam-42'&&node.props.children==='Open in Zero'));
+  assert.ok(!elements(hero.type({...hero.props,event:{...event,moderation:{status:'cancelled'}}})).some(node=>node.props?.href==='zero-studio://jam/jam-42'));
   assert.equal(nodes.some(node=>node.props?.name==='repositoryUrl'||node.props?.children==='Join this jam'||node.props?.type==='checkbox'),false);
-  h.setDetail({...detail,registration:{status:'joined',revision:'a',repository:{id:'202',ownerId:'12',fullName:'creator/project'}}});
-  const joined=render();
-  assert.ok(joined.some(node=>node.type==='strong'&&node.props.children==='Run → Publish to Jam'));
-  const fallback=joined.find(node=>node.type==='details'&&elements(node).some(item=>item.type==='summary'&&
-    item.props.children==='Submit or replace an entry on this website'));
-  assert.ok(fallback);
-  assert.equal(fallback.props.open,undefined,'the manual form is closed by default');
-  assert.ok(elements(fallback).some(node=>node.props?.children==='Submit my work'));
-  assert.ok(joined.some(node=>node.props?.children==='Submit my work'));
-  assert.ok(joined.some(node=>node.props?.children==='Leave jam and withdraw my entry'));
-  assert.equal(joined.some(node=>node.type?.name==='JoinGameJamInZero'),false);
+  for(const editorGameJamJoinRequired of [false,true]) {
+    h.setDetail({...detail,editorGameJamJoinRequired,registration:{status:'joined',revision:'a',
+      repository:{id:'202',ownerId:'12',fullName:'creator/project'}},entry:{status:'active'}});
+    const joined=render();
+    assert.equal(joined.some(node=>node.type?.name==='JoinGameJamInZero'),true);
+    assert.ok(!joined.some(node=>['form','input','textarea'].includes(node.type)||
+      ['Join this jam','Submit my work','Replace my submission','Leave jam and withdraw my entry','Withdraw my submission'].includes(node.props?.children)));
+  }
 });
 
+
+test('Game Jam hero links to Zero while the App Jam hero links to the website',()=>{
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'Play',schedule:{submissionsCloseAt:'2030-01-19T00:00:00Z'},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:false,participantCount:0,participants:[],entries:[]};
+  const detail={event,registration:null,entry:null,canMaintain:false};
+  const hero=elements(harness({participateData:detail}).render('JamDetail',{id:'jam-42'})).find(node=>node.type?.name==='JamHero');
+  const view=props=>elements(hero.type({...hero.props,...props}));
+  assert.ok(view({}).some(node=>node.props?.href==='zero-studio://jam/jam-42'&&node.props.children==='Open in Zero'));
+  assert.ok(!view({}).some(node=>node.props?.href?.endsWith('/participate')));
+  assert.ok(!view({event:{...event,type:'app'}}).some(node=>node.props?.children==='Open in Zero'));
+  assert.ok(view({event:{...event,type:'app'}}).some(node=>node.props?.href?.endsWith('/participate')));
+  assert.ok(!view({event:{...event,registrationOpen:false},joined:false}).some(node=>node.props?.children==='Open in Zero'));
+  assert.ok(view({event:{...event,registrationOpen:false},joined:true}).some(node=>node.props?.children==='Open in Zero'));
+});
 
 test('fresh creation detects the browser zone only after hydration and preserves a saved or early-edited timezone',async t=>{
   const {browserJamTimezone,defaultHostedJamDraft}=await import('../lib/jam-draft.mjs');
@@ -618,7 +646,8 @@ test('detail, participation, proposal review and approved history share the requ
   const event={...manifest,id:'jam-42',revision:'A',approvalHistory:[{revision:'A',approvedAt:'2026-11-05T14:30:00Z',manifest}],moderation:{status:'active'},registrationOpen:false,submissionsOpen:false,participantCount:0,participantLimit:100,participants:[],entries:[]};
   const detail={event,registration:null,entry:null,canMaintain:false,proposal:{revision:'B',status:'submitted',manifest}};
   for(const component of ['JamDetail','JamParticipate','Proposal','ApprovedVersions']){
-    const h=harness({participateData:detail}),props=component==='Proposal'?{id:'jam-42',data:detail,onChanged:async()=>{}}:component==='ApprovedVersions'?{event}:{id:'jam-42'};
+    const h=harness({participateData:component==='JamParticipate'?{...detail,event:{...event,type:'app'}}:detail}),
+      props=component==='Proposal'?{id:'jam-42',data:detail,onChanged:async()=>{}}:component==='ApprovedVersions'?{event}:{id:'jam-42'};
     const html=renderToStaticMarkup(h.render(component,props));
     assert.match(html,/Thu Nov 5 · 2026 · 8:15/);assert.match(html,/Asia\/Kathmandu/);
     assert.match(html,/dateTime="2026-11-05T14:30:00Z"/i);
@@ -670,7 +699,7 @@ test('an explicit early UTC timezone edit wins while untouched saved fields stil
 
 test('participation merges an early title with its saved fields and isolates drafts through rapid account and event switches',()=>{
   const eventA='jam-42',eventB='jam-43',accountA={id:'12',login:'creator',csrfToken:'a'},accountB={id:'99',login:'other',csrfToken:'b'};
-  const details=(id)=>({event:{id,title:'Jam',type:'game',timezone:'UTC',summary:'',theme:'',rules:'',eligibility:'',schedule:{},revision:'A',moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],participantCount:0,participantLimit:100,entries:[]},registration:{status:'joined',revision:'A'},entry:null,canMaintain:false});
+  const details=(id)=>({event:{id,title:'Jam',type:'app',timezone:'UTC',summary:'',theme:'',rules:'',eligibility:'',schedule:{},revision:'A',moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participants:[],participantCount:0,participantLimit:100,entries:[]},registration:{status:'joined',revision:'A'},entry:null,canMaintain:false});
   const saved=(name)=>({title:`${name} title`,description:`${name} private description`,demoUrl:`https://${name}.example/`,instructions:`${name} private instructions`});
   const key=(event,actor)=>`zero-jam-draft:entry-details:${event}:${actor.id}`;
   const sourceKey=(event,actor)=>`zero-jam-draft:entry-source:${event}:${actor.id}`;

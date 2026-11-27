@@ -38,6 +38,7 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
     if (!item || !JAM.test(item.id) || typeof item.title!=='string' ||
         key!==prefix+item.body?.operationId || item.body?.repositoryId!==repositoryId ||
         !REVISION.test(item.body?.revision) || !validEntryRevision(item.body?.entryRevision) ||
+        item.body.projectRevision!==undefined&&!validEntryRevision(item.body.projectRevision) ||
         typeof item.body.commit!=='string' || !/^[a-f0-9]{40}$/.test(item.body.commit) || !POSITIVE.test(item.body.runId)) {
       throw Error('The saved Game Jam submission could not be read.');
     }
@@ -72,7 +73,8 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
     if (pending) {
       const {id,title,body}=pending.item;
       await remember(account,repository,id);
-      return {...context,id,title,revision:body.revision,entryRevision:body.entryRevision,submissionsOpen:false,pending:true};
+      return {...context,id,title,revision:body.revision,entryRevision:body.entryRevision,projectRevision:body.projectRevision,
+        submissionsOpen:false,pending:true};
     }
     const known=()=>hasKnownLink(account,repository) || hasKnownLink(account,repositoryId);
     const routingFailure=()=>{
@@ -97,7 +99,8 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
     if (data?.ambiguous===true) {
       await remember(account,repository,'ambiguous');
       await remember(account,repositoryId,'ambiguous');
-      throw Error('This repository is linked to more than one Game Jam. Check your registrations before publishing.');
+      throw Object.assign(Error('This repository is linked to more than one Game Jam. Check your registrations before submitting.'),
+        {code:'ZERO_JAM_DESTINATION_AMBIGUOUS',publishTarget:context});
     }
     const wasKnown=known();
     if (!wasKnown && (response.status===404 && data?.configured!==true || data?.configured===false)) return context;
@@ -105,6 +108,8 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
     if (!response.ok || data?.configured!==true) throw Error(unavailable);
     const result=data.destination;
     if (result!==null && (!result || !JAM.test(result.id) || !REVISION.test(result.revision) || !validEntryRevision(result.entryRevision) ||
+        result.projectRevision!==undefined&&!validEntryRevision(result.projectRevision) ||
+        result.replacesProject!==undefined&&(typeof result.replacesProject!=='string'||!/^[A-Za-z0-9-]{1,39}\/[A-Za-z0-9_.-]{1,100}$/.test(result.replacesProject)) ||
         typeof result.title!=='string' || !result.title.trim() || typeof result.submissionsOpen!=='boolean')) throw Error(unavailable);
     await remember(account,repository,result?.id);
     await remember(account,repositoryId,result?.id);
@@ -162,7 +167,8 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
       if (pending) {
         const {body}=pending.item;
         if (pending.item.id!==destination.id || body.runId!==String(receipt.runId) || body.commit!==live.sha ||
-            body.pagesUrl!==live.url || body.revision!==destination.revision || body.entryRevision!==destination.entryRevision) {
+            body.pagesUrl!==live.url || body.revision!==destination.revision || body.entryRevision!==destination.entryRevision ||
+            body.projectRevision!==destination.projectRevision) {
           return {status:'pending',message:'The previous jam submission needs confirmation. Choose Publish to Jam again.'};
         }
         return await send(destination,pending.key,pending.item,options);
@@ -170,6 +176,7 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
       const operationId=randomUUID();
       const key=prefix+operationId;
       const record={id:destination.id,title:destination.title,body:{operationId,revision:destination.revision,entryRevision:destination.entryRevision,
+        ...(destination.projectRevision!==undefined?{projectRevision:destination.projectRevision}:{}),
         repositoryId,pagesUrl:live.url,commit:live.sha,runId:String(receipt.runId)}};
       return await send(destination,key,record,options,true);
     } finally {writing.delete(prefix);}

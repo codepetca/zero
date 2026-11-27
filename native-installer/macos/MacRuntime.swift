@@ -591,6 +591,9 @@ struct MacRuntime {
         try publication.publish(Data(text.utf8), leaf: "Open Zero.command", mode: 0o755, expected: previous)
         #endif
     }
+    func jamArguments(_ request: NativeJamRequest) -> [String] {
+        isolated + ["--open-url", "--", request.editorURI]
+    }
     static func main(_ arguments: [String]) -> Int32 {
         do {
             guard arguments.count >= 2 else { throw SetupFailure(message: "Invalid native setup action.") }
@@ -613,6 +616,13 @@ struct MacRuntime {
                 }
                 try runtime.publishEditorUpdate()
                 _ = try execute(cli.path, runtime.editorArguments(resuming: arguments.last == "--native-resume"), environment: runtime.environment(java, git: git, projectGit: true))
+            case let args where args.count == 2 && args[0] == "--native-jam":
+                guard let request = NativeJamRequest(id: args[1]), try runtime.check(),
+                      let java = try runtime.javaHome(), let cli = try runtime.editorCLI(java) else {
+                    throw SetupFailure(message: "Cannot open this jam. Run setup again.")
+                }
+                let git = runtime.installedGit() ?? (try? runtime.privateGit(in: runtime.git))
+                _ = try execute(cli.path, runtime.jamArguments(request), environment: runtime.environment(java, git: git, projectGit: true))
             default: throw SetupFailure(message: "Invalid native setup action.")
             }
             return 0

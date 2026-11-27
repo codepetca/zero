@@ -24,8 +24,9 @@ export function msixManifest(version, identity = feasibilityIdentity) {
   return `<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+ xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
- IgnorableNamespaces="uap rescap">
+ IgnorableNamespaces="uap uap3 rescap">
  <Identity Name="${identity.name}" Publisher="${identity.publisher}" Version="${msixVersion(version)}" ProcessorArchitecture="x64" />
  <Properties>
   <DisplayName>${identity.displayName}</DisplayName>
@@ -39,6 +40,7 @@ export function msixManifest(version, identity = feasibilityIdentity) {
   <Application Id="${identity.applicationId}" Executable="Zero.exe" EntryPoint="Windows.FullTrustApplication">
    <uap:VisualElements DisplayName="${identity.displayName}" Description="${description}"
     BackgroundColor="transparent" Square150x150Logo="Assets\\Square150x150Logo.png" Square44x44Logo="Assets\\Square44x44Logo.png" />
+   <Extensions><uap3:Extension Category="windows.protocol"><uap3:Protocol Name="zero-studio" Parameters="--protocol &quot;%1&quot;" /></uap3:Extension></Extensions>
   </Application>
  </Applications>
  <Capabilities><rescap:Capability Name="runFullTrust" /></Capabilities>

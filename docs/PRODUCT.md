@@ -223,19 +223,24 @@ historical proposals retain their review records; creators cannot self-cancel hi
 jams. The official Zero page presents the accepted details and
 participation link. The earlier creator-hosted website preparation and submission
 path is retained in source but temporarily unavailable for new proposals; existing
-records remain readable. To join a Game Jam, students choose **Project → Join a
-Game Jam** on the Zero Start Page. Zero shows the registration and submission
-deadlines and a short rules preview. The full rules open beside the editor.
-Students review the rules and choose **Continue joining** on the
-Start Page, then create a new public GitHub project or choose an existing
-standalone public Zero repository. The jam registration saves that repository
-before publishing. If a student left the jam and GitHub can no longer find the
-old repository, they can choose a new project while registration is open.
-Zero opens the new project or a matching local checkout of the existing
-repository. If no local checkout is known, Zero offers
-**Clone & open**. Students can return later using **Open jam project** in the
-jam picker while the jam accepts entries. The website shows the rules and
-directs students to Zero once editor-only Game Jam registration is enabled.
+records remain readable. An open Game Jam's website offers **Open in Zero**
+and **Download Zero**. Students join, manage projects, and submit in Zero.
+If the app link does not open Zero, use **Open
+Game Jams** on the Start Page. The app link opens the selected jam's rules
+and deadlines. Students sign in to Zero, choose **Continue joining**, and
+create a public GitHub project or choose an existing standalone public Zero
+repository. Zero opens the project or offers **Clone & open**.
+
+Returning students can choose **Manage jam projects** in Zero through the
+submission deadline, including after registration closes. They can add and
+remove their projects while staying registered. Removing a deleted project
+uses its recorded identity and works without access to the old repository.
+Removing the project that is currently submitted also withdraws its entry.
+Each student has one current entry. Publishing a different linked project
+replaces that entry. Discovery holds for previously linked projects last
+until the gallery reveal. After submissions close, membership and entries
+retain the final competition state.
+
 A linked project shows **Publish
 to Jam** in Run options. Zero publishes or finds the current GitHub Pages
 build, verifies it and submits it before the deadline. The editor confirms

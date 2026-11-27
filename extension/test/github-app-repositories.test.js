@@ -42,6 +42,22 @@ test('setup accepts an empty selected installation or existing all access using 
   assert.ok(f.calls.every(call=>call.options.method==='GET'&&!call.options.body));
  }
 });
+test('the checked-out branch must match a verified GitHub commit ref',async()=>{
+ const f=fixture(),branch='class/project',sha='a'.repeat(40);
+ let reply={ref:`refs/heads/${branch}`,object:{type:'commit',sha}};
+ const api=createGitHubAppRepositories({authentication:f.authentication,configuration,fetchImpl:async(url,options)=>{
+  assert.equal(url,'https://api.github.com/repos/student/project/git/ref/heads/class/project');
+  assert.equal(options.method,'GET');assert.equal(options.redirect,'error');
+  return reply===null ? {ok:false,status:404} : {ok:true,json:async()=>reply};
+ }});
+ const input={ticket:f.ticket,branch};
+ assert.equal(await api.readRepositoryBranchHead(f.repo.html_url,input),sha);
+ reply.ref='refs/heads/main';
+ await assert.rejects(api.readRepositoryBranchHead(f.repo.html_url,input),/did not confirm/);
+ reply=null;
+ assert.equal(await api.readRepositoryBranchHead(f.repo.html_url,input),null);
+ await assert.rejects(api.readRepositoryBranchHead(f.repo.html_url,{...input,branch:'../bad'}),/default branch/);
+});
 test('commit comparison uses exact SHAs and returns totals without a complete commit list',async()=>{
  const f=fixture(),base='a'.repeat(40),head='b'.repeat(40),signal=new AbortController().signal;
  const comparison={base_commit:{sha:base},ahead_by:41,behind_by:2,total_commits:41,commits:[{sha:head}]};

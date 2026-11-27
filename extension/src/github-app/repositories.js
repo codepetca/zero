@@ -160,6 +160,16 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     await current(ticket);
     return Object.freeze({ticket,repository:Object.freeze(repo),installation:Object.freeze(installed),checkedAt:now()});
   }
+  async function readRepositoryBranchHead(repositoryUrl,{ticket,branch,signal}) {
+    configured();
+    if(!core.validBranchName(branch))throw failure('GitHub did not identify the repository’s default branch.', 'invalid-response');
+    const {page}=core.parseRepositoryUrl(repositoryUrl);
+    const ref=await api(ticket,'GET',`/repos/${page.slice('https://github.com/'.length)}/git/ref/heads/${branch.split('/').map(encodeURIComponent).join('/')}`,{signal,allow404:true,maxBytes:64*1024});
+    if(ref===null)return null;
+    if(ref?.ref!==`refs/heads/${branch}`||ref.object?.type!=='commit'||!commitId(ref.object.sha))
+      throw failure('GitHub did not confirm the default branch commit.', 'invalid-response');
+    return ref.object.sha;
+  }
   async function compareCommits(repositoryUrl,{ticket,base,head,includeCommits=false,signal}) {
     configured();
     if(!ticket||!commitId(base)||!commitId(head)||base.length!==head.length)throw failure('Exact commits are required for comparison.','invalid-comparison');
@@ -228,6 +238,14 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
       repositories.sort(newestFirst);
       return Object.freeze({repositories:Object.freeze(repositories),truncated});
     } finally {controller.abort();}
+  }
+  async function readPublicStandaloneZero(repositoryUrl,{ticket,signal}={}) {
+    const accessResult=await access(repositoryUrl,{ticket,signal,permissions:{contents:'read'}});
+    const repo=accessResult.repository;
+    if(repo.private!==false)throw failure('Make this repository public on GitHub before choosing it for a Game Jam.', 'repository-private');
+    if(!await zeroMarker(repo,accessResult.ticket,signal,true))throw failure('Choose a standalone Zero project with a valid zero.json at the repository root.', 'not-standalone-zero');
+    await current(accessResult.ticket);cancelled(signal);
+    return repo;
   }
   function newestFirst(a,b) {
     return (Date.parse(b.pushed_at)||0)-(Date.parse(a.pushed_at)||0) || a.full_name.localeCompare(b.full_name);
@@ -318,6 +336,6 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
       throw error;
     } finally {creating.delete(key);}
   }
-  return {checkSetup,access,readOwnedRepository,compareCommits,create,listZero};
+  return {checkSetup,access,readOwnedRepository,readPublicStandaloneZero,readRepositoryBranchHead,compareCommits,create,listZero};
 }
 module.exports={createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity};

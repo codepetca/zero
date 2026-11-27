@@ -40,6 +40,7 @@ test('feasibility manifest has a temporary identity, desktop entry point and onl
   assert.match(xml,/MinVersion="10.0.19041.0"/);
   assert.equal((xml.match(/<rescap:Capability /g)||[]).length,1);
   assert.match(xml,/Name="runFullTrust"/);
+  assert.match(xml, /<uap3:Extension Category="windows\.protocol"><uap3:Protocol Name="zero-studio" Parameters="--protocol &quot;%1&quot;" \/><\/uap3:Extension>/);
 });
 test('verifier checks exact payload and all 64KiB blocks, including the last partial block',() => {
   const data=fixture();

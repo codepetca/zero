@@ -9,6 +9,14 @@ const JAM_ID = /^jam-(?:[1-9][0-9]{0,19}|zero-[a-f0-9]{32})$/;
 const REVISION = /^[a-f0-9]{64}$/;
 const validRepositoryId = id => typeof id==='string' && /^[1-9][0-9]{0,19}$/.test(id);
 
+const validJamId = id => typeof id === 'string' && JAM_ID.test(id) && !/\s/u.test(id);
+
+function gameJamLinkId(uri) {
+  if (uri?.scheme !== 'vscode' || uri.authority !== 'zero.zero' || uri.query || uri.fragment || typeof uri.path !== 'string' || !uri.path.startsWith('/jam/')) return undefined;
+  const id = uri.path.slice('/jam/'.length);
+  return validJamId(id) ? id : undefined;
+}
+
 function describeDeadline(timestamp, timezone) {
   if (!Number.isFinite(Date.parse(timestamp))) return '';
   try {
@@ -32,6 +40,7 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
   const unconfirmed = 'Zero could not confirm that you joined. Choose Join a Game Jam to retry with the same repository.';
   let review;
   const pendingPrefix = account => `zero.gameJam.pending:${account}:`;
+  const projectChangePrefix = account => `zero.gameJam.projectChange:${account}:`;
   const currentReview = account => review?.account === account ? review : undefined;
   const editorJoinUrl = id => ORIGIN+`/api/desktop/jams/${id}/join`;
   const editorHeaders = ticket => {
@@ -43,24 +52,61 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     if (globalState.get(key)?.operationId === operationId) await globalState.update(key,undefined);
   }
 
-  async function listJams(ticket) {
+  async function readCatalog(signal) {
     let data;
     try {
       const response = await request(ORIGIN+'/api/jams?view=summaries',{
-        redirect:'error',cache:'no-store',signal:AbortSignal.timeout(20_000)
+        redirect:'error',cache:'no-store',signal:AbortSignal.any([AbortSignal.timeout(20_000),...(signal ? [signal] : [])])
       });
+      if (response.status === 404) return {checkedAt:NaN,events:[]};
       if (!response.ok) throw Error();
       data = await response.json();
     } catch {throw Error(unavailable);}
     if (data?.configured !== true || !Array.isArray(data.events)) throw Error(unavailable);
-    await authentication.assertCurrent(ticket);
-    const checkedAt=Date.parse(data.checkedAt);
-    return data.events.flatMap(event=>{
-      if(event?.type!=='game'||!JAM_ID.test(event.id)||!REVISION.test(event.revision)||typeof event.title!=='string')return [];
-      const joined=Array.isArray(event.participants)&&event.participants.some(person=>person?.id===ticket.session.accountId);
-      const canOpen=joined&&(event.submissionsOpen===true||Date.parse(event.schedule?.submissionsCloseAt)>checkedAt);
-      return event.registrationOpen===true||canOpen?[{...event,joined}]:[];
+    return {checkedAt:Date.parse(data.checkedAt),events:data.events.filter(event=>
+      event?.type==='game'&&validJamId(event.id)&&REVISION.test(event.revision)&&typeof event.title==='string')};
+  }
+
+  const registrationOpen = (event, checkedAt) => event.registrationOpen===true &&
+    !(Date.parse(event.schedule?.registrationClosesAt)<=checkedAt);
+  const projectsOpen = (event, checkedAt) => event.submissionsOpen===true ||
+    event.moderation?.status==='active'&&checkedAt<Date.parse(event.schedule?.submissionsCloseAt);
+
+  async function listOpenJams(signal,account) {
+    const {events,checkedAt}=await readCatalog(signal);
+    return events.flatMap(event=>{
+      const joined=Boolean(account)&&Array.isArray(event.participants)&&event.participants.some(person=>person?.id===account);
+      if(!registrationOpen(event,checkedAt)&&!(joined&&projectsOpen(event,checkedAt)))return [];
+      return [{id:event.id,title:event.title,...(joined?{joined:true}:{
+        deadline:describeDeadline(event.schedule?.registrationClosesAt,event.timezone)
+      })}];
     });
+  }
+
+  function reviewDetails(event) {
+    return {title:event.title,rules:rulesPreview(event.rules),
+      registrationDeadline:describeDeadline(event.schedule?.registrationClosesAt,event.timezone),
+      submissionDeadline:describeDeadline(event.schedule?.submissionsCloseAt,event.timezone)};
+  }
+
+  async function readLinkedJam(id,signal) {
+    if (!validJamId(id)) throw Error('This Game Jam link is invalid.');
+    let data;
+    try {
+      const response=await request(ORIGIN+`/api/jams/${id}?view=overview`,{
+        redirect:'error',cache:'no-store',signal:AbortSignal.any([signal,AbortSignal.timeout(20_000)])
+      });
+      if (response.ok) data=await response.json();
+    } catch {throw Error(unavailable);}
+    const event=data?.event;
+    if (data?.configured!==true || event?.id!==id || event.type!=='game' ||
+        !REVISION.test(event.revision) || typeof event.title!=='string' || typeof event.rules!=='string') {
+      throw Error('This Game Jam could not be opened. Check its official page or try again.');
+    }
+    const checkedAt=Date.parse(data.checkedAt);
+    return {id,revision:event.revision,...reviewDetails(event),fullRules:event.rules,
+      eligibility:typeof event.eligibility==='string'?event.eligibility:'',registrationOpen:registrationOpen(event,checkedAt),
+      projectsOpen:projectsOpen(event,checkedAt)};
   }
 
   async function readJoinDetails(ticket,id) {
@@ -121,46 +167,78 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     return true;
   }
 
-  async function chooseJam(ticket) {
-    const prefix = pendingPrefix(ticket.session.accountId);
+  function pendingJoins(account) {
+    const prefix = pendingPrefix(account);
     const pending = new Map();
     for (const key of globalState.keys().filter(key=>key.startsWith(prefix))) {
       const item = globalState.get(key);
-      if (!item || !JAM_ID.test(item.id) || key !== prefix+item.id || !REVISION.test(item.revision) ||
+      if (!item || !validJamId(item.id) || key !== prefix+item.id || !REVISION.test(item.revision) ||
           !/^[a-f0-9-]{36}$/.test(item.operationId) || typeof item.title !== 'string') continue;
       try {
         if (parseRepositoryUrl(item.repositoryUrl).page === item.repositoryUrl) pending.set(item.id,item);
       } catch { /* An invalid local record cannot block other jams. */ }
     }
 
-    let events;
-    try { events = await listJams(ticket); }
-    catch (error) { if (!pending.size) throw error; events=[]; }
+    return pending;
+  }
+
+  function pendingProjectChanges(account) {
+    const prefix=projectChangePrefix(account),pending=new Map();
+    for(const key of globalState.keys().filter(key=>key.startsWith(prefix))) {
+      const item=globalState.get(key);
+      if(!item||!validJamId(item.id)||key!==prefix+item.id||typeof item.title!=='string'||
+          !['POST','DELETE'].includes(item.method)||!validRepositoryId(item.body?.repositoryId)||
+          !(item.body?.projectRevision===''||typeof item.body?.projectRevision==='string'&&REVISION.test(item.body.projectRevision))||
+          !/^[a-f0-9-]{36}$/.test(item.body?.operationId||''))continue;
+      try {
+        if(item.method==='POST'&&parseRepositoryUrl(item.body.repositoryUrl).page!==item.body.repositoryUrl)continue;
+        pending.set(item.id,item);
+      } catch { /* An invalid local record cannot block other jams. */ }
+    }
+    return pending;
+  }
+
+  async function chooseJam(ticket) {
+    const {accountId}=ticket.session;
+    const pending = pendingJoins(accountId),projectChanges=pendingProjectChanges(accountId);
+    let catalog;
+    try { catalog = await readCatalog(); }
+    catch (error) { if (!pending.size&&!projectChanges.size) throw error; catalog={events:[]}; }
     if (!active()) return;
-    authentication.assertCurrentNow(ticket);
+    await authentication.assertCurrent(ticket);
     const choices = [
-      ...Array.from(pending.values(),item=>({
+      ...Array.from(projectChanges.values(),item=>({label:`Check project change · ${item.title}`,id:item.id})),
+      ...Array.from(pending.values()).filter(item=>!projectChanges.has(item.id)).map(item=>({
         label:`${validRepositoryId(item.repositoryId) ? 'Retry joining' : 'Review registration for'} ${item.title}`,description:item.repositoryUrl,id:item.id
       })),
-      ...events.filter(event=>!pending.has(event.id)).map(event=>({
-        label:event.joined?`Open jam project · ${event.title}`:event.title,
-        description:event.joined?'Already joined':describeDeadline(event.schedule?.registrationClosesAt,event.timezone),
-        id:event.id
-      }))
+      ...catalog.events.flatMap(event=>{
+        if (pending.has(event.id)||projectChanges.has(event.id)) return [];
+        const joined=Array.isArray(event.participants)&&event.participants.some(person=>person?.id===ticket.session.accountId);
+        const canOpen=joined&&(event.submissionsOpen===true||Date.parse(event.schedule?.submissionsCloseAt)>catalog.checkedAt);
+        if (!registrationOpen(event,catalog.checkedAt)&&!canOpen) return [];
+        return [{label:joined?`Manage jam projects · ${event.title}`:event.title,
+          description:joined?'Already joined':describeDeadline(event.schedule?.registrationClosesAt,event.timezone),id:event.id}];
+      })
     ];
     if (!choices.length) {report('No Game Jams are open for registration.');return;}
     const choice = await vscode.window.showQuickPick(choices,{title:'Join a Game Jam',placeHolder:'Choose a Game Jam'});
-    if (!choice || !active()) return;
+    if (choice) await selectJam(ticket,choice.id);
+  }
+
+  async function selectJam(ticket,id) {
+    if (!active() || !validJamId(id)) return;
     authentication.assertCurrentNow(ticket);
     review=undefined;
-    const key = prefix+choice.id;
-    const retry = pending.get(choice.id);
+    const pendingChange=pendingProjectChanges(ticket.session.accountId).get(id);
+    if(pendingChange)return checkProjectChange(ticket,pendingChange);
+    const key = pendingPrefix(ticket.session.accountId)+id;
+    const retry = pendingJoins(ticket.session.accountId).get(id);
     if (retry && validRepositoryId(retry.repositoryId)) {
       if (await register(ticket,key,retry)) await openJoinedProject(ticket,retry.title,retry);
       return;
     }
 
-    const details=await readJoinDetails(ticket,choice.id);
+    const details=await readJoinDetails(ticket,id);
     if (!active()) return;
     if (details.registration?.status==='joined') {
       if(retry) await clearPending(key,retry.operationId);
@@ -202,15 +280,122 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     return selected?.repositoryId===id ? selected : undefined;
   }
 
-  async function reopenRegistration(ticket,{event,registration}) {
-    review=undefined;
-    report(`You’ve already joined ${event.title}.`);
-    if (!registration.repository) return;
-    const existing=await registeredRepository(ticket,registration.repository);
+  async function openRegisteredProject(ticket,event,repository) {
+    const existing=await registeredRepository(ticket,repository);
     if (!existing||!active())return;
     authentication.assertCurrentNow(ticket);
     await onJoined({account:ticket.session.accountId,repository:existing.repositoryUrl,repositoryId:existing.repositoryId,id:event.id});
     await openJoinedProject(ticket,event.title,existing);
+  }
+
+  async function changeProject(ticket,event,projectRevision,method,project,signal) {
+    signal?.throwIfAborted();
+    await authentication.assertCurrent(ticket);
+    if(!active())return false;
+    const {repositoryId,repositoryUrl}=project;
+    if(!validRepositoryId(repositoryId))throw Error('Choose your Game Jam project again.');
+    const key=projectChangePrefix(ticket.session.accountId)+event.id;
+    if(pendingProjectChanges(ticket.session.accountId).has(event.id))
+      throw Error('Check the earlier project change before making another change.');
+    const body={operationId:randomUUID(),repositoryId,projectRevision,
+      ...(method==='POST'?{repositoryUrl:parseRepositoryUrl(repositoryUrl).page}:{})};
+    const record={id:event.id,title:event.title,method,body};
+    await globalState.update(key,record);
+    return sendProjectChange(ticket,record,signal);
+  }
+
+  async function sendProjectChange(ticket,{id,title,method,body},signal,check=false) {
+    if(!active())return false;
+    signal?.throwIfAborted();
+    const key=projectChangePrefix(ticket.session.accountId)+id;
+    const clear=async()=>{
+      if(globalState.get(key)?.body?.operationId===body.operationId)await globalState.update(key,undefined);
+    };
+    let response,result;
+    const retry='Zero could not confirm the change. Choose Check project change before trying again.';
+    try {
+      response=await request(ORIGIN+`/api/desktop/jams/${id}/projects`,{
+        method,redirect:'error',headers:{...editorHeaders(ticket),'Content-Type':'application/json',
+          ...(check?{'X-Zero-Check-Project-Change':'1'}:{})},
+        body:JSON.stringify(body),signal:AbortSignal.any([AbortSignal.timeout(24_000),...(signal?[signal]:[])])
+      });
+      result=await response.json();
+    } catch {throw Error(retry);}
+    if(!active())return false;
+    authentication.assertCurrentNow(ticket);
+    const confirmed=response.ok&&result?.configured===true&&result.eventId===id&&result.operationId===body.operationId;
+    if(check&&confirmed&&result.settlement==='not-applied') {
+      await clear();
+      report('The earlier project change didn’t apply. Choose Manage jam projects to try again.');
+      return false;
+    }
+    if(!confirmed||result.status!==(method==='POST'?'project-added':'project-removed')||check&&result.settlement!=='applied') {
+      if(result?.configured===true&&typeof result.error==='string'&&[400,403,404,409,413,429].includes(response.status)) {
+        if(!check)await clear();
+        throw Error(result.error.slice(0,400));
+      }
+      if(response.status===401)throw Error('Reconnect GitHub to check the earlier project change.');
+      throw Error(retry);
+    }
+    await clear();
+    if(method==='POST')await onJoined({account:ticket.session.accountId,repository:body.repositoryUrl,repositoryId:body.repositoryId,id});
+    report(`${method==='POST'?'Added project to':'Removed project from'} ${title}.`);
+    return true;
+  }
+
+  async function checkProjectChange(ticket,record) {
+    const choice=await vscode.window.showInformationMessage('Check the earlier project change?',{
+      modal:true,detail:'Zero will check whether the change was saved before you make another change.'
+    },'Check change');
+    if(choice==='Check change'&&active())await sendProjectChange(ticket,record,undefined,true);
+  }
+
+  async function chooseProjectAction(ticket,event,onNew,onExisting) {
+    const choice=await vscode.window.showQuickPick([
+      {label:'New project',description:'Create a public GitHub repository',action:'new'},
+      {label:'Use an existing repository',action:'existing'}
+    ],{title:event.title,placeHolder:'Choose a project for this Game Jam'});
+    if(!choice||!active())return;
+    authentication.assertCurrentNow(ticket);
+    if(choice.action==='new')await projects.newProject({preparedTicket:ticket,onCloned:onNew});
+    else if(choice.action==='existing')await onExisting();
+  }
+
+  async function reopenRegistration(ticket,{event,registration,canManageProjects,projectRevision,submittedRepositoryId}) {
+    review=undefined;
+    if(canManageProjects===undefined) {
+      report(`You’ve already joined ${event.title}.`);
+      if(registration.repository)await openRegisteredProject(ticket,event,registration.repository);
+      return;
+    }
+    if(!canManageProjects) {report(`Project changes are closed for ${event.title}.`);return;}
+    if(!(projectRevision===''||typeof projectRevision==='string'&&REVISION.test(projectRevision)))throw Error(unavailable);
+    const linked=registration.repositories??(registration.repository?[registration.repository]:[]);
+    const choices=[
+      ...linked.map(repository=>({label:repository.fullName,description:repository.id===submittedRepositoryId?'Submitted project':'Open project',action:'open',repository})),
+      {label:'Add a project',action:'add'},
+      ...(linked.length?[{label:'Remove a project',action:'remove'}]:[])
+    ];
+    const choice=await vscode.window.showQuickPick(choices,{title:event.title,placeHolder:'Manage your Game Jam projects'});
+    if(!choice||!active())return;
+    authentication.assertCurrentNow(ticket);
+    if(choice.action==='open')return openRegisteredProject(ticket,event,choice.repository);
+    if(choice.action==='add') {
+      const add=project=>changeProject(ticket,event,projectRevision,'POST',project,project.signal);
+      return chooseProjectAction(ticket,event,add,async()=>{
+        const existing=await projectPicker.choose({publicRepositoriesOnly:true,standaloneOnly:true});
+        if(existing&&active())await add(existing);
+      });
+    }
+    const selected=await vscode.window.showQuickPick(linked.map(repository=>({
+      label:repository.fullName,description:repository.id===submittedRepositoryId?'Submitted project':'',repository
+    })),{title:event.title,placeHolder:'Choose a project to remove'});
+    if(!selected||!active())return;
+    const project=selected.repository;
+    const confirm=await vscode.window.showWarningMessage(`Remove ${project.fullName} from ${event.title}?`,{
+      modal:true,detail:'You’ll stay in the jam. Removing a submitted project also withdraws its entry. Your GitHub repository stays available if it still exists.'
+    },'Remove project');
+    if(confirm==='Remove project')await changeProject(ticket,event,projectRevision,'DELETE',{repositoryId:project.id});
   }
 
   function canContinue({event,hasRegistrationSpace}) {
@@ -226,11 +411,15 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     await openRules(event.id);
     if (!active()) return;
     authentication.assertCurrentNow(ticket);
-    review={id:event.id,revision:event.revision,account:ticket.session.accountId,details:{
-      title:event.title,rules:rulesPreview(event.rules),
-      registrationDeadline:describeDeadline(event.schedule?.registrationClosesAt,event.timezone),
-      submissionDeadline:describeDeadline(event.schedule?.submissionsCloseAt,event.timezone)
-    }};
+    review={id:event.id,revision:event.revision,account:ticket.session.accountId,details:reviewDetails(event)};
+  }
+
+  async function continueLinkedJam(ticket,linked) {
+    if (!active() || !validJamId(linked.id) || !REVISION.test(linked.revision)) return;
+    authentication.assertCurrentNow(ticket);
+    if (pendingJoins(ticket.session.accountId).has(linked.id)||pendingProjectChanges(ticket.session.accountId).has(linked.id)) return selectJam(ticket,linked.id);
+    review={id:linked.id,revision:linked.revision,account:ticket.session.accountId,details:linked};
+    await continueJoining(ticket);
   }
 
   async function continueJoining(ticket) {
@@ -267,19 +456,12 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
       if(existing&&active()&&await join(existing)) await openJoinedProject(ticket,event.title,existing);
     };
     if (boundRepository) return joinExisting(boundRepository);
-    const selected = await vscode.window.showQuickPick([
-      {label:'New project',description:'Create a public GitHub repository',action:'new'},
-      {label:'Use an existing repository',action:'existing'}
-    ],{title:event.title,placeHolder:'Choose a project for this Game Jam'});
-    if (!selected || !active()) return;
-    authentication.assertCurrentNow(ticket);
-    if (selected.action === 'new') {
-      await projects.newProject({preparedTicket:ticket,onCloned:join});
-    } else if (selected.action === 'existing') {
-      await joinExisting();
-    }
+    await chooseProjectAction(ticket,event,join,joinExisting);
   }
-  return {chooseJam,continueJoining,reviewDetails:account=>currentReview(account)?.details};
+  return {chooseJam,selectJam,listOpenJams,readLinkedJam,continueLinkedJam,continueJoining,
+    reviewDetails:account=>currentReview(account)?.details,
+    dismissReview(account) {if (currentReview(account)) review=undefined;}
+  };
 }
 
-module.exports = {createGameJamJoin};
+module.exports = {createGameJamJoin,gameJamLinkId};

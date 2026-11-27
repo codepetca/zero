@@ -688,7 +688,7 @@ final class SetupController {
     private func fail(_ message: String, detail: String) {
         snapshot = nil; busy = false; configuring = false; record(detail); set(.retry, message)
     }
-    private func run(_ arguments: [String], status: String, timeout: TimeInterval = 180, completion: @escaping (CommandResult) -> Void) {
+    private func run(_ arguments: [String], status: String, timeout: TimeInterval = 180, failure: (() -> Void)? = nil, completion: @escaping (CommandResult) -> Void) {
         guard mayBeginWork() else { return }
         do {
             let current = SetupKit(root: selectedFolder ?? kit.root)
@@ -699,12 +699,12 @@ final class SetupController {
                 guard let self else { return }
                 self.busy = false
                 self.record("Action: \(arguments.joined(separator: " "))\nExit: \(result.exitCode.map(String.init) ?? "stopped")\n\(result.output)")
-                if result.timedOut { self.fail("Setup timed out. Try again.", detail: "Command exceeded \(timeout) seconds. Readiness is unverified."); return }
-                if let error = result.launchError { self.fail("Setup could not finish. Try again.", detail: error); return }
-                if !result.succeeded { self.fail("Setup needs attention. Try again.", detail: "Action failed. No readiness confirmed. Use Details for details."); return }
+                if result.timedOut { self.fail("Setup timed out. Try again.", detail: "Command exceeded \(timeout) seconds. Readiness is unverified."); failure?(); return }
+                if let error = result.launchError { self.fail("Setup could not finish. Try again.", detail: error); failure?(); return }
+                if !result.succeeded { self.fail("Setup needs attention. Try again.", detail: "Action failed. No readiness confirmed. Use Details for details."); failure?(); return }
                 completion(result)
             }
-        } catch { fail("The kit needs attention. See Details.", detail: error.localizedDescription) }
+        } catch { fail("The kit needs attention. See Details.", detail: error.localizedDescription); failure?() }
     }
     func launch() {
         guard mayBeginWork(), !busy, !hasChecked, selectedFolder == nil else { return }
@@ -769,6 +769,7 @@ final class SetupController {
             set(.retry, "Zero is ready. Try again to open it.")
         } else {
             set(.opened, "In Zero, choose Run App to begin.")
+            opened?()
         }
     }
     private func update(_ plan: KitUpdatePlan) {
@@ -810,6 +811,13 @@ final class SetupController {
             self?.hasOpened = true
             self?.set(.opened, "In Zero, choose Run App to begin.")
             self?.opened?()
+        }
+    }
+    func openJam(_ request: NativeJamRequest, completion: @escaping (Bool) -> Void) {
+        guard !busy, stage == .opened, mayBeginWork() else { completion(false); return }
+        run(["--native-jam", request.id], status: "Opening jam…", timeout: 180, failure: { completion(false) }) { [weak self] _ in
+            self?.set(.opened, "Zero is ready.")
+            completion(true)
         }
     }
     func mayExit() -> Bool {

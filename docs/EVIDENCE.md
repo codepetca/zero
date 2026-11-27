@@ -1,3 +1,196 @@
+# Game Jam merge checks — 2026-11-26
+
+Existing checkout selection compares local Git history with the verified
+repository's default branch. The public-project picker independently verifies a
+pasted URL, ownership, Zero access and the standalone project marker. If the Jam
+destination is closed or ambiguous, students can explicitly publish to Pages
+without submitting an entry. An interrupted Pages-only deployment can resume
+from its saved account and repository without dispatching another deployment.
+
+A delayed Join cannot restore a removed project. Fresh submissions after project
+management require consent for the current project revision. An already accepted
+operation can recover its receipt without changing registration or the entry.
+
+GPT-6.2 Astra at high reasoning and GPT-6.1 Sol at high reasoning independently
+reviewed `6af342bf2` against `36547128b`. The compatibility reviewer had no
+findings and passed 65 targeted tests. The security reviewer reproduced three
+race and recovery defects. The targeted re-review of `38b7353fb` confirmed all
+three fixes, including receipt recovery from an older editor after the deadline.
+
+The combined extension checks passed 461 tests with one skip before the race
+fixes. Follow-up checks passed 141 tests with one skip. The opted-in PostgreSQL
+HTTP fixture passed on a disposable local database. Real student registration
+and the packaged Mac and Windows handoff on the final revision remain release
+checks. The preceding source revisions’ isolated OS handoff tests are recorded below.
+
+# Combined Game Jam student flow verification — 2026-11-26
+
+The `Simplify ZeroJam web sign-up` chat checked the combined website at
+`d2940231e` in Chrome. The primary jam page and older participation URL had
+one **Open in Zero** link with the exact jam ID, a **Download Zero** link, and
+no student form for either a guest or a simulated returning member. Its 109
+focused tests passed. The website and native launcher were unchanged by the
+editor checkout and publication safeguards in `6af342bf2`.
+
+On macOS 26.6.2 arm64, Chrome displayed the expected action on a local copy of
+**Toast to the Moon** populated with public jam data. The desktop was locked,
+so after clicking the link the test dispatched the same URI through macOS
+Launch Services directly. The Developer ID–signed QA launcher built from
+`6af342bf2` used a disposable editor profile and loopback inspection. After
+the VS Code URI prompt and first-time setup with reporting off, the fresh
+editor showed the exact jam, its full rules, and **Sign in to Zero**. The test
+stopped before authenticating.
+
+The disposable PostgreSQL integration ran the production desktop Jam HTTP
+handlers with synthetic GitHub and Pages responses. The student joined with
+the original repository, removed it after deletion and after registration
+closed, added a replacement, and submitted its verified build. The stored
+record kept the same participant and join timestamp, with one entry for the
+replacement. The focused editor suite passed 204 tests with one skip.
+The Jam suite passed 710 tests with six opt-in skips, and `npm run check`
+passed.
+
+The Windows launcher, protocol registration and link generator match the
+earlier Windows VM proof below. The installed Windows candidate on the
+combined revision and real student sign-in remain pending. This verification
+did not modify the live event or publish a release.
+
+# Game Jam website participation — 2026-11-26
+
+The owner clarified that Game Jam student pages should have no browser
+participation forms. The official page and embedded panel offer **Open in Zero**
+while the jam accepts registrations or submissions. Older participation links
+show a short app handoff even for signed-in members. App Jams keep the browser
+join and submission flow. Game Jam organizers keep their schedule and
+moderation controls. Focused UI tests cover both flag states, App Jam
+submission, and the participant's private removal notice.
+
+The live **Toast to the Moon** schedule was updated separately using the
+organizer's **Edit schedule** action. Public read-back confirmed registration
+and submissions close Monday, November 30, 2026 at 3:00 p.m., and the gallery
+opens Tuesday, December 1 at 7:00 a.m., all America/Toronto.
+
+# Game Jam participation review and project management — 2026-11-26
+
+The signed-out live Toast to the Moon walkthrough went from Browse jams to
+the official details and **Review and take part**, then to the browser form.
+The form exposed the accepted revision hash and GitHub Pages instructions
+before a student could join. Public 0.5.89 contains the earlier recovery fix
+for a participant who already left while registration is open. Its editor
+still sends an actively joined participant to the original repository.
+The direct app handoff had only been integrated locally at `0dca49846`.
+
+The local source puts **Open in Zero** and **Download Zero** on the event's
+main page. Editor-first participation links show the app handoff and a link
+to the official page. Joined students add and remove public projects through
+the submission deadline while retaining their account's registration and one
+current entry. Removing the submitted project withdraws its entry. Multiple
+projects and retired repository IDs remain held through reveal, including
+with the older visibility reader for secondary links.
+
+Independent Astra high review followed the website, native handoff, registry,
+editor, publishing and gallery controls. Its fixture reproduced an older
+reader missing a secondary hold and stale publication and project changes
+crossing a remove-and-reattach. The updated route binds project selection and
+publishing to the reviewed project list, and settles unconfirmed changes
+without starting a second write. Astra's targeted recheck found no remaining
+blocker in those changes. Independent Terra medium compatibility review
+covered old and new editor/server combinations and App Jam separation.
+
+Repository configuration and website type checks passed. The Jam suite passed
+711 tests with six opt-in skips. The desktop suite passed 184 with one skip.
+The opt-in PostgreSQL HTTP test passed separately against a disposable local
+database, including adding and removing another project while preserving the
+student's submitted entry. Local browser checks verified the main desktop
+handoff, the compact direct participation page, the custom URI target and
+44 px actions without horizontal overflow at 426 CSS pixels. Live production
+registration, a signed build with the combined changes on Mac/Windows, and
+physical school-device acceptance remain untested.
+
+The merge checks above cover the follow-up fixes for checkout identity, the
+public-project picker and Pages publication.
+
+# ZeroJam sign-up integration — 2026-11-26
+
+Integrated the web, Start Page and native handoff changes on top of main
+`36547128b`. Chrome at 320 CSS pixels showed the checked first-launch reporting
+box and verified that Cancel joining closes the jam review and returns focus to
+Open Game Jams. The combined Start Page tests confirmed a browser link keeps its
+jam through first-launch setup. No sign-in or registration is initiated by the
+link alone.
+
+The repository check, website type check, 99 focused tests and 136 adjacent
+editor tests passed. The Jam suite passed 706 tests with 6 skips. Playground and
+packaging checks passed 26 tests with 2 skips. The disposable Mac launcher
+harness passed 390 assertions. Windows launcher and MSIX source match the
+Windows VM run below. Browser-to-app activation was exercised on the original
+signed test builds. The combined branch has no signed end-to-end run or live
+student registration result.
+
+Independent GPT-6.1 Terra review at medium reasoning covered source
+`2639a7123`, including URI handoff, onboarding and the web participation gate.
+The review suggested extending public rules previews to signed-out selections in
+the Start Page catalog. This integration preserves the original design: the
+website link opens public rules before sign-in, and catalog selection uses the
+existing authenticated flow. The follow-up test-only change covers the production
+visibility gate around the new panel helper.
+
+# Open in Zero for Game Jams — 2026-11-26
+
+The local website offers **Open in Zero** beside **Download Zero** on open Game
+Jam pages. The signed Mac app and Windows Store package register the same
+jam-only URL scheme. The native handlers forward a validated ID to the isolated
+editor. The editor loads the public rules before sign-in and checks the account,
+registration and current revision when the student chooses **Continue joining**.
+
+65 focused editor and playground tests, 60 website tests, and 13 packaging tests
+passed. One pre-existing packaging test was skipped. Website TypeScript and
+diff checks passed. Local Chrome confirmed both actions at 320 CSS pixels. An
+isolated Mac VS Code host with fixture responses opened two exact jams through the
+internal URI on cold and warm launches. The Mac disposable native harness passed
+376 assertions. Windows fixture suites passed under Mono and the production Store
+launcher compiled. Independent GPT-6.1 Terra source review and targeted re-review
+reported no outstanding findings.
+
+The later browser test clicked **Open in Zero** on a local copy of the **Toast to
+the Moon** jam page populated with its public data. Chrome prompted once to
+open a Developer ID–signed fixture, and VS Code prompted once to open the Zero
+URI. The signed launcher opened the exact jam and its full rules. The fixture
+used a separate bundle identity, a short disposable home and loopback editor
+observation. The installed Mac 0.5.89 app stayed in place.
+
+A disposable Windows Server 2025 x64 VM built and installed the test-signed
+Store MSIX 1.5.89.0 from QA commit `b175077be`. After setup, Chrome clicked
+**Open in Zero** on the local **Toast to the Moon** page. The test accepted the
+Chrome and editor prompts, verified the exact jam and its full public rules in
+the isolated Store editor, and confirmed that **Cancel joining** closed the
+rules card. The VM verified removal of the test package and certificate.
+This run covered an initialized editor and stopped before student sign-in or
+registration. [Windows VM run and receipts](https://github.com/codepetca/zero/actions/runs/45870639429)
+
+The follow-up adds **Cancel joining** in the upper-right corner of the rules
+card. It discards the review and returns keyboard focus to **Open Game Jams**.
+68 focused editor and playground tests passed, including cancellation during a
+public rules lookup and account-scoped review dismissal. Chrome at 320 CSS
+pixels confirmed the upper-right placement and keyboard focus after Enter.
+The independent follow-up review found no actionable issue. These checks ran on
+the original feature builds.
+
+# Game Jam participation entry points — 2026-11-26
+
+Local changes against `6bdcfa7cc` put **Download Zero** on open Game Jam pages
+and add a refreshable **Open Game Jams** list to the Start Page. Direct selection
+uses the existing authenticated rules and project flow. The Project menu retains
+reopening and retry. Independent GPT-6.1 Terra review at medium reasoning found
+a stale-list risk. The targeted re-review confirmed the refresh action resolved it.
+
+62 focused editor and playground tests and 60 focused website tests passed.
+Website TypeScript checks and `git diff --check` passed. Local Chrome with a
+mock jam confirmed the download link and Mac Silicon/Windows choices, website
+reflow at 320, 390 and 1280 CSS pixels, and light/dark Start Page fixture states.
+Real editor sign-in, live registration, WebKit and installation were outside
+this check. These checks ran on the original feature builds.
+
 # First-launch reporting choice — 2026-11-26
 
 The local Start Page shows the checked reporting choice before sign-in on a

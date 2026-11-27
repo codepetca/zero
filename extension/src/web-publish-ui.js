@@ -227,12 +227,14 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
 
   async function approveJam(jam,expected,pagesUrl) {
     const approval={root:expected,account:jam.account,repository:jam.repository,repositoryId:jam.repositoryId,jamId:jam.id,revision:jam.revision,entryRevision:jam.entryRevision};
+    if(jam.projectRevision!==undefined)approval.projectRevision=jam.projectRevision;
     if(pagesUrl)approval.pagesUrl=pagesUrl;
     const saved=workspaceState?.get('zero.webPublish.jamApproval');
     if(saved && Object.keys(approval).every(key=>saved[key]===approval[key]))return true;
     clearProgress();
     const detail=[
       'Your game and assets will be public on GitHub Pages. Zero will submit the verified build to this Game Jam.',
+      jam.replacesProject&&`This replaces your current entry from ${jam.replacesProject}.`,
       pagesUrl || jam.repository,
       jam.rules && `Current rules\n${jam.rules}`,
       jam.eligibility && `Who can take part\n${jam.eligibility}`
@@ -281,27 +283,38 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       const expected=root;
       const staged=workspaceState?.get('zero.webPublish.staging');
       const pending=resume || workspaceState?.get('zero.webPublish.pending');
-      const recovering=Boolean(recheckRoot || (staged?.root===expected && staged.value?.phase!=='staging') ||
-        (pending?.root===expected && pending.jamConsent));
+      const pendingHere=pending?.root===expected ? pending : undefined;
+      const stagedHere=staged?.root===expected ? staged : undefined;
+      const saved=pendingHere || stagedHere;
+      const savedPagesOnly=saved?.webOnly===true && !saved.jamConsent;
+      const recovering=Boolean(recheckRoot || (stagedHere && stagedHere.value?.phase!=='staging') ||
+        (pendingHere && (pendingHere.jamConsent || savedPagesOnly)));
       if(recovering)openingRequested=false;
       startProgress(['checking']);
       progress(recovering?'Checking saved publishing attempt…':open?'Checking latest app…':'Preparing publishing…');
-      let target,jam,webOnly=false;
+      let target,jam,webOnly=recovering && savedPagesOnly;
       if(gameJam) {
         await stillPublishable(expected);
         try {
           target=await gameJam.resolve(expected,jamRequest(expected));
-          if(target.id)jam=target;
+          if(target.id&&!webOnly)jam=target;
         }
         catch(error) {
-          if(error.code!=='ZERO_JAM_STATUS_UNKNOWN' || !error.publishTarget)throw error;
+          if(!['ZERO_JAM_STATUS_UNKNOWN','ZERO_JAM_DESTINATION_AMBIGUOUS'].includes(error.code) || !error.publishTarget)throw error;
+          const ambiguous=error.code==='ZERO_JAM_DESTINATION_AMBIGUOUS';
+          // An existing Pages-only attempt has a repository identity and
+          // consent of its own. Jam dispatches still require a single jam.
+          if(recovering && ambiguous && !webOnly)throw error;
           target=error.publishTarget;
-          await stillPublishable(expected);
-          clearProgress();
-          const choice=await vscode.window.showInformationMessage('ZeroJams is unavailable.',{modal:true,
-            detail:'You can publish to GitHub Pages now. If this is a jam project, use Publish to Jam when ZeroJams is available.'},'Publish to web only');
-          if(choice!=='Publish to web only')return;
-          webOnly=true;
+          if(!webOnly) {
+            await stillPublishable(expected);
+            clearProgress();
+            const choice=await vscode.window.showInformationMessage(ambiguous?'Choose a Game Jam before submitting.':'ZeroJams is unavailable.',{modal:true,
+              detail:ambiguous ? 'This repository is linked to more than one Game Jam. You can publish to GitHub Pages without submitting to a jam. Review your jam projects before choosing Publish to Jam again.' :
+                'You can publish to GitHub Pages now. If this is a jam project, use Publish to Jam when ZeroJams is available.'},'Publish to web only');
+            if(choice!=='Publish to web only')return;
+            webOnly=true;
+          }
         }
         await stillPublishable(expected);
       }
@@ -315,8 +328,14 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
         if(!jam.submissionsOpen) {
           const closed=Date.parse(jam.submissionsCloseAt)<=Date.now();
           const message=closed ? `Submissions closed for ${jam.title}.` : `Submissions are not open for ${jam.title}.`;
+          clearProgress();
           progress(message);
-          return {status:'action-required',message};
+          const choice=await vscode.window.showInformationMessage(message,{modal:true,
+            detail:'You can publish to GitHub Pages without submitting to this Game Jam. This does not change your jam entry.'},'Publish to web only');
+          if(choice!=='Publish to web only')return {status:'action-required',message};
+          await stillPublishable(expected);
+          jam=undefined;
+          webOnly=true;
         }
       }
       const reuse=open || Boolean(jam);
@@ -383,6 +402,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     const consent=live.jamConsent;
     return jam.submissionsOpen && !jam.pending && consent &&
       consent.id===jam.id && consent.revision===jam.revision && consent.entryRevision===jam.entryRevision &&
+      (consent.projectRevision??'')===(jam.projectRevision??'') &&
       isPublishTarget(jam,consent) && consent.root===expected &&
       consent.pagesUrl===live.url && consent.sha===live.sha &&
       typeof consent.dispatchTag==='string' && consent.dispatchTag===live.resume?.staging?.tag;
@@ -580,7 +600,9 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
           const dispatchTag=value?.staging?.tag;
           if(jam && dispatchTag) savedRoute={jamConsent:{
             root:expected,account:jam.account,repository:jam.repository,repositoryId:jam.repositoryId,
-            id:jam.id,revision:jam.revision,entryRevision:jam.entryRevision,pagesUrl:review.publicUrl,sha:review.sha,dispatchTag
+            id:jam.id,revision:jam.revision,entryRevision:jam.entryRevision,
+            ...(jam.projectRevision!==undefined?{projectRevision:jam.projectRevision}:{}),
+            pagesUrl:review.publicUrl,sha:review.sha,dispatchTag
           }};
           return savedRoute;
         };

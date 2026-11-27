@@ -88,6 +88,63 @@ test('closed Jam, cancelled approval and mismatched repository never publish',as
   assert.equal(mismatch.published,0);
 });
 
+test('closed or upcoming Jam permits an explicit Pages-only publish without changing its entry',async t=>{
+  for(const submissionsCloseAt of ['2020-11-30T12:00:00Z','2030-11-30T12:00:00Z'])await t.test(submissionsCloseAt,async t=>{
+    let recovered=0,open=false;
+    const h=fixture(t,{listPublication:async()=>assert.fail('Pages-only must not list on ZeroHub'),gameJam:{
+      resolve:async()=>({...linkedJam,submissionsOpen:open,submissionsCloseAt}),
+      recover:async()=>{recovered++;return null;},
+      submit:async()=>assert.fail('Pages-only must not submit to a jam')
+    }});
+    h.choices.push('Publish to web only','Publish app');
+    const result=await h.api.publishAndOpen();
+    assert.equal(result.status,'live');
+    assert.equal(result.jamSubmission,undefined);
+    assert.equal(recovered,1,'check earlier submission before allowing a new publication');
+    assert.equal(h.published,1);
+    assert.equal(h.stored.has('zero.webPublish.jamApproval'),false);
+    assert.equal(h.stored.get('zero.webPublish.lastLive').listingPending,undefined);
+    open=true;
+    await h.api.publishAndOpen();
+    assert.equal(h.messages.at(-1)[0],`Publish to ${linkedJam.title}?`);
+    assert.equal(h.published,1,'Pages-only consent cannot authorize a jam submission');
+  });
+});
+
+test('ambiguous Jam permits only an explicit identity-bound Pages-only publish',async t=>{
+  const routingError=()=>Object.assign(Error('Multiple jams'),{code:'ZERO_JAM_DESTINATION_AMBIGUOUS',publishTarget:ordinaryTarget});
+  const h=fixture(t,{listPublication:async()=>assert.fail('Do not list a Pages-only publish'),gameJam:{
+    resolve:async()=>{throw routingError();},
+    recover:async()=>assert.fail('Ambiguity cannot authorize jam recovery'),
+    submit:async()=>assert.fail('Ambiguity cannot authorize jam submission')
+  }});
+  await h.api.publishAndOpen();
+  assert.equal(h.published,0,'cancelled fallback cannot deploy');
+  h.choices.push('Publish to web only','Publish app');
+  assert.equal((await h.api.publishAndOpen()).status,'live');
+  assert.equal(h.published,1);
+  assert.equal(h.messages[0][0],'Choose a Game Jam before submitting.');
+  assert.equal(h.stored.has('zero.webPublish.jamApproval'),false);
+  const original=h.publisher.review;
+  h.publisher.review=async()=>({...await original(),repositoryId:25});
+  h.choices.push('Publish to web only');
+  await assert.rejects(h.api.publishAndOpen(),/account or repository changed/);
+  assert.equal(h.published,1);
+});
+
+test('ambiguous Jam does not bypass a saved dispatch recovery',async t=>{
+  const h=fixture(t,{gameJam:{resolve:async()=>{throw Object.assign(Error('Multiple jams'),{
+    code:'ZERO_JAM_DESTINATION_AMBIGUOUS',publishTarget:ordinaryTarget
+  });}}});
+  const receipt={root:'/student',value:{phase:'dispatched',repositoryId:24},jamConsent:linkedJam};
+  h.stored.set('zero.webPublish.staging',receipt);
+  h.choices.push('Publish to web only');
+  await assert.rejects(h.api.publishAndOpen(),/Multiple jams/);
+  assert.equal(h.messages.length,0);
+  assert.equal(h.stored.get('zero.webPublish.staging'),receipt);
+  assert.equal(h.published,0);
+});
+
 test('failure to open the browser does not prevent submitting the verified Jam build',async t=>{
   const h=fixture(t,{gameJam:{resolve:async()=>linkedJam,submit:async()=>({status:'submitted'})}});
   h.choices.push('Publish to Jam');
@@ -407,6 +464,37 @@ test('rechecking an uncertain deployment saves its identified run and never publ
   assert.equal(h.stored.get('zero.webPublish.lastLive').sha,value.sha);
   assert.deepEqual(h.calls,[]);assert.deepEqual(h.opened,[]);
 });
+test('ambiguous Jam still allows recovery of an explicitly Pages-only dispatch',async t=>{
+  const h=fixture(t,{listPublication:async()=>assert.fail('Pages-only recovery must not list on ZeroHub'),gameJam:{
+    resolve:async()=>{throw Object.assign(Error('Multiple jams'),{
+      code:'ZERO_JAM_DESTINATION_AMBIGUOUS',publishTarget:ordinaryTarget
+    });},
+    recover:async()=>assert.fail('Pages-only recovery must not recover a jam submission'),
+    submit:async()=>assert.fail('Pages-only recovery must not submit to a jam')
+  }});
+  const stage={...uncertainStage,repositoryId:24};
+  const value={runId:41,repository:stage.repository,repositoryId:24,sha:stage.sha,staging:stage.staging};
+  const routing={root:'/student',webOnly:true};
+  h.stored.set('zero.webPublish.staging',{...routing,value:stage});
+  h.publisher.check=async()=>({status:'pending',resume:value});
+  h.publisher.restoreDispatch=async(root,saved,{onPending})=>{
+    assert.equal(root,'/student');
+    assert.deepEqual(saved,stage);
+    await onPending(value);
+    return {status:'pending',resume:value};
+  };
+  assert.equal((await h.api.publishAndOpen()).status,'pending');
+  assert.deepEqual(h.stored.get('zero.webPublish.pending'),{...routing,value,account:'1'});
+  h.publisher.restore=async()=>({status:'live',url:'https://student.github.io/game/',sha:stage.sha,resume:value});
+  const recovered=await h.api.publishAndOpen();
+  assert.equal(recovered.status,'live');
+  assert.equal(recovered.jamSubmission,undefined);
+  assert.equal(h.stored.has('zero.webPublish.pending'),false);
+  assert.equal(h.published,0);
+  assert.deepEqual(h.messages,[]);
+  assert.deepEqual(h.opened,[]);
+});
+
 test('dismissing an uncertain attempt requires a separate decision and never starts another publish',async t=>{
   const h=fixture(t),previous={root:'/student',url:'https://student.github.io/game/'};
   h.stored.set('zero.webPublish.staging',{root:'/student',value:uncertainStage});

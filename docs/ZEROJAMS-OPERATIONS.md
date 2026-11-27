@@ -18,18 +18,37 @@ Unaffected pages need not access the authority. Local tests are not live accepta
 
 ## Game Jam registration and publishing
 
-Game Jam registration uses **Start Page → Project → Join a Game Jam** in Zero. The
-authenticated desktop route checks the student's registration and binds the
-verified GitHub repository ID. **Run → Publish to Jam** uses that registration
-and the verified GitHub Pages build.
-Keep the operation ID on uncertain outcomes. Recovery can confirm an earlier
-accepted submission after the deadline without initiating a new deployment.
-Keep browser registration available while students use earlier editors. After
-the editor with **Join a Game Jam** is available to students, verify desktop
-registration and a live Pages submission before enabling
-`ZERO_JAMS_EDITOR_JOIN_REQUIRED=1` on the website. The flag makes Zero the
-required entry point for new Game Jam joins. App Jam participation and web
-entry management remain available.
+From an open Game Jam's official page or embedded panel, **Open in Zero** opens
+that jam in a compatible editor. **Download Zero** is beside it. Students can
+also find open jams under **Open Game Jams** on the Start Page. A browser link
+shows the public rules before GitHub sign-in and requires **Continue joining**.
+**Cancel joining** closes the review. Earlier editors can use
+**Start Page → Project → Join a Game Jam** after sign-in.
+After managing projects, use an up-to-date Zero editor to submit a build.
+Earlier editors can still recover receipts for submissions they already made.
+
+The authenticated desktop route checks the student's registration and binds the
+verified GitHub repository ID. **Manage jam projects** adds or removes an
+owned repository before submissions close, including after registration closes.
+Removing a submitted project withdraws the entry and retains the repository's
+discovery hold through reveal. **Run → Publish to Jam** uses the chosen linked
+repository and the verified GitHub Pages build. Each account has one current
+entry per jam. Keep the operation ID when the outcome is
+uncertain. Recovery can confirm an earlier accepted submission after the
+deadline without initiating a new deployment.
+
+Deploy the website and its visibility readers before distributing a desktop
+build with project management. Registrations with an explicit empty project
+list are valid, and retired repository IDs continue to enforce the gallery
+hold. A server rollback to a reader that predates these records can make
+pre-reveal discovery unavailable.
+
+Game Jam student pages and embedded panels direct participants to Zero. Older
+editors and Portable can use the Start Page fallback. Verify Mac and Windows
+launch, desktop registration, and a live Pages submission before rolling out
+the updated website. The existing `ZERO_JAMS_EDITOR_JOIN_REQUIRED` flag
+governs the legacy browser join endpoint independently of what the page shows.
+App Jam registration and submission remain on the website.
 
 ## Manual Free and Pro licenses
 

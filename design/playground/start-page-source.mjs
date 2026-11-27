@@ -30,6 +30,7 @@ export async function startPageSource(state = 'ready') {
   }, {
     getState: () => ({phase, accountId, accountLabel: 'armorup', busy: state === 'busy' || Boolean(publishing?.publishProgress||publishing?.busy), status: publishing?.status || (state === 'busy' ? 'Fixture: creating a project…' : ''),jamReview,publishProgress:publishing?.publishProgress}),
     needsFirstRunChoice: () => state === 'first-launch',
+    listOpenJams: async () => [{id:'jam-42',title:'Toast to the Moon',deadline:'Nov 28, 2026, 5:00 PM EST'}],
     listRecent: async () => [
       {path:'/Students/armorup/Greeting App'},
       state==='jam-review' ? {path:'/Students/armorup/Moon Game',repositoryUrl:'https://github.com/armorup/moon-game'} :
@@ -39,6 +40,7 @@ export async function startPageSource(state = 'ready') {
   });
   controller.show();
   await controller.refresh();
+  await new Promise(resolve=>setImmediate(resolve));
   await receive({type: 'ready'});
   const html = panel.webview.html;
   controller.dispose();
@@ -54,13 +56,19 @@ export async function startPageView(theme = 'light', state = 'ready') {
   // JSON is escaped for an HTML script context even though fixture data is fixed.
   const data = JSON.stringify(snapshot).replaceAll('<', '\\u003c');
   const bridge = `<script nonce="${nonce}">
+let fixtureState = ${data};
 window.acquireVsCodeApi = () => ({postMessage(message) {
   if (message.type === 'ready') {
-    queueMicrotask(() => window.dispatchEvent(new MessageEvent('message', {data:${data}})));
+    queueMicrotask(() => window.dispatchEvent(new MessageEvent('message', {data:fixtureState})));
     return;
   }
   const names = {tutorials:'Zero Web', new:'New project', clone:'Clone project', local:'Open local project', joinGameJam:'Join a Game Jam',continueGameJam:'Continue joining',signIn:'Sign in to Zero', connect:'Connect to GitHub', setup:'GitHub access check'};
-  const label = message.type === 'finishSetup' ? 'Start building' : message.type === 'recent' ? 'Open recent project' : names[message.action] || 'Try again';
+  if (message.type === 'dismissGameJam') {
+    fixtureState = {...fixtureState, revision:fixtureState.revision+1, state:{...fixtureState.state, jamReview:null}};
+    queueMicrotask(() => window.dispatchEvent(new MessageEvent('message', {data:fixtureState})));
+  }
+  const actions = {finishSetup:'Start building',recent:'Open recent project',jam:'Open Game Jam',refreshJams:'Refresh Game Jams',dismissGameJam:'Cancel joining'};
+  const label = actions[message.type] || names[message.action] || 'Try again';
   document.getElementById('fixture-feedback').textContent = 'Fixture only: ' + label + ' selected. Nothing ran, signed in or changed.';
 }});
 </script>`;
