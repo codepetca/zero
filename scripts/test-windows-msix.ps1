@@ -7,6 +7,7 @@ param(
     [Parameter(Mandatory)][string] $Receipt,
     [switch] $RunWack,
     [switch] $RunFirstRun,
+    [string] $JamFixture,
     [switch] $RequireGit,
     [switch] $Windows11ArmDiagnostic,
     [switch] $Windows2025Diagnostic
@@ -200,6 +201,14 @@ public static class ZeroWts {
         $receiptData.activation = 'first-run passed'
         $receiptData.activationReason = 'Consent, private Java, VS Code and Java extension verified on the hosted runner.'
         if ($RequireGit) { $receiptData.activationReason += ' The configured Git executable was also verified.' }
+    }
+    if ($JamFixture) {
+        if (-not $RunFirstRun) { throw 'Jam link proof requires first-run setup.' }
+        $stage = 'jam-link'
+        $fixture = Get-Content -LiteralPath $JamFixture -Raw | ConvertFrom-Json
+        $jamReceipt = Join-Path (Split-Path -Parent $receiptPath) 'jam-link.json'
+        & (Join-Path $PSScriptRoot 'test-windows-jam-link.ps1') -PageUrl $fixture.pageUrl -JamId $fixture.id -ExpectedTitle $fixture.title -ExpectedRules $fixture.rules -Receipt $jamReceipt
+        $receiptData.activation = 'browser link opened exact jam'
     }
     if ($RunWack) {
         $stage = 'wack'
