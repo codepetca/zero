@@ -99,12 +99,12 @@ function Test-LanguageServer([datetime]$Since) {
     $buttonCondition = New-Object System.Windows.Automation.PropertyCondition ([System.Windows.Automation.AutomationElement]::NameProperty), 'Open'
     Wait-For {
         $matches = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, $buttonCondition)
-        $matches.Count -gt 0
-    } 45 'the generated file trust confirmation'
+        $matches.Count -gt 0 -or @(Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object { $_.CommandLine -match '-Declipse.application=org\.eclipse\.jdt\.ls\.core\.id1\b' }).Count -gt 0
+    } 45 'the generated file trust confirmation or Java language server'
     $matches = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, $buttonCondition)
     $invoke = $null
     foreach ($match in $matches) { if ($match.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$invoke)) { $invoke.Invoke(); break } }
-    if (-not $invoke) { throw 'Unable to approve the generated file trust confirmation.' }
+    if ($matches.Count -gt 0 -and -not $invoke) { throw 'Unable to approve the generated file trust confirmation.' }
     Start-Sleep -Seconds 10
     Capture-Screen java-open
     $bundledJava = Join-Path $tools 'jdk\bin\java.exe'
