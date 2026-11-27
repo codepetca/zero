@@ -7,12 +7,43 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.90](https://github.com/codepetca/zero/releases/tag/v0.5.90) is public. Its three anonymous downloads match preparation run 45923064395. | Preserve immutable assets. |
-| Website | [Toast to the Moon](https://zero.codepet.ca/hub/jams/jam-zero-50cc218f35e96640eba5685118e3c2dd) and its older participation URL show Open in Zero and no student forms. [PR #435](https://github.com/codepetca/zero/pull/435) and [PR #436](https://github.com/codepetca/zero/pull/436) select the measured 0.5.90 downloads and Mac feed. | Verify the production download links and feed when reconciling releases. |
+| GitHub manual kit | [Zero 0.5.91](https://github.com/codepetca/zero/releases/tag/v0.5.91) is public. Its three anonymous downloads match preparation run 46031790255. | Preserve the published kit, starter and VSIX. |
+| Website | Production advertises 0.5.91 for Mac, Microsoft Store and Windows Portable. The live Jam details show **Open in Zero**. [Downloads](https://zero.codepet.ca/downloads) · [Download promotion PR](https://github.com/codepetca/zero/pull/442) | Recheck live links and feeds when reconciling the next release. |
 | Mac installer | [0.5.91](https://github.com/codepetca/zero/releases/tag/setup-v0.5.91) includes the signed, stapled DMG and both corresponding Git source archives. The [production build 90 feed](https://zero.codepet.ca/updates/macos/appcast.xml) matched the sealed feed. | Preserve the published DMG and source companions. |
-| Windows Store | The Canadian [Microsoft catalog](https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=9MXKD6DQLFGX&market=CA&languages=en-ca) lists Zero Studio 1.5.91.0 x64. | The original MSIX passed hosted Windows first run on a separately test-signed copy. |
-| Windows Portable | The [0.5.90 Complete ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.90) and [staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.90) both embed the canonical kit from run 45923064395. | The school stages its preferred ZIP under its existing device policy. |
+| Windows Store | Zero Studio 1.5.91.0 x64 is available. A clean Windows runner installed the exact Store-signed package and passed first run. [Public installation run](https://github.com/codepetca/zero/actions/runs/46035619620) | Physical and school-managed Windows devices remain untested. |
+| Windows Portable | The [0.5.91 Complete ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.91) and [0.5.91 staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.91) both embed the exact kit from run 46031790255. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
+
+## Zero 0.5.91 kit and Windows Portable release — 2026-11-27
+
+[Preparation run 46031790255](https://github.com/codepetca/zero/actions/runs/46031790255)
+sealed the three manual kit files and both Windows Portable ZIPs at
+`224d383597a6307d62112f5645d4ecd47c705848`. [PR #440](https://github.com/codepetca/zero/pull/440)
+changed only the release playthrough and its regression test. Project → New
+verified the public starter tree `0711c0c4ace8ba33459037ea675a483327bc7264`,
+the packaged VSIX and the Greeting tutorial on JavaFX and in Chrome.
+
+The [exact Complete ZIP trial](https://github.com/codepetca/zero/actions/runs/46031863356)
+passed cold and warm startup with the bundled Java 21, including migration
+from an existing Java extension 1.57 profile. Both Portable launchers embed
+the exact canonical kit. The Complete ZIP includes the same pinned upstream
+tools and Java VSIX as 0.5.90. Its corresponding source contains 68 measured
+archives and updated 0.5.91 references. Each draft and public file matched
+its sealed size and SHA-256 checksum.
+
+The [public Microsoft Store trial](https://github.com/codepetca/zero/actions/runs/46035619620)
+installed the exact Store-signed 1.5.91.0 x64 package and passed first-run
+setup, private Java, VS Code, the Zero and Java extensions, and Git. The
+public Jam page showed **Open in Zero** without a download link. Physical
+Windows devices and the signed-in production student journey remain untested.
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| zero-bootstrap.zip | 5,475,083 | `75665855336ec5dccec277de9a9372ec77bcce9b41cf62f442a9af1e2ec83f4d` |
+| zero-0.5.91.vsix | 2,671,656 | `1eb351200888f2a9009328d601b863d08742a0264199ef84d3ab271553e28e9b` |
+| zero-starter.zip | 2,779,460 | `4938a9fb79a0123cfa79d1c0e708d3a1da8f42d97e7b88be7bf30e516c0ef9c3` |
+| Zero-0.5.91-windows-portable-pilot-staging-x64.zip | 5,784,758 | `cf0dc60279d15fc0565dc9b72abb57dcf2a8fe9725b1b531e9ce3323dd9c688f` |
+| Zero-0.5.91-windows-portable-bundled-x64.zip | 605,892,088 | `19638fe3a8937b962aacdd7f5b3a44037e5fffedce17c9d577336681acc3852b` |
 
 ## Zero 0.5.91 Mac and Microsoft Store release — 2026-11-27
 

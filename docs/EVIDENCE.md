@@ -14,8 +14,9 @@ recovery, older website compatibility and gallery refresh. Final focused
 checks passed 312 tests with one skip. Website typecheck, `npm run check` and
 the disposable PostgreSQL Jam/Hub HTTP integration passed. The source-backed
 browser preview confirmed the returning member sees **Manage projects** on the
-linked Jam card. Native editor and live authenticated acceptance remain
-unverified. The website and editor changes are local.
+linked Jam card. Production shows **Open in Zero** on signed-out Jam details.
+Native editor and signed-in production student acceptance remain unverified.
+[Merged changes](https://github.com/codepetca/zero/pull/438)
 
 # Start Page update control — 2026-11-27
 
