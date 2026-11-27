@@ -3,7 +3,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$Bundle,
-    [Parameter(Mandatory = $true)][string]$OutputDirectory
+    [Parameter(Mandatory = $true)][string]$OutputDirectory,
+    [string]$SeedJavaVsix
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -99,6 +100,14 @@ function Test-LanguageServer([datetime]$Since) {
         }).Count -gt 0
     } 90 'the Java language server running on the bundled JDK'
 }
+function Capture-Screen([string]$Name) {
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+    $bounds = [Windows.Forms.SystemInformation]::VirtualScreen
+    $bitmap = New-Object Drawing.Bitmap $bounds.Width, $bounds.Height
+    $graphics = [Drawing.Graphics]::FromImage($bitmap)
+    try { $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bounds.Size); $bitmap.Save((Join-Path $OutputDirectory "$Name-screen.png"), [Drawing.Imaging.ImageFormat]::Png) } finally { $graphics.Dispose(); $bitmap.Dispose() }
+}
 function Installed-Extensions {
     $cli = Join-Path $tools 'vscodium\resources\app\out\cli.js'
     $info = New-Object Diagnostics.ProcessStartInfo
@@ -162,6 +171,18 @@ try {
         if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw 'Bundled tools are incomplete.' }
     }
     $report.version = $build.kitVersion; $report.sourceRevision = $build.sourceRevision; $report.kitSha256 = $build.kitSha256
+    if ($SeedJavaVsix) {
+        $stage = 'seed-old-java'
+        if ((Get-FileHash -LiteralPath $SeedJavaVsix -Algorithm SHA256).Hash.ToLowerInvariant() -ne '80a6b852577aec37510b1f975e188279181e8c30ab5cae88812d941cd2d11bff') { throw 'Unexpected 1.57 VSIX.' }
+        $cli = Join-Path $tools 'vscodium\resources\app\out\cli.js'
+        $env:ELECTRON_RUN_AS_NODE = '1'
+        try { & $editor $cli --user-data-dir $profile --extensions-dir $extensions --install-extension $SeedJavaVsix --force; if ($LASTEXITCODE -ne 0) { throw 'Old Java installation failed.' } } finally { Remove-Item Env:ELECTRON_RUN_AS_NODE }
+        if (@(Installed-Extensions) -notcontains 'redhat.java@1.57.0') { throw 'Old Java profile was not seeded.' }
+        $settings = Join-Path $profile 'User\settings.json'
+        New-Item -ItemType Directory -Force (Split-Path $settings) | Out-Null
+        '{"editor.fontSize": 17}' | Set-Content -LiteralPath $settings -Encoding UTF8
+        $report['seedJava'] = '1.57.0'
+    }
     $beforeTools = @(Tool-Inventory)
     $stage = 'cold-launch'
     $coldStarted = [DateTime]::UtcNow
@@ -175,7 +196,14 @@ try {
     $firstMarker = (Get-Item -LiteralPath $marker).LastWriteTimeUtc
     $stage = 'cold-java-language-server'
     Test-LanguageServer $coldStarted
-    $report.cold = 'passed'
+    Start-Sleep -Seconds 10
+    Capture-Screen cold
+    if ($SeedJavaVsix) {
+        $settings = Get-Content -LiteralPath (Join-Path $profile 'User\settings.json') -Raw | ConvertFrom-Json
+        if ($settings.'editor.fontSize' -ne 17) { throw 'Existing profile preferences were not preserved.' }
+        $report['migration'] = 'passed'
+    }
+    $report.cold = 'passed' 
     $stage = 'close-cold-processes'
     Stop-Owned
     Wait-For { @(Editor-Roots).Count -eq 0 } 60 'cold editor exit'
@@ -188,6 +216,8 @@ try {
     if (Compare-Object $manifests @(Manifest-Inventory)) { throw 'Extension manifests changed during warm launch.' }
     $stage = 'warm-java-language-server'
     Test-LanguageServer $warmStarted
+    Start-Sleep -Seconds 10
+    Capture-Screen warm
     if (Compare-Object $beforeTools @(Tool-Inventory)) { throw 'Bundled tool inventory changed during trial.' }
     $report.warm = 'passed'; $report.status = 'passed'; $stage = 'passed'
 } catch {
