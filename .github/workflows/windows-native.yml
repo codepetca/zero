@@ -31,7 +31,7 @@ jobs:
             if ($run.status -eq 'completed') { break }
             Start-Sleep -Seconds 20
           } while ((Get-Date) -lt $deadline)
-          if ($run.path -ne '.github/workflows/release-review.yml' -or $run.event -ne 'workflow_dispatch' -or $run.conclusion -ne 'success' -or $run.head_sha -ne 'd1b921260710350a4ee5fb8b80fce086e0209af2') { throw "Unexpected preparation run $($run.head_sha), $($run.name), $($run.conclusion)." }
+          if ($run.path -ne '.github/workflows/release-review.yml' -or $run.event -ne 'workflow_dispatch' -or $run.conclusion -ne 'success' -or $run.head_sha -ne '224d383597a6307d62112f5645d4ecd47c705848') { throw "Unexpected preparation run $($run.head_sha), $($run.name), $($run.conclusion)." }
           gh run download $env:PREPARATION_RUN --repo codepetca/zero --name "zero-0.5.91-portable-bundled-$env:PREPARATION_RUN" --dir prepared
           if ($LASTEXITCODE -ne 0) { throw 'Artifact download failed.' }
       - name: Download pinned old Java extension
