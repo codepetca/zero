@@ -1,6 +1,6 @@
 # Zero release ledger
 
-Last reconciled 2026-11-25 (America/Toronto). This is a dated working record,
+Last reconciled 2026-11-26 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
@@ -8,24 +8,34 @@ permission to publish from this ledger.
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
 | GitHub manual kit | [Zero 0.5.89](https://github.com/codepetca/zero/releases/tag/v0.5.89) is public. Its three anonymous downloads match preparation run 45749824787. | Preserve immutable assets. |
-| Website | [Lesson 11](https://zero.codepet.ca/tutorials/11) and the ZeroHub library guides are live. This promotion selects the verified 0.5.89 kit, Windows Portable, Mac download and signed build 88 feed. | Check the production download links and feed after deployment. |
-| Mac installer | [0.5.89](https://github.com/codepetca/zero/releases/tag/setup-v0.5.89) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 88 feed references the measured public DMG. |
+| Website | [Toast to the Moon](https://zero.codepet.ca/hub/jams/jam-zero-50cc218f35e96640eba5685118e3c2dd) and its older participation URL show Open in Zero and no student forms. | Verify the deployed 0.5.90 downloads and update feed. |
+| Mac installer | [0.5.90](https://github.com/codepetca/zero/releases/tag/setup-v0.5.90) includes the signed, stapled DMG and both corresponding Git source archives. | This promotion selects the verified public DMG and signed build 89 feed. |
 | Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.89.0 x64 from submission 23 is public in the Canadian and U.S. catalogs. | Check distribution on physical and school-managed devices separately. |
 | Windows Portable | [0.5.89 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.89) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.89) both embed the canonical kit from run 45749824787. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
-## Zero 0.5.90 release preparation — 2026-11-26
+## Zero 0.5.90 release — 2026-11-26
 
-The local candidate includes the Windows Portable Java fix. Both Portable ZIPs
+[PR #433](https://github.com/codepetca/zero/pull/433) merged the editor-first
+Game Jam flow. A disposable PostgreSQL trial confirmed that a student could
+replace a deleted repository and submit after registration closed while
+keeping the original membership. The [Windows installed-app trial](https://github.com/codepetca/zero/actions/runs/45923102772)
+opened the exact jam and rules in the test-signed Store package and stopped
+at the sign-in step.
+
+The release source at [PR #434](https://github.com/codepetca/zero/pull/434)
+includes the Windows Portable Java fix. Both Portable ZIPs
 pin Red Hat Java 1.56.0 so editor diagnostics and completion can start on the
-bundled Java 21. The candidate also includes the reporting and update reminder
-changes already on main. Mac update build 89 is reserved for 0.5.90. The
-public downloads remain on 0.5.89 during preparation.
+bundled Java 21. The [exact Complete ZIP trial](https://github.com/codepetca/zero/actions/runs/45925391165)
+verified cold and warm launches from a profile seeded with Java 1.57. The
+editor reached **Java: Ready** without a JDK download prompt. Canonical
+[preparation run 45923064395](https://github.com/codepetca/zero/actions/runs/45923064395)
+sealed the kit and both matching Portable ZIPs and verified Project → New.
 
-Before promoting the Complete ZIP, run the Windows cold and warm launch
-checks with a Java file open and confirm the language server uses the bundled
-JDK. Check a returning Portable profile with Java extension 1.57.0 before
-publication. See [verification](VERIFICATION.md#windows-portable-java-prompt--2026-11-26).
+The Mac installer was built from `29aa1dfb2` and sealed at `b1355381e`.
+Apple accepted notarization `467a4d40-8b21-48aa-aff9-a6829e0b3ddc`. The
+stapled DMG and both source companions matched their public downloads.
+The signed feed uses build 89.
 
 ## Zero 0.5.89 kit and Portable release — 2026-11-25
 
