@@ -92,7 +92,20 @@ function Test-LanguageServer([datetime]$Since) {
     $arguments = @('--user-data-dir', $profile, '--extensions-dir', $extensions, '--shared-data-dir', $sharedData,
         '--reuse-window', $file) | ForEach-Object { Quote-Argument $_ }
     Start-Process -FilePath $editor -ArgumentList ($arguments -join ' ')
-    Start-Sleep -Seconds 15
+    # This is our own generated probe file, outside the trusted Zero workspace.
+    # Explicitly approve VS Code's trust prompt rather than silently changing settings.
+    Add-Type -AssemblyName UIAutomationClient
+    Add-Type -AssemblyName UIAutomationTypes
+    $buttonCondition = New-Object System.Windows.Automation.PropertyCondition ([System.Windows.Automation.AutomationElement]::NameProperty), 'Open'
+    Wait-For {
+        $matches = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, $buttonCondition)
+        $matches.Count -gt 0
+    } 45 'the generated file trust confirmation'
+    $matches = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, $buttonCondition)
+    $invoke = $null
+    foreach ($match in $matches) { if ($match.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$invoke)) { $invoke.Invoke(); break } }
+    if (-not $invoke) { throw 'Unable to approve the generated file trust confirmation.' }
+    Start-Sleep -Seconds 10
     Capture-Screen java-open
     $bundledJava = Join-Path $tools 'jdk\bin\java.exe'
     try { Wait-For {
