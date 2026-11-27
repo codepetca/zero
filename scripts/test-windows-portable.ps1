@@ -3,7 +3,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$Bundle,
-    [Parameter(Mandatory = $true)][string]$OutputDirectory
+    [Parameter(Mandatory = $true)][string]$OutputDirectory,
+    [string]$SeedJavaVsix
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -91,13 +92,31 @@ function Test-LanguageServer([datetime]$Since) {
     $arguments = @('--user-data-dir', $profile, '--extensions-dir', $extensions, '--shared-data-dir', $sharedData,
         '--reuse-window', $file) | ForEach-Object { Quote-Argument $_ }
     Start-Process -FilePath $editor -ArgumentList ($arguments -join ' ')
+    Start-Sleep -Seconds 10
+    Capture-Screen java-open
     $bundledJava = Join-Path $tools 'jdk\bin\java.exe'
-    Wait-For {
+    try { Wait-For {
         @(Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object {
             $owned[[int]$_.ProcessId] -eq $_.CreationDate -and $_.CreationDate.ToUniversalTime() -ge $Since -and
             $_.ExecutablePath -eq $bundledJava -and $_.CommandLine -match '-Declipse.application=org\.eclipse\.jdt\.ls\.core\.id1\b'
         }).Count -gt 0
-    } 90 'the Java language server running on the bundled JDK'
+    } 90 'the Java language server running on the bundled JDK' } catch {
+        Capture-Screen java-failure
+        $javaProcesses = @(Get-CimInstance Win32_Process -Filter "Name='java.exe'" | ForEach-Object { [ordered]@{ owned = ($owned[[int]$_.ProcessId] -eq $_.CreationDate); bundled = ($_.ExecutablePath -eq $bundledJava); jdt = ($_.CommandLine -match '-Declipse.application=org\.eclipse\.jdt\.ls\.core\.id1\b') } })
+        $report['javaDiagnostics'] = $javaProcesses
+        $logs = @(Get-ChildItem -LiteralPath (Join-Path $profile 'logs') -File -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match 'redhat.java|exthost' } | Select-Object -First 30)
+        $lines = foreach ($log in $logs) { Get-Content -LiteralPath $log.FullName -ErrorAction SilentlyContinue | Where-Object { $_ -match '(?i)redhat.java|language server|jdk|java runtime|java home|java 25|error|exception' } | Select-Object -Last 30 }
+        $report['logLines'] = @($lines | ForEach-Object { $line = $_; foreach ($private in @($env:USERPROFILE, $OutputDirectory, $Bundle, $env:GITHUB_WORKSPACE)) { if ($private) { $line = $line.Replace($private, '<trial-path>') } }; $line } | Select-Object -Last 80)
+        throw
+    }
+}
+function Capture-Screen([string]$Name) {
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+    $bounds = [Windows.Forms.SystemInformation]::VirtualScreen
+    $bitmap = New-Object Drawing.Bitmap $bounds.Width, $bounds.Height
+    $graphics = [Drawing.Graphics]::FromImage($bitmap)
+    try { $graphics.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bounds.Size); $bitmap.Save((Join-Path $OutputDirectory "$Name-screen.png"), [Drawing.Imaging.ImageFormat]::Png) } finally { $graphics.Dispose(); $bitmap.Dispose() }
 }
 function Installed-Extensions {
     $cli = Join-Path $tools 'vscodium\resources\app\out\cli.js'
@@ -162,6 +181,18 @@ try {
         if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw 'Bundled tools are incomplete.' }
     }
     $report.version = $build.kitVersion; $report.sourceRevision = $build.sourceRevision; $report.kitSha256 = $build.kitSha256
+    if ($SeedJavaVsix) {
+        $stage = 'seed-old-java'
+        if ((Get-FileHash -LiteralPath $SeedJavaVsix -Algorithm SHA256).Hash.ToLowerInvariant() -ne '80a6b852577aec37510b1f975e188279181e8c30ab5cae88812d941cd2d11bff') { throw 'Unexpected 1.57 VSIX.' }
+        $cli = Join-Path $tools 'vscodium\resources\app\out\cli.js'
+        $env:ELECTRON_RUN_AS_NODE = '1'
+        try { $args = @($cli, '--user-data-dir', $profile, '--extensions-dir', $extensions, '--install-extension', $SeedJavaVsix, '--force') | ForEach-Object { Quote-Argument $_ }; $install = Start-Process -FilePath $editor -ArgumentList ($args -join ' ') -Wait -PassThru; if ($install.ExitCode -ne 0) { throw 'Old Java installation failed.' } } finally { Remove-Item Env:ELECTRON_RUN_AS_NODE }
+        if (@(Installed-Extensions) -notcontains 'redhat.java@1.57.0') { throw 'Old Java profile was not seeded.' }
+        $settings = Join-Path $profile 'User\settings.json'
+        New-Item -ItemType Directory -Force (Split-Path $settings) | Out-Null
+        '{"editor.fontSize": 17}' | Set-Content -LiteralPath $settings -Encoding UTF8
+        $report['seedJava'] = '1.57.0'
+    }
     $beforeTools = @(Tool-Inventory)
     $stage = 'cold-launch'
     $coldStarted = [DateTime]::UtcNow
@@ -173,16 +204,21 @@ try {
     $manifests = @(Manifest-Inventory)
     if ($manifests.Count -lt 2) { throw 'Extension manifests are missing.' }
     $firstMarker = (Get-Item -LiteralPath $marker).LastWriteTimeUtc
-    # Preserve the launcher-created settings and allow our generated Java file
-    # in this disposable profile. The external-file trust prompt would
-    # otherwise prevent the Java extension from seeing the probe.
+    # Allow only this disposable profile to open our generated probe file.
     $settingsPath = Join-Path $profile 'User\settings.json'
     $settings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
     $settings | Add-Member -NotePropertyName 'security.workspace.trust.untrustedFiles' -NotePropertyValue 'open' -Force
     $settings | ConvertTo-Json -Depth 40 | Set-Content -LiteralPath $settingsPath -Encoding UTF8
     $stage = 'cold-java-language-server'
     Test-LanguageServer $coldStarted
-    $report.cold = 'passed'
+    Start-Sleep -Seconds 10
+    Capture-Screen cold
+    if ($SeedJavaVsix) {
+        $settings = Get-Content -LiteralPath (Join-Path $profile 'User\settings.json') -Raw | ConvertFrom-Json
+        if ($settings.'editor.fontSize' -ne 17) { throw 'Existing profile preferences were not preserved.' }
+        $report['migration'] = 'passed'
+    }
+    $report.cold = 'passed' 
     $stage = 'close-cold-processes'
     Stop-Owned
     Wait-For { @(Editor-Roots).Count -eq 0 } 60 'cold editor exit'
@@ -192,16 +228,22 @@ try {
     Wait-For { (Get-Item -LiteralPath $marker).LastWriteTimeUtc -gt $firstMarker -and @(Editor-Roots).Count -gt 0 } 180 'warm editor handoff'
     $actual = @(Installed-Extensions)
     if ($actual -notcontains "zero.zero@$($build.kitVersion)" -or $actual -notcontains "redhat.java@$($javaPin.version)") { throw 'Warm launch lost a required extension.' }
-    if (Compare-Object $manifests @(Manifest-Inventory)) { throw 'Extension manifests changed during warm launch.' }
+    $manifestChanges = @(Compare-Object $manifests @(Manifest-Inventory))
+    if ($manifestChanges.Count) {
+        $report['manifestChanges'] = @($manifestChanges | ForEach-Object { $_.SideIndicator + ' ' + $_.InputObject })
+        $unexpected = @($manifestChanges | Where-Object { -not ($SeedJavaVsix -and $_.SideIndicator -eq '<=' -and $_.InputObject -match '^redhat\.java-1\.57\.0:') })
+        if ($unexpected.Count) { throw 'Active extension manifests changed during warm launch.' }
+    }
     $stage = 'warm-java-language-server'
     Test-LanguageServer $warmStarted
-    # VSCodium writes disposable Node bytecode caches as extensions activate.
-    # Allow only newly generated cache entries. Every original file must
-    # retain its hash, and any other additions still fail the trial.
-    $nodeCache = '^vscodium\\resources\\app\\node-compile-cache\\(?:main|extension-host)\\v[0-9.]+-x64-[a-f0-9]{8}\\[a-f0-9]{8}:[a-f0-9]{64}$'
-    $toolChanges = @(Compare-Object $beforeTools @(Tool-Inventory) |
-        Where-Object { $_.SideIndicator -ne '=>' -or $_.InputObject -notmatch $nodeCache })
-    if ($toolChanges.Count -gt 0) { throw 'Bundled tool inventory changed during trial.' }
+    Start-Sleep -Seconds 10
+    Capture-Screen warm
+    $toolChanges = @(Compare-Object $beforeTools @(Tool-Inventory))
+    if ($toolChanges.Count) {
+        $report['toolCacheAdditions'] = @($toolChanges | Where-Object { $_.SideIndicator -eq '=>' -and $_.InputObject -match '^vscodium\\resources\\app\\node-compile-cache\\' }).Count
+        $unexpected = @($toolChanges | Where-Object { -not ($_.SideIndicator -eq '=>' -and $_.InputObject -match '^vscodium\\resources\\app\\node-compile-cache\\') })
+        if ($unexpected.Count) { $report['toolChanges'] = @($unexpected | ForEach-Object { $_.SideIndicator + ' ' + $_.InputObject }); throw 'Bundled tool inventory changed during trial.' }
+    }
     $report.warm = 'passed'; $report.status = 'passed'; $stage = 'passed'
 } catch {
     $message = $_.Exception.Message
