@@ -122,7 +122,7 @@ test('a project opened after sign-in waits for workspace trust', async t => {
 
 test('a newly opened trusted Zero repository uses the restored GitHub session', async t => {
   const f = await fixture(t, {repository:true, trusted:true, initialSession:identitySession});
-  assert.ok(identityConfigured(f));
+  await settle(() => identityConfigured(f));
   assert.equal(await core.git(f.root, ['config', '--local', 'user.name']), 'student');
   assert.equal(await core.git(f.root, ['config', '--local', 'user.email']), '17+student@users.noreply.github.com');
 });
@@ -757,6 +757,28 @@ test('an explicit standard Explorer preference does not get migrated to the stud
  assert.equal(remembered.has('zero.studentExplorerShown'),false);
 });
 
+test('an open Zero project shows its sidebar before sign-in and retains navigation after cancelling', async t => {
+  let cancel;
+  const prompt = new Promise(resolve => {cancel = resolve;});
+  t.after(() => cancel(undefined));
+  const f = await fixture(t, {
+    studentExplorer:true, workosRequired:true, activeEditor:true,
+    information:() => prompt
+  });
+  const sidebarReveals = () => f.calls.filter(([id]) => id === 'zero.studentControls.focus').length;
+  await settle(() => f.notices.length === 1);
+  assert.equal(sidebarReveals(), 1);
+  assert.match(f.notices[0].text, /Use your GitHub account to sign in to Zero/);
+  await f.commands.get('zero.showSidebar')();
+  assert.equal(sidebarReveals(), 2);
+  const run = f.commands.get('zero.runApp')();
+  cancel(undefined);
+  await run;
+  await f.commands.get('zero.showSidebar')();
+  assert.equal(sidebarReveals(), 3);
+  assert.equal(f.notices.length, 1);
+  assert.equal(f.launches.length, 0);
+});
 
 test('fresh setup shows the Start Page before sign-in and saves reporting without a popup', async t => {
   const reportChoice = {updates:[]};

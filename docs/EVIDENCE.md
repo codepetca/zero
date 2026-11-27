@@ -1,3 +1,18 @@
+# Sidebar during sign-in — 2026-11-27
+
+On Mac, the public 0.5.90 VSIX and the 0.5.91 VSIX from the signed DMG
+both opened an existing Zero project in standard Explorer while first-use
+sign-in was pending. The editor extension had activated. The startup
+sequence waited for the account before revealing the sidebar, and the
+palette's **Zero: Show Sidebar** command used the same account gate.
+
+The local change on `bac75507d` reveals the project sidebar before waiting
+for the account and keeps its navigation command available. Project
+introduction and operation checks still wait for first-use sign-in.
+GPT-6.1 Terra at medium reasoning independently reviewed the source diff
+and found no actionable issues. [Verification](VERIFICATION.md#sidebar-during-sign-in--2026-11-27)
+covers the editor exercise and its limits.
+
 # Game Jam student flow follow-up — 2026-11-27
 
 Local changes on `25678d134` remove Download Zero from Game Jam pages and
