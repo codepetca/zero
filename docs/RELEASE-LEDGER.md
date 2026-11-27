@@ -7,11 +7,11 @@ permission to publish from this ledger.
 
 | Surface | Last verified state | What's next |
 | --- | --- | --- |
-| GitHub manual kit | [Zero 0.5.89](https://github.com/codepetca/zero/releases/tag/v0.5.89) is public. Its three anonymous downloads match preparation run 45749824787. | Preserve immutable assets. |
-| Website | [Toast to the Moon](https://zero.codepet.ca/hub/jams/jam-zero-50cc218f35e96640eba5685118e3c2dd) and its older participation URL show Open in Zero and no student forms. | Verify the deployed 0.5.90 downloads and update feed. |
-| Mac installer | [0.5.90](https://github.com/codepetca/zero/releases/tag/setup-v0.5.90) includes the signed, stapled DMG and both corresponding Git source archives. | This promotion selects the verified public DMG and signed build 89 feed. |
-| Windows Store | [Zero Studio](https://apps.microsoft.com/detail/9mxkd6dqlfgx) package 1.5.89.0 x64 from submission 23 is public in the Canadian and U.S. catalogs. | Check distribution on physical and school-managed devices separately. |
-| Windows Portable | [0.5.89 complete VSCodium ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.89) and [small staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.89) both embed the canonical kit from run 45749824787. | The school stages its preferred ZIP under its existing device policy. |
+| GitHub manual kit | [Zero 0.5.90](https://github.com/codepetca/zero/releases/tag/v0.5.90) is public. Its three anonymous downloads match preparation run 45923064395. | Preserve immutable assets. |
+| Website | [Toast to the Moon](https://zero.codepet.ca/hub/jams/jam-zero-50cc218f35e96640eba5685118e3c2dd) and its older participation URL show Open in Zero and no student forms. [PR #435](https://github.com/codepetca/zero/pull/435) and [PR #436](https://github.com/codepetca/zero/pull/436) select the measured 0.5.90 downloads and Mac feed. | Verify the production download links and feed when reconciling releases. |
+| Mac installer | [0.5.90](https://github.com/codepetca/zero/releases/tag/setup-v0.5.90) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 89 feed references the verified public DMG. |
+| Windows Store | The Canadian [Zero Studio catalog](https://apps.microsoft.com/detail/9mxkd6dqlfgx) still reports 1.5.89.0 x64. The test-signed 1.5.90.0 candidate passed installation and first run. | Partner Center's product overview did not load the submission controls. |
+| Windows Portable | The [0.5.90 Complete ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.90) and [staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.90) both embed the canonical kit from run 45923064395. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
 ## Zero 0.5.90 release — 2026-11-26
@@ -36,6 +36,19 @@ The Mac installer was built from `29aa1dfb2` and sealed at `b1355381e`.
 Apple accepted notarization `467a4d40-8b21-48aa-aff9-a6829e0b3ddc`. The
 stapled DMG and both source companions matched their public downloads.
 The signed feed uses build 89.
+
+The public Complete ZIP, staging ZIP, checksums and the Complete ZIP's
+source companions matched their sealed bytes on anonymous download. The
+Complete source archive contains 68 measured source archives and a Java
+inventory built from the actual 1.56 VSIX. The
+[Windows run against the public Complete ZIP](https://github.com/codepetca/zero/actions/runs/45925391165/job/140265393025)
+verified the bundled Java 21 language server on cold and warm launch.
+
+The [Windows package job](https://github.com/codepetca/zero/actions/runs/45923243051/job/140258716954)
+produced the original unsigned Store package 1.5.90.0 x64 and verified first
+run and cleanup on a separately test-signed copy. The original MSIX measures
+5,776,663 bytes with SHA-256
+`d60d2850f6220b12374b98abbf3e55ee0d5b7c593143f08856085d9f39e53fcd`.
 
 ## Zero 0.5.89 kit and Portable release — 2026-11-25
 
