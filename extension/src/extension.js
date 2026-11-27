@@ -387,21 +387,13 @@ function activate(context, services = {}) {
     return true;
   }
 
-  async function introduceProject({revealSidebar = true, addedFolders} = {}) {
-    const folders = vscode.workspace.workspaceFolders || [];
-    if (!folders.length && hasOpenEditors() && !launchedForZero) return;
-    const root = folders.length ? await project() : undefined;
+  async function introduceProject(root) {
+    if (!(vscode.workspace.workspaceFolders || []).length && hasOpenEditors() && !launchedForZero) return;
     if (!root) {
       if (!hasOpenEditors() && !startPage.isOpen()) await startPage.show({preserveFocus:false});
       return;
     }
-    if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
-    if (revealSidebar && (!addedFolders || await core.resolveProject(addedFolders.map(folder => folder.uri.fsPath)).catch(() => undefined) === root)) {
-      await actions['zero.showSidebar']();
-      await context.workspaceState.update('zero.explorerShown', true);
-      await context.workspaceState.update('zero.sidebarShown', true);
-    }
-    if (!root || isSetupProject(root)) return;
+    if (isSetupProject(root)) return;
     const key = `zero.firstLessonShown:${root}`;
     // Preserve text editors and non-text tabs, including other lesson previews.
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
@@ -3633,7 +3625,7 @@ function activate(context, services = {}) {
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);
   if (firstUse.enabled) {
-    const alwaysAvailable = new Set(['zero.stopApp', 'zero.openDocs', 'zero.showSetup', 'zero.startPage', 'zero.getStarted', 'zero.reportProblem', 'zero.configureProblemReports']);
+    const alwaysAvailable = new Set(['zero.stopApp', 'zero.openDocs', 'zero.showSetup', 'zero.showSidebar', 'zero.startPage', 'zero.getStarted', 'zero.reportProblem', 'zero.configureProblemReports']);
     if (sharedGitHubGrant) {
       alwaysAvailable.add('zero.signInToGitHub');
       alwaysAvailable.add('zero.githubAccount');
@@ -3877,23 +3869,45 @@ function activate(context, services = {}) {
   if (emptyWindow && (showFirstLaunch || !firstUse.enabled)) {
     void introduceProject().catch(error=>output.appendLine(`Start Page: ${error.message}`));
   }
-  const introduceAfterConnection = (options) => {
+  const introduceWorkspace = async ({revealSidebar = true, addedFolders} = {}) => {
     const generation = runGeneration;
-    return startup.then(async() => {
-      if (disposed || !await firstUse.ensure() || disposed || generation !== runGeneration) return;
+    const current = () => !disposed && generation === runGeneration;
+    try {
+      const root = (vscode.workspace.workspaceFolders || []).length ? await project() : undefined;
+      if (!current()) return;
+      // Navigation must be available while the account check or browser sign-in is pending.
+      if (root) {
+        const reveal = revealSidebar && (!addedFolders ||
+          await core.resolveProject(addedFolders.map(folder => folder.uri.fsPath)).catch(() => undefined) === root);
+        if (!current()) return;
+        if (reveal) {
+          await actions['zero.showSidebar']();
+          if (!current()) return;
+          await context.workspaceState.update('zero.explorerShown', true);
+          await context.workspaceState.update('zero.sidebarShown', true);
+        } else if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) {
+          await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
+        }
+      }
+      await startup;
+      if (!current() || !await firstUse.ensure() || !current()) return;
       if (sharedGitHubGrant && !auth.signedIn) await auth.refresh();
-      if (disposed || generation !== runGeneration) return;
-      try {await rememberOpened({projectPath:await project()});}catch{}
-      if (disposed || generation !== runGeneration) return;
+      if (!current()) return;
+      if (root) {
+        try {await rememberOpened({projectPath:root});}catch{}
+      }
+      if (!current()) return;
       await projectWindow.restore();
-      if (!disposed && generation === runGeneration) await introduceProject(options);
-    }).catch(error => output.appendLine(`Getting started: ${error.message}`));
+      if (current()) await introduceProject(root);
+    } catch(error) {
+      if (current()) output.appendLine(`Getting started: ${error.message}`);
+    }
   };
   context.subscriptions.push(watcher, metadataWatcher,{dispose:()=>clearTimeout(metadataRefreshTimer)}, vscode.workspace.onDidChangeWorkspaceFolders(event => {
     clearBrowserRepair();runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
     savedChecksEnableGeneration++;savedPreparation?.abort();savedChecks?.dispose();savedChecks=undefined;savedChecksRoot=undefined;savedChecksState=undefined;savedProblems?.clear();
-    state='';errorAction=undefined;projectRoot = undefined;projectDirty=undefined;projectDirtyError=undefined;projectDirtyGeneration++;clearTimeout(projectDirtyTimer);clearDirtyMetadataWatch();mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0; repositoryStatus(); void introduceAfterConnection({revealSidebar:Boolean(event?.added?.length), addedFolders:event?.added});
+    state='';errorAction=undefined;projectRoot = undefined;projectDirty=undefined;projectDirtyError=undefined;projectDirtyGeneration++;clearTimeout(projectDirtyTimer);clearDirtyMetadataWatch();mainUpdateStatus=undefined;mainUpdateGeneration++;mainUpdateNextAt=0; repositoryStatus(); void introduceWorkspace({revealSidebar:Boolean(event?.added?.length), addedFolders:event?.added});
     void configureProjectGitIdentity();
   }));
   context.subscriptions.push({dispose:() => {clearBrowserRepair();runGeneration++;if (execution) execution.terminate();}});
@@ -3902,6 +3916,6 @@ function activate(context, services = {}) {
     createNativeUpdateReload(vscode, {context, isBusy:updateBusy, log:message=>output.appendLine(message)}),
     createUpdateReminder(vscode, {context, isBusy:updateBusy, environment:env})
   );
-  if (!showFirstLaunch) void introduceAfterConnection();
+  if (!showFirstLaunch) void introduceWorkspace();
 }
 module.exports = {activate,dirtyProjectDocuments};

@@ -160,6 +160,18 @@ jobs:
         run: |
           if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted') { throw 'Disposable GitHub-hosted runner required.' }
           & ./scripts/test-windows-installation.ps1 -DisposableAccount -RequirePrivateGit
+      - name: Real editor sidebar during first-use sign-in
+        # Uses only the verified installed candidate, a fresh profile and a local debugger.
+        timeout-minutes: 5
+        run: node scripts/test-windows-sign-in-sidebar.mjs
+      - name: Retain sanitized sidebar receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-windows-sign-in-sidebar-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: .verification/windows-sign-in-sidebar/report.json
       - name: Real private-Java JavaFX window and cached offline rebuild
         # Node is maintainer/CI tooling only. No student Node/global Maven install.
         timeout-minutes: 12

@@ -1,3 +1,23 @@
+# Sidebar during sign-in — 2026-11-27
+
+In isolated Mac VS Code 1.148.0 profiles, both shipped extensions left an
+open Zero project in standard Explorer during sign-in. The behavior also
+reproduced after installing 0.5.91 over 0.5.90 in the same editor profile.
+On shipped 0.5.91,
+**View: Open View** → **Zero 0.5.91** reopened Project and Files while the
+browser sign-in notification was pending. The local patch on the extracted
+0.5.91 extension showed Project and Files before sign-in, while waiting for
+the browser, and after cancellation.
+
+The 136 focused onboarding, sidebar, Start Page, WorkOS and GitHub browser
+tests and `node scripts/check.mjs` passed. The full `npm test` suite passed
+2,815 tests with 155 skips and zero failures. The new test exercises sidebar
+navigation and the native Run guard while first-use sign-in is pending. It
+failed against the previous source because the sidebar was never revealed.
+The Mac test stopped before completing GitHub sign-in. The
+[0.5.91 public Store installation check](https://github.com/codepetca/zero/actions/runs/46035619620)
+covered setup. Windows editor sign-in and sidebar behavior remain unverified.
+
 # ZeroHub Java library packages — 2026-11-25
 
 New original current-core extractions use `zero.lib`. The contract tests verify
