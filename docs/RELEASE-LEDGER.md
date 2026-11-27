@@ -9,12 +9,12 @@ permission to publish from this ledger.
 | --- | --- | --- |
 | GitHub manual kit | [Zero 0.5.90](https://github.com/codepetca/zero/releases/tag/v0.5.90) is public. Its three anonymous downloads match preparation run 45923064395. | Preserve immutable assets. |
 | Website | [Toast to the Moon](https://zero.codepet.ca/hub/jams/jam-zero-50cc218f35e96640eba5685118e3c2dd) and its older participation URL show Open in Zero and no student forms. [PR #435](https://github.com/codepetca/zero/pull/435) and [PR #436](https://github.com/codepetca/zero/pull/436) select the measured 0.5.90 downloads and Mac feed. | Verify the production download links and feed when reconciling releases. |
-| Mac installer | [0.5.91](https://github.com/codepetca/zero/releases/tag/setup-v0.5.91) includes the signed, stapled DMG and both corresponding Git source archives. The signed build 90 feed references the verified public DMG. | Verify the build 90 feed after production deployment. |
-| Windows Store | The Canadian [Zero Studio catalog](https://apps.microsoft.com/detail/9mxkd6dqlfgx) still reports 1.5.89.0 x64. The test-signed 1.5.90.0 candidate passed installation and first run. | Partner Center's product overview did not load the submission controls. |
+| Mac installer | [0.5.91](https://github.com/codepetca/zero/releases/tag/setup-v0.5.91) includes the signed, stapled DMG and both corresponding Git source archives. The [production build 90 feed](https://zero.codepet.ca/updates/macos/appcast.xml) matched the sealed feed. | Preserve the published DMG and source companions. |
+| Windows Store | The Canadian [Microsoft catalog](https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=9MXKD6DQLFGX&market=CA&languages=en-ca) lists Zero Studio 1.5.91.0 x64. | The original MSIX passed hosted Windows first run on a separately test-signed copy. |
 | Windows Portable | The [0.5.90 Complete ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.90) and [staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.90) both embed the canonical kit from run 45923064395. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
 
-## Zero 0.5.91 Mac release — 2026-11-27
+## Zero 0.5.91 Mac and Microsoft Store release — 2026-11-27
 
 [PR #438](https://github.com/codepetca/zero/pull/438) passed all 12 source
 checks and merged as `a08c0b47fab0011f7b0711ac413bec0b8e7b2308`. The Mac
@@ -26,6 +26,15 @@ matched their sealed sizes and SHA-256 hashes on anonymous download. The
 [public DMG](https://github.com/codepetca/zero/releases/tag/setup-v0.5.91)
 measures 12,718,557 bytes with SHA-256
 `1c1a7333ea10aa8d581875d6b65fe9c24eec67ec87c1710613de462c82727c3d`.
+
+[Windows run 46028628653](https://github.com/codepetca/zero/actions/runs/46028628653)
+built the original unsigned Store package from `d1b921260` and passed
+first-run and cleanup checks with a separately test-signed copy. The original
+MSIX measures 5,778,156 bytes with SHA-256
+`e5783e91f4340b152788aaad4205964e1f62ec2bc8d9168c007553baf1763d2c`.
+Microsoft accepted that package in Submission 25 with automatic publishing.
+The Canadian catalog now lists `Codepet.zerostudio_1.5.91.0_x64__g62pw1js6rhjp`
+as its latest x64 MSIX.
 
 ## Zero 0.5.90 release — 2026-11-26
 
