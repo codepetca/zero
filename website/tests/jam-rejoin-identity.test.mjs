@@ -124,14 +124,15 @@ test('a joined student can replace a deleted repository after registration close
   await assert.rejects(f.service.mutate({...add,operationId:'add-wrong-identity',repositoryId:'202'},editor),{status:409});
   await f.service.mutate({...add,operationId:'add-recreated-project'},editor);
   await f.service.mutate({...add,operationId:'add-another-project',repositoryId:'203',repositoryUrl:'https://github.com/student/another-game'},editor);
-  assert.deepEqual((await f.service.readEditorJoin(id,participant)).registration.repositories.map(repo=>repo.id),['204','203']);
+  const {registration:linked}=await f.service.readEditorJoin(id,participant);
+  assert.deepEqual(linked.repositories.map(repo=>repo.id),['204','203']);
   assert.equal((await f.service.projectDestination('203',participant)).destination.id,id);
   // Older Hub readers only consult the singular registration and this set.
   assert.ok((await f.store.read(id)).state.replacedRepositoryIds.includes('203'));
 
   const pagesUrl='https://student.github.io/another-game/';
   const submit={...base,action:'submit',operationId:'submit-new-project',revision,
-    publication:{repositoryId:'203',pagesUrl,commit:'a'.repeat(40),runId:'30',entryRevision:detached.entry.revision}};
+    publication:{repositoryId:'203',pagesUrl,commit:'a'.repeat(40),runId:'30',entryRevision:detached.entry.revision,projectRevision:linked.projectRevision}};
   await f.service.mutate(submit,{verifyPublication:async()=>({pagesUrl})});
   const after=await f.service.readEditorJoin(id,participant);
   assert.equal(after.event.participantCount,1);
@@ -174,6 +175,36 @@ test('a publish verified during project removal cannot apply after reattaching t
   await assert.rejects(f.service.mutate({...base,action:'submit',operationId:'stale-reviewed-project',revision,
     publication:{repositoryId:'202',pagesUrl,commit:'a'.repeat(40),runId:'30',entryRevision:'',projectRevision:''}
   },{verifyPublication:()=>assert.fail('Reject stale consent before provider verification')}),{status:409});
+  const publication={repositoryId:'202',pagesUrl,commit:'a'.repeat(40),runId:'30',entryRevision:''};
+  await assert.rejects(f.service.mutate({...base,action:'submit',operationId:'late-legacy-submission',revision,publication},
+    {verifyPublication:()=>assert.fail('Reject unbound consent before provider verification')}),{status:409,message:/Update Zero/});
+  const current={...base,action:'submit',operationId:'current-reviewed-project',revision,
+    publication:{...publication,projectRevision:state.registration.projectRevision}};
+  assert.equal((await f.service.mutate(current,{verifyPublication:async()=>({pagesUrl})})).status,'submitted');
+});
+
+test('a delayed join cannot restore a removed Game Jam project and accepted retries remain read-only',async()=>{
+  const started=Promise.withResolvers(),finish=Promise.withResolvers();
+  let delay=false;
+  const f=fixture({verifyRepository:async({actor})=>{
+    if(delay) {delay=false;started.resolve();await finish.promise;}
+    return {repository:{id:'202',ownerId:actor.id,fullName:'student/project'}};
+  }});
+  const {eventId:id,revision}=await f.service.propose({actor:creator,operationId:'join-and-remove-propose',manifest:hostedManifest()});
+  const base={id,actor:participant},editor={joinChannel:'editor'};
+  const join={...base,action:'join',operationId:'join-and-remove-original',revision,
+    repositoryId:'202',repositoryUrl:'https://github.com/student/project'};
+  const accepted=await f.service.mutate(join,editor);
+  delay=true;
+  const late=f.service.mutate({...join,operationId:'join-and-remove-late'},editor);
+  await started.promise;
+  await f.service.mutate({...base,action:'remove-project',operationId:'join-and-remove-project',repositoryId:'202',projectRevision:''},editor);
+  const {registration}=await f.service.readEditorJoin(id,participant);
+  finish.resolve();
+  await assert.rejects(late,{status:409,message:/Manage jam projects/});
+  assert.deepEqual(await f.service.mutate(join,editor),accepted);
+  assert.deepEqual(registration.repositories,[]);
+  assert.deepEqual((await f.service.readEditorJoin(id,participant)).registration,registration);
 });
 
 test('a delayed add cannot undo a later remove from another editor',async()=>{

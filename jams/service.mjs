@@ -632,6 +632,12 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     if(editorJoinRequired!==undefined&&typeof editorJoinRequired!=='boolean')fail(400,'Invalid jam join policy.');
     return withDiscoveryDeadline(signal,DISCOVERY_TIMEOUT_MS,scope=>mutateScoped(input,scope,{joinChannel,editorJoinRequired,verifyPublication}));
   }
+  function assertPublicationProjects(publication,revision) {
+    if((publication.projectRevision??'')!==revision)
+      fail(409,publication.projectRevision===undefined ?
+        'Update Zero before publishing to this Game Jam. Your Game Jam projects changed.' :
+        'Your Game Jam projects changed. Choose Publish to Jam again.');
+  }
   function requirePublishedSubmission(state,actor,payload,time) {
     const accepted=state.accepted,registration=state.registrations[actor.id];
     if(accepted?.manifest.type!=='game'||state.moderation.status!=='active')
@@ -639,8 +645,7 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     const repository=registrationRepositories(registration).find(repo=>repo.id===payload.publication.repositoryId&&repo.ownerId===actor.id);
     if(registration?.status!=='joined'||!repository)
       fail(409,'Use the public repository linked to your Game Jam registration.');
-    if(payload.publication.projectRevision!==undefined&&payload.publication.projectRevision!==(registration.projectRevision??''))
-      fail(409,'Your Game Jam projects changed. Choose Publish to Jam again.');
+    assertPublicationProjects(payload.publication,registration.projectRevision??'');
     if(payload.revision!==accepted.revision)fail(409,'Review and acknowledge the current event rules.');
     const {submissionsOpenAt,submissionsCloseAt}=accepted.manifest.schedule;
     if(!inWindow(time,submissionsOpenAt,submissionsCloseAt))fail(409,'Submissions are closed.');
@@ -673,8 +678,8 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     const reviewedProjects=before.registrations[actor.id]?.projectRevision??'';
     if(managesGameProject&&payload.projectRevision!==undefined&&payload.projectRevision!==reviewedProjects)
       fail(409,'Your Game Jam projects changed. Open Manage jam projects again.');
-    if(payload.publication?.projectRevision!==undefined&&payload.publication.projectRevision!==reviewedProjects)
-      fail(409,'Your Game Jam projects changed. Choose Publish to Jam again.');
+    if(payload.publication)assertPublicationProjects(payload.publication,reviewedProjects);
+    else if(action==='submit'&&reviewedProjects)fail(409,'Submit your published game from an up-to-date Zero editor.');
     const activeReceipt=payload.publication&&activePublicationReceipt(before,actor,payload);
     if(activeReceipt)return commitLoop(id,actor,op,payloadDigest,null,{legacyDigest,callScope,recoverOnly:true,publicationPayload:payload});
     if(action==='join') {
@@ -810,6 +815,14 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(action==='join') {
         if(!inWindow(time,schedule.registrationOpensAt,schedule.registrationClosesAt))fail(409,'Registration is closed.');
         if((joinChannel==='editor'||schedule.galleryRevealAt)&&!joinedRepository)fail(400,'Choose your public project repository to join.');
+        if(accepted.manifest.type==='game'&&registration?.status==='joined') {
+          // New Join requests can acknowledge current rules. Only project
+          // management can change the linked list of an existing member.
+          if(joinedRepository&&!registrationRepositories(registration).some(repo=>repo.id===joinedRepository.id))
+            fail(409,'Open Manage jam projects in Zero to change your linked projects.');
+          Object.assign(registration,{login:actor.login,revision:accepted.revision,updatedAt:stamp});
+          return {status:'joined',revision:accepted.revision};
+        }
         if(registration?.repository&&joinedRepository&&registration.repository.id!==joinedRepository.id) {
           if(accepted.manifest.type!=='game'||registration.status!=='left'||registration.repository.id!==replacedRepositoryId)
             fail(409,'This registration is already linked to a different repository.');
