@@ -195,7 +195,13 @@ try {
     if (Compare-Object $manifests @(Manifest-Inventory)) { throw 'Extension manifests changed during warm launch.' }
     $stage = 'warm-java-language-server'
     Test-LanguageServer $warmStarted
-    if (Compare-Object $beforeTools @(Tool-Inventory)) { throw 'Bundled tool inventory changed during trial.' }
+    # VSCodium writes disposable Node bytecode caches as extensions activate.
+    # Allow only newly generated cache entries. Every original file must
+    # retain its hash, and any other additions still fail the trial.
+    $nodeCache = '^vscodium\\resources\\app\\node-compile-cache\\(?:main|extension-host)\\v[0-9.]+-x64-[a-f0-9]{8}\\[a-f0-9]{8}:[a-f0-9]{64}$'
+    $toolChanges = @(Compare-Object $beforeTools @(Tool-Inventory) |
+        Where-Object { $_.SideIndicator -ne '=>' -or $_.InputObject -notmatch $nodeCache })
+    if ($toolChanges.Count -gt 0) { throw 'Bundled tool inventory changed during trial.' }
     $report.warm = 'passed'; $report.status = 'passed'; $stage = 'passed'
 } catch {
     $message = $_.Exception.Message
