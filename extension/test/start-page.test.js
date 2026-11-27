@@ -38,6 +38,7 @@ test('first launch starts checked and saves only the current Start building choi
   for (const reporting of [true, false]) await t.test(String(reporting), async () => {
     const f = fake({phase:'signed-out'});
     const saved = [];
+    f.dependencies.updateRecovery = 'native';
     f.dependencies.needsFirstRunChoice = () => saved.length === 0;
     f.dependencies.saveFirstRunChoice = async value => {saved.push(value);};
     const {page, panel} = await open(f);
@@ -48,6 +49,7 @@ test('first launch starts checked and saves only the current Start building choi
     browser.update(panel.messages.at(-1));
     assert.equal(browser.elements.get('first-launch').hidden, false);
     assert.equal(browser.elements.get('normal-start').hidden, true);
+    assert.equal(browser.elements.get('check-for-updates').hidden, true);
     await f.message(panel, {type:'action', action:'signIn'});
     await f.message(panel, {type:'finishSetup', reporting:'true'});
     await panel.receive({type:'finishSetup', reporting:true, token:'stale'});
@@ -89,10 +91,11 @@ test('one reusable native start tab, stable document, explicit focus and lifecyc
   assert.equal(panel.options.enableCommandUris, false);assert.deepEqual(panel.options.localResourceRoots, []);
   assert.equal(panel.options.retainContextWhenHidden, true);
   const html = panel.webview.html;
-  const versionLabel = `<p class="muted start-version">${require('../package.json').version}</p>`;
+  const versionLabel = `<span>${require('../package.json').version}</span>`;
   assert.match(html, /<div class="start-title-row">[\s\S]+?<\/div>\s+<p class="muted start-version">/);
   assert.ok(html.includes(versionLabel));
   assert.equal(html.split(versionLabel).length, 2);
+  assert.match(html, /<p class="muted start-version">\s*<span>[^<]+<\/span>\s*<button type="button" id="check-for-updates" class="start-update" hidden>Check for updates<\/button>\s*<\/p>/);
   assert.equal(page.show({preserveFocus:true, viewColumn:3}), panel);
   assert.deepEqual(panel.reveals, [[3, true]]);assert.equal(f.panels.length, 1);
   for (let index = 0; index < 10; index++) await page.refresh();
@@ -143,12 +146,12 @@ test('Continue joining is scoped to a ready Start Page with a selected Jam', asy
   const f = fake(), {page,panel}=await open(f), b=domHarness(panel.webview.html);
   await f.message(panel,{type:'action',action:'continueGameJam'});
   assert.deepEqual(f.commands,[]);
-  const jamReview={title:'Toast to the Moon',rules:'Build your own game.',registrationDeadline:'Nov 25',submissionDeadline:'Nov 30'};
+  const jamReview={title:'Toast to the Moon',fullRules:'Build your own game.',registrationDeadline:'Nov 25',submissionDeadline:'Nov 30'};
   f.setState({phase:'ready',accountId:'42',jamReview});
   await page.refresh();
   b.update(panel.messages.at(-1));
   assert.deepEqual(payload(panel).jamReview,jamReview);
-  assert.equal(b.elements.get('jam-rules-text').textContent,jamReview.rules);
+  assert.equal(b.elements.get('jam-full-rules-text').textContent,jamReview.fullRules);
   assert.equal(b.elements.get('jam-deadlines').textContent,'Register by Nov 25 · Submit by Nov 30');
   await f.message(panel,{type:'action',action:'continueGameJam'});
   assert.deepEqual(f.commands,['zero.continueGameJamJoin']);
@@ -254,8 +257,27 @@ test('a browser jam waits behind the first-launch screen before showing its publ
   page.dispose();
 });
 
-test('Cancel joining dismisses the card and moves keyboard focus back to Open Game Jams',async()=>{
-  const jamReview={title:'Toast to the Moon',rules:'Build your own game.'};
+test('the linked Jam card presents management once the signed-in catalog confirms membership',async()=>{
+  const f=fake(),id='jam-42';
+  f.dependencies.listOpenJams=async(_signal,account)=>[{id,title:'Toast to the Moon',joined:account==='42'}];
+  f.dependencies.readLinkedJam=async()=>({id,title:'Toast to the Moon',fullRules:'Build a game.',registrationOpen:true,projectsOpen:true});
+  const {page,panel}=await open(f),browser=domHarness(panel.webview.html);
+  await page.showLinkedJam(id);
+  await tick();
+  browser.update(panel.messages.at(-1));
+  const button=browser.buttons.find(item=>item.dataset.action==='continueGameJam');
+  assert.equal(button.textContent,'Manage projects');
+  assert.equal(browser.elements.get('jam-link-status').textContent,'You’re registered for this Game Jam.');
+  f.setState({phase:'ready',accountId:'99'});
+  await page.refresh();
+  await tick();
+  browser.update(panel.messages.at(-1));
+  assert.equal(button.textContent,'Continue joining');
+  page.dispose();
+});
+
+test('closing the Game Jam details moves keyboard focus back to Open Game Jams',async()=>{
+  const jamReview={title:'Toast to the Moon',fullRules:'Build your own game.'};
   const f=fake({phase:'ready',accountId:'42',jamReview}),dismissed=[];
   f.dependencies.dismissGameJamReview=accountId=>{
     dismissed.push(accountId);
@@ -264,7 +286,7 @@ test('Cancel joining dismisses the card and moves keyboard focus back to Open Ga
   const {page,panel}=await open(f),browser=domHarness(panel.webview.html);
   browser.update(panel.messages.at(-1));
   const cancel=browser.elements.get('dismiss-jam');
-  assert.match(panel.webview.html,/id="dismiss-jam" aria-label="Cancel joining"/);
+  assert.match(panel.webview.html,/id="dismiss-jam" aria-label="Close Game Jam details"/);
   cancel.focus();cancel.click();
   await f.message(panel,browser.sent.at(-1));
   browser.update(panel.messages.at(-1));
@@ -394,6 +416,8 @@ test('a verified starter mismatch offers the current channel’s update recovery
     const {page,panel} = await open(f), browser = domHarness(panel.webview.html);
     const update = browser.elements.get('check-for-updates');
     const initial = panel.messages.at(-1).token;
+    browser.update(panel.messages.at(-1));
+    assert.equal(update.hidden, channel !== 'native');
     await f.message(panel, {type:'action', action:'new'});
     browser.update(panel.messages.at(-1));
     assert.match(payload(panel).error, /GitHub starter use different project files/);
@@ -405,9 +429,13 @@ test('a verified starter mismatch offers the current channel’s update recovery
       update.click();
       assert.equal(browser.sent.at(-1).type, 'checkForUpdates');
       const checking = panel.receive({...browser.sent.at(-1), command:'workbench.action.closeWindow'});
+      browser.update(panel.messages.at(-1));
+      assert.equal(update.disabled, true);
       await f.message(panel, {type:'checkForUpdates'});
       check.resolve();
       await checking;
+      browser.update(panel.messages.at(-1));
+      assert.equal(update.disabled, false);
       assert.deepEqual(f.commands, ['zero.newProject', 'zero.checkForUpdates']);
       assert.match(payload(panel).error, /then try Project/);
       assert.match(payload(panel).error, /ask your teacher to check the starter/);

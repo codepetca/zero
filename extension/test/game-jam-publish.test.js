@@ -43,7 +43,7 @@ test('publication uses the verified live build and fresh repository destination'
   const route=await jam.resolve(root);
   assert.equal(route.rules,event.rules);
   assert.equal(route.repositoryId,'321');
-  assert.equal(f.requests[0].url,'https://zero.codepet.ca/api/desktop/jams/project?repositoryId=321');
+  assert.equal(f.requests[0].url,'https://zero.codepet.ca/api/desktop/jams/project?repositoryId=321&includeDestinations=1');
   assert.ok(jam.hasKnownLink('123',repository));
   assert.deepEqual(await jam.submit(route,live),{status:'submitted'});
   const post=f.requests.at(-1);
@@ -51,6 +51,18 @@ test('publication uses the verified live build and fresh repository destination'
   assert.deepEqual(post.body,{operationId:post.body.operationId,revision:event.revision,entryRevision:'',
     repositoryId:'321',pagesUrl:live.url,commit:live.sha,runId:'456'});
   assert.equal(await jam.recover(route),null);
+});
+
+test('older websites still route publishing and cannot substitute another jam for a saved one',async()=>{
+  const f=fixture(),jam=f.make();
+  f.state.lookup=()=>new URL(f.requests.at(-1).url).searchParams.has('includeDestinations')?
+    response({configured:true,error:'Choose a GitHub project in Zero.'},400):
+    response({configured:true,destination:event});
+  assert.equal((await jam.resolve(root)).id,event.id);
+  assert.equal(new URL(f.requests.at(-1).url).searchParams.size,1);
+  assert.equal((await jam.resolve(root,{destinationId:event.id})).id,event.id);
+  await assert.rejects(jam.resolve(root,{destinationId:'jam-43'}),{
+    code:'ZERO_JAM_DESTINATION_UNAVAILABLE',message:/selected Game Jam/});
 });
 
 test('an uncertain result survives restart and retries the exact operation after closing',async()=>{
@@ -191,4 +203,39 @@ test('invalid entry revisions cannot authorize or restore a submission',async()=
   delete f.saved.get(key).body.entryRevision;
   await assert.rejects(jam.recover(route),/could not be read/);
   assert.equal(f.requests.filter(item=>item.method==='POST').length,1);
+});
+
+test('multiple destinations expose validated choices and recheck only the explicit selected jam',async()=>{
+  const f=fixture(),jam=f.make(),second={...event,id:'jam-18',title:'Second jam',projectRevision:'c'.repeat(64)};
+  f.state.lookup=()=>response({configured:true,destination:null,ambiguous:true,destinations:[event,second]});
+  await assert.rejects(jam.resolve(root),error=>{
+    assert.deepEqual(error.destinations.map(item=>item.id),[event.id,second.id]);
+    assert.equal(error.destinations[1].account,'123');
+    assert.equal(Object.isFrozen(error.destinations[1]),true);
+    return error.code==='ZERO_JAM_DESTINATION_AMBIGUOUS';
+  });
+  f.state.lookup=()=>response({configured:true,destination:second,destinations:[event,second]});
+  const selected=await jam.resolve(root,{destinationId:second.id});
+  assert.equal(selected.id,second.id);
+  assert.equal(selected.projectRevision,second.projectRevision);
+  assert.equal(new URL(f.requests.at(-1).url).searchParams.get('jamId'),second.id);
+  f.state.lookup=()=>response({configured:true,destination:event});
+  await assert.rejects(jam.resolve(root,{destinationId:second.id}),/selected Game Jam/);
+  f.state.lookup=()=>response({configured:true,destination:null,ambiguous:true,destinations:[event,{...second,entryRevision:'invalid'}]});
+  await assert.rejects(jam.resolve(root),/could not check/);
+  f.state.lookup=()=>response({configured:true,destination:null,ambiguous:true,destinations:[event,event]});
+  await assert.rejects(jam.resolve(root),/could not check/);
+});
+
+test('selection cannot retarget a pending submission or bypass an aborted request',async()=>{
+  const f=fixture(),jam=f.make(),route=await jam.resolve(root);
+  f.state.post=()=>response({configured:true,error:'Unavailable'},503);
+  await jam.submit(route,live);
+  const count=f.requests.length;
+  await assert.rejects(jam.resolve(root,{destinationId:'jam-18'}),/previous submission/);
+  assert.equal(f.requests.length,count);
+  const retry=await jam.resolve(root,{destinationId:event.id});
+  assert.equal(retry.pending,true);
+  await assert.rejects(jam.resolve(root,{destinationId:event.id,signal:AbortSignal.abort()}));
+  assert.equal(f.requests.length,count);
 });

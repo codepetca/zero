@@ -223,19 +223,24 @@ historical proposals retain their review records; creators cannot self-cancel hi
 jams. The official Zero page presents the accepted details and
 participation link. The earlier creator-hosted website preparation and submission
 path is retained in source but temporarily unavailable for new proposals; existing
-records remain readable. An open Game Jam's website offers **Open in Zero**
-and **Download Zero**. Students join, manage projects, and submit in Zero.
+records remain readable. An open Game Jam's website offers **Open in Zero**.
+Students join, manage projects, leave, and submit in Zero.
 If the app link does not open Zero, use **Open
 Game Jams** on the Start Page. The app link opens the selected jam's rules
 and deadlines. Students sign in to Zero, choose **Continue joining**, and
 create a public GitHub project or choose an existing standalone public Zero
 repository. Zero opens the project or offers **Clone & open**.
 
-Returning students can choose **Manage jam projects** in Zero through the
+Returning students can choose **Manage projects** in Zero through the
 submission deadline, including after registration closes. They can add and
 remove their projects while staying registered. Removing a deleted project
 uses its recorded identity and works without access to the old repository.
 Removing the project that is currently submitted also withdraws its entry.
+**Leave Game Jam** removes the student from the participant list and withdraws
+their active entry. Their GitHub repositories remain available. A student can
+rejoin during registration with their original repo, or choose a replacement
+when GitHub can no longer find the original. A previously withdrawn entry
+requires a new submission.
 Each student has one current entry. Publishing a different linked project
 replaces that entry. Discovery holds for previously linked projects last
 until the gallery reveal. After submissions close, membership and entries
@@ -244,8 +249,11 @@ retain the final competition state.
 A linked project shows **Publish
 to Jam** in Run options. Zero publishes or finds the current GitHub Pages
 build, verifies it and submits it before the deadline. The editor confirms
-when ZeroJams accepts the entry. A pending submission can be checked again
-from the same action without rebuilding. App Jam registration and
+when ZeroJams accepts the entry. If a repository is linked to multiple
+available jams, the student chooses the destination before confirming
+publication. A pending submission can be checked again from the same action
+without rebuilding. The signed-in jam page gives students a private receipt
+for their accepted submission. App Jam registration and
 participation are available on the website. Verified custom domains qualify.
 Coursework links still go separately to Pika.
 

@@ -15,12 +15,17 @@ function clientRequire(name) {
   if(name==='./Icon')return {Icon:()=>null};
   return require(name);
 }
-function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null,refreshImpl=null}={}) {
+function harness({storage=new Map(),fetcher=async()=>{throw new Error('network');},participateData=null,refreshImpl=null,clock=null}={}) {
   let actor={id:'12',login:'creator',csrfToken:'csrf'},index=0,slots=[],effects=[],directory;
-  const self={},window={self,top:self};
+  const self={},window={self,top:self,setTimeout:()=>1,clearTimeout:()=>{}};
   const react={createContext:defaultValue=>({defaultValue,Provider:()=>null}),useContext:ctx=>directory??ctx.defaultValue,useRef(value){const i=index++;return slots[i]??(slots[i]={current:value});},useState(value){const i=index++;if(!(i in slots))slots[i]=typeof value==='function'?value():value;return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},useCallback(fn){index++;return fn;},useEffect(fn){index++;effects.push(fn);}};
   const module={exports:{}};
   const context={participateData,refreshImpl,module,exports:module.exports,require(name){if(name==='react')return react;if(name==='./JamPreparation')return {JamPreparation:()=>null};if(name==='./HubGitHub')return {useHubGitHub:()=>({user:actor}),HubAccount:()=>null};if(name==='next/link')return {default:()=>null};return clientRequire(name);},window,crypto:webcrypto,sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},fetch:(...args)=>fetcher(...args),AbortSignal,Response,Request,URL,Map,console};
+  if(clock) {
+    context.Date=class extends Date {static now(){return clock.time;}};
+    window.setTimeout=(callback,delay)=>{clock.next={callback,delay};return 1;};
+    window.clearTimeout=()=>{clock.next=null;};
+  }
   vm.runInNewContext(compile(clientSource)+'\nif(participateData){useResource=()=>({data:participateData?.testError?null:participateData,error:participateData?.testError||"",loading:false,refresh:refreshImpl|| (async()=>{})});useTopLevel=()=>true;}exports.testing={useDraft,JamLookPicker,EventFacts,EventStatus,Proposal,useMutation,useResource,JamHelpLink,JamCreate,JamCreationPane,JamDirectoryProvider,JamDiscovery,jamTimeRemaining,CreatorCancel,EditSchedule,JamParticipate:JamParticipateForm,JamParticipateWrapper:JamParticipate,ApprovedVersions,JamDetail,HeldEntryModeration,ModerationInbox,JamAccountTools};',context);
   return {render(kind='useMutation',path='/api/jams/jam-42/actions',discardOnError=false){index=0;return module.exports.testing[kind](path,discardOnError);},renderDraft(name,initial,initializeFresh){index=0;return module.exports.testing.useDraft(name,initial,initializeFresh);},flushEffects(){const work=effects;effects=[];for(const fn of work)fn();},setActor(value){actor=value;},setDirectory(value){directory=value;},setDetail(value){context.participateData=value;},frame(){window.top={};},storage};
 }
@@ -558,7 +563,7 @@ test('Game Jam participation links show no browser forms for visitors or joined 
   assert.ok(direction);
   const directionNodes=elements(direction.type(direction.props));
   assert.ok(directionNodes.some(node=>node.type==='strong'&&node.props.children==='Project → Join a Game Jam'));
-  assert.ok(directionNodes.some(node=>node.props?.href==='/downloads'&&node.props.children==='Download Zero'));
+  assert.ok(!directionNodes.some(node=>node.props?.children==='Download Zero'));
   assert.ok(directionNodes.some(node=>node.props?.href==='zero-studio://jam/jam-42'&&node.props.children==='Open in Zero'));
   assert.ok(!elements(direction.type({id:'jam-42?open=other'})).some(node=>node.props?.children==='Open in Zero'));
   h.setDetail({...detail,event:{...event,registrationOpen:false}});
@@ -592,6 +597,8 @@ test('Game Jam hero links to Zero while the App Jam hero links to the website',(
   assert.ok(!view({event:{...event,type:'app'}}).some(node=>node.props?.children==='Open in Zero'));
   assert.ok(view({event:{...event,type:'app'}}).some(node=>node.props?.href?.endsWith('/participate')));
   assert.ok(!view({event:{...event,registrationOpen:false},joined:false}).some(node=>node.props?.children==='Open in Zero'));
+  assert.ok(!view({event:{...event,registrationOpen:false},now:Date.parse('2030-01-19T00:00:00Z'),joined:true}).some(node=>node.props?.children==='Open in Zero'));
+  assert.ok(!view({}).some(node=>node.props?.children==='Download Zero'));
   assert.ok(view({event:{...event,registrationOpen:false},joined:true}).some(node=>node.props?.children==='Open in Zero'));
 });
 
@@ -812,5 +819,40 @@ test('schedule editor locks elapsed dates and refreshes only on confirmed update
   tree=h.render('EditSchedule',props);elements(tree).find(node=>node.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
   assert.equal(refreshed,0);assert.deepEqual(JSON.parse(JSON.stringify(received.schedule)),{startsAt:'2030-02-02T00:00:00.000Z'});assert.equal(received.revision,'rev-a');
   tree=h.render('EditSchedule',props);elements(tree).find(node=>node.type==='form').props.onSubmit({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(refreshed,1);
+});
+
+test('private Game Jam receipt stays available to its owner after submissions close and the gallery opens',()=>{
+  const now=Date.now();
+  const event={id:'jam-42',type:'game',title:'Jam',summary:'Play',theme:'',rules:'',eligibility:'',timezone:'UTC',schedule:{registrationClosesAt:new Date(now-20000).toISOString(),submissionsCloseAt:new Date(now-10000).toISOString(),galleryRevealAt:new Date(now+60000).toISOString()},revision:'a',moderation:{status:'active'},registrationOpen:true,submissionsOpen:true,participantCount:1,participants:[],entries:[]};
+  const entry={participantId:'12',status:'active',title:'My game',repository:{fullName:'creator/project'},submittedAt:new Date(now-15000).toISOString()};
+  const h=harness({participateData:{event,entry,registration:{status:'joined'},canMaintain:false}});
+  const render=()=>elements(h.render('JamDetail',{id:'jam-42'}));
+  render();h.flushEffects();
+  const receipt=render().find(n=>n.type?.name==='OwnGameJamReceipt');
+  assert.ok(receipt);assert.match(renderToStaticMarkup(receipt),/creator\/project/);
+  const hero=render().find(n=>n.type?.name==='JamHero');
+  const heroNodes=elements(hero.type(hero.props));
+  assert.match(text(heroNodes),/Registration closed/);assert.match(text(heroNodes),/Submissions closed/);
+  assert.ok(!heroNodes.some(n=>n.props?.children==='Open in Zero'));
+  h.setActor(null);assert.ok(!render().some(n=>n.type?.name==='OwnGameJamReceipt'));
+  h.setActor({id:'99',login:'other',csrfToken:'x'});assert.ok(!render().some(n=>n.type?.name==='OwnGameJamReceipt'));
+  h.setActor({id:'12',login:'creator',csrfToken:'x'});
+  h.setDetail({event:{...event,schedule:{...event.schedule,galleryRevealAt:new Date(now-1).toISOString()}},entry,registration:{status:'joined'},canMaintain:false});
+  assert.ok(render().some(n=>n.type?.name==='OwnGameJamReceipt'));
+});
+
+test('an already-open Game Jam reloads its gallery when reveal time arrives',()=>{
+  const clock={time:Date.parse('2030-01-04T12:00:00Z')};
+  const event={id:'jam-42',type:'game',title:'Jam',timezone:'UTC',schedule:{
+    submissionsCloseAt:'2030-01-03T12:00:00Z',galleryRevealAt:'2030-01-04T12:00:05Z'},
+    revision:'a',moderation:{status:'active'},registrationOpen:false,submissionsOpen:false,
+    participantCount:0,participants:[],entries:[]};
+  let refreshed=0;
+  const h=harness({participateData:{event},clock,refreshImpl:async()=>{refreshed++;}});
+  h.render('JamDetail',{id:event.id});h.flushEffects();
+  assert.equal(refreshed,0);
+  assert.equal(clock.next.delay,5000);
+  clock.time+=5000;clock.next.callback();
   assert.equal(refreshed,1);
 });

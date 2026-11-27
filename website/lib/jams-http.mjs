@@ -332,12 +332,13 @@ async function desktopJamResponse(request,inputOptions,readInput,perform) {
 
 export function getDesktopJamJoinResponse(request,id,options={}) {
   return desktopJamResponse(request,options,()=>desktopEventId(id),async(_,{service,actor,deadline})=>{
-    const {event,registration,hasRegistrationSpace,canManageProjects,entry} = await deadline.run(signal=>service.readEditorJoin(id,actor,{signal}));
+    const {event,registration,hasRegistrationSpace,canManageProjects,leaveRevision,entry} = await deadline.run(signal=>service.readEditorJoin(id,actor,{signal}));
     if (event.type!=='game' || !event.revision) return desktopError('Choose an approved Game Jam in Zero.',409);
     const {type,title,revision,rules,eligibility,timezone,schedule,registrationOpen} = event;
     const repository = registration?.repository;
     return json({configured:true,event:{id,type,title,revision,rules,eligibility,timezone,schedule,registrationOpen},hasRegistrationSpace,
       ...(registration?.status==='joined'&&typeof canManageProjects==='boolean'?{canManageProjects,projectRevision:registration.projectRevision??''}:{}),
+      ...(leaveRevision?{leaveRevision}:{}),
       ...(entry?.status==='active'&&entry.repository?{submittedRepositoryId:entry.repository.id}:{}),
       registration:registration ? {status:registration.status,...(repository?{
         repository:{id:repository.id,ownerId:repository.ownerId,fullName:repository.fullName}
@@ -355,6 +356,22 @@ export function postDesktopJamJoinResponse(request,id,options={}) {
   },async(body,{service,actor,deadline})=>{
     const result=await deadline.run(signal=>service.mutate({...body,id,actor,action:'join'},{signal,joinChannel:'editor'}));
     return desktopMutationResult(result);
+  });
+}
+
+export function deleteDesktopJamJoinResponse(request,id,options={}) {
+  const message='Review this Game Jam in Zero before leaving.';
+  const check=request.headers.get('x-zero-check-project-change')==='1';
+  return desktopJamResponse(request,options,async()=>{
+    desktopEventId(id);
+    const body=await desktopBody(request,['operationId','participationRevision'],message);
+    if(!/^[a-f0-9]{64}$/.test(body.participationRevision))throw new JamError(400,message);
+    return body;
+  },async({operationId,participationRevision},{service,actor,deadline})=>{
+    const payload={action:'leave',participationRevision};
+    const result=await deadline.run(signal=>check?service.settle({actor,scope:id,operationId,payload}):
+      service.mutate({...payload,id,actor,operationId},{signal,joinChannel:'editor'}));
+    return check?json({configured:true,...result}):desktopMutationResult(result);
   });
 }
 
@@ -382,10 +399,14 @@ export function desktopJamProjectChangeResponse(request,id,options={}) {
 export function getDesktopJamProjectResponse(request,options={}) {
   return desktopJamResponse(request,options,()=>{
     const params=new URL(request.url).searchParams,repositoryId=params.get('repositoryId');
-    if(params.size!==1 || !numericId(repositoryId)) throw new JamError(400,'Choose a GitHub project in Zero.');
-    return repositoryId;
-  },async(repositoryId,{service,actor,deadline})=>{
-    const result=await deadline.run(signal=>service.projectDestination(repositoryId,actor,{signal}));
+    const include=params.get('includeDestinations'),destinationId=params.get('jamId');
+    if(params.size!==1+Number(include!==null)+Number(destinationId!==null)||!numericId(repositoryId)||
+        include!==null&&include!=='1'||destinationId!==null&&(include!=='1'||!validId(destinationId)))
+      throw new JamError(400,'Choose a GitHub project and Game Jam in Zero.');
+    return {repositoryId,includeDestinations:include==='1',destinationId};
+  },async({repositoryId,includeDestinations,destinationId},{service,actor,deadline})=>{
+    const result=await deadline.run(signal=>service.projectDestination(repositoryId,actor,{signal,
+      ...(includeDestinations?{includeDestinations}:{}),...(destinationId?{destinationId}:{})}));
     return json({configured:true,...result});
   });
 }

@@ -2,7 +2,6 @@
 
 const {randomUUID} = require('node:crypto');
 const {parseRepositoryUrl} = require('./core');
-const {openGameJamRules} = require('./tutorial-browser');
 
 const ORIGIN = 'https://zero.codepet.ca';
 const JAM_ID = /^jam-(?:[1-9][0-9]{0,19}|zero-[a-f0-9]{32})$/;
@@ -27,15 +26,7 @@ function describeDeadline(timestamp, timezone) {
   } catch {return timestamp;}
 }
 
-function rulesPreview(rules) {
-  const text = rules.trim().replace(/\s+/gu,' ');
-  const prefix = text.match(/^.{0,220}/u)[0];
-  if (prefix === text) return text;
-  const lastSpace = prefix.lastIndexOf(' ');
-  return (lastSpace > 0 ? prefix.slice(0,lastSpace) : prefix) + '…';
-}
-
-function createGameJamJoin({vscode,authentication,projects,projectPicker,repositories,openGameJamProject,globalState,active,report,onJoined=async()=>{},openRules=id=>openGameJamRules(vscode,id),request=globalThis.fetch}) {
+function createGameJamJoin({vscode,authentication,projects,projectPicker,repositories,openGameJamProject,globalState,active,report,onJoined=async()=>{},onLeft=()=>{},request=globalThis.fetch}) {
   const unavailable = 'ZeroJams is unavailable. Try again later.';
   const unconfirmed = 'Zero could not confirm that you joined. Choose Join a Game Jam to retry with the same repository.';
   let review;
@@ -84,7 +75,7 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
   }
 
   function reviewDetails(event) {
-    return {title:event.title,rules:rulesPreview(event.rules),
+    return {id:event.id,title:event.title,fullRules:event.rules,eligibility:typeof event.eligibility==='string'?event.eligibility:'',
       registrationDeadline:describeDeadline(event.schedule?.registrationClosesAt,event.timezone),
       submissionDeadline:describeDeadline(event.schedule?.submissionsCloseAt,event.timezone)};
   }
@@ -104,8 +95,7 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
       throw Error('This Game Jam could not be opened. Check its official page or try again.');
     }
     const checkedAt=Date.parse(data.checkedAt);
-    return {id,revision:event.revision,...reviewDetails(event),fullRules:event.rules,
-      eligibility:typeof event.eligibility==='string'?event.eligibility:'',registrationOpen:registrationOpen(event,checkedAt),
+    return {revision:event.revision,...reviewDetails(event),registrationOpen:registrationOpen(event,checkedAt),
       projectsOpen:projectsOpen(event,checkedAt)};
   }
 
@@ -187,9 +177,13 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     for(const key of globalState.keys().filter(key=>key.startsWith(prefix))) {
       const item=globalState.get(key);
       if(!item||!validJamId(item.id)||key!==prefix+item.id||typeof item.title!=='string'||
-          !['POST','DELETE'].includes(item.method)||!validRepositoryId(item.body?.repositoryId)||
-          !(item.body?.projectRevision===''||typeof item.body?.projectRevision==='string'&&REVISION.test(item.body.projectRevision))||
           !/^[a-f0-9-]{36}$/.test(item.body?.operationId||''))continue;
+      if(item.action==='leave') {
+        if(item.method==='DELETE'&&typeof item.body.participationRevision==='string'&&REVISION.test(item.body.participationRevision))pending.set(item.id,item);
+        continue;
+      }
+      if(!['POST','DELETE'].includes(item.method)||!validRepositoryId(item.body.repositoryId)||
+          !(item.body.projectRevision===''||typeof item.body.projectRevision==='string'&&REVISION.test(item.body.projectRevision)))continue;
       try {
         if(item.method==='POST'&&parseRepositoryUrl(item.body.repositoryUrl).page!==item.body.repositoryUrl)continue;
         pending.set(item.id,item);
@@ -207,7 +201,7 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     if (!active()) return;
     await authentication.assertCurrent(ticket);
     const choices = [
-      ...Array.from(projectChanges.values(),item=>({label:`Check project change · ${item.title}`,id:item.id})),
+      ...Array.from(projectChanges.values(),item=>({label:`${item.action==='leave'?'Check if you left':'Check project change'} · ${item.title}`,id:item.id})),
       ...Array.from(pending.values()).filter(item=>!projectChanges.has(item.id)).map(item=>({
         label:`${validRepositoryId(item.repositoryId) ? 'Retry joining' : 'Review registration for'} ${item.title}`,description:item.repositoryUrl,id:item.id
       })),
@@ -245,7 +239,7 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
       return reopenRegistration(ticket,details);
     }
     if (canContinue(details)) {
-      await showRules(ticket,details.event);
+      showRules(ticket,details.event,details.registration?.status);
       if(retry && active()) report('Choose a repository again to confirm this registration.');
     }
   }
@@ -289,22 +283,25 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
   }
 
   async function changeProject(ticket,event,projectRevision,method,project,signal) {
+    const {repositoryId,repositoryUrl}=project;
+    if(!validRepositoryId(repositoryId))throw Error('Choose your Game Jam project again.');
+    const body={operationId:randomUUID(),repositoryId,projectRevision,
+      ...(method==='POST'?{repositoryUrl:parseRepositoryUrl(repositoryUrl).page}:{})};
+    return saveChange(ticket,{id:event.id,title:event.title,method,body},signal);
+  }
+
+  async function saveChange(ticket,record,signal) {
     signal?.throwIfAborted();
     await authentication.assertCurrent(ticket);
     if(!active())return false;
-    const {repositoryId,repositoryUrl}=project;
-    if(!validRepositoryId(repositoryId))throw Error('Choose your Game Jam project again.');
-    const key=projectChangePrefix(ticket.session.accountId)+event.id;
-    if(pendingProjectChanges(ticket.session.accountId).has(event.id))
-      throw Error('Check the earlier project change before making another change.');
-    const body={operationId:randomUUID(),repositoryId,projectRevision,
-      ...(method==='POST'?{repositoryUrl:parseRepositoryUrl(repositoryUrl).page}:{})};
-    const record={id:event.id,title:event.title,method,body};
+    const account=ticket.session.accountId,key=projectChangePrefix(account)+record.id;
+    if(pendingProjectChanges(account).has(record.id))
+      throw Error('Check the earlier Game Jam change before making another change.');
     await globalState.update(key,record);
     return sendProjectChange(ticket,record,signal);
   }
 
-  async function sendProjectChange(ticket,{id,title,method,body},signal,check=false) {
+  async function sendProjectChange(ticket,{id,title,method,body,action},signal,check=false) {
     if(!active())return false;
     signal?.throwIfAborted();
     const key=projectChangePrefix(ticket.session.accountId)+id;
@@ -312,9 +309,11 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
       if(globalState.get(key)?.body?.operationId===body.operationId)await globalState.update(key,undefined);
     };
     let response,result;
-    const retry='Zero could not confirm the change. Choose Check project change before trying again.';
+    const leaving=action==='leave',adding=method==='POST';
+    const retry=leaving?'Zero could not confirm that you left. Open this Game Jam again to check.':
+      'Zero could not confirm the change. Choose Check project change before trying again.';
     try {
-      response=await request(ORIGIN+`/api/desktop/jams/${id}/projects`,{
+      response=await request(leaving?editorJoinUrl(id):ORIGIN+`/api/desktop/jams/${id}/projects`,{
         method,redirect:'error',headers:{...editorHeaders(ticket),'Content-Type':'application/json',
           ...(check?{'X-Zero-Check-Project-Change':'1'}:{})},
         body:JSON.stringify(body),signal:AbortSignal.any([AbortSignal.timeout(24_000),...(signal?[signal]:[])])
@@ -326,10 +325,11 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     const confirmed=response.ok&&result?.configured===true&&result.eventId===id&&result.operationId===body.operationId;
     if(check&&confirmed&&result.settlement==='not-applied') {
       await clear();
-      report('The earlier project change didn’t apply. Choose Manage jam projects to try again.');
+      report(leaving?'The earlier leave request didn’t apply. Open the Game Jam again to check your registration.':
+        'The earlier project change didn’t apply. Choose Manage jam projects to try again.');
       return false;
     }
-    if(!confirmed||result.status!==(method==='POST'?'project-added':'project-removed')||check&&result.settlement!=='applied') {
+    if(!confirmed||result.status!==(leaving?'left':adding?'project-added':'project-removed')||check&&result.settlement!=='applied') {
       if(result?.configured===true&&typeof result.error==='string'&&[400,403,404,409,413,429].includes(response.status)) {
         if(!check)await clear();
         throw Error(result.error.slice(0,400));
@@ -338,13 +338,18 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
       throw Error(retry);
     }
     await clear();
-    if(method==='POST')await onJoined({account:ticket.session.accountId,repository:body.repositoryUrl,repositoryId:body.repositoryId,id});
-    report(`${method==='POST'?'Added project to':'Removed project from'} ${title}.`);
+    if(leaving) {
+      await onLeft();
+      report(`You left ${title}.`);
+    } else {
+      if(adding)await onJoined({account:ticket.session.accountId,repository:body.repositoryUrl,repositoryId:body.repositoryId,id});
+      report(`${adding?'Added project to':'Removed project from'} ${title}.`);
+    }
     return true;
   }
 
   async function checkProjectChange(ticket,record) {
-    const choice=await vscode.window.showInformationMessage('Check the earlier project change?',{
+    const choice=await vscode.window.showInformationMessage(record.action==='leave'?'Check if you left this Game Jam?':'Check the earlier project change?',{
       modal:true,detail:'Zero will check whether the change was saved before you make another change.'
     },'Check change');
     if(choice==='Check change'&&active())await sendProjectChange(ticket,record,undefined,true);
@@ -361,7 +366,7 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     else if(choice.action==='existing')await onExisting();
   }
 
-  async function reopenRegistration(ticket,{event,registration,canManageProjects,projectRevision,submittedRepositoryId}) {
+  async function reopenRegistration(ticket,{event,registration,canManageProjects,projectRevision,submittedRepositoryId,leaveRevision}) {
     review=undefined;
     if(canManageProjects===undefined) {
       report(`You’ve already joined ${event.title}.`);
@@ -374,12 +379,20 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     const choices=[
       ...linked.map(repository=>({label:repository.fullName,description:repository.id===submittedRepositoryId?'Submitted project':'Open project',action:'open',repository})),
       {label:'Add a project',action:'add'},
-      ...(linked.length?[{label:'Remove a project',action:'remove'}]:[])
+      ...(linked.length?[{label:'Remove a project',action:'remove'}]:[]),
+      ...(typeof leaveRevision==='string'&&REVISION.test(leaveRevision)?[{label:'Leave Game Jam…',action:'leave'}]:[])
     ];
     const choice=await vscode.window.showQuickPick(choices,{title:event.title,placeHolder:'Manage your Game Jam projects'});
     if(!choice||!active())return;
     authentication.assertCurrentNow(ticket);
     if(choice.action==='open')return openRegisteredProject(ticket,event,choice.repository);
+    if(choice.action==='leave') {
+      const confirm=await vscode.window.showWarningMessage(`Leave ${event.title}?`,{modal:true,
+        detail:'This withdraws your entry and removes you from the participant list. Your GitHub repositories stay available. You can rejoin while registration is open.'},'Leave Game Jam');
+      if(confirm==='Leave Game Jam')await saveChange(ticket,{id:event.id,title:event.title,method:'DELETE',action:'leave',
+        body:{operationId:randomUUID(),participationRevision:leaveRevision}});
+      return;
+    }
     if(choice.action==='add') {
       const add=project=>changeProject(ticket,event,projectRevision,'POST',project,project.signal);
       return chooseProjectAction(ticket,event,add,async()=>{
@@ -406,12 +419,9 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     return false;
   }
 
-  async function showRules(ticket,event) {
+  function showRules(ticket,event,membership) {
     authentication.assertCurrentNow(ticket);
-    await openRules(event.id);
-    if (!active()) return;
-    authentication.assertCurrentNow(ticket);
-    review={id:event.id,revision:event.revision,account:ticket.session.accountId,details:reviewDetails(event)};
+    review={id:event.id,revision:event.revision,account:ticket.session.accountId,details:{...reviewDetails(event),membership}};
   }
 
   async function continueLinkedJam(ticket,linked) {
@@ -431,7 +441,7 @@ function createGameJamJoin({vscode,authentication,projects,projectPicker,reposit
     if (!canContinue(details)) return;
     const {event,registration}=details;
     if (event.revision!==selectedReview.revision) {
-      await showRules(ticket,event);
+      showRules(ticket,event,registration?.status);
       if (active()) report('The jam rules changed. Review them before continuing.');
       return;
     }

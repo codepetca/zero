@@ -549,6 +549,10 @@ function activate(context, services = {}) {
   const {openGameJamProject}=createGameJamProjectOpener({vscode,authentication:auth,repositories,project,recentProjects,projectFolders,active:()=>!disposed});
   const joinGameJam = createGameJamJoin({vscode,authentication:auth,projects:githubProjects,projectPicker,repositories,
     openGameJamProject,globalState:context.globalState,active:()=>!disposed,report,request:services.gameJamRequest,
+    onLeft:()=>{
+      startPage?.refresh({jams:true});
+      refreshJamDestination(true);refresh();
+    },
     onJoined:async({account,repository:joinedRepository,repositoryId,id})=>{
       await gameJam.rememberJoined(account,joinedRepository,id,repositoryId);
       startPage?.refresh({recent:true,jams:true});

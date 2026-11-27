@@ -139,13 +139,14 @@ test('Start Page fixture renders the production panel and its actual phase snaps
     const {html, snapshot} = await startPageSource(state);
     assert.match(html, /<h1 id="start-title"[^>]*><svg[^>]*class="zero-mark"[^>]*aria-hidden="true"[^>]*>[\s\S]*?<\/svg><span>Zero<\/span><\/h1>/);
     assert.doesNotMatch(html, /Learn to Build|Starting from zero/);
-    assert.match(html, /<\/h1>\s*<button[^>]*data-action="tutorials" aria-label="Zero Web"[^>]*><svg[^>]*lucide-external-link[^>]*>.*<\/svg><\/button>\s*<\/div>\s*<p class="muted start-version">[\d.]+<\/p>\s*<div id="github-profile"/);
+    assert.match(html, /<\/h1>\s*<button[^>]*data-action="tutorials" aria-label="Zero Web"[^>]*><svg[^>]*lucide-external-link[^>]*>.*<\/svg><\/button>\s*<\/div>\s*<p class="muted start-version">\s*<span>[\d.]+<\/span>\s*<button[^>]*id="check-for-updates"[^>]*>Check for updates<\/button>\s*<\/p>\s*<div id="github-profile"/);
     assert.doesNotMatch(html, /aria-controls="tutorial-menu"/);
     assert.match(html, /aria-controls="project-menu"/);
     assert.match(html, /script-src 'nonce-/);
     assert.match(html, /connect-src 'none'/);
     assert.equal(snapshot.state.phase, state === 'first-launch' ? 'signed-out' : ['busy','jam-review'].includes(state) || state.startsWith('publish') ? 'ready' : state);
     assert.equal(snapshot.state.firstLaunch, state === 'first-launch');
+    assert.equal(snapshot.state.canCheckForUpdates, true);
     assert.equal(snapshot.state.jams[0]?.title,'Toast to the Moon');
     assert.equal(snapshot.state.jamReview?.title,state==='jam-review'?'Toast to the Moon':undefined);
     assert.equal(snapshot.state.busy, state === 'busy' || Boolean(snapshot.state.publishProgress)||state==='published-busy');
