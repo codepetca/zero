@@ -1,6 +1,6 @@
 # Zero release ledger
 
-Last reconciled 2026-11-26 (America/Toronto). This is a dated working record,
+Last reconciled 2026-11-27 (America/Toronto). This is a dated working record,
 not proof of current live status. Before reporting or releasing, check the live
 service, exact source revision and applicable release gates. Do not infer
 permission to publish from this ledger.
@@ -9,7 +9,7 @@ permission to publish from this ledger.
 | --- | --- | --- |
 | GitHub manual kit | [Zero 0.5.90](https://github.com/codepetca/zero/releases/tag/v0.5.90) is public. Its three anonymous downloads match preparation run 45923064395. | Preserve immutable assets. |
 | Website | [Toast to the Moon](https://zero.codepet.ca/hub/jams/jam-zero-50cc218f35e96640eba5685118e3c2dd) and its older participation URL show Open in Zero and no student forms. [PR #435](https://github.com/codepetca/zero/pull/435) and [PR #436](https://github.com/codepetca/zero/pull/436) select the measured 0.5.90 downloads and Mac feed. | Verify the production download links and feed when reconciling releases. |
-| Mac installer | [0.5.90](https://github.com/codepetca/zero/releases/tag/setup-v0.5.90) includes the signed, stapled DMG and both corresponding Git source archives. | The signed build 89 feed references the verified public DMG. |
+| Mac installer | [0.5.91](https://github.com/codepetca/zero/releases/tag/setup-v0.5.91) includes the signed, stapled DMG and both corresponding Git source archives. The signed build 90 feed references the verified public DMG. | Verify the build 90 feed after production deployment. |
 | Windows Store | The Canadian [Zero Studio catalog](https://apps.microsoft.com/detail/9mxkd6dqlfgx) still reports 1.5.89.0 x64. The test-signed 1.5.90.0 candidate passed installation and first run. | Partner Center's product overview did not load the submission controls. |
 | Windows Portable | The [0.5.90 Complete ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-bundled-v0.5.90) and [staging ZIP](https://github.com/codepetca/zero/releases/tag/windows-portable-pilot-v0.5.90) both embed the canonical kit from run 45923064395. | The school stages its preferred ZIP under its existing device policy. |
 | Windows standalone download | [0.5.77 unsigned preview](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.77) and its [matching manual kit](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.77) are public. | Hosted setup and JavaFX passed. Physical and school-managed Windows devices remain untested. |
