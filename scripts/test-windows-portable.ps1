@@ -176,7 +176,7 @@ try {
         if ((Get-FileHash -LiteralPath $SeedJavaVsix -Algorithm SHA256).Hash.ToLowerInvariant() -ne '80a6b852577aec37510b1f975e188279181e8c30ab5cae88812d941cd2d11bff') { throw 'Unexpected 1.57 VSIX.' }
         $cli = Join-Path $tools 'vscodium\resources\app\out\cli.js'
         $env:ELECTRON_RUN_AS_NODE = '1'
-        try { & $editor $cli --user-data-dir $profile --extensions-dir $extensions --install-extension $SeedJavaVsix --force; if ($LASTEXITCODE -ne 0) { throw 'Old Java installation failed.' } } finally { Remove-Item Env:ELECTRON_RUN_AS_NODE }
+        try { $args = @($cli, '--user-data-dir', $profile, '--extensions-dir', $extensions, '--install-extension', $SeedJavaVsix, '--force') | ForEach-Object { Quote-Argument $_ }; $install = Start-Process -FilePath $editor -ArgumentList ($args -join ' ') -Wait -PassThru; if ($install.ExitCode -ne 0) { throw 'Old Java installation failed.' } } finally { Remove-Item Env:ELECTRON_RUN_AS_NODE }
         if (@(Installed-Extensions) -notcontains 'redhat.java@1.57.0') { throw 'Old Java profile was not seeded.' }
         $settings = Join-Path $profile 'User\settings.json'
         New-Item -ItemType Directory -Force (Split-Path $settings) | Out-Null
