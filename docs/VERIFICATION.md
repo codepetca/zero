@@ -14,9 +14,14 @@ tests and `node scripts/check.mjs` passed. The full `npm test` suite passed
 2,815 tests with 155 skips and zero failures. The new test exercises sidebar
 navigation and the native Run guard while first-use sign-in is pending. It
 failed against the previous source because the sidebar was never revealed.
-The Mac test stopped before completing GitHub sign-in. The
-[0.5.91 public Store installation check](https://github.com/codepetca/zero/actions/runs/46035619620)
-covered setup. Windows editor sign-in and sidebar behavior remain unverified.
+The packaged 0.5.92 VSIX showed Project and Files before sign-in, during the
+browser wait and after cancellation in an isolated Mac editor. The
+[0.5.92 hosted Windows run](https://github.com/codepetca/zero/actions/runs/46046954607)
+verified Project, Files and Run at all three stages with the provisioned
+editor and exact candidate extension source. A separately test-signed copy
+of the Store candidate passed installation, first run and cleanup. The
+editor trials stopped before completing GitHub sign-in. Physical and
+school-managed Windows devices were outside the trial.
 
 # ZeroHub Java library packages — 2026-11-25
 
