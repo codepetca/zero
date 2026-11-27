@@ -163,6 +163,15 @@ try {
     }
     $report.version = $build.kitVersion; $report.sourceRevision = $build.sourceRevision; $report.kitSha256 = $build.kitSha256
     $beforeTools = @(Tool-Inventory)
+    # The probe opens our generated Java file outside any workspace. Configure
+    # only this fresh disposable user's profile so the external-file trust
+    # confirmation does not prevent the Java extension from seeing the file.
+    $settingsDirectory = Join-Path $profile 'User'
+    $null = New-Item -ItemType Directory -Path $settingsDirectory -Force
+    $settingsPath = Join-Path $settingsDirectory 'settings.json'
+    if (Test-Path -LiteralPath $settingsPath) { throw 'The disposable editor profile must start without settings.' }
+    @{ 'security.workspace.trust.untrustedFiles' = 'open' } |
+        ConvertTo-Json | Set-Content -LiteralPath $settingsPath -Encoding Ascii
     $stage = 'cold-launch'
     $coldStarted = [DateTime]::UtcNow
     $p = Start-Process -FilePath $launcher -PassThru; $owned[$p.Id] = $p.StartTime; $p.Dispose()
