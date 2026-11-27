@@ -81,6 +81,12 @@ export async function verifyNativeGreeting(projectRoot, {starter = false} = {}) 
   }
 }
 
+export function isBrowserConsoleFailure(message, browserDefaultIcon) {
+  if (message.type() !== 'error' || message.location().url === browserDefaultIcon) return false;
+  // Chrome reports the generated WebFX runtime's legacy unload listener as a policy diagnostic.
+  return message.text() !== 'Permissions policy violation: unload is not allowed in this document.';
+}
+
 export async function verifyWebGreeting(sitePath) {
   // This resolves the same pinned browser runner as scripts/ci-browser.mjs.
   const cliRequire = createRequire(require.resolve('@playwright/cli/package.json'));
@@ -97,7 +103,7 @@ export async function verifyWebGreeting(sitePath) {
     page.on('crash', () => failures.add('Browser page crashed.'));
     page.on('console', message => {
       // Chrome requests an origin-level icon outside the served export.
-      if (message.type() === 'error' && message.location().url !== browserDefaultIcon) failures.add(message.text());
+      if (isBrowserConsoleFailure(message, browserDefaultIcon)) failures.add(message.text());
     });
     page.on('requestfailed', request => failures.add(`${request.resourceType()} request failed: ${request.failure()?.errorText}`));
     page.on('response', response => {

@@ -7,6 +7,7 @@ import path from 'node:path';
 import test from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {assertStarterTree, preparationStarterRequest, replayGreeting, verifyPublicStarter} from './verify-project-new.mjs';
+import {isBrowserConsoleFailure} from './project-new-playthrough.mjs';
 import {lessonProjects} from './lesson-projects.mjs';
 import {projectBuilderAssetBytes} from './prepare-extension-assets.mjs';
 import upgrade from '../extension/src/project-builder-upgrade.js';
@@ -164,6 +165,20 @@ test('the public starter proof rejects a moved default branch', async () => {
     return Response.json(payload([entry]));
   };
   await assert.rejects(verifyPublicStarter(fileURLToPath(new URL('..', import.meta.url)), files, request), /changed during verification/);
+});
+
+test('Greeting browser check keeps unrelated console errors when Chrome reports its unload policy', () => {
+  const icon = 'http://127.0.0.1:3000/favicon.ico';
+  const message = (text, url = 'http://127.0.0.1:3000/app.js') => ({
+    type: () => 'error',
+    location: () => ({url}),
+    text: () => text
+  });
+  const unloadPolicy = 'Permissions policy violation: unload is not allowed in this document.';
+  assert.equal(isBrowserConsoleFailure(message(unloadPolicy), icon), false);
+  assert.equal(isBrowserConsoleFailure(message('Missing favicon', icon), icon), false);
+  assert.equal(isBrowserConsoleFailure(message('Permissions policy violation: camera is not allowed in this document.'), icon), true);
+  assert.equal(isBrowserConsoleFailure(message(`Unhandled rejection ${unloadPolicy}`), icon), true);
 });
 
 test('Greeting replay follows the authored edits and fails on a stale continuation', async () => {
