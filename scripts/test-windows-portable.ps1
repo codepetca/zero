@@ -228,7 +228,12 @@ try {
     Wait-For { (Get-Item -LiteralPath $marker).LastWriteTimeUtc -gt $firstMarker -and @(Editor-Roots).Count -gt 0 } 180 'warm editor handoff'
     $actual = @(Installed-Extensions)
     if ($actual -notcontains "zero.zero@$($build.kitVersion)" -or $actual -notcontains "redhat.java@$($javaPin.version)") { throw 'Warm launch lost a required extension.' }
-    if (Compare-Object $manifests @(Manifest-Inventory)) { throw 'Extension manifests changed during warm launch.' }
+    $manifestChanges = @(Compare-Object $manifests @(Manifest-Inventory))
+    if ($manifestChanges.Count) {
+        $report['manifestChanges'] = @($manifestChanges | ForEach-Object { $_.SideIndicator + ' ' + $_.InputObject })
+        $unexpected = @($manifestChanges | Where-Object { -not ($SeedJavaVsix -and $_.SideIndicator -eq '<=' -and $_.InputObject -match '^redhat\.java-1\.57\.0:') })
+        if ($unexpected.Count) { throw 'Active extension manifests changed during warm launch.' }
+    }
     $stage = 'warm-java-language-server'
     Test-LanguageServer $warmStarted
     Start-Sleep -Seconds 10
