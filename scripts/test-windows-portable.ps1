@@ -92,19 +92,6 @@ function Test-LanguageServer([datetime]$Since) {
     $arguments = @('--user-data-dir', $profile, '--extensions-dir', $extensions, '--shared-data-dir', $sharedData,
         '--reuse-window', $file) | ForEach-Object { Quote-Argument $_ }
     Start-Process -FilePath $editor -ArgumentList ($arguments -join ' ')
-    # This is our own generated probe file, outside the trusted Zero workspace.
-    # Explicitly approve VS Code's trust prompt rather than silently changing settings.
-    Add-Type -AssemblyName UIAutomationClient
-    Add-Type -AssemblyName UIAutomationTypes
-    $buttonCondition = New-Object System.Windows.Automation.PropertyCondition ([System.Windows.Automation.AutomationElement]::NameProperty), 'Open'
-    Wait-For {
-        $matches = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, $buttonCondition)
-        $matches.Count -gt 0 -or @(Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object { $_.CommandLine -match '-Declipse.application=org\.eclipse\.jdt\.ls\.core\.id1\b' }).Count -gt 0
-    } 45 'the generated file trust confirmation or Java language server'
-    $matches = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, $buttonCondition)
-    $invoke = $null
-    foreach ($match in $matches) { if ($match.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$invoke)) { $invoke.Invoke(); break } }
-    if ($matches.Count -gt 0 -and -not $invoke) { throw 'Unable to approve the generated file trust confirmation.' }
     Start-Sleep -Seconds 10
     Capture-Screen java-open
     $bundledJava = Join-Path $tools 'jdk\bin\java.exe'
@@ -217,6 +204,11 @@ try {
     $manifests = @(Manifest-Inventory)
     if ($manifests.Count -lt 2) { throw 'Extension manifests are missing.' }
     $firstMarker = (Get-Item -LiteralPath $marker).LastWriteTimeUtc
+    # Allow only this disposable profile to open our generated probe file.
+    $settingsPath = Join-Path $profile 'User\settings.json'
+    $settings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
+    $settings | Add-Member -NotePropertyName 'security.workspace.trust.untrustedFiles' -NotePropertyValue 'open' -Force
+    $settings | ConvertTo-Json -Depth 40 | Set-Content -LiteralPath $settingsPath -Encoding UTF8
     $stage = 'cold-java-language-server'
     Test-LanguageServer $coldStarted
     Start-Sleep -Seconds 10
