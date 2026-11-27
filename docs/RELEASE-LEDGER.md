@@ -42,7 +42,7 @@ source companions matched their sealed bytes on anonymous download. The
 Complete source archive contains 68 measured source archives and a Java
 inventory built from the actual 1.56 VSIX.
 
-The [Windows package run](https://github.com/codepetca/zero/actions/runs/45923243051)
+The [Windows package job](https://github.com/codepetca/zero/actions/runs/45923243051/job/140258716954)
 produced the original unsigned Store package 1.5.90.0 x64 and verified first
 run and cleanup on a separately test-signed copy. The original MSIX measures
 5,776,663 bytes with SHA-256
