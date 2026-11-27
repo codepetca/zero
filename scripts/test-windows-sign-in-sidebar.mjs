@@ -12,7 +12,7 @@ const cliRequire = createRequire(require.resolve('@playwright/cli/package.json')
 const {chromium} = cliRequire('playwright');
 const reportPath = path.resolve('.verification/windows-sign-in-sidebar/report.json');
 const report = {schema:1, status:'failed', stage:'preflight', beforeSignIn:false, afterCancel:false,
-  browserSignInTested:false, liveAccountTested:false};
+  whileBrowserPending:false, liveAccountTested:false};
 let temp, child, browser;
 const hash = async p => createHash('sha256').update(await fs.readFile(p)).digest('hex');
 async function unique(items, description) {
@@ -59,8 +59,14 @@ try {
   report.extensionSourceSha256 = await hash('extension/src/extension.js');
   temp = await fs.mkdtemp(path.join(os.tmpdir(), 'zero-sidebar-'));
   const profile = path.join(temp, 'profile'), extensions = path.join(temp, 'extensions'), project = path.join(temp, 'starter');
+  const zeroProfile = JSON.parse(await fs.readFile('profile/Zero.code-profile', 'utf8'));
+  const zeroSettings = JSON.parse(JSON.parse(zeroProfile.settings).settings);
   await fs.mkdir(path.join(profile, 'User'), {recursive:true});
-  await fs.writeFile(path.join(profile, 'User', 'settings.json'), JSON.stringify({'workbench.startupEditor':'none','security.workspace.trust.enabled':false,'telemetry.telemetryLevel':'off','update.mode':'none','extensions.autoUpdate':false}));
+  await fs.writeFile(path.join(profile, 'User', 'settings.json'), JSON.stringify({
+    ...zeroSettings, 'window.dialogStyle':'custom', 'security.workspace.trust.enabled':false,
+    'telemetry.telemetryLevel':'off', 'update.mode':'none', 'extensions.autoUpdate':false,
+    'zero.automaticPublicProblemReports':false
+  }));
   await fs.mkdir(extensions); await fs.cp(ext, path.join(extensions, path.basename(ext)), {recursive:true});
   await fs.cp(path.join(process.env.USERPROFILE, 'Zero', 'starter'), project, {recursive:true});
   const debugPort = await port();
@@ -75,10 +81,15 @@ try {
   await waitFor('first-use sign-in modal', () => visibleText(page, 'Use your GitHub account to sign in to Zero. You can work on local projects offline after signing in.'));
   await waitFor('Project, Files and Run while sign-in is pending', () => sidebar(page));
   report.beforeSignIn = true;
-  report.stage = 'cancel-first-use';
-  const cancel = page.getByRole('button', {name:'Cancel', exact:true});
-  await cancel.click({timeout:5000});
-  await waitFor('first-use modal dismissal', async () => !await visibleText(page, 'Use your GitHub account to sign in to Zero. You can work on local projects offline after signing in.'));
+  report.stage = 'browser-wait';
+  await page.getByRole('dialog').getByRole('button', {name:'Sign in to Zero', exact:true}).click({timeout:5000});
+  const waiting = page.getByText('Finish signing in in your browser.', {exact:false}).first();
+  await waiting.waitFor({state:'visible', timeout:15000});
+  if (!await sidebar(page)) throw Error('Project controls disappeared while browser sign-in was pending');
+  report.whileBrowserPending = true;
+  report.stage = 'cancel-browser-wait';
+  await page.getByRole('button', {name:'Cancel', exact:true}).click({timeout:5000});
+  await waiting.waitFor({state:'hidden', timeout:15000});
   await waitFor('Project, Files and Run after cancel', () => sidebar(page));
   report.afterCancel = true;
   report.stage = 'complete'; report.status = 'passed';
