@@ -93,12 +93,17 @@ function Test-LanguageServer([datetime]$Since) {
         '--reuse-window', $file) | ForEach-Object { Quote-Argument $_ }
     Start-Process -FilePath $editor -ArgumentList ($arguments -join ' ')
     $bundledJava = Join-Path $tools 'jdk\bin\java.exe'
-    Wait-For {
+    try { Wait-For {
         @(Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object {
             $owned[[int]$_.ProcessId] -eq $_.CreationDate -and $_.CreationDate.ToUniversalTime() -ge $Since -and
             $_.ExecutablePath -eq $bundledJava -and $_.CommandLine -match '-Declipse.application=org\.eclipse\.jdt\.ls\.core\.id1\b'
         }).Count -gt 0
-    } 90 'the Java language server running on the bundled JDK'
+    } 90 'the Java language server running on the bundled JDK' } catch {
+        Capture-Screen java-failure
+        $javaProcesses = @(Get-CimInstance Win32_Process -Filter "Name='java.exe'" | ForEach-Object { [ordered]@{ owned = ($owned[[int]$_.ProcessId] -eq $_.CreationDate); bundled = ($_.ExecutablePath -eq $bundledJava); jdt = ($_.CommandLine -match '-Declipse.application=org\.eclipse\.jdt\.ls\.core\.id1\b') } })
+        $report['javaDiagnostics'] = $javaProcesses
+        throw
+    }
 }
 function Capture-Screen([string]$Name) {
     Add-Type -AssemblyName System.Windows.Forms
