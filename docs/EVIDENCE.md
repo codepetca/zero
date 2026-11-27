@@ -21,7 +21,39 @@ The combined extension checks passed 461 tests with one skip before the race
 fixes. Follow-up checks passed 141 tests with one skip. The opted-in PostgreSQL
 HTTP fixture passed on a disposable local database. Real student registration
 and the packaged Mac and Windows handoff on the final revision remain release
-checks. The earlier isolated OS handoff tests are recorded below.
+checks. The preceding source revisions’ isolated OS handoff tests are recorded below.
+
+# Combined Game Jam student flow verification — 2026-11-26
+
+The `Simplify ZeroJam web sign-up` chat checked the combined website at
+`d2940231e` in Chrome. The primary jam page and older participation URL had
+one **Open in Zero** link with the exact jam ID, a **Download Zero** link, and
+no student form for either a guest or a simulated returning member. Its 109
+focused tests passed. The website and native launcher were unchanged by the
+editor checkout and publication safeguards in `6af342bf2`.
+
+On macOS 26.6.2 arm64, Chrome displayed the expected action on a local copy of
+**Toast to the Moon** populated with public jam data. The desktop was locked,
+so after clicking the link the test dispatched the same URI through macOS
+Launch Services directly. The Developer ID–signed QA launcher built from
+`6af342bf2` used a disposable editor profile and loopback inspection. After
+the VS Code URI prompt and first-time setup with reporting off, the fresh
+editor showed the exact jam, its full rules, and **Sign in to Zero**. The test
+stopped before authenticating.
+
+The disposable PostgreSQL integration ran the production desktop Jam HTTP
+handlers with synthetic GitHub and Pages responses. The student joined with
+the original repository, removed it after deletion and after registration
+closed, added a replacement, and submitted its verified build. The stored
+record kept the same participant and join timestamp, with one entry for the
+replacement. The focused editor suite passed 204 tests with one skip.
+The Jam suite passed 710 tests with six opt-in skips, and `npm run check`
+passed.
+
+The Windows launcher, protocol registration and link generator match the
+earlier Windows VM proof below. The installed Windows candidate on the
+combined revision and real student sign-in remain pending. This verification
+did not modify the live event or publish a release.
 
 # Game Jam website participation — 2026-11-26
 
