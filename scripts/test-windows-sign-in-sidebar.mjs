@@ -83,12 +83,14 @@ try {
   report.beforeSignIn = true;
   report.stage = 'browser-wait';
   await page.getByRole('dialog').getByRole('button', {name:'Sign in to Zero', exact:true}).click({timeout:5000});
-  const waiting = page.getByText('Finish signing in in your browser.', {exact:false}).first();
+  // The same text also appears in VS Code's live accessibility announcement.
+  const waiting = page.locator('.notification-toast').filter({hasText:'Finish signing in in your browser.'});
   await waiting.waitFor({state:'visible', timeout:15000});
   if (!await sidebar(page)) throw Error('Project controls disappeared while browser sign-in was pending');
   report.whileBrowserPending = true;
   report.stage = 'cancel-browser-wait';
-  await page.getByRole('button', {name:'Cancel', exact:true}).click({timeout:5000});
+  await waiting.getByRole('button', {name:'Cancel', exact:true}).click({timeout:5000});
+  report.stage = 'verify-browser-cancel';
   await waiting.waitFor({state:'hidden', timeout:15000});
   await waitFor('Project, Files and Run after cancel', () => sidebar(page));
   report.afterCancel = true;
