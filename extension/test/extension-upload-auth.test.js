@@ -248,7 +248,7 @@ test('a linked repository gets one Publish to Jam action on initial editor activ
   assert.equal((webview.html.match(/data-command="zero.publishAndOpenWeb"/g)||[]).length,1);
   await h.commands.get('zero.chooseRepository')();
   assert.equal(h.picks.at(-1).items.find(item=>item.action==='publish').label,'Publish to Jam');
-  assert.deepEqual(h.jamLookups,[{method:'GET',url:'https://zero.codepet.ca/api/desktop/jams/project?repositoryId=12'}]);
+  assert.deepEqual(h.jamLookups,[{method:'GET',url:'https://zero.codepet.ca/api/desktop/jams/project?repositoryId=12&includeDestinations=1'}]);
 });
 
 test('original project ZeroHub menu offers no Share project',async t=>{
