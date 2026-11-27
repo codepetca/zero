@@ -218,7 +218,7 @@ try {
         if ($settings.'editor.fontSize' -ne 17) { throw 'Existing profile preferences were not preserved.' }
         $report['migration'] = 'passed'
     }
-    $report.cold = 'passed' 
+    $report.cold = 'passed'
     $stage = 'close-cold-processes'
     Stop-Owned
     Wait-For { @(Editor-Roots).Count -eq 0 } 60 'cold editor exit'
