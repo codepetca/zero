@@ -287,33 +287,69 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
       const stagedHere=staged?.root===expected ? staged : undefined;
       const saved=pendingHere || stagedHere;
       const savedPagesOnly=saved?.webOnly===true && !saved.jamConsent;
-      const recovering=Boolean(recheckRoot || (stagedHere && stagedHere.value?.phase!=='staging') ||
+      let recovering=Boolean(recheckRoot || (stagedHere && stagedHere.value?.phase!=='staging') ||
         (pendingHere && (pendingHere.jamConsent || savedPagesOnly)));
       if(recovering)openingRequested=false;
       startProgress(['checking']);
       progress(recovering?'Checking saved publishing attempt…':open?'Checking latest app…':'Preparing publishing…');
-      let target,jam,webOnly=recovering && savedPagesOnly;
+      let target,jam,webOnly=recovering && savedPagesOnly,orphanedJam=false;
       if(gameJam) {
         await stillPublishable(expected);
         try {
-          target=await gameJam.resolve(expected,jamRequest(expected));
+          target=await gameJam.resolve(expected,{...jamRequest(expected),
+            ...(saved?.jamConsent?.id?{destinationId:saved.jamConsent.id}:{})});
           if(target.id&&!webOnly)jam=target;
         }
         catch(error) {
-          if(!['ZERO_JAM_STATUS_UNKNOWN','ZERO_JAM_DESTINATION_AMBIGUOUS'].includes(error.code) || !error.publishTarget)throw error;
-          const ambiguous=error.code==='ZERO_JAM_DESTINATION_AMBIGUOUS';
-          // An existing Pages-only attempt has a repository identity and
-          // consent of its own. Jam dispatches still require a single jam.
-          if(recovering && ambiguous && !webOnly)throw error;
-          target=error.publishTarget;
-          if(!webOnly) {
-            await stillPublishable(expected);
+          if(error.code==='ZERO_JAM_DESTINATION_UNAVAILABLE' && error.publishTarget && saved?.jamConsent) {
+            target=error.publishTarget;
+            assertPublishTarget(target,saved.jamConsent);
             clearProgress();
-            const choice=await vscode.window.showInformationMessage(ambiguous?'Choose a Game Jam before submitting.':'ZeroJams is unavailable.',{modal:true,
-              detail:ambiguous ? 'This repository is linked to more than one Game Jam. You can publish to GitHub Pages without submitting to a jam. Review your jam projects before choosing Publish to Jam again.' :
-                'You can publish to GitHub Pages now. If this is a jam project, use Publish to Jam when ZeroJams is available.'},'Publish to web only');
-            if(choice!=='Publish to web only')return;
-            webOnly=true;
+            const choice=await vscode.window.showInformationMessage('Zero could not verify the saved Game Jam for this project.',{
+              modal:true,detail:'Zero can check the saved GitHub Pages run. This will leave your Jam entries as they are.'
+            },'Check Pages run only');
+            if(choice!=='Check Pages run only')return;
+            await stillPublishable(expected);
+            recovering=true;openingRequested=false;webOnly=true;orphanedJam=true;
+          } else {
+            if(!['ZERO_JAM_STATUS_UNKNOWN','ZERO_JAM_DESTINATION_AMBIGUOUS'].includes(error.code) || !error.publishTarget)throw error;
+            const ambiguous=error.code==='ZERO_JAM_DESTINATION_AMBIGUOUS';
+            // An existing Pages-only attempt has a repository identity and
+            // consent of its own. Jam dispatches still require a single jam.
+            if(recovering && ambiguous && !webOnly)throw error;
+            target=error.publishTarget;
+            if(!webOnly) {
+              await stillPublishable(expected);
+              clearProgress();
+              if(ambiguous && error.destinations?.length) {
+                const choices=error.destinations.map(destination=>({label:destination.title,
+                  description:destination.submissionsOpen?'Submissions open':'Submissions not open',
+                  detail:[
+                    destination.replacesProject&&`Replaces your entry from ${destination.replacesProject}`,
+                    error.destinations.some(other=>other.id!==destination.id&&other.title===destination.title)&&destination.id
+                  ].filter(Boolean).join(' · ')||undefined,
+                  destination}));
+                const webChoice={label:'Publish to web only',description:'GitHub Pages without a jam submission'};
+                const selected=await vscode.window.showQuickPick([...choices,webChoice],{
+                  title:'Choose a Game Jam',placeHolder:'Choose where to publish this project',ignoreFocusOut:true});
+                await stillPublishable(expected);
+                if(!selected)return;
+                if(selected===webChoice)webOnly=true;
+                else {
+                  if(!choices.includes(selected))throw Error('Choose a Game Jam again before publishing.');
+                  const destination=await gameJam.resolve(expected,{...jamRequest(expected),destinationId:selected.destination.id});
+                  assertPublishTarget(target,destination,selected.destination);
+                  if(destination.id!==selected.destination.id)throw Error('The selected Game Jam changed. Choose Publish again.');
+                  target=jam=destination;
+                }
+              } else {
+                const choice=await vscode.window.showInformationMessage(ambiguous?'Choose a Game Jam before submitting.':'ZeroJams is unavailable.',{modal:true,
+                  detail:ambiguous ? 'This repository is linked to more than one Game Jam. You can publish to GitHub Pages without submitting to a jam. Review your jam projects before choosing Publish to Jam again.' :
+                    'You can publish to GitHub Pages now. If this is a jam project, use Publish to Jam when ZeroJams is available.'},'Publish to web only');
+                if(choice!=='Publish to web only')return;
+                webOnly=true;
+              }
+            }
           }
         }
         await stillPublishable(expected);
@@ -355,6 +391,7 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
                 outcome={...result,jamSubmission:{status:'review-required'}};
               }
             }
+            if(orphanedJam)progress('Your Pages site is live. This check did not submit a Game Jam entry.');
             // Keep a recoverable run until its Jam handoff has been attempted.
             // The submission service persists its own receipt before sending.
             if(result.jamConsent)await workspaceState?.update('zero.webPublish.pending',undefined);
@@ -426,7 +463,10 @@ function createWebPublishCommands(vscode,{onToolingDecision,onReportStage=()=>{}
     },'Stop checking this run');
     if(choice!=='Stop checking this run')return;
     await stillPublishable(expected);
-    const current=await gameJam.resolve(expected,jamRequest(expected));
+    const current=await gameJam.resolve(expected,{...jamRequest(expected),destinationId:saved.jamConsent.id}).catch(error=>{
+      if(error.code==='ZERO_JAM_DESTINATION_UNAVAILABLE'&&error.publishTarget)return error.publishTarget;
+      throw error;
+    });
     assertPublishTarget(target,current,jam);
     await stillPublishable(expected);
     if(JSON.stringify(workspaceState.get(key))!==snapshot) {

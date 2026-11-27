@@ -15,6 +15,12 @@ const changed = 'The Game Jam publishing account or repository changed. Choose P
 const retryMessage = 'Your Pages site is live. Choose Publish to Jam again to check the submission.';
 const knownKey = (account,repository) => 'zero.gameJam.link:'+account+':'+repository.toLowerCase();
 const pendingPrefix = (account,repositoryId) => 'zero.gameJam.submission:'+account+':'+repositoryId+':';
+function validDestination(result) {
+  return result && JAM.test(result.id) && REVISION.test(result.revision) && validEntryRevision(result.entryRevision) &&
+    (result.projectRevision===undefined||validEntryRevision(result.projectRevision)) &&
+    (result.replacesProject===undefined||typeof result.replacesProject==='string'&&/^[A-Za-z0-9-]{1,39}\/[A-Za-z0-9_.-]{1,100}$/.test(result.replacesProject)) &&
+    typeof result.title==='string' && Boolean(result.title.trim()) && typeof result.submissionsOpen==='boolean';
+}
 
 async function readRepository(root) {
   await assertShareable(root);
@@ -57,7 +63,8 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
     const session=authentication.assertCurrentNow(ticket);
     return {'X-Zero-Desktop':'1',Authorization:'Bearer '+session.accessToken};
   }
-  async function resolve(root,{signal,beforeSend=()=>{}}={}) {
+  async function resolve(root,{signal,beforeSend=()=>{},destinationId}={}) {
+    if(destinationId!==undefined&&!JAM.test(destinationId))throw Error(unavailable);
     const repository=await repositoryForRoot(root);
     const ticket=await authentication.capture();
     const account=String(ticket.session.accountId);
@@ -72,6 +79,7 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
     const pending=pendingFor(account,repositoryId);
     if (pending) {
       const {id,title,body}=pending.item;
+      if(destinationId!==undefined&&destinationId!==id)throw Error('A previous submission for this repository still needs confirmation. Choose Publish again.');
       await remember(account,repository,id);
       return {...context,id,title,revision:body.revision,entryRevision:body.entryRevision,projectRevision:body.projectRevision,
         submissionsOpen:false,pending:true};
@@ -86,31 +94,48 @@ function createGameJamPublish({authentication,repositories,globalState,onChange=
       }
       return error;
     };
-    let response;
+    const url=ORIGIN+'/api/desktop/jams/project?repositoryId='+repositoryId;
+    const requestSignal=AbortSignal.any([AbortSignal.timeout(20_000),...(signal?[signal]:[])]);
+    const lookup=async suffix=>{
+      requestSignal.throwIfAborted();beforeSend();
+      const response=await request(url+suffix,{method:'GET',headers:headers(ticket),redirect:'error',
+        cache:'no-store',signal:requestSignal});
+      return {response,data:await response.json().catch(()=>undefined)};
+    };
+    let response,data,legacyLookup=false;
     try {
-      response=await request(ORIGIN+'/api/desktop/jams/project?repositoryId='+repositoryId,{
-        method:'GET',headers:headers(ticket),redirect:'error',cache:'no-store',
-        signal:AbortSignal.any([AbortSignal.timeout(20_000),...(signal?[signal]:[])])
-      });
+      ({response,data}=await lookup('&includeDestinations=1'+(destinationId!==undefined?'&jamId='+encodeURIComponent(destinationId):'')));
+      // Older servers reject extra query parameters. Their unqualified result
+      // can still satisfy an exact lookup if it names the same saved jam.
+      if(response.status===400&&data?.configured===true&&data.error==='Choose a GitHub project in Zero.') {
+        ({response,data}=await lookup(''));
+        legacyLookup=true;
+      }
     } catch {throw routingFailure();}
-    const data=await response.json().catch(()=>undefined);
     signal?.throwIfAborted();authentication.assertCurrentNow(ticket);beforeSend();
     if (response.status===401 || response.status===403) throw Error('Reconnect the GitHub account that owns this project to check its Game Jam.');
-    if (data?.ambiguous===true) {
+    if(destinationId!==undefined&&data?.configured===true&&(response.status===409||
+        legacyLookup&&response.ok&&(data.destination===null||validDestination(data.destination)&&data.destination.id!==destinationId)))
+      throw Object.assign(Error('Zero could not verify this project for the selected Game Jam.'),{
+        code:'ZERO_JAM_DESTINATION_UNAVAILABLE',publishTarget:context});
+    if(destinationId!==undefined&&(!response.ok||data?.configured!==true||data.destination?.id!==destinationId))
+      throw Error('This project could not be checked for the selected Game Jam. Choose Publish again.');
+    if (response.ok && data?.configured===true && data.ambiguous===true) {
+      const candidates=data.destinations;
+      if(candidates!==undefined&&(!Array.isArray(candidates)||candidates.length<2||candidates.length>100||
+          candidates.some(item=>!validDestination(item))||new Set(candidates.map(item=>item.id)).size!==candidates.length))throw Error(unavailable);
       await remember(account,repository,'ambiguous');
       await remember(account,repositoryId,'ambiguous');
       throw Object.assign(Error('This repository is linked to more than one Game Jam. Check your registrations before submitting.'),
-        {code:'ZERO_JAM_DESTINATION_AMBIGUOUS',publishTarget:context});
+        {code:'ZERO_JAM_DESTINATION_AMBIGUOUS',publishTarget:context,
+          ...(candidates?{destinations:candidates.map(item=>Object.freeze({...item,...context}))}:{})});
     }
     const wasKnown=known();
     if (!wasKnown && (response.status===404 && data?.configured!==true || data?.configured===false)) return context;
     if (response.status===402 || response.status>=500 || response.ok && !data) throw routingFailure();
     if (!response.ok || data?.configured!==true) throw Error(unavailable);
     const result=data.destination;
-    if (result!==null && (!result || !JAM.test(result.id) || !REVISION.test(result.revision) || !validEntryRevision(result.entryRevision) ||
-        result.projectRevision!==undefined&&!validEntryRevision(result.projectRevision) ||
-        result.replacesProject!==undefined&&(typeof result.replacesProject!=='string'||!/^[A-Za-z0-9-]{1,39}\/[A-Za-z0-9_.-]{1,100}$/.test(result.replacesProject)) ||
-        typeof result.title!=='string' || !result.title.trim() || typeof result.submissionsOpen!=='boolean')) throw Error(unavailable);
+    if (result!==null && !validDestination(result)) throw Error(unavailable);
     await remember(account,repository,result?.id);
     await remember(account,repositoryId,result?.id);
     signal?.throwIfAborted();authentication.assertCurrentNow(ticket);beforeSend();

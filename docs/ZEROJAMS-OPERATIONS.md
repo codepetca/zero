@@ -19,16 +19,16 @@ Unaffected pages need not access the authority. Local tests are not live accepta
 ## Game Jam registration and publishing
 
 From an open Game Jam's official page or embedded panel, **Open in Zero** opens
-that jam in a compatible editor. **Download Zero** is beside it. Students can
-also find open jams under **Open Game Jams** on the Start Page. A browser link
-shows the public rules before GitHub sign-in and requires **Continue joining**.
-**Cancel joining** closes the review. Earlier editors can use
+that jam in a compatible editor. Students can also find open jams under
+**Open Game Jams** on the Start Page. The app shows the full rules. New
+participants choose **Continue joining** and existing members choose
+**Manage projects**. Earlier editors can use
 **Start Page → Project → Join a Game Jam** after sign-in.
 After managing projects, use an up-to-date Zero editor to submit a build.
 Earlier editors can still recover receipts for submissions they already made.
 
 The authenticated desktop route checks the student's registration and binds the
-verified GitHub repository ID. **Manage jam projects** adds or removes an
+verified GitHub repository ID. **Manage projects** adds or removes an
 owned repository before submissions close, including after registration closes.
 Removing a submitted project withdraws the entry and retains the repository's
 discovery hold through reveal. **Run → Publish to Jam** uses the chosen linked
@@ -49,6 +49,11 @@ launch, desktop registration, and a live Pages submission before rolling out
 the updated website. The existing `ZERO_JAMS_EDITOR_JOIN_REQUIRED` flag
 governs the legacy browser join endpoint independently of what the page shows.
 App Jam registration and submission remain on the website.
+Deploy the website before the editor build that adds **Leave Game Jam** and
+the publish destination picker. The editor's authenticated leave request is
+bound to the registration and entry reviewed before confirmation. An uncertain
+response uses the same operation ID for settlement. The existing destination
+response is preserved for editors that omit the new destination query options.
 
 ## Manual Free and Pro licenses
 

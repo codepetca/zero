@@ -185,24 +185,32 @@ when adding features; a new feature does not reset the agreed interaction style.
   sidebar’s **⋯ → Start Page**.
 - The Start Page heading shows the Zero mark and **Zero**, with the **Zero Web**
   open-in-browser icon beside the title. Show the installed Zero version below
-  the title, followed by the profile icon and GitHub username without an `@`
-  prefix when connected. Include the version in the native Zero sidebar title.
+  the title. On distributions with a native updater, place **Check for updates**
+  beside the version as a text button after first-time setup (owner direction,
+  2026-11-27). Below the version row, show the profile icon and GitHub username
+  without an `@` prefix when connected. Include the version in the native Zero
+  sidebar title.
   Use the profile icon inside **Sign in to Zero** and **Connect to GitHub**.
   Show **Connect to GitHub** when Zero has saved sign-in and GitHub is
   disconnected. Disable **Zero Web** and **Project** until GitHub is connected.
   Keep **Install Zero for GitHub** and permission recovery contextual to
   repository access. Keep checking and errors visible when action is needed.
   Omit the routine Ready to start line.
-- Game Jam joining starts on the Start Page under **Project → Join a Game Jam**. Students
-  choose a jam and review its official page in the same side browser as
-  Zero Web. A shaded panel on the Start Page groups the rules preview, the
-  registration and submission deadlines, and **Continue joining**. The button opens the project picker
+- Game Jam joining starts on the website with **Open in Zero** or in
+  **Open Game Jams** on the Start Page. Students can also use
+  **Project → Join a Game Jam**. A shaded panel on the Start Page groups the full
+  rules and eligibility, registration and submission deadlines, and the next
+  action. Show **Manage projects** for a registered student, and
+  **Continue joining** for a new participant. Joining opens the project picker
   with **New project** first and **Use an existing repository** second. The website directs
   students to this action. Zero saves the repository to the jam registration
   and opens the project. An existing repository opens from a matching local
   checkout or offers **Clone & open** when no checkout is known.
   The linked project’s existing Run menu action reads **Publish to Jam**.
   It publishes to GitHub Pages and submits the verified build to the jam.
+  If several jams share the same project, the student chooses a destination
+  before confirming. **Leave Game Jam** is a confirmed action in project
+  management. The confirmation explains entry withdrawal and rejoining.
 - The sidebar is for project development: Run/Stop, native Explorer, contextual repository
   and branch actions, Commit & push, Merge to main and ZeroHub. Empty controls
   offer Open Start Page alongside the Project header menu. A local project needing cloud setup offers GitHub

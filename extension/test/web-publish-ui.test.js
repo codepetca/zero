@@ -8,11 +8,12 @@ function dirtyDocument({file='/student/src/main/java/Main.java',scheme='file',sa
 }
 function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/student/game',cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError,beforeBuildReview,onToolingDecision,listPublication,onReportFailure,onReportStage,onReportSuccess,gameJam,onUpload=async()=>{}}={}) {
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,upgrade=false,uploaded=0,sha='a'.repeat(40);
-  const progress=[],messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
+  const progress=[],messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[],pickers=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
   const session={id:'native',account:{id:'1',label:'student'},accessToken:'TEST',scopes:[]};
   const vscode={workspace:{isTrusted:true},authentication:{getSession:async(...args)=>{authCalls.push(args);return session;},onDidChangeSessions:()=>({dispose(){}})},window:{showInformationMessage:async(...args)=>{messages.push(args);return choices.shift();}},env:{clipboard:{writeText:async url=>copied.push(url)},openExternal:async uri=>{opened.push(uri);return true;}},Uri:{parse:url=>url}};
   vscode.window.showWarningMessage=vscode.window.showInformationMessage;
+  vscode.window.showQuickPick=async(items,options)=>{pickers.push({items,options});const choice=choices.shift();return typeof choice==='number'?items[choice]:choice;};
   const auth={capture:async()=>({session:{accountId:'1'}}),assertCurrent:async()=>{},assertCurrentNow:()=>({accountId:'1'})};
   const repositories={access:async(url,options)=>{authCalls.push({url,...options});}};
   const review=()=>({status:'review',root:active,setup,upgrade:upgrade?{files:['.zero-web/README.md','.zero-web/owner.json'],previousSha:sha}:undefined,repository:'https://github.com/student/game',repositoryId:24,publicUrl:'https://student.github.io/game/',sha,account:'1'});
@@ -29,7 +30,7 @@ function fixture(t,{resolveProject,connectedRepository=()=>'https://github.com/s
   };
   const api=createWebPublishCommands(vscode,{onToolingDecision,onReportFailure,onReportStage,onReportSuccess,project:resolveProject || (async()=>active),connectedRepository,assertProjectNow:expected=>{if(active!==expected)throw Error('The project changed.');},authentication:auth,repositories,workspaceState,beforeBuildReview,listPublication,gameJam:gameJam&&{recover:async()=>null,...gameJam},isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),setProgress:value=>progress.push(value),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);assert.equal(options.expectedPlan,uploadPlan);assert.equal(options.expectedAccount,'1');await options.assertPublishCurrent();await onUpload(options);uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
-  return {api,auth,progress,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
+  return {api,auth,progress,choices,pickers,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},set sha(v){sha=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
 const ordinaryTarget={root:'/student',account:'1',repository:'https://github.com/student/game',repositoryId:'24'};
 const linkedJam={root:'/student',id:'jam-42',entryRevision:'',title:'Toast to the Moon',revision:'b'.repeat(64),account:'1',
@@ -143,6 +144,105 @@ test('ambiguous Jam does not bypass a saved dispatch recovery',async t=>{
   assert.equal(h.messages.length,0);
   assert.equal(h.stored.get('zero.webPublish.staging'),receipt);
   assert.equal(h.published,0);
+});
+
+test('an unlinked saved Jam can check its Pages run without replacing the Jam destination',async t=>{
+  const h=fixture(t,{listPublication:async()=>assert.fail('Pages recovery must not list'),gameJam:{
+    resolve:async(_root,{destinationId})=>{
+      assert.equal(destinationId,linkedJam.id);
+      throw Object.assign(Error('Unlinked'),{code:'ZERO_JAM_DESTINATION_UNAVAILABLE',publishTarget:ordinaryTarget});
+    },
+    submit:async()=>assert.fail('Pages recovery must not submit')
+  }});
+  const value={runId:42,repository:linkedJam.repository,repositoryId:24,sha:'a'.repeat(40)};
+  const saved={root:'/student',account:'1',value,jamConsent:linkedJam};
+  h.stored.set('zero.webPublish.pending',saved);
+  await h.api.publishAndOpen();
+  assert.equal(h.stored.get('zero.webPublish.pending'),saved);
+  assert.equal(h.checks,0);
+  h.choices.push('Check Pages run only');
+  assert.equal((await h.api.publishAndOpen()).status,'live');
+  assert.equal(h.stored.has('zero.webPublish.pending'),false);
+  assert.equal(h.checks,1);
+  assert.equal(h.published,0);
+  assert.match(h.states.at(-1),/Pages site is live/);
+});
+
+test('Game Jam picker revalidates the chosen destination and requests consent for each different jam',async t=>{
+  const second={...linkedJam,id:'jam-43',title:'Second jam',projectRevision:'e'.repeat(64)};
+  const destinations=[linkedJam,second],submissions=[],lookups=[];
+  const h=fixture(t,{listPublication:async()=>assert.fail('Jam publish must not list on ZeroHub'),gameJam:{
+    resolve:async(_root,{destinationId})=>{
+      lookups.push(destinationId);
+      if(destinationId)return destinations.find(item=>item.id===destinationId);
+      throw Object.assign(Error('Multiple jams'),{code:'ZERO_JAM_DESTINATION_AMBIGUOUS',publishTarget:ordinaryTarget,destinations});
+    },submit:async jam=>{submissions.push(jam.id);return {status:'submitted'};}
+  }});
+  await h.api.publishAndOpen();
+  assert.equal(h.published,0,'cancelled picker never deploys');
+  assert.equal(h.pickers[0].options.title,'Choose a Game Jam');
+  assert.deepEqual(h.pickers[0].items.map(item=>item.label),[linkedJam.title,second.title,'Publish to web only']);
+  h.choices.push(1,'Publish to Jam');
+  assert.equal((await h.api.publishAndOpen()).jamSubmission.status,'submitted');
+  assert.deepEqual(submissions,[second.id]);
+  assert.equal(lookups.at(-1),second.id);
+  assert.equal(h.stored.get('zero.webPublish.jamApproval').jamId,second.id);
+  h.choices.push(0);
+  await h.api.publishAndOpen();
+  assert.equal(h.messages.at(-1)[0],`Publish to ${linkedJam.title}?`);
+  assert.deepEqual(submissions,[second.id],'prior jam consent cannot submit to another jam');
+  assert.equal(h.published,1);
+});
+
+test('picker web-only choice does not recover or submit and selection rejects identity drift',async t=>{
+  const destinations=[linkedJam,{...linkedJam,id:'jam-43',title:'Other jam'}];
+  let drift=false;
+  const h=fixture(t,{listPublication:async()=>assert.fail('Web-only publish must not list'),gameJam:{
+    resolve:async(_root,{destinationId})=>{
+      if(destinationId)return {...linkedJam,repositoryId:drift?'25':'24'};
+      throw Object.assign(Error('Multiple jams'),{code:'ZERO_JAM_DESTINATION_AMBIGUOUS',publishTarget:ordinaryTarget,destinations});
+    },recover:async()=>assert.fail('Web-only must not recover a jam submission'),submit:async()=>assert.fail('Web-only must not submit')
+  }});
+  h.choices.push(2,'Publish app');
+  assert.equal((await h.api.publishAndOpen()).status,'live');
+  assert.equal(h.stored.has('zero.webPublish.jamApproval'),false);
+  drift=true;h.choices.push(0);
+  await assert.rejects(h.api.publishAndOpen(),/account or repository changed/);
+  assert.equal(h.published,1);
+});
+
+test('saved Jam dispatch pins resolution to its original jam without opening another picker',async t=>{
+  const selected={...linkedJam,id:'jam-43',title:'Saved jam'};
+  const lookups=[];
+  const h=fixture(t,{gameJam:{resolve:async(_root,options)=>{lookups.push(options.destinationId);return selected;}}});
+  const receipt={root:'/student',account:'1',value:{repositoryId:24,repository:linkedJam.repository,runId:42},
+    jamConsent:{...selected,pagesUrl:'https://student.github.io/game/',sha:'a'.repeat(40),dispatchTag:'saved'}};
+  h.stored.set('zero.webPublish.pending',receipt);
+  const result=await h.api.publishAndOpen();
+  assert.equal(result.jamSubmission.status,'review-required');
+  assert.deepEqual(lookups,[selected.id]);
+  assert.equal(h.pickers.length,0);
+  assert.equal(h.published,0);
+});
+
+test('destination recheck supplies the current rules and project revision; a project switch stops the picker',async t=>{
+  const destinations=[linkedJam,{...linkedJam,id:'jam-43',title:'Other jam'}];
+  const current={...linkedJam,projectRevision:'d'.repeat(64),rules:'Updated rules',revision:'c'.repeat(64)};
+  let lookups=0,submitted;
+  const h=fixture(t,{gameJam:{resolve:async(_root,{destinationId})=>{
+    lookups++;
+    if(destinationId)return current;
+    throw Object.assign(Error('Multiple jams'),{code:'ZERO_JAM_DESTINATION_AMBIGUOUS',publishTarget:ordinaryTarget,destinations});
+  },submit:async jam=>{submitted=jam;return {status:'submitted'};}}});
+  h.choices.push(0,'Publish to Jam');
+  await h.api.publishAndOpen();
+  assert.equal(submitted.projectRevision,current.projectRevision);
+  assert.match(h.messages[0][1].detail,/Updated rules/);
+  assert.equal(h.stored.get('zero.webPublish.jamApproval').revision,current.revision);
+  h.vscode.window.showQuickPick=async items=>{h.active='/other';return items[0];};
+  await assert.rejects(h.api.publishAndOpen(),/project changed/i);
+  assert.equal(lookups,3,'project switch prevents the selected-destination lookup');
+  assert.equal(h.published,1);
 });
 
 test('failure to open the browser does not prevent submitting the verified Jam build',async t=>{

@@ -80,6 +80,9 @@ function assertJoinChannel(accepted, channel, editorJoinRequired) {
 function latestEntry(state,actor) {
   return state?.entries[actor.id]?.at(-1);
 }
+function participationRevision(eventRevision,registration,entry) {
+  return digest({eventRevision,registration,entryRevision:entry?.revision??null});
+}
 function retainProjectHold(state,repositoryId) {
   const retired=state.replacedRepositoryIds??=[];
   if(!retired.includes(repositoryId)) retired.push(repositoryId);
@@ -509,13 +512,19 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       }
       detail.canManageProjects=detail.event.type==='game'&&detail.registration?.status==='joined'&&
         detail.event.moderation.status==='active'&&currentTime(now)<Date.parse(detail.event.schedule.submissionsCloseAt);
+      if(detail.canManageProjects)detail.leaveRevision=participationRevision(detail.event.revision,detail.registration,detail.entry);
       return detail;
     });
   }
   async function projectDestination(repositoryId,actor,options={}) {
     actor=actorIdentity(actor);
     if(typeof repositoryId!=='string'||!ACCOUNT.test(repositoryId))fail(400,'Choose a GitHub project in Zero.');
-    const {signal}=readOptions(options);
+    keys(options,['signal','includeDestinations','destinationId'],[]);
+    const {signal}=readOptions({signal:options.signal});
+    const {includeDestinations,destinationId}=options;
+    if(includeDestinations!==undefined&&includeDestinations!==true ||
+        destinationId!==undefined&&(includeDestinations!==true||typeof destinationId!=='string'||!ID.test(destinationId)))
+      fail(400,'Choose a valid Game Jam publishing destination.');
     return withDiscoveryDeadline(signal,DISCOVERY_TIMEOUT_MS,async scope=>{
       const {states}=await readRegistry(scope);
       const time=currentTime(now),upcoming=[],closed=[];
@@ -535,9 +544,16 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
         const candidates=time<Date.parse(schedule.submissionsCloseAt)?upcoming:closed;
         candidates.push(destination);
       }
-      if(upcoming.length>1)return {destination:null,ambiguous:true};
+      upcoming.sort((a,b)=>Date.parse(a.submissionsCloseAt)-Date.parse(b.submissionsCloseAt)||a.id.localeCompare(b.id));
+      const choices=includeDestinations?{destinations:upcoming}:{};
+      if(destinationId!==undefined) {
+        const destination=[...upcoming,...closed].find(item=>item.id===destinationId);
+        if(!destination)fail(409,'This project is no longer linked to the selected Game Jam. Choose Publish again.');
+        return {destination,...choices};
+      }
+      if(upcoming.length>1)return {destination:null,ambiguous:true,...choices};
       const latestClosed=()=>closed.sort((a,b)=>Date.parse(b.submissionsCloseAt)-Date.parse(a.submissionsCloseAt)||a.id.localeCompare(b.id))[0];
-      return {destination:upcoming[0]??latestClosed()??null};
+      return {destination:upcoming[0]??latestClosed()??null,...choices};
     });
   }
   async function readModeration(id,actor,options={}) {
@@ -652,11 +668,12 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
     return repository;
   }
   async function mutateScoped(input,callScope,{joinChannel,editorJoinRequired,verifyPublication}) {
-    keys(input,['id','actor','operationId','action','revision','reason','participantId','repositoryUrl','repositoryId','projectRevision','source','title','description','demoUrl','instructions','publication','schedule'],['id','actor','operationId','action']);
+    keys(input,['id','actor','operationId','action','revision','reason','participantId','repositoryUrl','repositoryId','projectRevision','participationRevision','source','title','description','demoUrl','instructions','publication','schedule'],['id','actor','operationId','action']);
     const actor=actorIdentity(input.actor),op=operationId(input.operationId),{id,action}=input;
     const {id:ignoredId,actor:ignoredActor,operationId:ignoredOperation,...publicInput}=input;
     const payload=requestPayload(id,publicInput),payloadDigest=digest(payload);
     const managesGameProject=GAME_PROJECT_ACTIONS.has(action);
+    const desktopLeave=action==='leave'&&joinChannel==='editor';
     if(managesGameProject&&joinChannel!=='editor')fail(403,'Manage your Game Jam projects in Zero.');
     if(payload.publication&&typeof verifyPublication!=='function')fail(403,'Submit your published game from Zero.');
     const legacyDigest=legacyRequestDigest(id,publicInput);
@@ -674,6 +691,10 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       if(rejected||previous)return rejected||previous;
     }
     if(!before)fail(404,'Jam not found.');
+    if(desktopLeave) {
+      requireGameProjectManagement(before,actor,currentTime(now));
+      if(!payload.participationRevision)fail(400,'Review this Game Jam before leaving.');
+    } else if(payload.participationRevision)fail(400,'Refresh the jam before changing participation.');
     if(managesGameProject)requireGameProjectManagement(before,actor,currentTime(now));
     const reviewedProjects=before.registrations[actor.id]?.projectRevision??'';
     if(managesGameProject&&payload.projectRevision!==undefined&&payload.projectRevision!==reviewedProjects)
@@ -865,11 +886,16 @@ export function createJamService({store,verifySource,verifyRepository,pagesBindi
       }
       if(time>=Date.parse(schedule.submissionsCloseAt))fail(409,'Entry changes are closed.');
       const history=next.entries[actor.id],activeEntry=history?.at(-1);
+      if(desktopLeave&&payload.participationRevision!==participationRevision(accepted.revision,registration,activeEntry))
+        fail(409,'Your Game Jam participation changed. Open Manage projects and review it before leaving.');
       if(activeEntry?.status==='active') {
         if(history.length>=bound.entryHistory)fail(429,'This entry has reached its revision capacity.');
         history.push({...structuredClone(activeEntry),status:'withdrawn',withdrawnAt:stamp,previousRevision:activeEntry.revision,revision:digest({actor:actor.id,operationId:op,payload})});
       }
-      if(action==='leave') {registration.status='left';registration.updatedAt=stamp;}
+      if(action==='leave') {
+        if(desktopLeave)assignGameProjects(registration,registrationRepositories(registration),digest({actor:actor.id,operationId:op,payload}));
+        registration.status='left';registration.updatedAt=stamp;
+      }
       return {status:action==='leave'?'left':'withdrawn'};
     },{safetyAction:SAFETY.has(action)?action:undefined,legacyDigest,callScope,publicationPayload:payload.publication?payload:undefined,
       enforceOrganizerSlot:action==='approve'||action==='resume',

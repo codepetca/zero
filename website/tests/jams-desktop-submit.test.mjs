@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {approved,fixture,legacyProposal,manifest,maintainer,NEXT_COMMIT,hostedManifest,participant,creator,verifiedPages} from '../../jams/test/fixtures.mjs';
 import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
-import {desktopJamProjectChangeResponse,getDesktopJamProjectResponse,postDesktopJamSubmitResponse} from '../lib/jams-http.mjs';
+import {deleteDesktopJamJoinResponse,desktopJamProjectChangeResponse,getDesktopJamJoinResponse,getDesktopJamProjectResponse,postDesktopJamSubmitResponse} from '../lib/jams-http.mjs';
 
 const origin='http://127.0.0.1:3000',token='ghu_'+'d'.repeat(24);
 const env={NODE_ENV:'test',ZERO_JAMS_ENABLED:'1',ZERO_HUB_ORIGIN:origin,
@@ -63,6 +63,38 @@ function transport(account,github) {
   };
 }
 
+test('desktop leave withdraws the reviewed entry and keeps its repository binding through rejoin',async()=>{
+  const {service,setTime}=fixture({pagesBindingReader:verifiedPages});
+  const {eventId:id,revision}=await register(service,creator,'leave-desktop-fixture');
+  const path='/api/desktop/jams/'+id+'/join';
+  const options=account=>({env,service,fetchImpl:transport(account,()=>assert.fail('Unexpected GitHub call'))});
+  const read=async()=>await (await getDesktopJamJoinResponse(desktopRequest(path),id,options(participant))).json();
+  const leave=(body,account=participant,headers)=>deleteDesktopJamJoinResponse(
+    desktopRequest(path,{method:'DELETE',body,headers}),id,options(account));
+  const first=await read();
+  assert.match(first.leaveRevision,/^[a-f0-9]{64}$/);
+  await service.mutate({id,actor:participant,operationId:'submit-before-leave',action:'submit',
+    revision,title:'Project',description:'My game',demoUrl:pagesUrl});
+  const stale={operationId:'leave-stale-revision',participationRevision:first.leaveRevision};
+  assert.equal((await leave(stale)).status,409,'an entry submitted after review survives a stale confirmation');
+  const body={operationId:'leave-reviewed-entry',participationRevision:(await read()).leaveRevision};
+  assert.equal((await leave(body,participant,{Origin:origin})).status,403);
+  assert.equal((await leave(body,creator)).status,409);
+  assert.equal((await (await leave(body)).json()).status,'left');
+  assert.equal((await service.readOverview(id,participant)).entry.status,'withdrawn');
+  assert.equal((await read()).registration.repository.id,repositoryId);
+  assert.equal((await service.projectDestination(repositoryId,participant)).destination,null);
+  await service.mutate({id,actor:participant,operationId:'rejoin-after-leaving',action:'join',
+    revision,repositoryUrl,repositoryId},{joinChannel:'editor'});
+  assert.equal((await service.readOverview(id,participant)).entry.status,'withdrawn');
+  assert.notEqual((await read()).leaveRevision,body.participationRevision);
+  assert.equal((await leave({...body,operationId:'retry-with-new-id'})).status,409);
+  assert.equal((await (await leave(body,participant,{'X-Zero-Check-Project-Change':'1'})).json()).settlement,'applied');
+  assert.equal((await read()).registration.status,'joined');
+  setTime('2030-01-05T10:00:00Z');
+  assert.equal((await read()).leaveRevision,undefined);
+});
+
 test('destination selects only the account’s linked active Game Jams and never guesses between multiple choices',async()=>{
   const {service,setTime}=fixture();
   const first=await register(service,creator,'destination-first');
@@ -72,15 +104,22 @@ test('destination selects only the account’s linked active Game Jams and never
   const app=await service.propose({actor:{id:'13',login:'creator3'},operationId:'destination-app',manifest:hostedManifest({type:'app'})});
   await service.mutate({id:app.eventId,actor:participant,operationId:'join-destination-app',
     action:'join',revision:app.revision,repositoryUrl},{joinChannel:'browser'});
-  const request=()=>desktopRequest('/api/desktop/jams/project?repositoryId='+repositoryId);
-  const lookup=async account=>{
-    const response=await getDesktopJamProjectResponse(request(),{env,service,fetchImpl:transport(account,()=>assert.fail('No publication calls'))});
+  const options=account=>({env,service,fetchImpl:transport(account,()=>assert.fail('No publication calls'))});
+  const request=(query='')=>desktopRequest('/api/desktop/jams/project?repositoryId='+repositoryId+query);
+  const lookup=async (account,query='')=>{
+    const response=await getDesktopJamProjectResponse(request(query),options(account));
     assert.equal(response.status,200);
     assert.equal(response.headers.get('cache-control'),'no-store');
     return response.json();
   };
   assert.deepEqual(await lookup(participant),{configured:true,destination:null,ambiguous:true});
   assert.deepEqual(await lookup(creator),{configured:true,destination:null});
+  const choices=await lookup(participant,'&includeDestinations=1');
+  assert.deepEqual(choices.destinations.map(item=>item.id),[first.eventId,other.eventId]);
+  assert.equal((await lookup(participant,`&includeDestinations=1&jamId=${other.eventId}`)).destination.id,other.eventId);
+  assert.equal((await getDesktopJamProjectResponse(request(`&jamId=${other.eventId}`),options(participant))).status,400);
+  assert.equal((await getDesktopJamProjectResponse(request('&includeDestinations=1&includeDestinations=1'),options(participant))).status,400);
+  assert.equal((await getDesktopJamProjectResponse(request(`&includeDestinations=1&jamId=${other.eventId}`),options(creator))).status,409);
   await service.mutate({actor:participant,id:first.eventId,operationId:'destination-leave',action:'leave'});
   const available=await lookup(participant);
   assert.deepEqual(available.destination,{id:other.eventId,title:'Second game jam',revision:other.revision,

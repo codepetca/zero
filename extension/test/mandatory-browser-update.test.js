@@ -44,7 +44,7 @@ async function fixture(t,{current=false,connected=false,onPrompt=async()=>undefi
    return {id:repositoryId,html_url:repository,owner:{id:1}};
   }},
   async gameJamRequest(url,options) {
-   assert.equal(url,'https://zero.codepet.ca/api/desktop/jams/project?repositoryId='+repositoryId);
+   assert.equal(url,'https://zero.codepet.ca/api/desktop/jams/project?repositoryId='+repositoryId+'&includeDestinations=1');
    assert.equal(options.headers.Authorization,'Bearer '+session.accessToken);
    return Response.json({configured:true,destination:null});
   }

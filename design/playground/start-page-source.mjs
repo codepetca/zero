@@ -20,7 +20,7 @@ export async function startPageSource(state = 'ready') {
   const phase = state === 'first-launch' ? 'signed-out' : state === 'busy' || state === 'jam-review' || publishing ? 'ready' : state;
   const accountId = ['signed-out','connect'].includes(phase) ? undefined : '123456';
   const jamReview = state==='jam-review' ? {
-    title:'Toast to the Moon',rules:'Build your own game in Zero. Use assets you made or have permission to share. Include instructions for other students to play.',
+    id:'jam-42',title:'Toast to the Moon',fullRules:'Build your own game in Zero. Use assets you made or have permission to share. Include instructions for other students to play.',
     registrationDeadline:'Nov 28, 2026, 5:00 PM EST',submissionDeadline:'Dec 2, 2026, 5:00 PM EST'
   } : undefined;
   const controller = startPage.createStartPage({
@@ -28,6 +28,7 @@ export async function startPageSource(state = 'ready') {
     window: {createWebviewPanel: () => panel},
     commands: {executeCommand() { throw new Error('Commands are unavailable in the design fixture'); }}
   }, {
+    updateRecovery: 'native',
     getState: () => ({phase, accountId, accountLabel: 'armorup', busy: state === 'busy' || Boolean(publishing?.publishProgress||publishing?.busy), status: publishing?.status || (state === 'busy' ? 'Fixture: creating a project…' : ''),jamReview,publishProgress:publishing?.publishProgress}),
     needsFirstRunChoice: () => state === 'first-launch',
     listOpenJams: async () => [{id:'jam-42',title:'Toast to the Moon',deadline:'Nov 28, 2026, 5:00 PM EST'}],
@@ -67,7 +68,7 @@ window.acquireVsCodeApi = () => ({postMessage(message) {
     fixtureState = {...fixtureState, revision:fixtureState.revision+1, state:{...fixtureState.state, jamReview:null}};
     queueMicrotask(() => window.dispatchEvent(new MessageEvent('message', {data:fixtureState})));
   }
-  const actions = {finishSetup:'Start building',recent:'Open recent project',jam:'Open Game Jam',refreshJams:'Refresh Game Jams',dismissGameJam:'Cancel joining'};
+  const actions = {finishSetup:'Start building',checkForUpdates:'Check for updates',recent:'Open recent project',jam:'Open Game Jam',refreshJams:'Refresh Game Jams',dismissGameJam:'Close Game Jam details'};
   const label = actions[message.type] || names[message.action] || 'Try again';
   document.getElementById('fixture-feedback').textContent = 'Fixture only: ' + label + ' selected. Nothing ran, signed in or changed.';
 }});

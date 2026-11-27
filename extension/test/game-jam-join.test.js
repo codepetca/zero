@@ -12,9 +12,9 @@ const JAM = {
   schedule:{registrationClosesAt:'2026-11-25T12:00:00Z',submissionsCloseAt:'2026-11-30T12:00:00Z'}
 };
 
-function fixture({choose='new',choices=[],events=[JAM],send,change,registration=null,hasRegistrationSpace=true,canManageProjects,submittedRepositoryId,openError,lookup}={}) {
+function fixture({choose='new',choices=[],events=[JAM],send,change,registration=null,hasRegistrationSpace=true,canManageProjects,submittedRepositoryId,leaveRevision,openError,lookup}={}) {
   const ticket = {session:{accountId:'123',accessToken:'ghu_test'}};
-  const calls = {picks:[],prompts:[],rules:[],writes:[],projectChanges:[],urls:[],status:[],open:[],newProject:0,existing:0,lookups:[]};
+  const calls = {picks:[],prompts:[],writes:[],projectChanges:[],leaves:[],urls:[],status:[],open:[],newProject:0,existing:0,lookups:[]};
   const saved = new Map();
   let chooseJam;
   const authentication = {
@@ -32,7 +32,6 @@ function fixture({choose='new',choices=[],events=[JAM],send,change,registration=
       async showWarningMessage(message,options,accept) {calls.prompts.push({message,options});return accept;}
     }},
     authentication,
-    openRules:async id=>calls.rules.push(id),
     projects:{async newProject({preparedTicket,onCloned}) {
       assert.equal(preparedTicket,ticket);
       calls.newProject++;
@@ -75,7 +74,13 @@ function fixture({choose='new',choices=[],events=[JAM],send,change,registration=
       }
       assert.equal(url,`https://zero.codepet.ca/api/desktop/jams/${id}/join`);
       if (options.method==='GET') return Response.json({configured:true,event:events.find(event=>event.id===id),registration,
-        hasRegistrationSpace,canManageProjects,projectRevision:'',submittedRepositoryId});
+        hasRegistrationSpace,canManageProjects,projectRevision:'',submittedRepositoryId,leaveRevision});
+      if(options.method==='DELETE') {
+        const body=JSON.parse(options.body),check=options.headers['X-Zero-Check-Project-Change']==='1';
+        calls.leaves.push({body,check});
+        if(change)await change(calls.leaves.length);
+        return Response.json({configured:true,eventId:id,operationId:body.operationId,status:'left',...(check?{settlement:'applied'}:{})});
+      }
       calls.urls.push(url);
       calls.writes.push(JSON.parse(options.body));
       return send ? send(calls.writes.length) : Response.json({configured:true,status:'joined',revision:calls.writes.at(-1).revision});
@@ -91,10 +96,10 @@ test('Join a Game Jam reviews the rules, defaults to New project and registers i
   const f = fixture({events:[{...JAM,id:'jam-40',type:'app'},{...JAM,id:'jam-41',registrationOpen:false},JAM]});
   await f.select();
   assert.deepEqual(f.calls.picks[0].map(item=>item.label),[JAM.title]);
-  assert.deepEqual(f.calls.rules,[JAM.id]);
   const preview=f.reviewDetails('123');
   assert.equal(preview.title,JAM.title);
-  assert.equal(preview.rules,JAM.rules);
+  assert.equal(preview.fullRules,JAM.rules);
+  assert.equal(preview.eligibility,JAM.eligibility);
   assert.match(preview.registrationDeadline, /25.*7:00/);
   assert.match(preview.submissionDeadline, /30.*7:00/);
   assert.equal(f.reviewDetails('999'),undefined);
@@ -142,7 +147,6 @@ test('a registered student can open the linked repository after registration clo
   assert.deepEqual(f.calls.picks[0].map(item=>item.label),[`Manage jam projects · ${JAM.title}`]);
   assert.equal(f.calls.newProject,0);
   assert.equal(f.calls.writes.length,0);
-  assert.deepEqual(f.calls.rules,[]);
   assert.deepEqual(f.calls.open,[{repositoryUrl:REPO,preferredPath:undefined}]);
   assert.match(f.calls.status[0],/already joined/);
 });
@@ -165,6 +169,21 @@ test('a projectless member can add a public project after the registration deadl
     [{method:'POST',repositoryId:'456',repositoryUrl:REPO}]);
   assert.equal(f.calls.writes.length,0);
   assert.match(f.calls.status.at(-1),/Added project/);
+});
+
+test('leaving reviews the effect and recovers the same request if the reply is lost',async()=>{
+  const f=fixture({choices:['jam','leave'],events:[{...JAM,participants:[{id:'123'}]}],
+    canManageProjects:true,leaveRevision:REVISION,registration:{status:'joined',repositories:[]},
+    change(count){if(count===1)throw Error('Connection lost');}});
+  await assert.rejects(f.run(),/could not confirm that you left/);
+  assert.match(f.calls.prompts[0].options.detail,/withdraws your entry/);
+  assert.match(f.calls.prompts[0].options.detail,/GitHub repositories stay available/);
+  await f.run();
+  assert.deepEqual(f.calls.leaves.map(call=>call.check),[false,true]);
+  assert.deepEqual(f.calls.leaves[0].body,f.calls.leaves[1].body);
+  assert.equal(f.calls.leaves[0].body.participationRevision,REVISION);
+  assert.match(f.calls.status.at(-1),/You left/);
+  assert.equal([...f.saved.values()].filter(Boolean).length,0);
 });
 
 test('an uncertain project change is recovered with the same operation before another project change',async()=>{
@@ -192,7 +211,6 @@ test('a student who left can rejoin with the same repository under its current n
   assert.equal(f.calls.newProject,0);
   assert.equal(f.calls.existing,1);
   assert.equal(f.calls.writes[0].repositoryUrl,REPO);
-  assert.deepEqual(f.calls.rules,[JAM.id]);
 });
 
 test('a student who left can create a project when the join response has no available binding',async()=>{
@@ -212,12 +230,10 @@ test('a newer approved revision reopens the rules before offering repository cho
   event.rules='Credit all assets.\n'+`${'Make your own work. '.repeat(14)}Ends with more detail.`;
   event.schedule={...event.schedule,submissionsCloseAt:'2026-12-02T12:00:00Z'};
   await f.continueJoin();
-  assert.deepEqual(f.calls.rules,[JAM.id,JAM.id]);
   assert.equal(f.calls.newProject,0);
   assert.equal(f.calls.writes.length,0);
   const preview=f.reviewDetails('123');
-  assert.match(preview.rules,/^Credit all assets\. Make your own work.*…$/);
-  assert.ok(preview.rules.length<=221);
+  assert.equal(preview.fullRules,event.rules);
   assert.notEqual(preview.submissionDeadline,originalDeadline);
   assert.match(f.calls.status.at(-1),/rules changed/);
   await f.continueJoin();

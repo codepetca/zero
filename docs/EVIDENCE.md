@@ -1,3 +1,36 @@
+# Game Jam student flow follow-up — 2026-11-27
+
+Local changes on `25678d134` remove Download Zero from Game Jam pages and
+carry the in-editor review, membership and project actions through both entry
+points. The authenticated leave action withdraws the reviewed entry while
+retaining repository history. Publishing selects an exact Jam and can safely
+check an earlier Pages run without submitting to a different Jam. A signed-in
+student can see their own submission receipt after the deadline. The page
+refreshes at scheduled boundaries, including gallery reveal.
+
+GPT-6.2 Astra and GPT-6.1 Sol at high reasoning independently reviewed the
+integrated implementation. Follow-up reviews confirmed corrections to Pages
+recovery, older website compatibility and gallery refresh. Final focused
+checks passed 312 tests with one skip. Website typecheck, `npm run check` and
+the disposable PostgreSQL Jam/Hub HTTP integration passed. The source-backed
+browser preview confirmed the returning member sees **Manage projects** on the
+linked Jam card. Native editor and live authenticated acceptance remain
+unverified. The website and editor changes are local.
+
+# Start Page update control — 2026-11-27
+
+The installed version row now includes a **Check for updates** text button on
+distributions with a native updater after first-time setup. The button uses the
+existing update command and is disabled while a Start Page action is pending.
+
+On base `25678d134`, 54 focused tests and `npm run check` passed. The Chromium
+preview verified the version row at 320px in light, dark and high contrast,
+visible Tab focus, Enter activation, and the busy and first-launch states.
+GPT-6.1 Terra at medium reasoning reviewed the local implementation diff and
+found no issues. The isolated macOS editor launched, but its inspection
+connection timed out. Installed-editor rendering and updater interaction remain
+untested on macOS and Windows.
+
 # Game Jam merge checks — 2026-11-26
 
 Existing checkout selection compares local Git history with the verified

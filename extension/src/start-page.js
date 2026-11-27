@@ -393,7 +393,9 @@ main{max-width:760px;margin:0 auto;padding:48px 28px}h2{font-size:1.15em;font-we
 p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#status,#error{overflow-wrap:anywhere}#error{color:var(--vscode-errorForeground)}[hidden]{display:none!important}ul{list-style:none;padding:0;margin:0}li{margin:4px 0}.recent{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-textLink-foreground);padding:8px 4px}.recent:hover{background:var(--vscode-list-hoverBackground)}.name,.path{display:block;overflow-wrap:anywhere}.path{font-size:.9em}.vscode-high-contrast button,.vscode-high-contrast-light button{border-color:var(--vscode-contrastBorder)}
 .start-intro{margin-bottom:24px}.start-title-row{display:flex;align-items:center;gap:8px}
 .start-intro h1{display:flex;align-items:center;gap:8px;font-size:2em;font-weight:600;margin:0}.start-intro .zero-mark{width:1em;height:1em;flex:none}
-.start-version{font-size:.9em;margin:0 0 4px}
+.start-version{display:flex;align-items:center;flex-wrap:wrap;gap:0 8px;font-size:.9em;margin:0 0 4px}
+button.start-update{min-height:24px;padding:2px 4px;border-color:transparent;background:transparent;color:var(--vscode-textLink-foreground,var(--vscode-foreground))}
+button.start-update:hover:not(:disabled){color:var(--vscode-textLink-activeForeground,var(--vscode-textLink-foreground,var(--vscode-foreground)));text-decoration:underline}
 #first-launch{margin-top:0}
 #first-launch a{color:var(--vscode-textLink-foreground)}
 #first-launch a:hover{color:var(--vscode-textLink-activeForeground)}
@@ -432,7 +434,10 @@ button.jam-close{flex:none;color:var(--vscode-foreground);font-size:1.5em;line-h
     <h1 id="start-title" tabindex="-1">${icon('Zero')}<span>Zero</span></h1>
     <button class="start-web" data-action="tutorials" aria-label="Zero Web" title="Zero Web" disabled>${icon('ExternalLink')}</button>
   </div>
-  <p class="muted start-version">${version}</p>
+  <p class="muted start-version">
+    <span>${version}</span>
+    <button type="button" id="check-for-updates" class="start-update" hidden>Check for updates</button>
+  </p>
   <div id="github-profile" class="github-profile" role="group" aria-label="Signed-in GitHub profile" hidden>${icon('CircleUserRound')}<span id="account"></span></div>
 </header>
 <section id="first-launch" aria-label="First-time setup" hidden>
@@ -464,11 +469,10 @@ button.jam-close{flex:none;color:var(--vscode-foreground);font-size:1.5em;line-h
 <section id="jam-review" aria-labelledby="jam-title" hidden>
   <div class="jam-review-heading">
     <h2 id="jam-title"></h2>
-    <button type="button" class="jam-close" id="dismiss-jam" aria-label="Cancel joining" title="Cancel joining"><span aria-hidden="true">×</span></button>
+    <button type="button" class="jam-close" id="dismiss-jam" aria-label="Close Game Jam details" title="Close Game Jam details"><span aria-hidden="true">×</span></button>
   </div>
   <p id="jam-link-status" class="muted" role="status" hidden></p>
   <p id="jam-deadlines" class="muted" hidden></p>
-  <p id="jam-rules" hidden><strong>Rules preview</strong><br><span id="jam-rules-text"></span></p>
   <details id="jam-full-rules" hidden><summary>Full rules and eligibility</summary><p id="jam-full-rules-text"></p><p id="jam-eligibility"></p></details>
   <p id="jam-privacy" class="muted"></p>
   <button class="primary" data-action="continueGameJam" disabled>Continue joining</button>
@@ -483,7 +487,6 @@ button.jam-close{flex:none;color:var(--vscode-foreground);font-size:1.5em;line-h
 </section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
 <p id="status" role="status" aria-live="polite"></p><div id="publishing-progress"></div><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
-<button id="check-for-updates" class="secondary" hidden>Check for updates</button>
 </div>
 </main><script nonce="${nonce}">
 (() => {
@@ -559,16 +562,19 @@ button.jam-close{flex:none;color:var(--vscode-foreground);font-size:1.5em;line-h
     byId('first-launch-error').textContent = state.choiceError;
     byId('first-launch-error').hidden = !state.choiceError;
     const signedIn = Boolean(state.accountId), ready = signedIn && state.phase === 'ready';
+    const link = state.linkedJam;
+    const jam = link ? link.details : state.jamReview;
+    const joined = signedIn && link && state.jams.some(item => item.id === link.id && item.joined);
     for (const button of buttons) {
       const action = button.dataset.action;
       button.disabled = state.busy || (['new','clone','joinGameJam'].includes(action) && !ready) || (['local','tutorials'].includes(action) && !signedIn);
       if (action === 'tutorials') button.hidden = state.firstLaunch;
       if (action === 'continueGameJam') {
-        const link = state.linkedJam;
         const canContinue = link?.details?.registrationOpen || link?.details?.projectsOpen;
         button.hidden = Boolean(link && !canContinue);
         button.disabled = state.busy || !ready || !(link ? canContinue : state.jamReview);
-        button.textContent = link?.details?.projectsOpen && !link.details.registrationOpen ? 'Continue to jam' : 'Continue joining';
+        button.textContent = joined ? 'Manage projects' : jam?.membership === 'left' ? 'Continue rejoining' :
+          link?.details?.projectsOpen && !link.details.registrationOpen ? 'Continue to jam' : 'Continue joining';
       }
       if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
       if (action === 'connect') button.hidden = state.phase !== 'connect';
@@ -586,28 +592,25 @@ button.jam-close{flex:none;color:var(--vscode-foreground);font-size:1.5em;line-h
     byId('guidance').hidden = !guidance;
     if (byId('guidance').textContent !== guidance) byId('guidance').textContent = guidance;
     byId('github-progress').hidden = state.phase !== 'checking';
-    const link = state.linkedJam;
-    const jam = link ? link.details : state.jamReview;
     const deadlines = [jam?.registrationDeadline && 'Register by ' + jam.registrationDeadline,
       jam?.submissionDeadline && 'Submit by ' + jam.submissionDeadline].filter(Boolean).join(' · ');
     byId('jam-title').textContent = jam?.title || (link ? 'Game Jam' : '');
     byId('jam-deadlines').textContent = deadlines;
     byId('jam-deadlines').hidden = !deadlines;
-    byId('jam-rules-text').textContent = jam?.rules || '';
-    byId('jam-rules').hidden = !jam?.rules || Boolean(link);
     const fullRules = byId('jam-full-rules');
-    if (link?.id !== linkedJamId) {fullRules.open = false;linkedJamId = link?.id;}
-    fullRules.hidden = !link?.details;
-    byId('jam-full-rules-text').textContent = link?.details?.fullRules || '';
-    byId('jam-eligibility').textContent = link?.details?.eligibility || '';
-    byId('jam-eligibility').hidden = !link?.details?.eligibility;
-    const linkStatus = !link ? '' : link.phase === 'loading' ? 'Opening Game Jam…' : link.phase === 'error' ? link.error :
+    const jamId = link?.id || jam?.id;
+    if (jamId !== linkedJamId) {fullRules.open = false;linkedJamId = jamId;}
+    fullRules.hidden = !jam;
+    byId('jam-full-rules-text').textContent = jam?.fullRules || '';
+    byId('jam-eligibility').textContent = jam?.eligibility || '';
+    byId('jam-eligibility').hidden = !jam?.eligibility;
+    const linkStatus = joined && jam ? 'You’re registered for this Game Jam.' : !link ? (jam?.membership === 'left' ? 'You previously left this Game Jam.' : '') : link.phase === 'loading' ? 'Opening Game Jam…' : link.phase === 'error' ? link.error :
       !jam.registrationOpen ? (jam.projectsOpen ? (state.phase === 'signed-out' ? 'Sign in to manage your projects if you’ve joined this jam.' : 'Already joined? Continue to manage your projects.') : 'Registration is closed.') : state.phase === 'signed-out' ? 'Sign in to Zero to join this Game Jam.' :
         !ready ? 'Finish GitHub setup to join this Game Jam.' : '';
     byId('jam-link-status').hidden = !linkStatus;
     if (byId('jam-link-status').textContent !== linkStatus) byId('jam-link-status').textContent = linkStatus;
-    byId('jam-privacy').hidden = !jam || Boolean(link && !jam.registrationOpen);
-    byId('jam-privacy').textContent = (link ? '' : 'Read the full rules in the browser. ') + 'Your GitHub username and entry links will be public.';
+    byId('jam-privacy').hidden = !jam || joined || Boolean(link && !jam.registrationOpen);
+    byId('jam-privacy').textContent = 'Your GitHub username and entry links will be public.';
     byId('retry-linked-jam').hidden = link?.phase !== 'error';
     byId('retry-linked-jam').disabled = state.busy;
     const jamCard = byId('jam-review');
@@ -645,7 +648,7 @@ button.jam-close{flex:none;color:var(--vscode-foreground);font-size:1.5em;line-h
     byId('error').textContent = state.error;
     byId('retry').hidden = !state.canRetry;
     byId('retry').disabled = state.busy;
-    byId('check-for-updates').hidden = !state.canCheckForUpdates;
+    byId('check-for-updates').hidden = state.firstLaunch || !state.canCheckForUpdates;
     byId('check-for-updates').disabled = state.busy;
     byId('recent-section').hidden = !signedIn;
     byId('recent-status').textContent = state.recentState === 'loading' ? 'Loading recent projects…' : state.recentState === 'error' ? 'Recent projects could not be loaded.' : state.recent.length ? '' : 'No recent projects yet.';
