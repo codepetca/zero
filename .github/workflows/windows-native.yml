@@ -12,7 +12,7 @@ permissions:
 jobs:
   portable-exact:
     runs-on: windows-2022
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -25,7 +25,12 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:PREPARATION_RUN -notmatch '^[0-9]+$') { throw 'Invalid run ID.' }
-          $run = gh api "repos/codepetca/zero/actions/runs/$env:PREPARATION_RUN" | ConvertFrom-Json
+          $deadline = (Get-Date).AddMinutes(20)
+          do {
+            $run = gh api "repos/codepetca/zero/actions/runs/$env:PREPARATION_RUN" | ConvertFrom-Json
+            if ($run.status -eq 'completed') { break }
+            Start-Sleep -Seconds 20
+          } while ((Get-Date) -lt $deadline)
           if ($run.path -ne '.github/workflows/release-review.yml' -or $run.event -ne 'workflow_dispatch' -or $run.conclusion -ne 'success' -or $run.head_sha -ne '29aa1dfb2b3387df86fc5c9b5aa8ce88ff7417e3') { throw "Unexpected preparation run $($run.head_sha), $($run.name), $($run.conclusion)." }
           gh run download $env:PREPARATION_RUN --repo codepetca/zero --name "zero-0.5.90-portable-bundled-$env:PREPARATION_RUN" --dir prepared
           if ($LASTEXITCODE -ne 0) { throw 'Artifact download failed.' }
