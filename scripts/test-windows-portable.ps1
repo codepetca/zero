@@ -239,7 +239,11 @@ try {
     Start-Sleep -Seconds 10
     Capture-Screen warm
     $toolChanges = @(Compare-Object $beforeTools @(Tool-Inventory))
-    if ($toolChanges.Count) { $report['toolChanges'] = @($toolChanges | ForEach-Object { $_.SideIndicator + ' ' + $_.InputObject }); throw 'Bundled tool inventory changed during trial.' }
+    if ($toolChanges.Count) {
+        $report['toolCacheAdditions'] = @($toolChanges | Where-Object { $_.SideIndicator -eq '=>' -and $_.InputObject -match '^vscodium\\resources\\app\\node-compile-cache\\' }).Count
+        $unexpected = @($toolChanges | Where-Object { -not ($_.SideIndicator -eq '=>' -and $_.InputObject -match '^vscodium\\resources\\app\\node-compile-cache\\') })
+        if ($unexpected.Count) { $report['toolChanges'] = @($unexpected | ForEach-Object { $_.SideIndicator + ' ' + $_.InputObject }); throw 'Bundled tool inventory changed during trial.' }
+    }
     $report.warm = 'passed'; $report.status = 'passed'; $stage = 'passed'
 } catch {
     $message = $_.Exception.Message
